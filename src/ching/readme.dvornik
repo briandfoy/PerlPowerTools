@@ -1,0 +1,13 @@
+Here's my version of ching(6), sligtly cleaned up from the old perl4
+one, and with documentation converted to in-line POD.  [Has anyone
+written man2pod yet? =)]
+
+The __DATA__ section of the script includes (verbatim) the hexagram
+text and ROFF macro files from BSD, and the copyright on them is
+unclear.  Did those exist in V7, and is the copyright any clea{r,n}er?
+I'd really like to avoid the Obnoxious Advertising Clause if possible,
+since I'm not sure I think it's reasonable for PPT code...
+
+--Albert Dvornik
+  <bert@genscan.com>
+

@@ -1,0 +1,93 @@
+
+PS(1)							    PS(1)
+
+NAME
+       ps - process status
+
+SYNOPSIS
+       ps [ aklx ] [ namelist ]
+
+DESCRIPTION
+       Ps  prints  certain indicia about active processes.  The a
+       option asks for information about all processes with  ter-
+       minals  (ordinarily  only  one's	 own  processes	 are dis-
+       played); x asks even about processes with no  terminal;	l
+       asks  for  a long listing.  The short listing contains the
+       process ID, tty letter, the cumulative execution	 time  of
+       the process and an approximation to the command line.
+
+       The long listing is columnar and contains
+
+       F      Flags  associated	 with  the process.  01: in core;
+	      02: system process; 04: locked in	 core  (e.g.  for
+	      physical	I/O); 10: being swapped; 20: being traced
+	      by another process.
+
+       S      The state	 of  the  process.   0:	 nonexistent;  S:
+	      sleeping;	 W: waiting; R: running; I: intermediate;
+	      Z: terminated; T: stopped.
+
+       UID    The user ID of the process owner.
+
+       PID    The process ID of the process; as in certain  cults
+	      it  is  possible	to kill a process if you know its
+	      true name.
+
+       PPID   The process ID of the parent process.
+
+       CPU    Processor utilization for scheduling.
+
+       PRI    The priority of the process; high numbers mean  low
+	      priority.
+
+       NICE   Used in priority computation.
+
+       ADDR   The core address of the process if resident, other-
+	      wise the disk address.
+
+       SZ     The size in blocks of the core image  of	the  pro-
+	      cess.
+
+       WCHAN  The  event  for  which  the  process  is waiting or
+	      sleeping; if blank, the process is running.
+
+       TTY    The controlling tty for the process.
+
+       TIME   The cumulative execution time for the process.
+
+			      PDP11				1
+
+PS(1)							    PS(1)
+
+       The command and its arguments.
+
+       A process that has exited and has a parent,  but	 has  not
+       yet been waited for by the parent is marked <defunct>.  Ps
+       makes an educated guess as to the file name and	arguments
+       given  when the process was created by examining core mem-
+       ory or the swap area.  The method is  inherently	 somewhat
+       unreliable  and	in  any	 event	a  process is entitled to
+       destroy this information, so the names cannot  be  counted
+       on too much.
+
+       If  the	k  option is specified, the file /usr/sys/core is
+       used in place of /dev/mem.  This is  used  for  postmortem
+       system  debugging.   If	a second argument is given, it is
+       taken to be the file containing the system's namelist.
+
+FILES
+       /unix	     system namelist
+       /dev/mem	     core memory
+       /usr/sys/core alternate core file
+       /dev	     searched to find swap device and tty names
+
+SEE ALSO
+       kill(1)
+
+BUGS
+       Things can change while ps  is  running;	 the  picture  it
+       gives is only a close approximation to reality.
+       Some data printed for defunct processes is irrelevant
+
+			      PDP11				2
+

@@ -1,0 +1,126 @@
+#!/usr/local/bin/perl -w
+# $Id: addbib.jsh,v 1.1 2004/07/23 20:09:59 cwest Exp $
+
+use strict;
+use Getopt::Std;
+use vars qw($opt_a $opt_p);
+
+$0 =~ s(.*/)();
+my $usage = "usage: $0 [ -a ] [ -p promptfile ] database\n";
+getopts "ap:" and @ARGV==1 or die $usage;
+
+my @prompts = (
+		"Author name:\t%A",
+		"Title:\t%T",
+		"Journal:\t%J",
+		"Volume:\t%V",
+		"Pages:\t%P",
+		"Publisher:\t%I",
+		"City:\t%C",
+		"Date:\t%D",
+		"Other:\t%O",
+		"Keywords:\t%K",
+);
+
+if ($opt_p) {
+	@prompts = ();
+	open PROMPTFILE, $opt_p or die "can't read $opt_p: $!";
+	foreach (<PROMPTFILE>) {
+		if (/^\s*([^%]+)\t(%\w)/) {
+			push @prompts, "$1\t$2";
+		}
+	}
+	close(PROMPTFILE);
+}
+
+my $database = shift;
+open DATABASE, ">>$database" or die "can't append to $database: $!";
+
+my $inst = <<_EOINST;
+	Addbib will prompt you for various bibliographic fields.
+	If you don't need a particular field, just hit RETURN,
+		and that field will not appear in the output file.
+	If you want to return to previous fields in the skeleton,
+		a single minus sign will go back a field at a time.
+		(This is the best way to input multiple authors.)
+	If you have to continue a field or add an unusual field,
+		a trailing backslash will allow a temporary escape.
+	Finally, (without -a) you will be prompted for an abstract.
+	Type in as many lines as you need, and end with a ctrl-d.
+	To quit, type `q' or `n' when asked if you want to continue.
+	To edit the database, type `edit', `vi', or `ex' instead.
+
+_EOINST
+
+print "Instructions? (n) ";
+$_ = <>;
+print "$inst" if /^y/i;
+
+# The use of an array instead of a hash looks hokey here
+# I did it to preserve order.
+
+while (1) {
+	print DATABASE "\n";		# start a new entry
+
+	PROMPT: for (my $i=0; $i < @prompts; $i++)  {
+		my ($prompt, $code) = split /\t/, $prompts[$i];
+		print "$prompt ";
+		$_ = <>;
+		next PROMPT if /^$/;	# blank line means "don't want it"
+		if (/^-$/) {		# go back to the last prompt
+			$i -= 2;
+			next PROMPT;
+		}
+		print DATABASE "$code\t";
+		while (/\\$/) {
+			chop; chop;
+			print DATABASE "$_\n";
+			print "> ";
+			$_ = <>;
+		}
+		print DATABASE $_;
+	}
+
+	unless ($opt_a) {
+		print "Abstract: ";
+		$_ = <>;
+		next if (/^$/);
+		print DATABASE "%X\t$_";
+		while (<>) {
+			print DATABASE $_;
+		}
+	}
+} continue {
+	print "Continue? (y) ";
+	$_ = <>;
+	while (/^\s*(edit|ex|vi|view|emacs)\s*/) {
+		close DATABASE or die "can't close $database: $!";
+		system("$1 $database") == 0
+		 or die "system '$1 $database' failed: $?";
+		open DATABASE, ">>$database" or die "can't open $database: $!";
+		print "Continue? (y) ";
+		$_ = <>;
+	}
+	last if /^(n|q)/i;
+}
+
+close DATABASE or die "can't close $database: $!";
+
+=head1 NAME
+
+addbib - create or extend a bibliographic database
+
+=head1 SYNOPSIS
+
+addbib [ -a ] [ -p promptfile ] database
+
+=head1 AUTHOR
+
+Jeffrey S. Haemer
+
+=head1 BUGS
+
+Needs a man page.  Duh.
+
+Also wants both testing and the other bib/refer utilities to go with it.
+Release early and often, that's my motto.

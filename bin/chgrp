@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: chgrp,v 1.1.1.1 2001/06/06 08:54:05 sdague Exp $
+# $Id: chgrp,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: chgrp,v $
-# Revision 1.1.1.1  2001/06/06 08:54:05  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:55:39  sdague
-# added initial import of PPT work
 #
 # Revision 1.1  1999/03/02 22:34:29  abigail
 # Initial revision
@@ -17,7 +14,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -178,11 +175,8 @@ I<chgrp> uses C<File::Find> to recurse.
 =head1 REVISION HISTORY
 
     $Log: chgrp,v $
-    Revision 1.1.1.1  2001/06/06 08:54:05  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:55:39  sdague
-    added initial import of PPT work
 
     Revision 1.1  1999/03/02 22:34:29  abigail
     Initial revision

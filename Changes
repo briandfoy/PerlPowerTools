@@ -1,0 +1,8 @@
+0.13    2004-07-23
+
+  - Casey West takes over management.
+  - grep/tcgrep - New revision by Paul Johnson
+  - sort/sort.pudge - New revision by Chris Nandor
+  - html/poem.html - Added, found in LWN archives, Casey West
+  - Tom's ambition was found in his mkidx script, exposed by Casey West
+  - Most recent known original ppt dist included, Casey West

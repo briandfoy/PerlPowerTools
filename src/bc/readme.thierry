@@ -1,0 +1,38 @@
+This is an incomplete version of bc. It's big (maybe too big for the
+mailing list ?), and it contains :
+
+- bc.pl : the program. Do not even think about reading it, it's
+  generated.
+
+- bc.pod : the documentation.
+
+- bc.y : the yacc source ; if you want to make changes in the program,
+  modify this file, and regenerate bc.pl with perl-byacc (I don't have
+  the URL here, but it can be found by searching into CPAN).
+
+The main limitation is that it has no arbitrary precision, which is
+rather annoying for an "arbitrary precision calculator language"...
+
+The reason is that Math::BigFloat didn't seem to provide all the
+features I needed, and I preferred to write something which works,
+before trying to find a solution. So it works with the Perl standard
+precision, which is sufficient most of the time.
+
+The "calculator" and "language" parts work. It passes the GNU tests
+that do not require arbitrary precision. There are operators,
+variables, statements, loops, user-defined functions, and more. Of
+course it's slow, and the error recovery should be better.
+
+I have one concern though : I implemented the math library (which is a
+bc program) by taking the one which is provided with the GNU bc
+distribution, and copying it into the main::DATA section of my
+program. Of course, it's GPL-ed. So what about the license of my code
+? I don't like this kind of question, but I suppose it's necessary to
+take a decision. I can remove the library (it's not very important) if
+people think it's better to have one single license for all of PPT.
+
+Of course, any bug report will be greatly appreciated. It's the first
+time i use yacc, so I'm sure there are plenty of bugs. Anyway, I like
+byacc.
+
+Thierry

@@ -1,0 +1,157 @@
+#!/usr/local/bin/perl -w
+
+#
+# $Id: demorse.abigail,v 1.1 2004/07/23 20:10:13 cwest Exp $
+#
+# $Log: demorse.abigail,v $
+# Revision 1.1  2004/07/23 20:10:13  cwest
+# initial import
+#
+# Revision 1.1  1999/03/06 03:58:58  abigail
+# Initial revision
+#
+#
+
+use strict;
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+my $warnings = 0;
+
+END {
+    close STDOUT || die "can't close stdout: $!\n";
+    $? = 1 if $? == 255;  # from die
+}
+
+# Print a usuage message on a unknown option.
+# Requires my patch to Getopt::Std of 25 Feb 1999.
+$SIG {__WARN__} = sub {
+    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    $warnings = 1;
+    warn "$0: @_";
+};
+
+$SIG {__DIE__} = sub {
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    if (substr ($_ [0], 0,  5) eq "Usage") {
+        die <<EOF;
+$0 (Perl game utils) $VERSION
+$0 [files ...]
+EOF
+    }
+    die "$0: @_";
+};
+
+if (@ARGV && $ARGV [0] =~ /^-(?=.)/ && ! -f $ARGV [0]) {
+    die "Usage";
+}
+
+my %translations = reverse (
+     0   => '-----',   1   => '.----',   2   => '..---',   3   => '...--',
+     4   => '....-',   5   => '.....',   6   => '-....',   7   => '--...',
+     8   => '---..',   9   => '----.',   a   => '.-',      b   => '-...',
+     c   => '-.-.',    d   => '-..',     e   => '.',       f   => '..-.',
+     g   => '--.',     h   => '....',    i   => '..',      j   => '.---',
+     k   => '-.-',     l   => '.-..',    m   => '--',      n   => '-.',
+     o   => '---',     p   => '.--.',    q   => '--.-',    r   => '.-.',
+     s   => '...',     t   => '-',       u   => '..-',     v   => '...-',
+     w   => '.--',     x   => '-..-',    y   => '-.--',    z   => '--..',
+
+    # These aren't in the BSD source code...
+    '.'  => '.-.-.-', ','  => '--..--', ':'  => '---...', '?'  => '..--..',
+    "'"  => '.----.', '-'  => '-....-', '/'  => '-..-.',  '('  => '-.--.-',
+    ')'  => '-.--.-', '"'  => '.-..-.', ' '  => '-...-'
+);
+
+unshift @ARGV => "-" unless @ARGV;
+
+foreach my $file (@ARGV) {
+    local *FILE;
+    open FILE, $file or die "$file: $!\n";
+    while (<FILE>) {
+        my $line;
+        s/^\s+//;                       # Leading space.
+        s/dit ?/./g; s/daw ?/-/g;       # Long to short.
+        while (/,\n/ && defined ($line = <FILE>)) {
+            $line =~ s/^\s+//;          # Leading space.
+            $line =~ s/dit ?/./g;       # Long to short.
+            $line =~ s/daw ?/-/g;       # Long to short.
+            s/,\n/ $line/;              # Combine lines.
+        }
+        my $comma = s/,$//;             # Trailing comma.
+        s/([-.]+) ?/exists $translations{$1} ?
+                           $translations{$1} : die "$1: unknown token"/ge;
+        print;
+        last if $comma;
+    }
+    close FILE or die "$file: $!\n";
+}
+    
+exit $warnings;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+demorse -- read morse and translate it to text
+
+=head1 SYNOPSIS
+
+demorse [files ...]
+
+=head1 DESCRIPTION
+
+I<demorse> reads morse from files, (or from standard input if no files
+are given), and translates it back to text. Morse can be given in either
+short (-- --- .-. ... .) or long form (daw daw, daw daw daw, dit daw dit,
+dit dit dit). In the short form, letters are separated by spaces, and
+words by 2 spaces (or the morse symbol for space). In the long form,
+letters are separated by 2 spaces, and words by 3. As a special features,
+I<demorse> parses the output of I<morse(6)>, which writes each letter
+on a comma terminated line.
+
+Short and long form can be mixed, as well as I<morse(6)> format and
+space separated letters.
+
+Any characters that can't be interpreted as part of the morse 
+sequence is copied untouched. The program will die when encountering
+a series of dots and dashes that it cannot translate.
+
+=head1 ENVIRONMENT
+
+The working of I<morse> is not influenced by any environment variables.
+
+=head1 BUGS
+
+I<morse> will report an unknown sequence of dots and dashes in short
+form, even if the input was given in dits and daws.
+
+=head1 REVISION HISTORY
+
+    $Log: demorse.abigail,v $
+    Revision 1.1  2004/07/23 20:10:13  cwest
+    initial import
+
+    Revision 1.1  1999/03/06 03:58:58  abigail
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of I<demorse> was written by Abigail,
+I<abigail@fnx.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Abigail 1999.
+
+This program is free and open software. You may use, copy, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut
+

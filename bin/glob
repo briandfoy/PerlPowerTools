@@ -1,0 +1,469 @@
+package FastGlob;
+use 5.005;
+use strict;
+
+=head1 NAME
+
+glob - 100% Perl implementation of (t)csh "globbing"
+
+=head1 SYNOPSIS
+
+On the command-line:
+
+    glob 'eenie{meenie,mynie,moe}*.[ch]'
+
+As a Perl function:
+
+    use FastGlob qw(glob);
+    @list = &glob('eenie{meenie,mynie,moe}*.[ch]');
+
+=head1 DESCRIPTION
+
+The B<glob> command/function implements globbing in perl, rather than
+forking a csh like Perl's built-in glob() call.  This is faster than
+the built-in glob() call, and more robust (on many platforms, csh
+chokes on C<echo *> if too many files are in the directory.) 
+
+=head2 Pattern Matching Syntax for Filename Expansion
+
+The expressions that are passed as arguments to B<glob> must adhere to
+csh/tcsh pattern-matching syntax for wildcard filename expansion (also
+known as I<globbing>). Unquoted words containing an asterisk (*),
+question-mark (?), square-brackets ([...]), or curly-braces ({...}), or
+beginning with a tilde (~), are expanded into an alphabetically sorted
+list of filenames, as follows:
+
+=over 5
+
+=item C<*>
+
+Match any (zero or more) characters.
+
+=item C<?>
+
+Match any single character.
+
+=item [...]
+
+Match any single character in the given character class. The character
+class is the enclosed list(s) or range(s). A list is a string of
+characters. A range is two characters separated by a dash (-), and
+includes all the characters in between the two characters given
+(inclusive). If a dash (-) is intended to be part of the character class
+it must be the first character given.
+
+=item {str1,str2,...}
+
+Expand the given "word-set" to each string (or filename-matching
+pattern) in the comma-separated list. Unlike the pattern-matching
+expressions above, the expansion of this construct is not sorted. For
+instance, C<{foo,bar}> expands to C<foo bar> (not C<bar foo>). As
+special cases, unmatched { and }, and the "empty set" (the string
+{}) are treated as ordinary characters instead of pattern-matching
+meta-characters. A backslash (\) may be used to escape an opening or
+closing curly brace, or the backslash character itself. Note that
+word-sets I<may> be nested!
+
+=item C<~>
+
+The home directory of the invoking user as indicated by the value of
+the variable C<$HOME>.
+
+=item ~username
+
+The home directory of the user whose login name is 'username',
+as indicated by the password entry for the named user.
+
+=back
+
+Only the patterns *, ? and [...] imply pattern matching; an error
+results if no filename matches a pattern that contains them. When
+a period or "dot" (.) is the first character in a filename or
+pathname component, it must be matched explicitly. The filename
+component separator character (e.g., / or slash) must also
+be matched explicitly.
+
+=head1 OPTIONS
+
+When invoking B<glob> as a script from the command-line, if the very
+first argument is B<-0> (a minus sign followed by the number zero),
+then a NUL character ("\0") is used to separate the expanded words
+and/or filenames when printing them to standard output. Otherwise a
+newline is used as the word/filename output separator.
+
+When invoking B<glob> as a function from the C<FastGlob> module, There
+are several module-local variables that can be set for alternate
+environments, they are listed below with their (UNIX-ish) defaults.
+
+        $FastGlob::dirsep = '/';        # directory path separator
+        $FastGlob::rootpat = '\A\Z';    # root directory prefix pattern
+        $FastGlob::curdir = '.';        # name of current directory in dir
+        $FastGlob::parentdir = '..';    # name of parent directory in dir
+        $FastGlob::hidedotfiles = 1;    # hide filenames starting with .
+
+So for MS-DOS for example, you could set these to:
+
+        $FastGlob::dirsep = '\\';       # directory path separator
+        $FastGlob::rootpat = '[A-Z]:';  # <Drive letter><colon> pattern
+        $FastGlob::curdir = '.';        # name of current directory in dir
+        $FastGlob::parentdir = '..';    # name of parent directory in dir
+
+        $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
+
+And for MacOS to:
+
+        $FastGlob::dirsep = ':';        # directory path separator
+        $FastGlob::rootpat = '\A\Z';    # root directory prefix pattern
+        $FastGlob::curdir = '.';        # name of current directory in dir
+        $FastGlob::parentdir = '..';    # name of parent directory in dir
+        $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
+
+Furthermore, after a call to B<glob>, the variable C<$FastGlob::matched>
+will indicate the number of valid filenames that were matched, and
+the array C<@FastGlob::errors> well contain a (possibly empty) list of
+error messages.
+
+=head1 RETURNS
+
+When B<glob> is invoked as a script from the command-line, the exit-status
+returned will be 0 if any files were matched or word-sets were expanded;
+1 if no files/word-sets were matched/expanded; and 2 if some other kind of
+error occurred.
+
+When B<glob> is invoked as a function from the C<FastGlob> module, the
+return value will be an array of matching filenames and expanded word-sets.
+
+=head1 DIAGNOSTICS
+
+If no filenames are matched and pattern-matching characters were used
+(*, ?, or [...]), then an error message of "No Match" is issued. If a
+user's home directory is specified using tilde-expansion (e.g., ~username)
+but the corresponding username or their home directory cannot be found,
+then the error message "Unknown user: username" is issued.
+
+NOTE that when B<glob> is invoked as a script from the command-line
+then error messages are issued by printing them to standard diagnostic
+output (STDERR); When B<glob> is invoked as a function from the
+C<FastGlob> module, then error messages are issued by storing in the
+C<@FastGlob::errors> array.
+
+=head1 COPYRIGHT
+
+Copyright (c) 1997-1999 Marc Mengel. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Marc Mengel E<lt>F<mengel@fnal.gov>E<gt>
+
+=head1 REVISIONS
+
+=over 4
+
+=item Brad Appleton E<lt>F<bradapp@enteract.com>E<gt> -- v1.2 March 1999
+
+Modified to use qr// (and some other minor speedups), to explode
+subexpressions in curly braces (a la csh -- rather than using just
+plain alternation), and made callable as a standalone script.
+
+=back
+
+=cut
+
+use Exporter ();
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+
+$VERSION = 1.2_05;
+@ISA = qw(Exporter);
+@EXPORT = qw(&glob);
+@EXPORT_OK = qw(dirsep rootpat curdir parentidr hidedotfiles);
+
+# platform specifics
+
+use vars qw($dirsep $rootpat $curdir $parentdir $hidedotfiles $nested);
+use vars qw($verbose $matched @errors);
+
+$dirsep = '/';
+$rootpat= '\A\Z';
+$curdir = '.';
+$parentdir = '..';
+$hidedotfiles = 1;
+$nested = 1;
+$verbose = $ENV{'DEBUG_FASTGLOB'} || 0;
+$matched = 0;
+@errors = ();
+
+#
+# recursively wildcard expand a list of strings
+#
+
+sub match_glob($) {
+    local $_ = shift;
+    my $glob_expr = $_;
+
+    $matched = 0;
+    @errors  = ();
+
+    # check for and do  tilde expansion
+    if ( /^\~([^${dirsep}]*)/ ) {
+        my $usr = $1;
+        my $usrdir = (length $usr)
+                       ? (getpwnam($usr))[7]
+                       : (defined $ENV{HOME} ? $ENV{HOME}
+                                             : (getpwuid($<))[7]);
+        $usrdir && s/^\~\Q$usr\E/$usrdir/ && $usr
+            or push @errors, "Unknown user: $usr";
+    }
+
+    # If there's no wildcards, just return it
+    return $_  unless /(?:^|[^\\])[*?\[\]{}]/;
+
+    # Make the glob into a regexp
+    # escape + , and | 
+    s/([+.|])/\\$1/g;
+
+    # handle * and ?
+    s/(\A|[^\\])(\*)|\?/$1\.$2/g;
+
+    # deal with {xxx,yyy,zzz} -> (?:xxx|yyy|zzz)
+    do {
+        s/\{([^{}]+)\}/'(?:' . join('|', split(',',$1)) . ')'/ge;
+    } while ( $nested and /\{([^{}]+)\}/ );
+
+    # deal with dot files
+    if ( $hidedotfiles ) {
+        s/(\A|$dirsep)\.\*/$1(?:[^.].*)?/go;
+        s/(\A|$dirsep)\./$1\[\^.\]?/go;
+    }
+
+    # debugging
+    print "regexp is $_\n" if ($verbose);
+
+    # now split it into directory components
+    my @comps = split($dirsep);
+    my @res = ();
+
+    if ( $comps[0] =~ /($rootpat)/ ) {
+        shift(@comps);
+        @res = &recurseglob( "$1$dirsep", "$1$dirsep" , @comps );
+    }
+    else {
+        @res = &recurseglob( $curdir, '' , @comps );
+    }
+
+    $matched = @res;
+    return sort(@res);
+}
+
+sub recurseglob($ $ @) {
+    my($dir, $dirname, @comps) = @_;
+    my(@res) = ();
+    my($re, $anyfound, @names);
+
+    if ( @comps == 0 ) {
+        # bottom of recursion, just return the path 
+        chop($dirname);  # always has gratuitous trailing slash
+        @res = ($dirname);
+    } else {
+        $re = '\A' . shift(@comps) . '\Z';
+
+        # slurp in the directory
+        opendir(HANDLE, $dir)  or  return @res;
+        @names = readdir(HANDLE);
+        closedir(HANDLE);
+
+        # look for found, and if you find one, glob the rest of the
+        # components. We eval the loop so the regexp gets compiled in,
+        # making searches on large directories faster.
+        $anyfound = 0;
+        print "component re is qr($re)\n" if ($verbose);
+        my $regex = qr($re);
+        foreach (@names) {
+            if ( m{$regex} ) {
+                if ( $_ ne "$curdir" and $_ ne "$parentdir") {
+                    unshift(@res, &recurseglob( "$dir$dirsep$_", 
+                                                "$dirname$_$dirsep",
+                                                @comps ));
+                }
+                elsif ( @comps == 0 ) {
+                    unshift(@res, "$dirname$_" );
+                }
+                $anyfound = 1;
+            }
+        }
+    }
+    return @res;
+}
+
+#
+# Need to escape & unescape special [\{}] sequences
+#
+my @escapes = ( '\\\\' => "\001",
+                '\{'   => "\002",
+                '\}'   => "\003",
+                '{}'   => "\004"
+              );
+my %map_esc = @escapes;
+sub escape_glob($) {
+    local $_ = shift;
+    s/( \\\\ | \\{ | \\} | \{\} )/$map_esc{$1}/gex; 
+    $_;
+}
+my %unmap_esc = map { m/^\\(.*)$/ ? $1 : $_ } (reverse @escapes);
+sub unescape_glob($) {
+    local $_ = shift;
+    s/([\001-\004])/$unmap_esc{$1}/ge;
+    $_;
+}
+
+#
+# explode_glob()
+#    takes a string-expression using csh-glob alternation
+#    with '{','}' and explodes it into the corresponding list.
+#    So, for example, explode("ab{c,d}ef{g,h}ij") would be the
+#    resulting list: qw(abcefgij abdefgij abcefhij abdefhij)
+#
+sub explode_glob($) {
+    local $_ = shift;
+
+    # Escape special characters and sequences
+    $_ = &escape_glob($_);
+
+    # Recursively handle nested '{}' sub-globs
+    while ( $nested and
+        s< (
+             \{                ## initial outer brace
+             (?:
+               [^{,}]*,        ## 0 or more comma-separated items
+             )*
+           )
+           (
+             (?:
+               [^{,}]*         ## sub-glob prefix
+               \{ [^{}*]+ \}   ## nested/interior sub-glob
+               [^{,}]*         ## sub-glob
+             )+
+           )
+         >
+         <
+           my $pre = $1;       ## save $1 cuz recursion will clobber it
+           $pre . join(",", explode_glob($2))
+         >gex
+    ) { $_ = escape_glob($_); }    ## need to re-escape from recursion
+
+    # Map this string into a list of substrings and array-refs
+    # E.g.: "ab{c,d}ef{g,h}ij" ==> (ab, [c,d], ef, [g,h], ij)
+    my @elements = map { m/^\{ ([^{}]+) \}$/x ? [split ",", $1] : $_ }
+                       (split /(\{[^{}]+\})/ );
+
+    # Unescape special characters and sequences
+    for (@elements) {
+       $_ = &unescape_glob($_) for ( ref($_) ? @$_ : ($_) );
+    }
+
+    # Return the result now if there is only one element
+    return @elements unless (@elements > 1);
+
+    # Exploding this list by keeping a list of the set of possible
+    # alternatives expanded thus far, and appending to the set every
+    # time a list-ref introduces a new set of alternatives.
+    my @exploded = ("");
+    my ($elem, $i);
+    for $elem (reverse @elements) {
+        # If this is a string, just append this element to each "alternative"
+        (ref $elem)  or  $_ = $elem.$_ for (@exploded);
+        next unless (ref($elem) eq 'ARRAY' and @$elem);
+
+        # We have a list of "alternatives", so make a copy of the current
+        # set so far because we'll need to keep appending to copies of it
+        # for each new alternative "path"
+        my @cp = @exploded;
+
+        # Append the first item in the list to each existing alternative
+        $_ = $elem->[0].$_  for (@exploded);
+        # Append subsequent items in the list to copy of alternatives,
+        # and then add that result to the list of alternatives
+        for $i (1 .. $#{$elem}) {
+            push @exploded, (map { $elem->[$i].$_ } @cp);
+        }
+    }
+    @exploded;
+}
+
+#
+# glob()
+#    explode a glob into words and match it against filenames
+#
+sub glob($) {
+    local $_ = shift;
+    my @globbed = ();
+    my @errmsgs = ();
+    my $matches = 0;
+    for (explode_glob $_) {
+        my @found = &match_glob($_);
+        $matches += $matched;
+        unless (!$matched  and  /(?:^|[^\\])[*?\[\]]/) {
+            push @globbed, (@found ? @found : $_);
+        }
+        push @errmsgs, @errors  if (@errors);
+    }
+    $matched = $matches;
+    @errors  = @errmsgs;
+    @globbed;
+}
+
+sub globtest(;$) {
+        my $fh = shift || \*ARGV;
+        my(@t0, @t1, $udiffm, $sdiffm, $udiffg, $sdiffg, @list);
+        local($,);
+
+        $, = " ";
+        while (<$fh>) {
+                chomp;
+
+                @t0 = times();
+                @list =  &glob($_);
+                @t1 = times();
+                $udiffm = ($t1[0] + $t1[2]) - ($t0[0] + $t0[2]);
+                $sdiffm = ($t1[1] + $t1[3]) - ($t0[1] + $t0[3]);
+                print "@list\n";
+
+                @t0 = times();
+                @list =  glob($_);
+                @t1 = times();
+                $udiffg = ($t1[0] + $t1[2]) - ($t0[0] + $t0[2]);
+                $sdiffg = ($t1[1] + $t1[3]) - ($t0[1] + $t0[3]);
+                print "@list\n";
+
+                print "mine: [${udiffm}u\t${sdiffm}s]\n";
+                print "glob: [${udiffg}u\t${sdiffg}s]\n";
+        }
+}
+
+#
+# If we are a script then return glob with each cmdline-arg
+#
+unless (caller) {
+    my $opt_0 = ($ARGV[0] eq '-0') ? defined(shift) : 0;
+    my @globbed = ();
+    my @errmsgs = ();
+    my $matches = 0;
+    for (@ARGV) {
+        push @globbed, &glob($_);
+        push @errmsgs, @errors  if (@errors);
+    }
+    $\ = $opt_0 ? "\0" : "\n";
+    print for (@globbed);
+    
+    # Exit with status 0 if we matched any files; 1 if we didn't,
+    # and 2 if we had an internal error (bad ~user or directory) 
+    warn "No match.\n" unless (@globbed);
+    @errmsgs  and  die join("\n", @errmsgs)."\n";
+    exit(@globbed ? 0 : 1);
+}
+
+1;
+__END__
+

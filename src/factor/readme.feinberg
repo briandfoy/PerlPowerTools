@@ -1,0 +1,15 @@
+Enclosed are the factor(6) utility, the primes(6) utility, and an
+auxilliary script that generates the table of primes that both scripts
+use.  The auxilliary script modifies the other scripts in place.  If
+someone is willing to direct me to the section of MakeMaker docs that
+will help me automate this, I'll be glad to do it. Mine eyes glaze
+over.
+
+  $ mkdir primes
+  $ cd primes
+  $ tar zxvf /path/to/ppt-primes.tgz
+  $ perl gen_primes
+
+-- 
+Jonathan Feinberg jdf@pobox.com Sunny Brooklyn, NY
+http://pobox.com/~jdf

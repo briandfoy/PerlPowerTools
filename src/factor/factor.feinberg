@@ -1,0 +1,148 @@
+#!/usr/bin/perl -w
+# factor - factor a number
+# Written for the PPT initiative by Jonathan Feinberg.
+# The algorithm was slightly modified by Benjamin Tilly.
+# See docs for license.
+use strict;
+$|++;
+my @primes = (2, 3, 5, 7, 11);          # None have been tested
+my @next_primes = ();                   # Avoid redoing work
+
+
+my $VERSION = '1.001';
+
+END {
+  close STDOUT || die "$0: can't close stdout: $!\n";
+  $? = 1 if $? == 255;  # from die
+}
+
+if (@ARGV) {
+  for (@ARGV) { factor($_) }
+}
+else {
+  while (<>) {
+    chomp;
+    if (/^\s*(\S+)/) {
+      factor($1);
+    }
+  }
+}
+
+exit 0;
+
+sub factor {
+  my $n = shift;
+  unless ($n =~ /^\+?\d{1,10}$/ && $n <=  2**32 - 1) {
+    warn "$0: `$_' is not a valid positive integer\n";
+    return;
+  }
+  exit 0 if $n == 0;
+  print "$n:";
+  if ($n == 1) { print "1\n"; return }
+  # Start with existing list
+  foreach my $prime (@primes) {
+    while ($n % $prime == 0) {
+      print " $prime";
+      $n /= $prime;
+    }
+  }
+  while ($primes[-1] * $primes[-1] < $n) {
+    &more_primes(int($n**0.5));
+    last unless scalar @next_primes;    # Avoid the chance of an endless loop
+    foreach my $prime (@next_primes) {
+      while ($n % $prime == 0) {
+        print " $prime";
+        $n /= $prime;
+      }
+      last if $n < $prime * $prime;
+    }
+    push @primes, @next_primes;
+  }
+  if ($n > 1) { print " $n" }
+  print "\n";
+}
+
+sub more_primes {
+  # This adds to the list of primes until it reaches $max
+  #      or the square of the largest current prime (assumed odd)
+  my $max = shift||32000;
+  my $square = $primes[-1] * $primes[-1];
+  $max = $square if $square < $max;     # Determine what to find primes to
+  my $base = $primes[-1] + 2;           # First possible prime
+  $base++ unless $base % 2;             # Make the base odd
+  $max-- if $max %2;                    # Make the max odd
+  $max = ($max - $base)/2;              # Make $max into a count of odds
+  return @next_primes = () if $max < 0; # Sanity check
+  my @more = map {0} 0..$max;           # Initialize array of 0's for the
+                                        # odd numbers in our range
+  shift @primes;                        # Remove 2
+  foreach my $p (@primes) {
+    my $start;
+    if ($base < $p * $p) {
+      $start = ($p * $p - $base)/2;     # Start at the square
+      if ($max < $start) {              # Rest of primes don't matter!
+          last;
+      }
+    }
+    else {                              # Start at first odd it divides
+      $start = $base % $p;              # Find remainder
+      $start = $p - $start if $start;   # Distance to first thing it divides
+      $start += $p if $start %2;        # Distance to first odd it divides
+      $start = $start/2;                # Reindex for counting over odd!
+    }
+    for (my $i = $start; $i <= $max; $i += $p) {
+      $more[$i] = 1;
+    }
+  }
+  unshift @primes, 2;                   # Replace 2
+  # Read off list of primes
+  @next_primes = map {$_ + $_ + $base} grep {$more[$_] == 0} 0..$max;
+}
+
+
+__END__
+
+=head1 NAME
+
+B<factor> - factor a number
+
+=head1 SYNOPSIS
+
+B<factor> [I<number ...>]
+
+=head1 DESCRIPTION
+
+The factor utility will factor positive integers less than or equal to
+C<2^32 - 1>.  When a number is factored, it is printed, followed by a
+``:'', and the list of factors on a single line.  Factors are listed
+in ascending order, and are preceded by a space.  If a factor divides
+a value more than once, it will be printed more than once.
+
+When factor is invoked with one or more arguments, each argument will be
+factored.
+
+When factor is invoked with no arguments, factor reads numbers, one
+per line, from standard input, until end of file or error.  Leading
+white-space and empty lines are ignored.  Numbers may be preceded by a
+single C<-> or C<+>.  Numbers are terminated by a non-digit character
+(such as a new-line).  After a number is read, it is factored.
+
+=head1 BUGS
+
+I<factor> has no known bugs.  This documentation corrects a bug in the
+BSD implementation of I<factor>, which incorrectly states that
+I<factor> will accept negative integers.
+
+=head1 AUTHOR
+
+The Perl implementation of I<factor> was originally written by Jonathan
+Feinberg, I<jdf@pobox.com> and modified by Benjamin Tilly,
+I<ben.tilly@alumni.dartmouth.org>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright (c) Jonathan Feinberg and Benjamin Tilly (1999).
+
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.

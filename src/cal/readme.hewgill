@@ -1,0 +1,10 @@
+Greetings,
+
+Here is an implementation of 'cal'. It could be a bit more efficient, and
+it could be more perl-ish, but it should be a faithful reproduction of
+cal. It handles Sep 1752 correctly, handles pre-Gregorian leap years,
+and has a julian date output format.
+
+Please let me know if you find any bugs in this implementation.
+
+Greg Hewgill

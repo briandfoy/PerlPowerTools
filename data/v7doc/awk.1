@@ -1,0 +1,169 @@
+
+AWK(1)							   AWK(1)
+
+NAME
+       awk - pattern scanning and processing language
+
+SYNOPSIS
+       awk [ -Fc ] [ prog ] [ file ] ...
+
+DESCRIPTION
+       Awk  scans  each	 input file for lines that match any of a
+       set of patterns specified in prog.  With each  pattern  in
+       prog  there  can be an associated action that will be per-
+       formed when a line of a file matches the pattern.  The set
+       of  patterns  may  appear  literally as prog, or in a file
+       specified as -f file.
+
+       Files are read in order; if there are no files, the  stan-
+       dard  input is read.  The file name `-' means the standard
+       input.  Each line is matched against the	 pattern  portion
+       of  every  pattern-action statement; the associated action
+       is performed for each matched pattern.
+
+       An input line is made up	 of  fields  separated	by  white
+       space.	(This  default	can  be changed by using FS, vide
+       infra.)	The fields are denoted $1, $2, ... ; $0 refers to
+       the entire line.
+
+       A pattern-action statement has the form
+
+	    pattern { action }
+
+       A  missing { action } means print the line; a missing pat-
+       tern always matches.
+
+       An action is a sequence of statements.  A statement can be
+       one of the following:
+
+	    if ( conditional ) statement [ else statement ]
+	    while ( conditional ) statement
+	    for ( expression ; conditional ; expression ) statement
+	    break
+	    continue
+	    { [ statement ] ... }
+	    variable = expression
+	    print [ expression-list ] [ >expression ]
+	    printf format [ , expression-list ] [ >expression ]
+	    next # skip remaining patterns on this input line
+	    exit # skip the rest of the input
+
+       Statements are terminated by semicolons, newlines or right
+       braces.	An empty expression-list  stands  for  the  whole
+       line.   Expressions  take  on  string or numeric values as
+       appropriate, and are built using the operators +, -, *, /,
+       %,  and concatenation (indicated by a blank).  The C oper-
+       ators ++, --, +=, -=, *=, /=, and %= are also available in
+
+								1
+
+AWK(1)							   AWK(1)
+
+       expressions.   Variables	 may  be  scalars, array elements
+       (denoted x[i]) or fields.  Variables  are  initialized  to
+       the  null string.  Array subscripts may be any string, not
+       necessarily numeric; this allows for a form of associative
+       memory.	String constants are quoted "...".
+
+       The  print  statement prints its arguments on the standard
+       output (or on a file if >file is	 present),  separated  by
+       the  current output field separator, and terminated by the
+       output record separator.	 The printf statement formats its
+       expression list according to the format (see printf(3)).
+
+       The  built-in  function	length	returns the length of its
+       argument taken as a string, or of the  whole  line  if  no
+       argument.   There  are  also  built-in functions exp, log,
+       sqrt, and int.  The last	 truncates  its	 argument  to  an
+       integer.	  substr(s, m, n)  returns  the	 n-character sub-
+       string of s that	 begins	 at  position  m.   The	 function
+       sprintf(fmt, expr, expr, ...)	formats	 the  expressions
+       according to the printf(3) format given by fmt and returns
+       the resulting string.
+
+       Patterns	 are  arbitrary	 Boolean combinations (!, ||, &&,
+       and parentheses) of  regular  expressions  and  relational
+       expressions.   Regular  expressions  must be surrounded by
+       slashes and are as in egrep.  Isolated regular expressions
+       in  a  pattern  apply to the entire line.  Regular expres-
+       sions may also occur in relational expressions.
+
+       A pattern may consist  of  two  patterns	 separated  by	a
+       comma; in this case, the action is performed for all lines
+       between an occurrence of the first pattern  and	the  next
+       occurrence of the second.
+
+       A relational expression is one of the following:
+
+	    expression matchop regular-expression
+	    expression relop expression
+
+       where a relop is any of the six relational operators in C,
+       and a matchop is either ~ (for contains) or !~  (for  does
+       not  contain).  A conditional is an arithmetic expression,
+       a relational  expression,  or  a	 Boolean  combination  of
+       these.
+
+       The  special patterns BEGIN and END may be used to capture
+       control before the first input line is read and after  the
+       last.  BEGIN must be the first pattern, END the last.
+
+       A single character c may be used to separate the fields by
+       starting the program with
+
+	    BEGIN { FS = "c" }
+
+								2
+
+AWK(1)							   AWK(1)
+
+       or by using the -Fc option.
+
+       Other variable names with special meanings include NF, the
+       number  of  fields  in the current record; NR, the ordinal
+       number of the current record; FILENAME, the  name  of  the
+       current	input  file;  OFS,  the	 output	 field	separator
+       (default blank); ORS, the output record separator (default
+       newline); and OFMT, the output format for numbers (default
+       "%.6g").
+
+EXAMPLES
+       Print lines longer than 72 characters:
+
+	    length > 72
+
+       Print first two fields in opposite order:
+
+	    { print $2, $1 }
+
+       Add up first column, print sum and average:
+
+		 { s += $1 }
+	    END	 { print "sum is", s, " average is", s/NR }
+
+       Print fields in reverse order:
+
+	    { for (i = NF; i > 0; --i) print $i }
+
+       Print all lines between start/stop pairs:
+
+	    /start/, /stop/
+
+       Print all lines whose first field is different from previ-
+       ous one:
+
+	    $1 != prev { print; prev = $1 }
+
+SEE ALSO
+       lex(1), sed(1)
+       A. V. Aho, B. W. Kernighan, P. J. Weinberger, Awk - a pat-
+       tern scanning and processing language
+
+BUGS
+       There are no  explicit  conversions  between  numbers  and
+       strings.	 To force an expression to be treated as a number
+       add 0 to it; to force it to be treated as  a  string  con-
+       catenate "" to it.
+
+								3
+

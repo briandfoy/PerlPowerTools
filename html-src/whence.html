@@ -1,0 +1,47 @@
+[% META title = 'Whence' %]
+
+<h2>Provenance and Philosophy</h2>
+
+<p>
+  The list above derives mostly from the BSD utility set, which is our
+  target emulation distribution.  Each page references the BSD manpage
+  as a baseline, and when applicable, the original
+  <a href="v7/index.html">Version 7</a> documentation for the command as
+  well. The BSD manpages mention conformance with
+  <a href="http://www.opengroup.org/pubs/catalog/t912.htm">POSIX.2</a>,
+  which is nice, since the books are so expensive to buy.
+</p>
+<p>
+  We are intentionally avoiding the anti-Unix feature bloat painfully
+  demonstrated in some of the more egregious GNU (f:-)utilities or in
+  the distressing System V corruptions that have infected Unix releases
+  like Solaris.  For a proper attitude adjustment, you should probably
+  read <a href="http://www.cs.bell-labs.com/~rob/">Rob Pike</a>'s paper
+  ``UNIX Style, or <em>cat -v</em> Considered Harmful'' from
+  <strong>USENIX Summer Conference Proceedings, 1983</strong> for more
+  info on this; well, if you can find it  -- anybody got a link?  (Yes,
+  I realize the irony in using BSD as a guideline, considering Rob's
+  position.)
+</p>
+<p>
+  This doesn't mean that one must eschew adding things that would be
+  natural in Perl, such as perhaps a <tt>wc -p</tt> that counts
+  paragraphs, or a <i>grep</i> command that handles Perl regular
+  expressions. But it's better to add a new command than a bunch of ugly
+  options.
+</p>
+<p>
+  History is important.  Standards are important.  But simplicity is
+  paramount. It's better to get something that works in 90% of the cases
+  than not getting anything at all, or to get something that's huge and
+  complicated and hard to maintain.
+</p>
+<p>
+  Follow classic, simple behaviour.  Avoid long options.  Don't load
+  modules you don't have to, but do so if it makes it more portable. Let
+  unrecognized options (like <tt>'-?'</tt>) elicit usage messages. 
+  Above all, keep it simple, sane, and useful!  For a more recent take
+  on these principles of <strong>Simplicity</strong>,
+  <strong>Clarity</strong>, and <strong>Generality</strong>, see
+  <a href="http://cm.bell-labs.com/cm/cs/tpop/index.html"><em>The Practice of Programming</em></a>.
+</p>

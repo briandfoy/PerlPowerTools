@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 ### do not edit next line. Set by CS-RCS... http://www.componentsoftware.com/csrcs/uhome.htm
-#REV=' @(#) $RCSfile: cp,v $ $Revision: 1.1.1.1 $ $Date: 2001/06/06 08:54:20 $ '; 
+#REV=' @(#) $RCSfile: cp,v $ $Revision: 1.1 $ $Date: 2004/07/23 20:08:36 $ '; 
 require 5;
 use strict;
 use Cwd;
@@ -348,14 +348,11 @@ is binary mode.
 
 =head1 REVISION HISTORY
 
-$Revision: 1.1.1.1 $
+$Revision: 1.1 $
 
 $Log: cp,v $
-Revision 1.1.1.1  2001/06/06 08:54:20  sdague
+Revision 1.1  2004/07/23 20:08:36  cwest
 initial import
-
-Revision 1.1.1.1  2001/05/13 19:55:58  sdague
-added initial import of PPT work
 
 Revision 1.1  1999/03/27 13:03:57  schumacks
 Initial revision

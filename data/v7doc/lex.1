@@ -1,0 +1,54 @@
+
+LEX(1)							   LEX(1)
+
+NAME
+       lex - generator of lexical analysis programs
+
+SYNOPSIS
+       lex [ -tvfn ] [ file ] ...
+
+DESCRIPTION
+       Lex  generates  programs to be used in simple lexical ana-
+       lyis of text.  The input files  (standard  input	 default)
+       contain	regular	 expressions  to  be  searched	for,  and
+       actions written in C to be executed when	 expressions  are
+       found.
+
+       A  C  source  program, `lex.yy.c' is generated, to be com-
+       piled thus:
+
+	      cc lex.yy.c -ll
+
+       This program, when run, copies  unrecognized  portions  of
+       the  input  to  the  output, and executes the associated C
+       action for each regular expression that is recognized.
+
+       The following lex program converts upper	 case  to  lower,
+       removes	blanks at the end of lines, and replaces multiple
+       blanks by single blanks.
+
+	      %%
+	      [A-Z] putchar(yytext[0]+'a'-'A');
+	      [ ]+$
+	      [ ]+  putchar(' ');
+
+       The options have the following meanings.
+
+       -t     Place the result on the standard output instead  of
+	      in file `lex.yy.c'.
+
+       -v     Print  a one-line summary of statistics of the gen-
+	      erated analyzer.
+
+       -n     Opposite of -v; -n is default.
+
+       -f     `Faster' compilation:  don't  bother  to	pack  the
+	      resulting tables; limited to small programs.
+
+SEE ALSO
+       yacc(1)
+       M.  E. Lesk and E. Schmidt, LEX - Lexical Analyzer Genera-
+       tor
+
+								1
+

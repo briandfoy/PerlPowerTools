@@ -1,0 +1,99 @@
+
+ROFF(1)							  ROFF(1)
+
+NAME
+       roff  -	format text
+
+SYNOPSIS
+       roff [ +n ] [ -n ] [ -s ] [ -h ] file ...
+
+       nroff -mr [ option ] ... file ...
+       troff -mr [ option ] ... file ...
+
+DESCRIPTION
+       Roff  formats  text according to control lines embedded in
+       the text in the given files.  Encountering  a  nonexistent
+       file  terminates	 printing.   Incoming inter-terminal mes-
+       sages are turned off during printing.  The  optional  flag
+       arguments mean:
+       +n   Start printing at the first page with number n.
+       -n   Stop  printing at the first page numbered higher than
+	    n.
+       -s   Stop before each page (including the first) to  allow
+	    paper manipulation; resume on receipt of an interrupt
+	    signal.
+       -h   Insert tabs in the output stream  to  replace  spaces
+	    whenever appropriate.
+
+       Input  consists	of  intermixed	text lines, which contain
+       information to be formatted, and request lines, which con-
+       tain  instructions  about how to format it.  Request lines
+       begin with a distinguished control character,  normally	a
+       period.
+
+       Output  lines  may  be  filled  as nearly as possible with
+       words without regard to input lineation.	 Line breaks  may
+       be  caused  at specified places by certain commands, or by
+       the appearance of an empty input line  or  an  input  line
+       beginning with a space.
+
+       The  capabilities  of  roff  are specified in the attached
+       Request Summary.	 Numerical values are denoted there by	n
+       or  +n,	titles by t, and single characters by c.  Numbers
+       denoted +n may be signed + or -, in which case  they  sig-
+       nify  relative  changes to a quantity, otherwise they sig-
+       nify an absolute resetting.  Missing n fields are ordinar-
+       ily  taken  to  be  1, missing t fields to be empty, and c
+       fields to shut off the appropriate special interpretation.
+
+       Running	titles	usually appear at top and bottom of every
+       page.  They are set by requests like
+
+		 .he 'part1'part2'part3'
+
+       Part1 is left justified, part2 is centered, and	part3  is
+       right  justified	 on  the  page.	 Any % sign in a title is
+       replaced by the current page  number.   Any  nonblank  may
+       serve as a quote.
+
+								1
+
+ROFF(1)							  ROFF(1)
+
+       ASCII  tab  characters  are  replaced  in  the  input by a
+       replacement character, normally a space, according to  the
+       column  settings given by a .ta command.	 (See .tr for how
+       to convert this character on output.)
+
+       Automatic hyphenation of filled output is done under  con-
+       trol  of	 .hy.	When a word contains a designated hyphen-
+       ation character, that character disappears from the output
+       and  hyphens can be introduced into the word at the marked
+       places only.
+
+       The -mr option of nroff or troff(1) simulates roff to  the
+       greatest extent possible.
+
+FILES
+       /usr/lib/suftab	   suffix hyphenation tables
+       /tmp/rtm? temporary
+
+BUGS
+       Roff  is the simplest of the text formatting programs, and
+       is utterly frozen.
+
+								2
+
+ROFF(1)							  ROFF(1)
+
+			 REQUEST SUMMARY
+
+Request	   Break Initial Meaning
+the current line is stopped.
+without filling.
+to be invoked by request `.xx' (definition ends on line beginning
+			 `..').
+and is not done, if n=0.
+
+								3
+

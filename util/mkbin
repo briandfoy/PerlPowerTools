@@ -1,0 +1,14 @@
+#!/usr/local/bin/perl -w
+# $Id: mkbin,v 1.1 2004/07/23 20:10:22 cwest Exp $
+use strict;
+
+use lib qw[lib util/lib];
+use PPT::Util;
+
+clean_bin_dir;
+
+my @cmds = config_cmds;
+
+foreach ( @cmds ) {
+    copy_dist_contrib $_;
+}

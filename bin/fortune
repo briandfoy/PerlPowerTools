@@ -1,13 +1,10 @@
 #!/usr/bin/perl
 #
-# $Id: fortune,v 1.1.1.1 2001/06/06 08:54:38 sdague Exp $
+# $Id: fortune,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: fortune,v $
-# Revision 1.1.1.1  2001/06/06 08:54:38  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:56:30  sdague
-# added initial import of PPT work
 #
 #
 # Revision 1.0 1999/04/30 andy murren
@@ -21,7 +18,7 @@ use Getopt::Std;
 
 $|++;
 
-my ($VERSION) = ' $Revision: 1.1.1.1 $ ';
+my ($VERSION) = ' $Revision: 1.1 $ ';
 
 my $home = "$Bin/fortunes";
 

@@ -1,0 +1,163 @@
+#!/usr/bin/perl -w
+
+#
+# $Id: paste.randy,v 1.1 2004/07/23 20:10:13 cwest Exp $
+#
+# $Log: paste.randy,v $
+# Revision 1.1  2004/07/23 20:10:13  cwest
+# initial import
+#
+# Revision 1.0  1999/02/26 15:39:05  randy
+# Initial revision
+#
+
+use strict;
+no strict 'refs';
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+my (@fh, $i);
+
+my @sep = ( "\t" );
+my $dash_ess = 0;
+
+exit if not @ARGV;
+
+while ($ARGV[0] =~ /^-.+$/) {
+	$_ = shift @ARGV;
+	/^-\?$/ and do { print <<EOF;
+Usage: $0 [-s] [-d list] file...
+
+Merges the corresponding lines of files.
+EOF
+		exit;
+	};
+	/^-d$/ and do { 
+		my $arg = shift;
+		@sep = split(//, eval qq{sprintf("$arg")}); 
+		next;
+	};
+	/^-s$/ and do { $dash_ess = 1; next; }
+}
+
+for $i (0..$#ARGV) {
+	$fh[$i] = "F$i";
+	open($fh[$i], $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
+}
+
+if ($dash_ess) {
+	foreach $i (0..$#fh) {
+		my $fh;
+		$fh = $fh[$i];
+		my $current_sep = 0;
+		my $tline;
+		while(<$fh>) { 
+			chomp; 
+			$tline .= $_ . $sep[$current_sep++];
+			$current_sep = 0 if $current_sep == scalar @sep;
+		}
+		print "$tline\n";
+		close $fh;
+	}
+	exit;
+}
+
+my $files_still_open = 1;
+while (1) {
+	my $current_sep = 0;
+	$files_still_open = 0;
+	foreach $i (0..$#fh) {
+		$files_still_open = 1 if not eof $fh[$i];
+	}
+	last if not $files_still_open;
+
+	my $tline;
+	foreach $i (0..$#fh) {
+		if (not eof $fh[$i]) {
+			my $fh;
+			$fh = $fh[$i];
+			my $line = <$fh>;
+			chomp($line);
+			$tline .= $line;
+		}
+		$tline .= "$sep[$current_sep++]" if $i != $#fh;
+		$current_sep = 0 if $current_sep == scalar @sep;
+	}
+	print "$tline\n";
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+paste - merge corresponding or subsequent lines of files
+
+=head1 SYNOPSIS
+
+paste [-s] [-d list] file...
+
+=head1 DESCRIPTION
+
+Paste combines the corresponding lines of multiple files. Each line of each 
+file is printed seperated by tab (or by the characters listed in the -d
+option).
+
+=head2 OPTIONS
+
+I<paste> accepts the following options:
+
+=over 4
+
+=item -d list
+
+Define the column delimiters. Each character in this list will be used
+one at a time, as a delimiter for the columns. If there are fewer characters
+than columns, the characters will be repeated. Standard Perl special characters
+("\n", "\t", etc.) are recognized.
+
+=item -s
+
+Displays the output one file per row, rather than interleaving the
+lines of the files.
+
+=back
+
+=head1 ENVIRONMENT
+
+The working of I<paste> is not influenced by any environment variables. 
+
+=head1 BUGS
+
+I<paste> has no known bugs, unless you count the use of eval EXPR. Getting
+it to work under 'strict refs' would be nice, too. 
+
+=head1 REVISION HISTORY
+
+    $Log: paste.randy,v $
+    Revision 1.1  2004/07/23 20:10:13  cwest
+    initial import
+
+    Revision 1.0  1999/02/26 15:55:05  randy
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of I<paste>
+was written by Randy Yarger, I<randy.yarger@nextel.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Randy Yarger 1999.
+
+This program is free and open software. You may use, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut
+
+Randy Jay Yarger        | Nextel Communications
+randy.yarger@nextel.com | http://hs1.hst.msu.edu/~randy/
+
+

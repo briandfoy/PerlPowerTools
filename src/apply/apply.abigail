@@ -1,0 +1,161 @@
+#!/usr/local/bin/perl -w
+
+#
+# $Id: apply.abigail,v 1.1 2004/07/23 20:09:59 cwest Exp $
+#
+# $Log: apply.abigail,v $
+# Revision 1.1  2004/07/23 20:09:59  cwest
+# initial import
+#
+# Revision 1.1  1999/02/27 03:36:18  abigail
+# Initial revision
+#
+#
+
+use strict;
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+sub usage () {
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    print <<EOF;
+$0 (Perl bin utils) $VERSION
+$0 [-ac] [-#] command argument [argument ...]
+EOF
+    exit;
+};
+
+my $argc  = 1;
+my $magic = '%';
+
+while (@ARGV) {
+    if ($ARGV [0] eq '--') {
+        shift;
+        last;
+    }
+    if ($ARGV [0] =~ /^-a(.)$/) {
+        $magic = $1;
+        shift;
+        next;
+    }
+    if ($ARGV [0] =~ /^-(\d+)$/) {
+        $argc = $1;
+        shift;
+        next;
+    }
+    if ($ARGV [0] =~ /^-/) {
+        usage;  # usage will exit;
+    }
+    last;
+}
+
+usage unless @ARGV;
+
+my $command = shift;
+
+# Scan $command for ``%d''.
+my @thingies = $command =~ /${magic}(\d+)/g;
+
+if (@thingies) { # Ignore $argc, found our own.
+    $argc = 0;
+    foreach (@thingies) {$argc = $_ if $_ > $argc}
+}
+
+# Now, apply the command till we run out.
+while (@ARGV && @ARGV >= $argc) {
+    if (@thingies) {
+       (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
+        system $new_command;   # Reinterpreted by the shell!
+        splice @ARGV, 0, $argc;
+    }
+    else {
+        if ($argc) {
+            system $command, splice @ARGV, 0, $argc;
+        }
+        else {
+            system $command;
+            shift;
+        }
+    }
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+apply -- Run a command many times with different arguments.
+
+=head1 SYNOPSIS
+
+apply [-aB<c>] [-#] command argument [argument ...]
+
+=head1 DESCRIPTION
+
+I<apply> runs the given command multiple times, with different arguments.
+Without arguments, I<command> is run once for each argument. If the
+command contains strings of the form B<%d+>, the d'th next unused argument
+will be substituted.
+
+=head2 OPTIONS
+
+I<apply> accepts the following options:
+
+=over 4
+
+=item -aB<c>
+
+Use the character B<c> instead of B<%> for interpolation of arguments.
+
+=item -#
+
+If an option of the form I<-#> is given, with I<#> a number, I<apply>
+uses that many arguments for each call of I<command>. If I<-0> is given
+as an option, I<command> is called without arguments, and it is called
+as many times as there are arguments following I<command> on the command
+line.
+
+This option is ignored if I<command> has magic B<%d+> sequences.
+
+=back
+
+=head1 ENVIRONMENT
+
+The working of I<apply> is not influenced by any environment variables.
+
+=head1 CAVEATS
+
+When I<command> has magic B<%d+> sequences, the string after interpolation
+of the arguments is handed to a shell for interpretation of meta characters.
+This shell is determined by Perl, during its building phase, and is typically
+C</bin/sh -c> on Unix platforms.
+
+=head1 BUGS
+
+I<apply> does not honor the users C<$SHELL> environment variable.
+
+=head1 REVISION HISTORY
+
+    $Log: apply.abigail,v $
+    Revision 1.1  2004/07/23 20:09:59  cwest
+    initial import
+
+    Revision 1.1  1999/02/27 03:36:18  abigail
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of I<apply> was written by Abigail, I<abigail@fnx.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Abigail 1999.
+
+This program is free and open software. You may use, copy, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut
+

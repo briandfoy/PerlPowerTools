@@ -1,0 +1,148 @@
+#!/usr/bin/perl -wT
+
+#
+# $Id: rev.murren,v 1.1 2004/07/23 20:10:15 cwest Exp $
+#
+# $Log: rev.murren,v $
+# Revision 1.1  2004/07/23 20:10:15  cwest
+# initial import
+#
+# Revision 1.0 1999/03/03 andy murren
+# Inital Revision
+#
+
+# packages used in this program
+use FileHandle;
+use strict;
+use Carp;
+
+# unbuffer output to make it look speedier
+$|++;  
+
+# version information set up for use with RCS/CVS
+my $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/g); sprintf
+"%d."."%02d" x $#r, @r }; 
+
+# set up some variables
+my $debug = 0;  # 0 for no anything else to debug
+my $file = 0;
+
+if ($ARGV[0] eq '--version') {
+	print " $0 $VERSION\n";
+}
+elsif (($ARGV[0] eq '--help') || ($ARGV[0] eq '?') || ($ARGV[0] eq '-h')) {
+	print <<EOF;
+
+Usage: $0 [OPTION] [FILE]
+
+Reverses lines of the named file or the text input on SDTIN
+
+Options:
+	--version:  Print version number, then exit.
+	--help || -h || ? :     Print usage, then exit;
+
+EOF
+}
+elsif (-f $ARGV[0]) {
+
+	if ($debug) {print "\n\nthis is a file\n\n";}
+	my $fh = new FileHandle "< $ARGV[0]";  # here is the file handle
+
+	# in case the file handle does not open
+    unless (defined ($fh)) {
+		croak "did not open file $ARGV[0] $!\n";  
+	}
+
+	# iterate over the file and put each line into an
+	# array of charaters and print them out in reverse order.
+	while (<$fh>) {
+		my @a = split(//, $_);
+		print reverse @a;
+	}
+	print "\n";  
+	$fh->close;  # close the file handle
+}
+else {
+	if ($debug) {print "\n\nthis is not a file\n\n";}
+
+	# here we start at the end of the array and work to
+	# the start.
+	my $len = @ARGV;
+	for (my $cnt = ($len - 1); $cnt >= 0; $cnt-- ) {
+		my @b = split(//, $ARGV[$cnt]);
+		print reverse @b;
+		
+		# since each white space is denotes the next arg
+		# we have to put spaces back in.  $cnt is checked to 
+		# see if we have reached the end yet.  If there are
+		# no more args we do not want to append an extra space
+		# that was not on the input.
+
+		if ($cnt) {print ' ';}
+	}
+	print "\n";  
+}
+
+exit 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+rev - reverse lines of a file
+
+=head1 SYNOPSIS
+
+rev [options] [file]
+
+=head1 DESCRIPTION
+
+The rev utility copies the specified files to the standard output, 
+reversing the order of characters in every line.  If no files are 
+specified, the standard input is read.
+
+=head2 OPTIONS
+
+I<rev> accepts the following options:
+
+=over 4
+
+=item  --help || -h || ? 
+
+Print a short help message, then exits.
+
+=item  --version
+
+Prints out its version number, then exits.
+
+=head1 BUGS
+
+I<rev> has no known bugs.
+
+=head1 REVISION HISTORY
+
+	$Log: rev.murren,v $
+	Revision 1.1  2004/07/23 20:10:15  cwest
+	initial import
+	
+	Revision 1.0 1999/03/03 andy murren
+	Inital Revision
+
+=head1 AUTHOR
+
+This Perl implmentation of I<rev> was written by Andy Murren,
+I<andy@murren.org>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is covered by the GNU Public License (GPL).
+See I<http://www.gnu.org/copyleft/gpl.html> for complete detail of the license.
+
+=cut
+
+Andy Murren
+andy@murren.com
+973-714-3398 (cell)
+

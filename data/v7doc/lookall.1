@@ -1,0 +1,41 @@
+
+LOOKALL(1)					       LOOKALL(1)
+
+NAME
+       lookall - look through all text files on UNIX
+
+SYNOPSIS
+       lookall [ -Cn ]
+
+DESCRIPTION
+       Lookall accepts keywords from the standard input, performs
+       a search similar to  that  of  refer(1),	 and  writes  the
+       result on the standard output.  Lookall consults, however,
+       an index to all the text files on the system  rather  than
+       just bibliographies.  Only the first 50 words of each file
+       (roughly) were used to make the indexes.	 Blank lines  are
+       taken as delimiters between queries.
+
+       The  -Cn	 option specifies a coordination level search: up
+       to n keywords may be missing from  the  answers,	 and  the
+       answers are listed with those containing the most keywords
+       first.
+
+       The command sequence in /usr/dict/lookall/makindex  regen-
+       erates the index.
+
+FILES
+       The  directory /usr/dict/lookall contains the index files.
+
+DIAGNOSTICS
+       `Warning: index precedes file ...'  means that a file  has
+       been  changed  since  the  index	 was  made  and it may be
+       retrieved (or not retrieved) erroneously.
+
+BUGS
+       Coordination level searching doesn't  work  as  described:
+       only  those  acceptable	items with the smallest number of
+       missing keywords are retreived.
+
+								1
+

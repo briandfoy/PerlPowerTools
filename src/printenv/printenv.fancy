@@ -1,0 +1,101 @@
+#!/usr/bin/perl -w
+#
+# $Id: printenv.fancy,v 1.1 2004/07/23 20:10:14 cwest Exp $
+#
+# $Log: printenv.fancy,v $
+# Revision 1.1  2004/07/23 20:10:14  cwest
+# initial import
+#
+# Revision 1.0  1999/02/26 02:55:05  randy
+# Initial revision
+#
+
+use strict;
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+if (@ARGV) {
+    if ($ARGV[0] eq '-?') {
+        $0 =~ s{.*/}{};
+        print <<EOF;
+Usage: $0 [name]
+
+Display the environment. If an argument is given, only the value 
+of that variable is displayed.
+
+EOF
+       exit;
+    } elsif (exists $ENV{$ARGV[0]}) {
+	print $ENV{$ARGV[0]}, "\n";
+	exit;
+    } else {
+        exit 1;
+    }
+}
+
+while (my ($key, $value) = each(%ENV)) { print "$key=$value\n"; }
+exit;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+printenv - Display the environment
+
+=head1 SYNOPSIS
+
+printenv I<name>
+
+=head1 DESCRIPTION
+
+printenv displays the current environment. If an argument is supplied, only the
+value of that variable is displayed.
+
+=head2 OPTIONS
+
+I<printenv> accepts the following options:
+
+=over 4
+
+=item -?
+
+Print out a short help message, then exit.
+
+=back
+
+=head1 ENVIRONMENT
+
+The operation of I<printenv> is not influenced by any environment variables.
+(However, the output certainly is.)
+
+=head1 BUGS
+
+I<printenv> has no known bugs.
+
+=head1 REVISION HISTORY
+
+    $Log: printenv.fancy,v $
+    Revision 1.1  2004/07/23 20:10:14  cwest
+    initial import
+
+    Revision 1.0  1999/02/26 02:55:05  randy
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of I<printenv>
+was written by Randy Yarger, I<randy.yarger@nextel.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Randy Yarger 1999.
+
+This program is free and open software. You may use, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut
+
+

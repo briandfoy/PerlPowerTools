@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: dirname,v 1.1.1.1 2001/06/06 08:54:25 sdague Exp $
+# $Id: dirname,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: dirname,v $
-# Revision 1.1.1.1  2001/06/06 08:54:25  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:56:05  sdague
-# added initial import of PPT work
 #
 # Revision 1.1  1999/02/27 01:49:59  abigail
 # Initial revision
@@ -18,7 +15,7 @@
 use strict;
 use File::Basename;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 unless (@ARGV == 1) {
     $0 = basename ($0);
@@ -72,11 +69,8 @@ B<OpenBSD> implementation.
 =head1 REVISION HISTORY
 
     $Log: dirname,v $
-    Revision 1.1.1.1  2001/06/06 08:54:25  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:56:05  sdague
-    added initial import of PPT work
 
     Revision 1.1  1999/02/27 01:49:59  abigail
     Initial revision

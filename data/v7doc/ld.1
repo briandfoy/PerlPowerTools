@@ -1,0 +1,130 @@
+
+LD(1)							    LD(1)
+
+NAME
+       ld - loader
+
+SYNOPSIS
+       ld [ option ] file ...
+
+DESCRIPTION
+       Ld  combines  several  object  programs into one, resolves
+       external references, and searches libraries.  In the  sim-
+       plest case several object files are given, and ld combines
+       them, producing an object module which can be either  exe-
+       cuted  or  become the input for a further ld run.  (In the
+       latter case, the -r option must be given to  preserve  the
+       relocation  bits.)   The	 output	 of  ld is left on a.out.
+       This file is made executable only if  no	 errors	 occurred
+       during the load.
+
+       The argument routines are concatenated in the order speci-
+       fied.  The entry point of the output is the  beginning  of
+       the first routine.
+
+       If  any argument is a library, it is searched exactly once
+       at the point it is encountered in the argument list.  Only
+       those  routines	defining an unresolved external reference
+       are loaded.   If	 a  routine  from  a  library  references
+       another	routine	 in  the library, and the library has not
+       been processed by ranlib(1), the referenced  routine  must
+       appear after the referencing routine in the library.  Thus
+       the order of programs within libraries may  be  important.
+       If  the	first  member  of a library is named `__.SYMDEF',
+       then it is understood to be a dictionary for  the  library
+       such  as	 produced  by  ranlib; the dictionary is searched
+       iteratively to satisfy as many references as possible.
+
+       The  symbols  `_etext',	`_edata'  and  `_end'	(`etext',
+       `edata'	and `end' in C) are reserved, and if referred to,
+       are set to the first location above the program, the first
+       location	 above	initialized  data, and the first location
+       above all data respectively.  It is  erroneous  to  define
+       these symbols.
+
+       Ld  understands	several	 options.   Except  for	 -l, they
+       should appear before the file names.
+
+       -s     `Strip' the output,  that	 is,  remove  the  symbol
+	      table and relocation bits to save space (but impair
+	      the usefulness of the debugger).	This  information
+	      can also be removed by strip(1).
+
+       -u     Take  the	 following argument as a symbol and enter
+	      it as undefined in the symbol table.  This is  use-
+	      ful  for	loading wholly from a library, since ini-
+	      tially the symbol table is empty and an  unresolved
+	      reference	 is  needed  to	 force the loading of the
+
+								1
+
+LD(1)							    LD(1)
+
+	      first routine.
+
+       -lx    This option is an abbreviation for the library name
+	      `/lib/libx.a',  where  x is a string.  If that does
+	      not exist, ld tries `/usr/lib/libx.a'.   A  library
+	      is  searched  when  its name is encountered, so the
+	      placement of a -l is significant.
+
+       -x     Do not preserve local (non-.globl) symbols  in  the
+	      output  symbol  table; only enter external symbols.
+	      This option saves some space in the output file.
+
+       -X     Save local symbols except	 for  those  whose  names
+	      begin  with  `L'.	  This option is used by cc(1) to
+	      discard internally generated labels while retaining
+	      symbols local to routines.
+
+       -r     Generate relocation bits in the output file so that
+	      it can be the subject of another ld run.	This flag
+	      also prevents final definitions from being given to
+	      common symbols, and suppresses the `undefined  sym-
+	      bol' diagnostics.
+
+       -d     Force  definition	 of common storage even if the -r
+	      flag is present.
+
+       -n     Arrange that when the output file is executed,  the
+	      text portion will be read-only and shared among all
+	      users executing the file.	 This involves moving the
+	      data  areas up to the first possible 4K word bound-
+	      ary following the end of the text.
+
+       -i     When the output file is executed, the program  text
+	      and  data	 areas	will  live  in	separate  address
+	      spaces.  The only difference  between  this  option
+	      and  -n is that here the data starts at location 0.
+
+       -o     The name argument after -o is used as the	 name  of
+	      the ld output file, instead of a.out.
+
+       -e     The  following  argument is taken to be the name of
+	      the entry point of the loaded program;  location	0
+	      is the default.
+
+       -O     This is an overlay file, only the text segment will
+	      be replaced by exec(2).  Shared data must have  the
+	      same layout as in the program overlaid.
+
+       -D     The next argument is a decimal number that sets the
+	      size of the data segment.
+
+FILES
+       /lib/lib*.a	libraries
+       /usr/lib/lib*.a	more libraries
+
+								2
+
+LD(1)							    LD(1)
+
+       a.out		output file
+
+SEE ALSO
+       as(1), ar(1), cc(1), ranlib(1)
+
+BUGS
+
+								3
+

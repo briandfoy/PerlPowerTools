@@ -1,14 +1,11 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: false,v 1.1.1.1 2001/06/06 08:54:30 sdague Exp $
+# $Id: false,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: false,v $
-# Revision 1.1.1.1  2001/06/06 08:54:30  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:56:14  sdague
-# added initial import of PPT work
 #
 # Revision 1.1  1999/02/25 04:16:05  abigail
 # Initial revision
@@ -17,7 +14,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my $STATUS = $0 =~ /true$/ ? 0 : 1;
 
@@ -90,11 +87,8 @@ I<true> and I<false> have no known bugs.
 =head1 REVISION HISTORY
 
     $Log: false,v $
-    Revision 1.1.1.1  2001/06/06 08:54:30  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:56:14  sdague
-    added initial import of PPT work
 
     Revision 1.1  1999/02/25 04:16:05  abigail
     Initial revision

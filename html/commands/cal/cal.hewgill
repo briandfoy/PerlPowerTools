@@ -1,0 +1,193 @@
+#! /usr/bin/perl -w
+#
+# Perl Power Tools - cal
+# Author: Greg Hewgill greg@hewgill.com 1999-03-01
+
+use Getopt::Std;
+
+@monthname = qw(. January February March April May June July August September October November December);
+
+getopts('yj');
+@now = localtime;
+$year = 1900 + $now[5];
+$month = 1 + $now[4];
+if (@ARGV == 1) {
+  $year = $ARGV[0];
+  $opt_y = 1;
+} elsif (@ARGV == 2) {
+  $month = $ARGV[0];
+  $year = $ARGV[1];
+  $opt_y = 0;
+}
+
+if ($year < 1 || $year > 9999) {
+  print "$0: illegal year value: use 1-9999\n";
+  exit(1);
+}
+if ($month < 1 || $month > 12) {
+  print "$0: illegal month value: use 1-12\n";
+  exit(1);
+}
+
+if ($opt_y) {
+  print center($year, $opt_j ? 57 : 66), "\n";
+  print "\n";
+  $month = 1;
+  for (0..($opt_j ? 5 : 3)) {
+    for $col (0..($opt_j ? 1 : 2)) {
+      printf $opt_j ? '%-30s' : '%-23s', center($monthname[$month+$col], $opt_j ? 27 : 20);
+    }
+    print "\n";
+    if ($opt_j) {
+      print 'Sun Mon Tue Wed Thu Fri Sat   ' x 2, "\n";
+    } else {
+      print 'Su Mo Tu We Th Fr Sa   ' x 3, "\n";
+    }
+    for $line (0..5) {
+      for $col (0..($opt_j ? 1 : 2)) {
+        printf $opt_j ? '%-30s' : '%-23s', monthline($year, $month+$col, $line);
+      }
+      print "\n";
+    }
+    $month += $opt_j ? 2 : 3;
+  }
+} else {
+  print center("$monthname[$month] $year", $opt_j ? 27 : 20), "\n";
+  print $opt_j ? "Sun Mon Tue Wed Thu Fri Sat\n" : "Su Mo Tu We Th Fr Sa\n";
+  for (0..5) {
+    print monthline($year, $month, $_), "\n";
+  }
+}
+
+sub monthline {
+  my ($y, $m, $l) = @_;
+  if ($y == 1752 && $m == 9) {
+    if ($l == 0) {
+      return $opt_j ? '        245 246 258 259 260' : '       1  2 14 15 16';
+    }
+    $l += 2;
+  }
+  my $day = 1 - dow($y, $m, 1) + 7*$l;
+  my $jofs = 0;
+  if ($opt_j) {
+    foreach (1..$m-1) {
+      $jofs += days($y, $_);
+    }
+  }
+  my $s = '';
+  foreach (0..6) {
+    if ($day < 1) {
+      $s .= $opt_j ? '   ' : '  ';
+    } elsif ($day <= days($y, $m)) {
+      $s .= $opt_j ? sprintf('%3d', $jofs+$day) : sprintf('%2d', $day);
+    } else {
+      last;
+    }
+    $s .= ' ' if $_ < 6;
+    $day++;
+  }
+  return $s;
+}
+
+#
+#  DOW = ([23m/9] + d + 4 + z + [z/4] - [z/100] + [z/400] - 2 (if m>=3)) mod 7
+#
+#  y is the year.
+#  m is the month.
+#  d is the day.
+#  z = y - 1 (if m <  3)
+#    = y     (if m >= 3)
+#  A mod B means take the reminder of A / B.
+#
+#  The source: Journal on Recreational Mathematics, Vol. 22(4), pages 280-282, 1990.
+#  The authors: Michael Keith and Tom Craver.
+#
+#  The formula can be implemented by the following C function:
+#
+#  int dayofweek(int y,m,d)
+#  {
+#    return((23*m/9+d+4+(m<3?y--:y-2)+y/4-y/100+y/400)%7);
+#  }
+
+sub dow {
+  my ($y, $m, $d) = @_;
+  $y-- if $m < 3;
+  $d += 11 if $y < 1752 || $y == 1752 && $m < 9;
+  if ($y >= 1752) {
+    return (int(23*$m/9)+$d+4+($m<3?$y+1:$y-2)+int($y/4)-int($y/100)+int($y/400))%7;
+  } else {
+    return (int(23*$m/9)+$d+5+($m<3?$y+1:$y-2)+int($y/4))%7;
+  }
+}
+
+sub days {
+  my ($y, $m) = @_;
+  if ($m != 2) { return (0,31,0,31,30,31,30,31,31,30,31,30,31)[$m]; }
+  if ($y % 4 != 0) { return 28; }
+  if ($y < 1752) { return 29; }
+  if ($y % 100 != 0) { return 29; }
+  if ($y % 400 != 0) { return 28; }
+  return 29;
+}
+
+sub center {
+  my ($s, $w) = @_;
+  if (length $s < $w) {
+    $s = ' ' x ((1 + $w - length $s) / 2) . $s;
+  }
+  return $s;
+}
+
+__END__
+
+=head1 NAME
+
+B<cal> - displays a calendar
+
+=head1 SYNOPSIS
+
+B<cal> [-B<jy>] [[I<month>] I<year>]
+
+=head1 DESCRIPTION
+
+B<Cal> displays a simple calendar. If arguments are not specified, the current
+month is displayed. The options are as follows:
+
+-B<j>  Display julian dates (days one-based, numbered from January 1).
+
+-B<y>  Display a calendar for the current year.
+
+A single parameter specifies the year (1 - 9999) to be displayed; note
+the year must be fully specified: ``cal 89'' will I<not> display a calendar
+for 1989. Two parameters denote the month (1 - 12) and year. If no parameters
+are specified, the current month's calendar is displayed.
+
+A year starts on Jan 1.
+
+The Gregorian Reformation is assumed to have occurred in 1752 on the 3rd of
+September.  By this time, most countries had recognized the reformation
+(although a few did not recognize it until the early 1900's.) Eleven days
+following that date were eliminated by the reformation, so the calendar for
+that month is a bit unusual.
+
+=head1 STANDARDS
+
+The B<cal> command offers a superset of IEEE Std1003.2 (``Posix.2'')
+functionality.
+
+=head1 HISTORY
+
+A B<cal> command appeared in Version 6 AT&T Unix.
+
+=head1 AUTHOR
+
+Greg Hewgill greg@hewgill.com 1999-03-01
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Greg Hewgill 1999.
+
+This program is free and open software. You may use, copy, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+

@@ -1,0 +1,93 @@
+
+MKCONF(1M)					       MKCONF(1M)
+
+NAME
+       mkconf - generate configuration tables
+
+SYNOPSIS
+       mkconf
+
+DESCRIPTION
+       Mkconf examines a machine configuration table on its stan-
+       dard input.  Its output is a pair of files  l.s	and  c.c.
+       The  first  is  an  assembler  program that represents the
+       interrupt vectors located in  low  memory  addresses;  the
+       second  contains	 initialized  block  and character device
+       switch tables.
+
+       Input to mkconf is a sequence  of  lines.   The	following
+       describe devices on the machine:
+
+	    pc	 (PC11)
+	    lp	 (LP11)
+	    rf	 (RS11)
+	    hs	 (RS03/RS04)
+	    tc	 (TU56)
+	    rk	 (RK03/RK05)
+	    tm	 (TU10)
+	    rp	 (RP03)
+	    hp	 (RP04/5/6)
+	    ht	 (TU16)
+	    dc*	 (DC11)
+	    kl*	 (KL11/DL11-ABC)
+	    dl*	 (DL11-E)
+	    dp*	 (DP11)
+	    dn*	 (DN11)
+	    dh*	 (DH11)
+	    dhdm*     (DM11-BB)
+	    du*	 (DU11)
+
+       The  devices  marked  with  *  may be preceded by a number
+       telling how many are to be included.   The  console  type-
+       write is automatically included; don't count it as part of
+       the KL or DL specification.  Count DN's in units of  4  (1
+       system unit).
+
+       The following lines are also accepted.
+
+       root dev minor
+	    The specified block device (e.g.  hp) is used for the
+	    root.  minor is a decimal  number  giving  the  minor
+	    device.  This line must appear exactly once.
+
+       swap dev minor
+	    The	 specified block device is used for swapping.  If
+	    not given the root is used.
+
+								1
+
+MKCONF(1M)					       MKCONF(1M)
+
+       pipe dev minor
+	    The specified block device is used	to  store  pipes.
+	    If not given the root is used.
+
+       swplo number
+
+       nswap number
+	    Sets  the  origin (block number) and size of the area
+	    used for swapping.	By default, the not  very  useful
+	    numbers 4000 and 872.
+
+       pack Include  the  packet  driver.   By default it is left
+	    out.
+
+       mpx  Include the multiplexor driver.   By  default  it  is
+	    left out.
+
+FILES
+       l.s, c.c	 output files
+
+SEE ALSO
+       `Setting up Unix', in Volume 2.
+
+BUGS
+       The  set	 of  devices  it  knows about, the set of drivers
+       included, and the set of devices on the machine are  mutu-
+       ally  incomparable.  Some handwork is certain to be neces-
+       sary.  Because of floating  vectors  that  may  have  been
+       missed, It is mandatory to check the l.s file to make sure
+       it corresponds with reality.
+
+								2
+

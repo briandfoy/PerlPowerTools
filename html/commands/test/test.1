@@ -1,0 +1,74 @@
+
+TEST(1)							  TEST(1)
+
+NAME
+       test -  condition command
+
+SYNOPSIS
+       test expr
+
+DESCRIPTION
+       test  evaluates	the  expression expr, and if its value is
+       true then returns zero exit status; otherwise, a non  zero
+       exit  status is returned.  test returns a non zero exit if
+       there are no arguments.
+
+       The following primitives are used to construct expr.
+
+       -r file	true if the file exists and is readable.
+
+       -w file	true if the file exists and is writable.
+
+       -f file	true if the file exists and is not a directory.
+
+       -d file	true if the file exists and is a directory.
+
+       -s file	true if the file exists and has	 a  size  greater
+		than zero.
+
+       -t [ fildes ]
+		true  if the open file whose file descriptor num-
+		ber is fildes (1 by default) is associated with a
+		terminal device.
+
+       -z s1	true if the length of string s1 is zero.
+
+       -n s1	true if the length of the string s1 is nonzero.
+
+       s1 = s2	true if the strings s1 and s2 are equal.
+
+       s1 != s2 true if the strings s1 and s2 are not equal.
+
+       s1	true if s1 is not the null string.
+
+       n1 -eq n2
+		true  if the integers n1 and n2 are algebraically
+		equal.	Any of the  comparisons	 -ne,  -gt,  -ge,
+		-lt, or -le may be used in place of -eq.
+
+       These  primaries may be combined with the following opera-
+       tors:
+
+       !      unary negation operator
+
+       -a     binary and operator
+
+       -o     binary or operator
+
+								1
+
+TEST(1)							  TEST(1)
+
+       ( expr )
+	      parentheses for grouping.
+
+       -a has higher precedence than -o.   Notice  that	 all  the
+       operators  and  flags  are  separate  arguments	to  test.
+       Notice also that parentheses are meaningful to  the  Shell
+       and must be escaped.
+
+SEE ALSO
+       sh(1), find(1)
+
+								2
+

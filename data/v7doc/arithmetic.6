@@ -1,0 +1,46 @@
+
+ARITHMETIC(6)					    ARITHMETIC(6)
+
+NAME
+       arithmetic - provide drill in number facts
+
+SYNOPSIS
+       /usr/games/arithmetic [ +-x/ ] [ range ]
+
+DESCRIPTION
+       Arithmetic types out simple arithmetic problems, and waits
+       for an answer to be typed in.  If the answer  is	 correct,
+       it  types back "Right!", and a new problem.  If the answer
+       is wrong,  it  replies  "What?",	 and  waits  for  another
+       answer.	Every twenty problems, it publishes statistics on
+       correctness and the time required to answer.
+
+       To quit the program, type an interrupt (delete).
+
+       The first optional argument determines the kind of problem
+       to  be  generated;  +-x/ respectively cause addition, sub-
+       traction, multiplication, and division problems to be gen-
+       erated.	One or more characters can be given; if more than
+       one is given, the different  types  of  problems	 will  be
+       mixed in random order; default is +-
+
+       Range  is a decimal number; all addends, subtrahends, dif-
+       ferences, multiplicands, divisors, and quotients	 will  be
+       less  than  or equal to the value of range.  Default range
+       is 10.
+
+       At the start, all numbers less than or equal to range  are
+       equally	likely to appear.  If the respondent makes a mis-
+       take, the numbers in the problem which was  missed  become
+       more likely to reappear.
+
+       As  a  matter  of educational philosophy, the program will
+       not give correct answers, since	the  learner  should,  in
+       principle, be able to calculate them.  Thus the program is
+       intended to provide drill for someone just past the  first
+       learning	 stage,	 not  to teach number facts de novo.  For
+       almost all users, the relevant statistic	 should	 be  time
+       per problem, not percent correct.
+
+								1
+

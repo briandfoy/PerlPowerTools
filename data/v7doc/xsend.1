@@ -1,0 +1,42 @@
+
+XSEND, XGET, ENROLL(1)			   XSEND, XGET, ENROLL(1)
+
+NAME
+       xsend, xget, enroll - secret mail
+
+SYNOPSIS
+       xsend person
+       xget
+       enroll
+
+DESCRIPTION
+       These  commands	implement a secure communication channel;
+       it is like mail(1), but	no  one	 can  read  the	 messages
+       except the intended recipient.  The method embodies a pub-
+       lic-key cryptosystem using knapsacks.
+
+       To receive messages, use enroll; it asks you for	 a  pass-
+       word  that you must subsequently quote in order to receive
+       secret mail.
+
+       To receive secret mail, use xget.  It asks for your  pass-
+       word, then gives you the messages.
+
+       To  send	 secret mail, use xsend in the same manner as the
+       ordinary mail command.  (However, it will accept only  one
+       target).	  A message announcing the receipt of secret mail
+       is also sent by ordinary mail.
+
+FILES
+       /usr/spool/secretmail/*.key:    keys    /usr/spool/secret-
+       mail/*.[0-9]: messages
+
+SEE ALSO
+       mail (1)
+
+BUGS
+       It should be integrated with ordinary mail.  The announce-
+       ment of secret mail makes traffic analysis possible.
+
+								1
+

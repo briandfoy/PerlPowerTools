@@ -1,0 +1,125 @@
+Date:         Thu, 4 Mar 1999 00:49:03 -0600 (CST)
+From:         bradapp@enteract.com (Brad Appleton)
+Subject:      Re: cmp
+To:           walker@ncbi.nlm.nih.gov (D Roland Walker)
+Cc:           ppt@perl.com
+Reply-to:     bradapp@enteract.com
+In-reply-to:  <199903040425.WAA25154@agogic.cig.mot.com> from "D Roland Walker" a
+	      t Mar 3, 99 11:16:27 pm
+Delivery-Date: Wed Mar  3 23:48:49 1999
+
+
+D Roland Walker writes:
+> # It's nice to see that, speedwise, this beats the pants off 
+> # GNU and IRIX system cmp in many tasks.  If compiled, this
+> # would probably be faster in every case.  Go Perl !
+
+Glad to hear it. I assume that is why you chose to do it
+the way you did instead of righting a ten-liner that invoked
+File::Compare::cmp? Or was there another reason?
+-- 
+Brad Appleton <bradapp@enteract.com> | http://www.enteract.com/~bradapp/
+ "And miles to go before I sleep."   |  3700+ WWW links on CS & Sw-Eng
+
+
+Date:         Thu, 4 Mar 1999 10:07:29 -0500
+From:         D Roland Walker <walker@ncbi.nlm.nih.gov>
+Subject:      Re: cmp
+To:           bradapp@enteract.com
+Cc:           ppt@perl.com
+In-reply-to:  <199903040651.BAA08872@po_box.cig.mot.com>; from Brad Appleton on T
+	      hu, Mar 04, 1999 at 12:49:03AM -0600
+Delivery-Date: Thu Mar  4 08:07:11 1999
+
+
+[bradapp writes]
+> D Roland Walker writes:
+> > # It's nice to see that, speedwise, this beats the pants off 
+> > # GNU and IRIX system cmp in many tasks.  If compiled, this
+> > # would probably be faster in every case.  Go Perl !
+> 
+> Glad to hear it. I assume that is why you chose to do it
+> the way you did instead of righting a ten-liner that invoked
+> File::Compare::cmp? Or was there another reason?
+
+Manily because File::Compare::cmp would really only support
+
+  cmp -s
+
+and we need to be able support the plain default, not to mention 
+the other options and warnings.  We could do with a cmp.simple 
+that just calls File::Compare::cmp, but since the *.simple are 
+also going to find value as teaching aids, I think it would be 
+even better to give another complete version of cmp that uses 
+more idiomatic and concise Perl to do a line-by-line compare.  
+
+One can easily imagine a 
+
+  *.practical    # like the cmp I submitted
+  *.simple       # like a cmp that uses File::Compare
+  *.fancy        # like a cmp that uses Mmap
+  *.pedagogy     # like an idiomatic line-by-line cmp
+
+for most of these tools.  In fact, it would be cool to do them all.
+
+R
+
+
+Date:         Thu, 4 Mar 1999 09:31:54 -0600 (CST)
+From:         bradapp@enteract.com (Brad Appleton)
+Subject:      Re: cmp
+To:           walker@ncbi.nlm.nih.gov (D Roland Walker)
+Cc:           ppt@perl.com
+Reply-to:     bradapp@enteract.com
+In-reply-to:  <199903041516.JAA04792@agogic.cig.mot.com> from "D Roland Walker" a
+	      t Mar 4, 99 10:07:29 am
+Delivery-Date: Thu Mar  4 08:31:44 1999
+
+
+D Roland Walker writes:
+> Mainly because File::Compare::cmp would really only support
+> 
+>   cmp -s
+> 
+> and we need to be able support the plain default, not to mention 
+> the other options and warnings.
+
+Okay, perhaps we could submit patches (or a replacement) to
+File::Compare instead of having duplicated effort & maintenance.
+
+> even better to give another complete version of cmp that uses 
+> more idiomatic and concise Perl to do a line-by-line compare.  
+
+Since you mention it ;-) Such a patch was just supplied to
+File::Compare in the past couple weeks (in fact that was the thread on
+P5P which spawned off Tom's PPT project reply). Jan Dubois added some
+code so that if the (optional) third argument is a negative buffersize,
+then it does a line by line text-compare, *and* if the third argument
+is a subroutine-ref, then it calls the supplied sub to compare lines
+(to perform any "approximate" rather than exact comparison). It would
+be good if the good stuff that you've done here could be integrated with
+that.
+
+>   *.fancy        # like a cmp that uses Mmap
+
+The above could probably be done by creating an IO::MMap (which doesn't
+exist yet, and probably inst portable ;-) and passing it to
+File::Compare.
+
+>   *.pedagogy     # like an idiomatic line-by-line cmp
+
+Line-by-line is good more than simply pedagogy. Jan's changes wouldn't
+have been needed otherwise. The problem it solved here is that using a
+binary, byte-per-byte (or block-per-block) comparison will consider
+files with lines that end in "\r\n" different from those using only
+"\n" even if they are the same in all other respects. To do something
+like compare expected text output generated on one platform to actual
+output generated on another platform, the line-compare using chomped
+<lines> will have the desired result.
+
+Cheers!
+-- 
+Brad Appleton <bradapp@enteract.com> | http://www.enteract.com/~bradapp/
+ "And miles to go before I sleep."   |  3700+ WWW links on CS & Sw-Eng
+
+

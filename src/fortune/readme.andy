@@ -1,0 +1,18 @@
+README
+
+This version of `fortune' is entirely rewritten in perl.  To use it you may 
+have to make a change to the code.  By default the program looks for the
+fortune
+files in 
+/usr/local/etc/games/fortune/ 
+
+If they are not there, you will have to change the variable $home to 
+where you are storing the actual fortune files.  I have included some 
+fortune files for users to get going immediately.
+
+Any questions or comments you can email me at:
+
+andy@murren.org
+
+-------------------------------------------
+

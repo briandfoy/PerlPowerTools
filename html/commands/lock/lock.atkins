@@ -1,0 +1,242 @@
+#!/usr/local/bin/perl -w
+#
+# $Revision: 1.1 $
+#
+
+use strict;
+use POSIX qw(:termios_h);
+
+use Sys::Hostname;
+
+local $main::Timeout = 15;
+my $Password = 0;
+
+for ( my $i = 0 ; $i <= $#ARGV ; ++ $i )
+{
+  if ( $ARGV[$i] eq "-n" )
+  {
+    $main::Timeout = 0; # zero means infinitity
+  }
+  elsif ( $ARGV[ $i ] eq "-p" )
+  {
+    $Password = 1;
+  }
+  elsif ( $ARGV[ $i ] eq "-t" )
+  {
+    my $j = $i;
+    ++$i;
+    if ( $i > $#ARGV )
+    {
+      print STDERR "lock: option requires an argument -- $ARGV[$j]\n";
+      usage ();
+      exit 1;
+    }
+    elsif ( $ARGV[$i] !~ /^[1-9]\d*$/ )	# don't let the user specify 0.
+    {
+      print STDERR "lock: illegal timeout value\n";
+      usage();
+      exit 1;
+    }
+    $main::Timeout = $ARGV[$i];
+  }
+  else
+  {
+    print STDERR "lock: illegal option -- $ARGV[$i]\n";
+    usage();
+    exit 1;
+  }
+}
+
+local $main::fd_stdin = fileno(STDIN);
+local $main::term = new POSIX::Termios;
+$main::term->getattr($main::fd_stdin);
+local $main::oterm = $main::term->getlflag();
+local $main::echo = &POSIX::ECHO;
+local $main::noecho = $main::oterm & ~$main::echo;
+$| = 1; # Make our pipes piping hot!
+
+my $key;
+my $again;
+
+if ( $Password )
+{
+  $key = (getpwuid($<))[1];
+}
+else
+{
+  print "Key: ";
+  noecho();
+  $key = <STDIN>;
+  echo();
+  print "\n";
+  chomp $key;
+
+  print "Again: ";
+  noecho();
+  $again = <STDIN>;
+  echo();
+  print "\n";
+  chomp $again;
+
+  if ( $key ne $again )
+  {
+    print "lock: passwords didn't match.\n";
+    exit 1;
+  }
+}
+
+my $Tty = tty();
+my $Host = hostname();
+my $Date = localtime(time);
+
+# lock: /dev/ttyq8 on myhost.mydomain. timeout in 15 minutes
+# time now is Fri Aug  6 17:47:26 EDT 1999
+print "lock: $Tty on $Host. ";
+if ( $main::Timeout > 0 )
+  {
+    print "timeout in $main::Timeout minutes\n";
+  }
+else
+  {
+    print "no timeout\n";
+  }
+print "time is now $Date";
+
+foreach my $sig ( keys (%SIG) )
+  {
+    $SIG{$sig} = 'handler';
+  }
+
+if ( $main::Timeout > 0 )
+{ 
+  alarm ( 60*$main::Timeout );
+}
+
+noecho();
+do
+{
+  print "\nKey: ";
+  $again = <STDIN>;
+  chomp $again;
+  $again = code($again) if ( $Password );
+} while ( ! defined($again) or ( $key ne $again ) );
+echo();
+print "\n";
+
+sub noecho
+{
+  $main::term->setlflag($main::noecho);
+  $main::term->setattr($main::fd_stdin, TCSANOW);
+}
+
+sub echo
+{
+  $main::term->setlflag($main::oterm);
+  $main::term->setattr($main::fd_stdin, TCSANOW);
+}
+
+sub usage
+{
+  print STDERR "usage: lock [-n] [-p] [-t timeout]\n";
+}
+
+sub code
+  {
+    my $word = shift;
+    my $pwd = (getpwuid($<))[1];
+    my $salt = substr($pwd,0,2);
+    return crypt($word,$salt);
+  }
+
+# upon interupt
+# lock: type in the unlock key. 
+
+sub handler
+  {
+    my $sig = shift;
+    if ( $sig eq 'ALRM' )
+      {
+	print "lock: timeout\n";
+	exit 0;
+      }
+    else
+      {
+	print "lock: type in the unlock key.";
+	if ( $main::Timeout > 0 )
+	  {
+	    my $timeleft = alarm(0);
+	    my $minleft = int($timeleft/60);
+	    my $secleft = $timeleft%60;
+	    printf " timeout in %d:%s%d minutes", $minleft, 
+              $secleft < 10 ? "0" : "", $secleft;
+	    alarm($timeleft);
+	  }
+	print "\n";
+      }
+  }
+
+sub tty
+  {
+    "";
+  }
+
+__END__
+
+=pod
+
+=head1 NAME
+
+B<lock> -- reserves a terminal
+
+=head1 SYNOPSYS
+
+B<lock> [B<-n>] [B<-p>] [B<-t> I<timeout>]
+
+=head1 DESCRIPTION
+
+B<lock> requests a password from the user, reads it again for verification
+and then will normally not relinquish the terminal until the password is
+repeated.  There are two other conditions under which it will terminate:
+it will timeout after some interval of time and it may be killed by someone
+with the appropriate privileges.
+
+=head2 OPTIONS
+
+All of the specified options are optional.
+
+=over 4
+
+=item -n
+
+Don't use a timeout value.  Terminal will be locked forever.
+
+=item -p
+
+A password is not requested, instead the user's current login password is 
+used.
+
+=item -t I<timeout>
+
+The time limit (default 15 minutes) is changed to I<timeout> minutes.
+
+=back
+
+=head1 CAVEATS
+
+The BSD version of the B<lock> command supports using an S/Key to
+lock the terminal.
+
+=head1 AUTHOR
+
+The Perl implementation of B<lock> was writtem by Aron Atkins, 
+I<atkins@gweep.net>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Aron Atkins 1999.
+
+This program is free and open software. You may use, copy, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut

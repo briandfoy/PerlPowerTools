@@ -1,13 +1,10 @@
 #!/usr/bin/perl -w
 #
-# $Id: od,v 1.1.1.1 2001/06/06 08:54:52 sdague Exp $
+# $Id: od,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: od,v $
-# Revision 1.1.1.1  2001/06/06 08:54:52  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.1  1999/03/06 06:12:24  kahn
 # Initial revision

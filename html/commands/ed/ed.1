@@ -1,0 +1,442 @@
+
+ED(1)							    ED(1)
+
+NAME
+       ed - text editor
+
+SYNOPSIS
+       ed [ - ] [ -x ] [ name ]
+
+DESCRIPTION
+       Ed is the standard text editor.
+
+       If  a  name  argument  is given, ed simulates an e command
+       (see below) on the named file; that is to say, the file is
+       read  into ed's buffer so that it can be edited.	 If -x is
+       present, an x command is	 simulated  first  to  handle  an
+       encrypted file.	The optional - suppresses the printing of
+       character counts by e, r, and w commands.
+
+       Ed operates on a copy of any file it is	editing;  changes
+       made  in	 the  copy  have  no effect on the file until a w
+       (write) command is given.  The  copy  of	 the  text  being
+       edited resides in a temporary file called the buffer.
+
+       Commands	 to  ed have a simple and regular structure: zero
+       or more addresses followed by a single character	 command,
+       possibly	 followed  by  parameters  to the command.  These
+       addresses specify one or more lines in the buffer.   Miss-
+       ing addresses are supplied by default.
+
+       In  general,  only one command may appear on a line.  Cer-
+       tain commands allow the addition of text	 to  the  buffer.
+       While  ed  is  accepting	 text,	it is said to be in input
+       mode.  In this mode, no commands are recognized; all input
+       is  merely  collected.	Input  mode  is	 left by typing a
+       period `.' alone at the beginning of a line.
+
+       Ed supports a limited form of regular expression notation.
+       A regular expression specifies a set of strings of charac-
+       ters.  A member of this set  of	strings	 is  said  to  be
+       matched by the regular expression.  In the following spec-
+       ification for regular  expressions  the	word  `character'
+       means any character but newline.
+
+       1.     Any  character  except  a special character matches
+	      itself.  Special characters are the regular expres-
+	      sion delimiter plus \[.  and sometimes ^*$.
+
+       2.     A .  matches any character.
+
+       3.     A	 \ followed by any character except a digit or ()
+	      matches that character.
+
+       4.     A nonempty string s bracketed [s] (or [^s]) matches
+	      any  character  in  (or  not in) s.  In s, \ has no
+	      special meaning, and ] may only appear as the first
+	      letter.  A substring a-b, with a and b in ascending
+
+								1
+
+ED(1)							    ED(1)
+
+	      ASCII order, stands  for	the  inclusive	range  of
+	      ASCII characters.
+
+       5.     A	 regular  expression  of  form	1-4 followed by *
+	      matches a sequence of 0 or more matches of the reg-
+	      ular expression.
+
+       6.     A	 regular  expression,  x,  of form 1-8, bracketed
+	      \(x\) matches what x matches.
+
+       7.     A \ followed by a digit n matches	 a  copy  of  the
+	      string that the bracketed regular expression begin-
+	      ning with the nth \( matched.
+
+       8.     A regular expression of form 1-8, x, followed by	a
+	      regular  expression  of form 1-7, y matches a match
+	      for x followed by a match for y, with the	 x  match
+	      being  as long as possible while still permitting a
+	      y match.
+
+       9.     A regular expression of form 1-8 preceded by ^  (or
+	      followed	by  $),	 is  constrained  to matches that
+	      begin at the left (or end at the right)  end  of	a
+	      line.
+
+       10.    A	 regular  expression  of  form	1-9 picks out the
+	      longest among the leftmost matches in a line.
+
+       11.    An empty regular expression stands for  a	 copy  of
+	      the last regular expression encountered.
+
+       Regular expressions are used in addresses to specify lines
+       and in one command (see s below) to specify a portion of a
+       line which is to be replaced.  If it is desired to use one
+       of the regular expression metacharacters	 as  an	 ordinary
+       character,  that	 character  may be preceded by `\'.  This
+       also applies to the character bounding the regular expres-
+       sion (often `/') and to `\' itself.
+
+       To  understand  addressing  in  ed it is necessary to know
+       that at any time	 there	is  a  current	line.	Generally
+       speaking,  the current line is the last line affected by a
+       command; however, the exact effect on the current line  is
+       discussed under the description of the command.	Addresses
+       are constructed as follows.
+
+       1.     The character `.' addresses the current line.
+
+       2.     The character `$' addresses the last  line  of  the
+	      buffer.
+
+       3.     A	 decimal  number n addresses the n-th line of the
+	      buffer.
+
+								2
+
+ED(1)							    ED(1)
+
+       4.     `'x' addresses the line marked  with  the	 name  x,
+	      which  must  be  a  lower-case  letter.	Lines are
+	      marked with the k command described below.
+
+       5.     A	 regular  expression  enclosed	in  slashes   `/'
+	      addresses	 the line found by searching forward from
+	      the current line and stopping  at	 the  first  line
+	      containing   a  string  that  matches  the  regular
+	      expression.  If necessary the search  wraps  around
+	      to the beginning of the buffer.
+
+       6.     A	  regular  expression  enclosed	 in  queries  `?'
+	      addresses the line found by searching backward from
+	      the  current  line  and  stopping at the first line
+	      containing  a  string  that  matches  the	  regular
+	      expression.   If	necessary the search wraps around
+	      to the end of the buffer.
+
+       7.     An address followed by a plus sign `+' or	 a  minus
+	      sign  `-'	 followed  by  a decimal number specifies
+	      that address plus (resp. minus) the indicated  num-
+	      ber of lines.  The plus sign may be omitted.
+
+       8.     If  an  address begins with `+' or `-' the addition
+	      or subtraction is taken with respect to the current
+	      line; e.g. `-5' is understood to mean `.-5'.
+
+       9.     If an address ends with `+' or `-', then 1 is added
+	      (resp. subtracted).  As a consequence of this  rule
+	      and  rule	 8,  the  address  `-' refers to the line
+	      before the current line.	 Moreover,  trailing  `+'
+	      and  `-' characters have cumulative effect, so `--'
+	      refers to the current line less 2.
+
+       10.    To maintain compatibility with earlier versions  of
+	      the  editor,  the	 character  `^'	 in  addresses is
+	      equivalent to `-'.
+
+       Commands may require zero, one, or  two	addresses.   Com-
+       mands which require no addresses regard the presence of an
+       address as an error.  Commands which  accept  one  or  two
+       addresses  assume  default addresses when insufficient are
+       given.  If more addresses are given than	 such  a  command
+       requires,  the  last  one  or  two  (depending  on what is
+       accepted) are used.
+
+       Addresses are separated from each  other	 typically  by	a
+       comma `,'.  They may also be separated by a semicolon `;'.
+       In this case the current line `.' is set to  the	 previous
+       address before the next address is interpreted.	This fea-
+       ture can be used to determine the starting line	for  for-
+       ward and backward searches (`/', `?').  The second address
+       of any two-address sequence must correspond to a line fol-
+       lowing the line corresponding to the first address.
+
+								3
+
+ED(1)							    ED(1)
+
+       In   the	 following  list  of  ed  commands,  the  default
+       addresses are shown in parentheses.  The	 parentheses  are
+       not  part  of  the  address, but are used to show that the
+       given addresses are the default.
+
+       As mentioned, it is generally illegal for  more	than  one
+       command	to  appear on a line.  However, most commands may
+       be suffixed by `p' or by `l', in which  case  the  current
+       line  is	 either printed or listed respectively in the way
+       discussed below.
+
+       (.)a
+       <text>
+       .
+	    The append command reads the given text  and  appends
+	    it after the addressed line.  `.' is left on the last
+	    line input, if  there  were	 any,  otherwise  at  the
+	    addressed  line.   Address `0' is legal for this com-
+	    mand; text is placed at the beginning of the  buffer.
+
+       (., .)c
+       <text>
+       .
+	    The	 change command deletes the addressed lines, then
+	    accepts input text which replaces these  lines.   `.'
+	    is	left  at the last line input; if there were none,
+	    it is left at the line preceding the deleted lines.
+
+       (., .)d
+	    The delete command deletes the addressed  lines  from
+	    the	 buffer.  The line originally after the last line
+	    deleted  becomes  the  current  line;  if  the  lines
+	    deleted were originally at the end, the new last line
+	    becomes the current line.
+
+       e filename
+	    The edit command causes the entire	contents  of  the
+	    buffer  to	be deleted, and then the named file to be
+	    read in.  `.' is set to the last line of the  buffer.
+	    The	 number	 of characters read is typed.  `filename'
+	    is remembered for possible use as a default file name
+	    in	a  subsequent  r  or w command.	 If `filename' is
+	    missing, the remembered name is used.
+
+       E filename
+	    This command is the same as e, except that	no  diag-
+	    nostic  results  when  no  w has been given since the
+	    last buffer alteration.
+
+       f filename
+	    The filename command prints the currently  remembered
+	    file  name.	  If  `filename'  is given, the currently
+	    remembered file name is changed to `filename'.
+
+								4
+
+ED(1)							    ED(1)
+
+       (1,$)g/regular expression/command list
+	    In the global command, the	first  step  is	 to  mark
+	    every  line	 which	matches the given regular expres-
+	    sion.  Then for every such line,  the  given  command
+	    list is executed with `.' initially set to that line.
+	    A single command or the first  of  multiple	 commands
+	    appears  on	 the  same  line with the global command.
+	    All lines of a multi-line list except the  last  line
+	    must  be  ended  with  `\'.	 A, i, and c commands and
+	    associated input are permitted; the	 `.'  terminating
+	    input  mode may be omitted if it would be on the last
+	    line of the command list.  The commands g and  v  are
+	    not permitted in the command list.
+
+       (.)i
+
+       <text>
+       .
+	    This  command  inserts  the	 given	text  before  the
+	    addressed line.  `.' is left at the last line  input,
+	    or,	 if  there  were  none,	 at  the  line before the
+	    addressed line.  This command differs from the a com-
+	    mand only in the placement of the text.
+
+       (., .+1)j
+	    This  command joins the addressed lines into a single
+	    line; intermediate newlines simply disappear.  `.' is
+	    left at the resulting line.
+
+       ( . )kx
+	    The	 mark  command marks the addressed line with name
+	    x, which must be a lower-case  letter.   The  address
+	    form `'x' then addresses this line.
+
+       (., .)l
+	    The	 list  command	prints	the addressed lines in an
+	    unambiguous way: non-graphic characters  are  printed
+	    in two-digit octal, and long lines are folded.  The l
+	    command may be placed on the same line after any non-
+	    i/o command.
+
+       (., .)ma
+	    The	 move  command	repositions  the  addressed lines
+	    after the line addressed by a.  The last of the moved
+	    lines becomes the current line.
+
+       (., .)p
+	    The	 print	command	 prints the addressed lines.  `.'
+	    is left at the last line printed.  The p command  may
+	    be placed on the same line after any non-i/o command.
+
+       (., .)P
+	    This command is a synonym for p.
+
+								5
+
+ED(1)							    ED(1)
+
+       q    The quit command causes ed	to  exit.   No	automatic
+	    write of a file is done.
+
+       Q    This  command  is the same as q, except that no diag-
+	    nostic results when no w has  been	given  since  the
+	    last buffer alteration.
+
+       ($)r filename
+	    The	 read  command	reads in the given file after the
+	    addressed line.  If no file name is given, the remem-
+	    bered  file	 name,	if  any,  is  used  (see  e and f
+	    commands).	The file name is remembered if there  was
+	    no	remembered  file  name	already.   Address `0' is
+	    legal for r and causes the file to	be  read  at  the
+	    beginning  of the buffer.  If the read is successful,
+	    the number of characters read is typed.  `.' is  left
+	    at the last line read in from the file.
+
+       ( ., .)s/regular expression/replacement/	      or,
+       ( ., .)s/regular expression/replacement/g
+	    The	 substitute  command searches each addressed line
+	    for an occurrence of the  specified	 regular  expres-
+	    sion.   On	each  line in which a match is found, all
+	    matched strings are replaced by the replacement spec-
+	    ified,   if	 the  global  replacement  indicator  `g'
+	    appears after the command.	If the	global	indicator
+	    does  not  appear,	only  the first occurrence of the
+	    matched string is replaced.	 It is an error	 for  the
+	    substitution  to  fail  on	all addressed lines.  Any
+	    character other than space or new-line  may	 be  used
+	    instead  of `/' to delimit the regular expression and
+	    the replacement.  `.' is left at the last  line  sub-
+	    stituted.
+
+	    An	ampersand  `&'	appearing  in  the replacement is
+	    replaced by the string matching the	 regular  expres-
+	    sion.  The special meaning of `&' in this context may
+	    be suppressed by preceding it by `\'.  The characters
+	    `\n'  where	 n  is	a digit, are replaced by the text
+	    matched by the n-th	 regular  subexpression	 enclosed
+	    between  `\('  and	`\)'.  When nested, parenthesized
+	    subexpressions are present, n is determined by count-
+	    ing occurrences of `\(' starting from the left.
+
+	    Lines  may	be split by substituting new-line charac-
+	    ters into them.   The  new-line  in	 the  replacement
+	    string must be escaped by preceding it by `\'.
+
+       (., .)ta
+	    This  command  acts	 just  like the m command, except
+	    that a copy of the addressed lines	is  placed  after
+	    address  a (which may be 0).  `.' is left on the last
+	    line of the copy.
+
+								6
+
+ED(1)							    ED(1)
+
+       (., .)u
+	    The undo command restores the preceding  contents  of
+	    the	 current  line,	 which	must  be the last line in
+	    which a substitution was made.
+
+       (1, $)v/regular expression/command list
+	    This command is the same  as  the  global  command	g
+	    except  that  the command list is executed g with `.'
+	    initially set to every line except those matching the
+	    regular expression.
+
+       (1, $)w filename
+	    The write command writes the addressed lines onto the
+	    given file.	 If the file does not exist, it	 is  cre-
+	    ated  mode	666  (readable and writable by everyone).
+	    The file name is remembered if there  was  no  remem-
+	    bered  file	 name already.	If no file name is given,
+	    the remembered file name, if any, is used (see e  and
+	    f  commands).   `.'	 is unchanged.	If the command is
+	    successful,	 the  number  of  characters  written  is
+	    printed.
+
+       (1,$)W filename
+	    This  command  is  the  same  as  w,  except that the
+	    addressed lines are appended to the file.
+
+       x    A key string is demanded  from  the	 standard  input.
+	    Later  r,  e  and w commands will encrypt and decrypt
+	    the text with this key by the algorithm of	crypt(1).
+	    An explicitly empty key turns off encryption.
+
+       ($)= The	 line number of the addressed line is typed.  `.'
+	    is unchanged by this command.
+
+       !<shell command>
+	    The remainder of the line after the `!'  is	 sent  to
+	    sh(1)  to  be  interpreted	as  a  command.	  `.'  is
+	    unchanged.
+
+       (.+1)<newline>
+	    An address alone on a line causes the addressed  line
+	    to	be  printed.  A blank line alone is equivalent to
+	    `.+1p'; it is useful for stepping through text.
+
+       If an interrupt signal (ASCII DEL) is sent,  ed	prints	a
+       `?' and returns to its command level.
+
+       Some  size limitations: 512 characters per line, 256 char-
+       acters per global command list,	64  characters	per  file
+       name,  and  128K	 characters  in	 the temporary file.  The
+       limit on the number of lines  depends  on  the  amount  of
+       core: each line takes 1 word.
+
+       When  reading a file, ed discards ASCII NUL characters and
+
+								7
+
+ED(1)							    ED(1)
+
+       all characters after the last newline.  It refuses to read
+       files containing non-ASCII characters.
+
+FILES
+       /tmp/e*
+       ed.hup: work is saved here if terminal hangs up
+
+SEE ALSO
+       B.  W.  Kernighan,  A Tutorial Introduction to the ED Text
+       Editor
+       B. W. Kernighan, Advanced editing on UNIX
+       sed(1), crypt(1)
+
+DIAGNOSTICS
+       `?name' for inaccessible file; `?' for errors in commands;
+       `?TMP' for temporary file overflow.
+
+       To  protect  against throwing away valuable work, a q or e
+       command is considered to be  in	error,	unless	a  w  has
+       occurred	 since	the  last buffer change.  A second q or e
+       will be obeyed regardless.
+
+BUGS
+       The l command mishandles DEL.
+       A !  command cannot be subject to a g command.
+       Because 0 is an illegal address for a w command, it is not
+       possible to create an empty file with ed.
+
+								8
+

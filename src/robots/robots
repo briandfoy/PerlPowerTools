@@ -1,0 +1,1435 @@
+#!/usr/local/bin/perl -w
+
+##
+## robots - fight off villainous robots
+##
+## Created for the Perl Power Tools project by John Siracusa
+##
+##   Created:  July 1st, 1999
+##   Modified: July 7th, 1999
+##
+## Copyright(c) 1999 by John C. Siracusa.  All rights reserved.  This program
+## is free software; you can redistribute it and/or modify it under the same
+## terms as Perl itself.
+##
+
+use strict;
+
+use Curses;
+use Getopt::Long;
+use Fcntl qw(:flock);
+
+my($Version) = '0.50';
+
+my(%Opts);
+
+Getopt::Long::config('bundling_override', 'auto_abbrev');
+GetOptions(\%Opts, 'a:i',     # Initial level, or start ahead
+                   'h',       # Usage message
+                   'i=i',     # Robot increment
+                   'j',       # Jump movement
+                   'r:i',     # Play in real time
+                   's',       # Just show score file
+                   't',       # Auto-teleport
+                   'help',    # Usage message
+                   'manual',  # Man page
+                   'version') # Show version
+  || &Usage(1);
+
+&Usage()    if($Opts{'help'} || $Opts{'h'});
+&Version()  if($Opts{'version'});
+&Manual()   if($Opts{'manual'});
+
+##
+## Constants
+##
+
+use constant ALIVE => 1;
+use constant DEAD  => 0;
+
+use constant SIDEBAR_WIDTH   => 19; # In characters
+use constant REAL_TIME_STEP  => 3;  # In seconds
+use constant INITIAL_ROBOTS  => 10; # Num robots on level 1
+use constant ROBOT_SCORE     => 10; # Score per robot kill
+use constant ROBOT_INCREMENT => 10; # Num extra robots per level
+use constant ADVANCE_LEVEL   => 4;  # -a brings you to this level
+use constant ADVANCE_BONUS   => (60 * ROBOT_SCORE); # Bonus for -a
+
+use constant HIGH_SCORE_X        => 15;  # X position of high scores
+use constant MAX_LEVELS          => 4;   # Nothing changes after this level
+use constant MAX_ROBOTS          => (MAX_LEVELS * ROBOT_INCREMENT);
+use constant MAX_SCORES          => 200; # Max scores to track
+use constant MAX_SCORES_PER_USER => 5;   # Max scores per user
+
+# The "graphics" :-)
+use constant ROBOT_CHR   => '+';
+use constant HEAP_CHR    => '*';
+use constant PLAYER_CHR  => '@';
+
+use constant PLAYER_WAIL => 'AARRrrgghhhh....';
+
+# Minimum terminal size
+use constant MIN_LINES => 24;
+use constant MIN_COLS  => 80;
+
+##
+## File-scoped lexicals
+##
+
+# The score file - default: /var/games/robots_roll
+my($Score_File) = '/var/games/robots_roll';
+
+my($Win, %Arena); # The Curses object and the arena hash
+
+# Flag variables
+my($Real_Time, $Real_Time_Move, $Pattern_Roll, $Stand_Still, $New_Score,
+   $Just_Suspended, $Ask_Quit, $Another_Game, $Cheater);
+
+# Miscellaneous settings and structures
+my($Initial_Level, $Robot_Increment, $Real_Time_Step, %High_Scores, $My_Score,
+   %Old_Sig);
+
+#
+# Movement keys
+#
+
+# left, right, up, down, up-left, up-right, dn-left, dn-right, no-op
+my(@movement) =  qw(h l k j y u b n .); # vi keys, or...
+
+                #qw(j l i , u o m . k); # square: sacrifices some
+                                        # capital letter moves, or...
+
+                #qw(4 6 8 2 7 9 1 3 5); # Numeric keypad: sacrifices
+                                        # capital letter movement and
+                                        # number-repeated commands
+
+my($key_l, $key_r, $key_u, $key_d, $key_ul, $key_ur, $key_dl, $key_dr,
+   $key_nop) = @movement;
+
+my($key_w, $key_t, $key_q,       # wait, teleport, quit
+   $key_safe_wait, $key_nop_alt, # safe wait, alternate no-op
+   $key_redraw) =                # redraw
+     ('w', 't', 'q', '>', ' ', "\cL");
+
+# The moves for pattern_roll: YHBJNLUK with the standard keys
+my(@Move_List) = map { uc } ($key_ul, $key_l, $key_dl, $key_d, $key_dr,
+                             $key_r, $key_ur, $key_u);
+
+# Regex to match any movement keys
+my($key_move_re) = '[' . join('', @movement) . "$key_nop_alt]";
+
+# Regexes to match...
+my($key_u_re) = "[$key_ul$key_u$key_ur]"; # movement up
+my($key_d_re) = "[$key_dl$key_d$key_dr]"; # movement down
+my($key_l_re) = "[$key_ul$key_l$key_dl]"; # movement left
+my($key_r_re) = "[$key_ur$key_r$key_dr]"; # movement right
+
+#
+# Globals
+#
+
+use vars qw($LINES $COLS); # From Curses.pm(?)
+
+MAIN:
+{
+  &Parse_Args();
+
+  $Win = new Curses;
+
+  &Show_Scores()  if($Opts{'s'});
+
+  &Sanity_Check();
+  &Init_Arena();
+  &Starting_Positions();
+  &Draw_Arena();
+  &Play();
+
+  print "\n"; # Neatness counts...
+
+  exit(0);
+}
+
+sub Usage
+{
+  endwin()  if(ref($Win));
+
+  print STDERR<<"EOF";
+Usage: robots -hjstv [-a [level]] [-i num] [-r [secs]] [scorefile]
+ -a <level>  Advance to higher levels directly (default: @{[ADVANCE_LEVEL]})
+ -h          Show this help screen
+ -i <num>    Increment robots by <num> after each level
+ -j          Jump movement (don't show intermediate positions)
+ -r          Play in real time
+ -s          Don't play, just show score file
+ -t          Auto-teleport when in danger
+ --manual    Show documentation
+ --version   Show version
+EOF
+
+  exit($_[0] || 0); # -w grrrrr...
+}
+
+sub Version
+{
+  print STDERR "robots version $Version\n";
+  exit(0);
+}
+
+sub Manual { exec 'perldoc', $0 }
+
+sub Sanity_Check
+{
+  foreach my $opt (qw(a i l r))
+  {
+    &Usage()  if(($Opts{$opt} || 0) < 0); # -w grrrr...
+  }
+
+  die "Cannot determine screen size!\n"
+    unless(defined($LINES) && defined($COLS));
+
+  die "Need at least a  @{[MIN_COLS()]}x@{[MIN_LINES()]} screen\n"
+    unless($COLS >= MIN_COLS && $LINES >= MIN_LINES);
+
+  if(-f $Score_File)
+  {
+    unless(open(SCORE, "+>>$Score_File"))
+    {
+      warn "$Score_File: $!; no scores will be saved\n";
+      $Score_File = undef;
+      return;
+    }
+    close(SCORE);
+  }
+  else
+  {
+    $Score_File = undef;
+  }
+}
+
+sub Parse_Args
+{
+  if(@ARGV)
+  {
+    &Usage()  if(@ARGV > 1);
+
+    $Score_File = $ARGV[0];
+
+    if($Score_File =~ m{(?:/|^)pattern_roll$})
+    {
+      $Pattern_Roll = 1;
+    }
+    elsif($Score_File =~ m{(?:/|^)stand_still$})
+    {
+      $Stand_Still = 1;
+    }
+  }
+
+  # Both imply auto-teleport
+  $Opts{'t'} = ($Pattern_Roll || $Stand_Still)
+    unless($Opts{'t'});
+
+  # "Cheating" disqualifies you from the high scores list
+  if((exists $Opts{'i'} && $Opts{'i'} < ROBOT_INCREMENT) ||
+     (exists $Opts{'a'} && $Opts{'a'} > 0 && $Opts{'a'} < ADVANCE_LEVEL))
+  {
+    $Cheater = 1;
+  }
+  else { $Cheater = 0 }
+}
+
+sub Init_Arena
+{
+  cbreak();
+  nonl();
+  noecho();
+
+  if(exists $Opts{'a'})
+  {
+    $Initial_Level = $Opts{'a'} || ADVANCE_LEVEL;
+  }
+  else
+  {
+    $Initial_Level = 1;
+  }
+
+  $Robot_Increment = $Opts{'i'} || ROBOT_INCREMENT;
+
+  my($num_robots) = INITIAL_ROBOTS + (($Initial_Level - 1) * $Robot_Increment);
+
+  if(exists $Opts{'r'})
+  {
+    $Real_Time = 1;
+    $Real_Time_Step = $Opts{'r'} || REAL_TIME_STEP;
+  }
+  else
+  {
+    $Real_Time = 0;
+  }
+
+  %Arena =
+  (
+    'MIN_X' => 1, 
+    'MAX_X' => $COLS - SIDEBAR_WIDTH - 2,
+    'MIN_Y' => 1,
+    'MAX_Y' => $LINES - 2,
+
+    'SCORE_X' => $COLS - SIDEBAR_WIDTH + 8,
+    'SCORE_Y' => 21,
+
+    'PROMPT_X' => $COLS - SIDEBAR_WIDTH + 1,
+    'PROMPT_Y' => 22,
+
+    'LEVEL' => $Initial_Level,
+
+    'PLAYER' =>
+    {
+      'X' => 0,
+      'Y' => 0,
+      'STATUS'    => ALIVE,
+      'SCORE'     => 0,
+      'BONUS'     => 0,
+      'ADV_BONUS' => 0,
+    },
+
+    'ROBOTS'     => [],
+    'MAX_ROBOTS' => undef,
+
+    'HEAP_AT'  => {},
+    'ROBOT_AT' => {},
+  );
+
+  # Upper bound on robots in accordance with the OpenBSD version of robots:
+  $Arena{'MAX_ROBOTS'} = MAX_ROBOTS;
+
+  # Here's a more reasonable (fun?) upper-bound on the number of robots
+  # $Arena{'MAX_ROBOTS'} = (($Arena{'MAX_X'}/2 - $Arena{'MIN_X'}) *
+  #                         ($Arena{'MAX_Y'}/2 - $Arena{'MIN_Y'})) - 1;
+
+  $Arena{'ROBOTS'} = &Build_Robots($num_robots);
+}
+
+sub Build_Robots
+{
+  my($num_robots) = shift;
+
+  my($robots);
+
+  $num_robots = $Arena{'MAX_ROBOTS'}  if($num_robots > $Arena{'MAX_ROBOTS'});
+
+  for(my $i = 0; $i < $num_robots; $i++)
+  {
+    # X, Y, STATUS
+    ${$robots}[$i] =
+    {
+      X => 0,
+      Y => 0,
+      STATUS => ALIVE,
+    };
+  }
+
+  return $robots;
+}
+
+sub Starting_Positions
+{
+  my(%seen, $x, $y, $min_x, $min_y, $rng_x, $rng_y, $num_robots);
+
+  $num_robots = INITIAL_ROBOTS + (($Arena{'LEVEL'} - 1) * $Robot_Increment);
+
+  $Arena{'HEAP_AT'}  = {};
+  $Arena{'ROBOT_AT'} = {};
+
+  $Arena{'ROBOTS'} = &Build_Robots($num_robots);
+
+  $min_x = $Arena{'MIN_X'};
+  $min_y = $Arena{'MIN_Y'};
+
+  $rng_x = $Arena{'MAX_X'} - $min_x;
+  $rng_y = $Arena{'MAX_Y'} - $min_y;
+
+  foreach my $robot (@{$Arena{'ROBOTS'}})
+  {
+    POSITION_ROBOT:
+    {
+      $x = int(rand($rng_x)) + $min_x;
+      $y = int(rand($rng_y)) + $min_y;
+
+      redo POSITION_ROBOT  if($seen{"$x:$y"});
+      $seen{"$x:$y"} = 1;
+    }
+    
+    @{$robot}{'X', 'Y', 'STATUS'} = ($x, $y, ALIVE);
+    $Arena{'ROBOT_AT'}{"$x:$y"} = 1;
+  }
+
+  POSITION_PLAYER:
+  {
+    $x = int(rand($rng_x)) + $min_x;
+    $y = int(rand($rng_y)) + $min_y;
+
+    redo POSITION_PLAYER  if($seen{"$x:$y"});
+    @{$Arena{'PLAYER'}}{'X', 'Y'} = ($x, $y);
+  }
+  
+  $Arena{'PLAYER'}{'STATUS'} = ALIVE;
+}
+
+sub Draw_Arena
+{
+  my($str) = '+' . '-' x $Arena{'MAX_X'} . '+';
+
+  # Top border
+  $Win->addstr(0, 0, $str);
+  
+  # Bottom border
+  $Win->addstr($Arena{'MAX_Y'} + 1, 0, $str);
+
+  # Side borders
+  for(my $line = $Arena{'MAX_Y'}; $line > 0; $line--)
+  {
+    $Win->addch($line, $Arena{'MIN_X'} - 1, '|');
+    $Win->addch($line, $Arena{'MAX_X'} + 1, '|');
+  }
+
+  # Legend
+  my(@legend) = split(/\n/, <<"EOF");
+Directions:
+
+$key_ul $key_u $key_ur
+ \\|/
+$key_l- -$key_r
+ /|\\
+$key_dl $key_d $key_dr
+
+Commands:
+
+$key_w:  wait for end
+$key_t:  teleport
+$key_q:  quit
+^L: redraw screen
+
+Legend:
+
+@{[ROBOT_CHR]}:  robot
+@{[HEAP_CHR]}:  junk heap
+@{[PLAYER_CHR]}:  you
+
+Score:
+EOF
+
+  my($x_off) = $Arena{'MAX_X'} + 2;
+
+  my($y) = 0;
+
+  foreach my $line (@legend)
+  {
+    $Win->addstr($y, $x_off, ' ' . $line);
+    $Win->clrtoeol();
+    $y++;
+  }
+
+  &Update_Score();
+  &Update_Bonus();
+
+  # Robots
+  foreach my $robot (@{$Arena{'ROBOTS'}})
+  {
+    $Win->addch($robot->{'Y'}, $robot->{'X'}, ROBOT_CHR);
+  }
+
+  # Player
+  $Win->addch(@{$Arena{'PLAYER'}}{'Y', 'X'}, PLAYER_CHR);
+  $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+
+  # Player dead?
+  if($Arena{'PLAYER'}{'STATUS'} == DEAD)
+  {
+    &Kill_Player_Wail();
+  }
+
+  # Re-print any prompts that are active
+  if($Ask_Quit)        { &Quit_Prompt()         }      
+  elsif($Another_Game) { &Another_Game_Prompt() }
+
+  $Win->refresh();
+}
+
+sub Play
+{
+  my($chr, $won, $robot, $repeat, $move_index);
+
+  $move_index = 0;
+
+  EVENT: for(;;)
+  {
+    if($Pattern_Roll && scalar(keys(%{$Arena{'ROBOT_AT'}})) > 1)
+    {
+      $chr = $Move_List[$move_index++];
+      # I'd love to just use $Win->addch(0, 0, $chr); but it keeps
+      # erasing the entire top line for some reason.  Anyway, now I'm
+      # redrawing the entire thing just to change a single character in
+      # the upper-left hand corner.  Ick.
+      $Win->addstr(0, 0, $chr . '-' x $Arena{'MAX_X'} . '+ Directions: ');
+      $move_index = 0  if($move_index > $#Move_List);
+    }
+    elsif($Stand_Still && scalar(keys(%{$Arena{'ROBOT_AT'}})) > 1)
+    {
+      $chr = $key_safe_wait;
+    }
+    else
+    {
+      $chr = &Get_Command();
+    }
+
+    # Add to command repeat number unless using numbers to move
+    if($chr =~ /\d/ && $chr !~ /$key_move_re/io)
+    {
+      $repeat .= $chr;
+      next;
+    }
+
+    # Clear bonus after first move, but preserve during a redraw
+    if($won && $chr ne $key_redraw)
+    {
+      $Arena{'PLAYER'}{'BONUS'} = $Arena{'PLAYER'}{'ADV_BONUS'} = 0;
+      &Update_Bonus();
+      $won = 0;
+    }
+
+    HANDLE_KEY:
+    {
+      if($chr =~ /$key_move_re/io)
+      {
+        # Capital move key: move until we can't move any more.
+        # Exclude non-letters where lc($chr) eq uc($chr)
+        if(lc($chr) ne uc($chr) && $chr eq uc($chr) &&
+           $chr ne $key_nop_alt && $chr ne $key_nop)
+        {
+          1 while(&Move_Player($chr));
+          $repeat = 0; # Ignore any repeat
+        }
+        else
+        {
+          # Move player, and stop repeating if we can't move any more.
+          &Move_Player($chr) || ($repeat = 0);
+        }
+      }
+      elsif($chr eq $key_t)
+      {
+        &Teleport();
+      }
+      elsif($chr eq $key_w)
+      {
+        &Wait('allow kill');
+      }
+      elsif($chr eq $key_safe_wait)
+      {
+        &Wait();
+        &Teleport()  if($Stand_Still);
+      }
+      elsif($chr =~ /^$key_q$/io)
+      {
+        &Quit() && last EVENT;
+      }
+      elsif($chr eq $key_redraw)
+      {
+        &Redraw();
+        next EVENT; 
+      }
+      else
+      {
+        next EVENT;
+      }
+
+      # Are we dead?
+      if($Arena{'PLAYER'}{'STATUS'} == DEAD)
+      {
+        &Kill_Player || last EVENT;
+      }
+
+      # Have we won yet?
+      $won = !scalar(keys(%{$Arena{'ROBOT_AT'}}));
+
+      $repeat--  if($repeat);
+
+      redo HANDLE_KEY  if($repeat);
+    }
+
+    if($won)
+    {
+      # Regular bonus
+      $Arena{'PLAYER'}{'SCORE'} += $Arena{'PLAYER'}{'BONUS'};
+
+      # Advance bonus
+      if($Arena{'LEVEL'} == $Initial_Level &&
+         $Initial_Level >= ADVANCE_LEVEL)
+      {
+        $Arena{'PLAYER'}{'ADV_BONUS'} = ADVANCE_BONUS;
+        $Arena{'PLAYER'}{'SCORE'} += $Arena{'PLAYER'}{'ADV_BONUS'};    
+      }
+
+      $Arena{'LEVEL'}++;
+
+      &Clear_Arena();
+      &Starting_Positions();
+      &Draw_Arena();
+    }
+
+    $Win->refresh();
+  }
+
+  endwin();
+}
+
+sub Get_Command
+{
+  my($chr);
+
+  $Win->refresh();
+
+  $Old_Sig{'ALRM'} = $SIG{'ALRM'} || 'DEFAULT';
+  $Old_Sig{'TSTP'} = $SIG{'TSTP'} || 'DEFAULT';
+
+  eval
+  {
+    # Localize so I only have to restore in my catch block
+    local $SIG{'ALRM'} = sub { die 'alarm'     };
+    local $SIG{'TSTP'} = sub { die 'suspended' };
+    $chr = $Win->getch();
+    alarm(0)  if($Real_Time && $chr ne $key_redraw);
+  };
+
+  $Real_Time_Move = 0;
+  $Just_Suspended = 0;
+
+  if($@)
+  {
+    $SIG{'ALRM'} = $Old_Sig{'ALRM'};
+    $SIG{'TSTP'} = $Old_Sig{'TSTP'};
+
+    if($@ =~ /^alarm/)
+    {
+      $chr = $key_nop;
+      $Real_Time_Move = 1;
+    }
+    elsif($@ =~ /^suspended/)
+    {
+      alarm(0)  if($Real_Time);
+
+      $Win->clear();
+      $Win->move($LINES, 0);
+      $Win->refresh();
+      endwin();
+
+      kill('TSTP', $$);
+
+      # The is the only way I could get a nice screen redraw
+      # for some reason.  If Curses.pm just supported tstp(),
+      # I wouldn't have to do this...
+      $Win = new Curses;
+      $chr = $key_redraw;
+
+      $Just_Suspended = 1;
+
+      alarm($Real_Time_Step) 
+        if($Real_Time && $Arena{'PLAYER'}{'STATUS'} == ALIVE && !$Ask_Quit);
+    }
+    else
+    {
+      die "Strange eval error: $@\n";
+    }
+  }
+
+  return $chr;
+}
+
+sub Move_Player
+{
+  my($chr, $waiting, $allow_kill) = @_;
+
+  my($robot_x, $robot_y, $old_x, $old_y, $ret);
+
+  $allow_kill = 1  if($Real_Time_Move);
+
+  $ret = 1;
+
+  ($old_x, $old_y) = @{$Arena{'PLAYER'}}{'X', 'Y'};
+
+  $chr = lc($chr);
+
+  if(($chr =~ /$key_u_re/o && $Arena{'PLAYER'}{'Y'} == $Arena{'MIN_Y'}) ||
+     ($chr =~ /$key_d_re/o && $Arena{'PLAYER'}{'Y'} == $Arena{'MAX_Y'}) ||
+     ($chr =~ /$key_l_re/o && $Arena{'PLAYER'}{'X'} == $Arena{'MIN_X'}) ||
+     ($chr =~ /$key_r_re/o && $Arena{'PLAYER'}{'X'} == $Arena{'MAX_X'}))
+  {
+    return(0); # Can't move that way
+  }
+
+  for($chr) # Try the move
+  {
+    /$key_u_re/o && $Arena{'PLAYER'}{'Y'}--;
+    /$key_d_re/o && $Arena{'PLAYER'}{'Y'}++;
+    /$key_l_re/o && $Arena{'PLAYER'}{'X'}--;
+    /$key_r_re/o && $Arena{'PLAYER'}{'X'}++;
+  }
+
+  # Check for heap blocking the path
+  if($Arena{'HEAP_AT'}{"$Arena{'PLAYER'}{'X'}:$Arena{'PLAYER'}{'Y'}"})
+  {
+    # Restore old position
+    @{$Arena{'PLAYER'}}{'X', 'Y'} = ($old_x, $old_y);
+    $ret = 0;
+  }
+  else
+  {
+    # Is the move to a safe spot?  
+    foreach my $robot (@{$Arena{'ROBOTS'}})
+    {
+      next  unless($robot->{'STATUS'} == ALIVE);
+
+      if(abs($robot->{'X'} - $Arena{'PLAYER'}{'X'}) < 2 &&
+         abs($robot->{'Y'} - $Arena{'PLAYER'}{'Y'}) < 2)
+      {
+        # Unsafe: restore old position
+        @{$Arena{'PLAYER'}}{'X', 'Y'} = ($old_x, $old_y);
+        $ret = 0;
+      }
+    }
+  }
+
+  $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+
+  unless($ret) # Invalid move
+  {
+    # return false unless killing is allowed
+    return(0)  unless($allow_kill);
+  }
+
+  # Erase old player, draw new player
+  $Win->addch($old_y, $old_x, ' ');
+  $Win->addch(@{$Arena{'PLAYER'}}{'Y', 'X'}, PLAYER_CHR);
+
+  # Move all the robots
+  &Move_Robots($waiting, $allow_kill);
+
+  unless($waiting && $Opts{'j'})
+  {
+    &Update_Score();
+    $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+    $Win->refresh()  unless($Opts{'j'});
+  }
+
+  # Auto-teleport?
+  if($Opts{'t'} && !$waiting && &Must_Teleport())
+  {
+    &Teleport()  while(&Must_Teleport());
+    return(1);
+  }
+
+  return $ret;
+}
+
+sub Move_Robots
+{
+  my($waiting, $allow_kill) = @_;
+
+  my(%robot_at, $robot, $i);
+
+  # Move robots
+  for($i = $#{$Arena{'ROBOTS'}}; $i >= 0; $i--) 
+  {
+    $robot = $Arena{'ROBOTS'}[$i];
+
+    next  unless($robot->{'STATUS'} == ALIVE);
+
+    # Erase robot
+    $Win->addch($robot->{'Y'},  $robot->{'X'}, ' ');
+
+    ($Arena{'PLAYER'}{'X'} > $robot->{'X'} && $robot->{'X'}++) ||
+    ($Arena{'PLAYER'}{'X'} < $robot->{'X'} && $robot->{'X'}--);
+
+    ($Arena{'PLAYER'}{'Y'} > $robot->{'Y'} && $robot->{'Y'}++) ||
+    ($Arena{'PLAYER'}{'Y'} < $robot->{'Y'} && $robot->{'Y'}--);
+
+    # Check for heap collision
+    if($Arena{'HEAP_AT'}{"$robot->{'X'}:$robot->{'Y'}"})
+    {
+      $Arena{'PLAYER'}{'SCORE'} += ROBOT_SCORE;
+      $Arena{'PLAYER'}{'BONUS'} += 1  if($waiting && $allow_kill);
+      $Arena{'ROBOTS'}[$i]{'STATUS'} = DEAD; # Robot adds to heap
+    }
+    else
+    {
+      push(@{$robot_at{"$robot->{'X'}:$robot->{'Y'}"}}, $i);
+    }
+  }
+
+  # Make heaps where robots collide
+  foreach my $coords (keys(%robot_at))
+  {
+    if(@{$robot_at{$coords}} > 1) # Collision
+    {
+      my($x, $y) = split(':', $coords);
+
+      $Arena{'HEAP_AT'}{$coords} = 1; # Add heap
+      $Win->addch($y, $x, HEAP_CHR);  # Draw heap
+
+      # Remove robots
+      foreach $i (@{$robot_at{$coords}})
+      {
+        $Arena{'PLAYER'}{'SCORE'} += ROBOT_SCORE;
+        $Arena{'PLAYER'}{'BONUS'} += 1  if($waiting && $allow_kill);
+        $Arena{'ROBOTS'}[$i]{'STATUS'} = DEAD;
+      }
+    }
+  }
+
+  $Arena{'ROBOT_AT'} = {}; # Clear robot positions
+
+  # Redraw robots
+  foreach $robot (@{$Arena{'ROBOTS'}})
+  {
+    next  unless($robot->{'STATUS'} == ALIVE);
+    $Arena{'ROBOT_AT'}{"$robot->{'X'}:$robot->{'Y'}"} = 1;
+    $Win->addch($robot->{'Y'}, $robot->{'X'}, ROBOT_CHR);
+  }
+
+  if($Real_Time)
+  {
+    # Check to see if we just died
+    if($Arena{'ROBOT_AT'}{"$Arena{'PLAYER'}{'X'}:$Arena{'PLAYER'}{'Y'}"} ||
+       $Arena{'HEAP_AT'}{"$Arena{'PLAYER'}{'X'}:$Arena{'PLAYER'}{'Y'}"})
+    {
+      $Arena{'PLAYER'}{'STATUS'} = DEAD;
+      return;
+    }
+
+    $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+    $Win->refresh();
+
+    alarm($Real_Time_Step);
+  }
+}
+
+sub Teleport
+{
+  my($x, $y, $min_x, $min_y, $rng_x, $rng_y);
+
+  my($ox, $oy) = @{$Arena{'PLAYER'}}{'Y', 'X'};
+
+  # Erase old player
+  $Win->addch(@{$Arena{'PLAYER'}}{'Y', 'X'}, ' ');
+
+  $min_x = $Arena{'MIN_X'};
+  $min_y = $Arena{'MIN_Y'};
+
+  $rng_x = $Arena{'MAX_X'} - $min_x;
+  $rng_y = $Arena{'MAX_Y'} - $min_y;
+
+  TELEPORT_PLAYER:
+  {
+    $x = int(rand($rng_x)) + $min_x;
+    $y = int(rand($rng_y)) + $min_y;
+
+    # Don't teleport onto heaps...is that allowed or not?
+    redo TELEPORT_PLAYER  if($Arena{'HEAP_AT'}{"$x:$y"});
+    @{$Arena{'PLAYER'}}{'X', 'Y'} = ($x, $y);
+  }
+
+  # Is the move to a safe spot?  
+  foreach my $robot (@{$Arena{'ROBOTS'}})
+  {
+    next  unless($robot->{'STATUS'} == ALIVE);
+
+    if(abs($robot->{'X'} - $Arena{'PLAYER'}{'X'}) < 2 &&
+       abs($robot->{'Y'} - $Arena{'PLAYER'}{'Y'}) < 2)
+    {
+      # Unsafe == death!
+      $Arena{'PLAYER'}{'STATUS'} = DEAD;
+      return;
+    }
+  }
+
+  # Draw teleported player  
+  $Win->addch(@{$Arena{'PLAYER'}}{'Y', 'X'}, PLAYER_CHR);
+
+  &Move_Robots();
+
+  $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+}
+
+sub Kill_Player_Wail
+{
+  $Win->addstr(@{$Arena{'PLAYER'}}{'Y', 'X'}, PLAYER_WAIL);
+}
+
+sub Kill_Player
+{
+  alarm(0)  if($Real_Time);
+
+  &Kill_Player_Wail();
+
+  &Record_Score();
+  &Show_Scores_In_Game()  if($New_Score);
+
+  $Arena{'PLAYER'}{'SCORE'} = $Arena{'PLAYER'}{'BONUS'} = 0;
+  $Arena{'LEVEL'} = $Initial_Level;
+
+  return &Another_Game();
+}
+
+sub Another_Game_Prompt
+{
+  $Win->addstr(22, $Arena{'MAX_X'} + 3, 'Another game?');
+  $Win->clrtoeol();
+
+  $Win->move(22, $Arena{'MAX_X'} + 16);
+}
+
+sub Another_Game
+{
+  if(($Pattern_Roll || $Stand_Still) && !$New_Score)
+  {
+    &Clear_Arena();
+    &Clear_Legend();
+    &Starting_Positions();
+    &Draw_Arena();
+    return(1);
+  }
+
+  my($chr);
+
+  $Another_Game = 1;
+
+  &Another_Game_Prompt();
+
+  ASK_ANOTHER_GAME:
+  {
+    $chr = &Get_Command();
+
+    if($chr eq $key_redraw && $Just_Suspended)
+    {
+      &Redraw();
+      redo ASK_ANOTHER_GAME;
+    }
+  }
+
+  $Another_Game = 0;
+
+  return(0)  if($chr !~ /^y$/i);
+
+  # Clear scores and bonuses
+  $Arena{'PLAYER'}{'BONUS'} = $Arena{'PLAYER'}{'ADV_BONUS'} = 
+    $Arena{'PLAYER'}{'SCORE'} = 0;
+
+  &Clear_Arena();
+  &Clear_Legend();
+  &Starting_Positions();
+  &Draw_Arena();
+
+  return(1);
+}
+
+sub Record_Score
+{
+  return  if($Cheater || !defined($Score_File));
+
+  unless(open(SCORE, "+>>$Score_File"))
+  {
+    $Score_File = undef;
+    warn "$Score_File: $!; no scores will be saved\n";
+    return;
+  }
+
+  unless(flock(SCORE, LOCK_EX))
+  {
+    close(SCORE);
+    $Score_File = undef;
+    warn "$Score_File: $!; no scores will be saved\n";
+    return;
+  }
+
+  seek(SCORE, 0, 0); # Rewind, just in case
+
+  my($record, $uid, $score, $name, $info, $num_scores);
+
+  %High_Scores = ();
+  $New_Score = 0;
+  $My_Score  = 0;
+
+  $record = 0;
+  $num_scores = 0;
+
+  while(<SCORE>)
+  {
+    chop;
+    ($uid, $score, $name) = split(/\t/, $_);
+    push(@{$High_Scores{$score}}, [ $uid, $score, $name ]);
+    $num_scores++;
+  }
+
+  if($num_scores < MAX_SCORES)
+  {
+    $record = 1;
+  }
+  else
+  {
+    foreach $score (keys(%High_Scores))
+    {
+      if($Arena{'PLAYER'}{'SCORE'} >= $score)
+      {
+        $record = 1;
+        last;
+      }
+    }
+  }
+
+  unless($record)
+  {
+    flock(SCORE, LOCK_UN);
+    close(SCORE);
+    return;
+  }
+
+  my($i, $count);
+
+  $uid   = $<;
+  $score = $Arena{'PLAYER'}{'SCORE'};
+  $name  = getpwuid($uid) || '???';
+
+  unshift(@{$High_Scores{$score}}, [ $uid, $score, $name ]);
+
+  # Clear and rewind
+  truncate(SCORE, 0);
+  seek(SCORE, 0, 0);
+
+  $i = 1;
+  $count = 0;
+
+  foreach $score (sort { $b <=> $a } keys(%High_Scores))
+  {
+    foreach $info (@{$High_Scores{$score}})
+    {
+      # Only allow MAX_SCORES_PER_USER
+      unless($< == ${$info}[0] && ++$count >= MAX_SCORES_PER_USER)
+      {
+        print SCORE join("\t", @{$info}), "\n";
+        if($score == $Arena{'PLAYER'}{'SCORE'})
+        {
+          $My_Score = $info  unless($New_Score);
+          $New_Score = 1;
+        }
+        last  if($i++ > MAX_SCORES);
+      }
+    }
+  }
+
+  flock(SCORE, LOCK_UN);
+  close(SCORE);
+}
+
+sub Show_Scores
+{
+  endwin();
+
+  return  unless(defined($Score_File));
+
+  open(SCORE, $Score_File) || die "$Score_File: $!\n";
+
+  my($uid, $score, $name, $i);
+
+  $i = 1;
+
+  while(<SCORE>)
+  {
+    chop;
+    ($uid, $score, $name) = split(/\t/, $_);
+
+    printf("%d\t%d\t%s\n", $i, $score, $name);
+    last  if(++$i > $LINES);
+  }
+
+  close(SCORE);
+  exit(0);
+}
+
+sub Show_Scores_In_Game
+{
+  my($info, $line, $uid, $score, $name);
+
+  $line = 1;
+
+  foreach $score (sort { $b <=> $a } keys(%High_Scores))
+  {
+    foreach $info (@{$High_Scores{$score}})
+    {
+      ($uid, $score, $name) = @{$info};
+
+      $name = sprintf("%-16s", $name);
+
+      $Win->move($line, HIGH_SCORE_X);
+      $Win->standout()  if($info eq $My_Score);
+      $Win->addstr(" $line\t$score\t$name ");
+      $Win->standend()  if($info eq $My_Score);
+
+      last  if(++$line >= $Arena{'MAX_Y'});
+    }
+  }
+
+  $Win->refresh();
+}
+
+sub Clear_Arena
+{
+  my($str) = ' ' x ($Arena{'MAX_X'} - $Arena{'MIN_X'} + 1);
+
+  for(my $line = $Arena{'MAX_Y'}; $line > 0; $line--)
+  {
+    $Win->addstr($line, $Arena{'MIN_X'}, $str);
+  }
+}
+
+sub Clear_Legend
+{
+  &Update_Score();
+  &Update_Bonus();
+
+  # Clear the prompt area
+  $Win->addstr(22, $Arena{'MAX_X'} + 3, ' ' x (SIDEBAR_WIDTH() - 1));
+}
+
+sub Update_Score
+{
+  $Win->move($Arena{'SCORE_Y'}, $Arena{'SCORE_X'});
+
+  $Win->addstr($Arena{'PLAYER'}{'SCORE'});
+  $Win->clrtoeol();
+}
+
+sub Update_Bonus
+{
+  my($x, $y) = ($Arena{'PROMPT_X'} - 1, $Arena{'PROMPT_Y'});
+
+  if($Arena{'PLAYER'}{'ADV_BONUS'}) # Advance bonus
+  {
+    $Win->move($y, $x);
+    $Win->addstr($y, $x, sprintf(" Advance bonus: %3d",
+                                 $Arena{'PLAYER'}{'ADV_BONUS'}));
+    $y++;
+  }
+
+  $Win->move($y, $x);
+  $Win->addstr(" Wait bonus: $Arena{'PLAYER'}{'BONUS'}")
+    if($Arena{'PLAYER'}{'BONUS'});
+
+  $Win->clrtoeol();
+  
+  if($y < $Arena{'PROMPT_Y'} + 1)
+  {
+    $Win->move($y + 1, $x);
+    $Win->clrtoeol();
+  }
+}
+
+sub Redraw
+{
+  $Win->clear();
+  $Win->refresh();
+  &Draw_Arena();
+  $Win->refresh();
+}
+
+sub Wait
+{
+  my($allow_kill) = shift;
+
+  while(&Move_Player($key_nop, 'waiting', $allow_kill))
+  {
+    # Are we dead?
+    foreach my $robot (@{$Arena{'ROBOTS'}})
+    {
+      next  unless($robot->{'STATUS'} == ALIVE);
+ 
+      if(abs($robot->{'X'} - $Arena{'PLAYER'}{'X'}) < 2 &&
+         abs($robot->{'Y'} - $Arena{'PLAYER'}{'Y'}) < 2)
+      {
+        if($allow_kill)
+        {
+          # Dead!  Bummer.
+          $Arena{'PLAYER'}{'STATUS'} = DEAD;
+          return;
+        }
+        return(1);
+      }
+    }
+
+    # Return if we've won
+    return(1)  unless(scalar(keys(%{$Arena{'ROBOT_AT'}})));
+  }
+
+  # Are we dead?
+  if($Arena{'ROBOT_AT'}{"$Arena{'PLAYER'}{'X'}:$Arena{'PLAYER'}{'Y'}"} ||
+     $Arena{'HEAP_AT'}{"$Arena{'PLAYER'}{'X'}:$Arena{'PLAYER'}{'Y'}"})
+  {
+    $Arena{'PLAYER'}{'STATUS'} = DEAD;
+  }
+
+  return(1);
+}
+
+sub Must_Teleport
+{
+  my($px, $py) = @{$Arena{'PLAYER'}}{'X', 'Y'};
+
+  my($x1, $y1, $x2, $y2, %pos_moves);
+
+  if($Pattern_Roll)
+  {
+    foreach(@Move_List)
+    {
+      ($x1, $y1) = ($px, $py);
+      /$key_u_re/io && $y1--;
+      /$key_d_re/io && $y1++;
+      /$key_l_re/io && $x1--;
+      /$key_r_re/io && $x1++;
+      
+      $pos_moves{"$x1:$y1"} = 1;
+    }
+  }
+  elsif($Stand_Still && scalar(keys(%{$Arena{'ROBOT_AT'}})) && Unsafe_Pos())
+  {
+    return(1);
+  }
+
+  MOVE_TO_X: foreach $x1 ($px - 1 .. $px + 1)
+  {
+    next  if($x1 < $Arena{'MIN_X'} || $x1 > $Arena{'MAX_X'});
+    
+    MOVE_TO_Y: foreach $y1 ($py - 1 .. $py + 1)
+    {
+      next  if($y1 < $Arena{'MIN_Y'} || $y1 > $Arena{'MAX_Y'} ||
+               $Arena{'ROBOT_AT'}{"$x1:$y1"} ||
+               $Arena{'HEAP_AT'}{"$x1:$y1"});
+
+      next  if($Pattern_Roll && !$pos_moves{"$x1:$y1"});
+
+      if(!&Unsafe_Pos($x1, $y1))
+      {
+        return(0);
+      }
+    }
+  }
+
+  return(1);
+}
+
+sub Unsafe_Pos
+{
+  my($x, $y) = @_;
+
+  my($x1, $y1);
+
+  foreach $x1 ($x - 1 .. $x + 1)
+  {
+    next  if($x1 < $Arena{'MIN_X'} || $x1 > $Arena{'MAX_X'});
+
+    foreach $y1 ($y - 1 .. $y + 1)
+    {
+      next  if($y1 < $Arena{'MIN_Y'} || $y1 > $Arena{'MAX_Y'});
+
+      if($Arena{'ROBOT_AT'}{"$x1:$y1"})
+      {
+        return(1);
+      }
+    }
+  }
+  return(0);
+}
+
+sub Quit_Prompt
+{
+  $Win->addstr(22, $Arena{'MAX_X'} + 3, 'Really quit?');
+  $Win->clrtoeol();
+
+  $Win->move(22, $Arena{'MAX_X'} + 15);
+}
+
+sub Quit
+{
+  my($chr);
+
+  $Ask_Quit = 1;
+
+  &Quit_Prompt();
+
+  ASK_QUIT:
+  {
+    $chr = &Get_Command();
+
+    if($chr eq $key_redraw && $Just_Suspended)
+    {
+      &Redraw();
+      redo ASK_QUIT;
+    }
+  }
+
+  $Ask_Quit = 0;
+
+  alarm($Real_Time_Step)  if($Real_Time);
+
+  return(1)  if($chr =~ /^y$/i);
+
+  &Clear_Legend();
+
+  $Win->move(@{$Arena{'PLAYER'}}{'Y', 'X'});
+
+  return(0);
+}
+
+=head1 NAME
+
+robots - fight off villainous robots
+
+=head1 SYNOPSIS
+
+C<robots -hjstv [-a [level]] [-i num] [-r [secs]] [scorefile]>
+
+=head1 DESCRIPTION
+
+robots pits you against a growing hoard of evil robots bent on your
+destruction (much like real life).  Your only weapons against the robot
+hoard are your wits and their stupidity.  Consumed by their single-minded
+mission of destruction, the robots will not deviate from their pursuit even
+if it causes them to collide with and annihilate each other, leaving behind
+a pile of robot junk.
+
+You are endowed with one piece of defensive weaponry: a teleportation
+device.  When two robots run into each other or a junk pile, they die.  If
+a robot runs into you, you die.  When a robot dies, you get 10 points, and
+when all the robots die, you start on the next level.  This keeps up until
+they finally get you (or until you meet the final boss robot, Zektor the
+Destroyer, and defeat the game).
+
+Robots are represented on the screen by a `+', the junk heaps from their
+collisions by a `*', and you (the good guy) by a `@'.
+
+The commands are:
+
+    h        move one square left
+    l        move one square right
+    k        move one square up
+    j        move one square down
+    y        move one square up and left
+    u        move one square up and right
+    b        move one square down and left
+    n        move one square down and right
+    .        (also space) do nothing for one turn
+
+    HJKLBNYU run as far as possible in the given direction
+    >        do nothing for as long as possible
+    t        teleport to a random location
+    w        wait until you die or they all do
+    q        quit
+    ^L       redraw the screen
+
+All commands can be preceded by a count.
+
+If you use the `w' command and survive to the next level, you will get a
+bonus of 1 point for each robot that died after you decided to wait.  If
+you die, however, you get nothing (again, much like in real life).  For all
+other commands, the program will save you from typos by stopping short of
+being eaten.  However, with `w' you take the risk of dying by
+miscalculation.
+
+Only five scores per user are allowed on the score file.  If you make it
+into the score file, you will be shown the list at the end of the game.
+If an alternative score file is specified, that will be used instead of
+the standard file for scores.
+
+If the score file is named "pattern_roll", then the game will be played
+automatically using the repeated sequence of commands: "YHBJNLUK".  The
+game will stop on each level when there is only one robot left alive,
+allowing you to finish the level manually.  Automatic play will resume at
+the start of the next level.  Auto-teleport will be active.
+
+If the score file is named "stand_still", then the game will be played
+automatically using a repeated sequence of the ">" command.  The game will
+stop on each level when there is only one robot left alive, allowing you to
+finish the level manually.  Automatic play will resume at the start of the
+next level.  Auto-teleport will be active.
+
+The options are:
+
+=over 4
+
+=item B<-a [LEVEL]>
+
+Advance into the higher levels directly, skipping the lower, easier levels.
+Takes an optional level argument, and defaults to 4 with no arguments.
+Setting this to anything less than the default (4) takes you out of
+contention for a place in the score file.  A bonus of 600 points is awarded
+after the completion of the first level played.
+
+=item B<-h>
+
+Display a usage message and short help screen.
+
+=item B<-i NUM>
+
+Increment the number of robots on the playing field by NUM after each level
+is completed.  Setting this to anything less than the default (10) takes
+you out of contention for a place in the score file.
+
+=item B<-j>
+
+Jump: when you run, don't show any intermediate positions.  This is useful
+on slow terminals.
+
+=item B<-r [SECS]>
+
+Play in real time, which means that the robots advance after a certain
+period of time (default: 3 seconds) whether you've moved or not.  Takes
+an optional delay arguments (in seconds).
+
+=item B<-s>
+
+Don't play, just show the score file.
+
+=item B<-t>
+
+Teleport automatically when you have no other option.  This is a little
+disconcerting until you get used to it, and then it is very nice.
+
+=item B<--manual>
+
+Show the manual page via perldoc.
+
+=item B<--version>
+
+Show the robots version number.
+
+=back
+
+=head1 AUTHOR
+
+John C. Siracusa (siracusa@mindspring.com)
+
+=head1 FILES
+
+/var/games/robots_roll - the score file
+
+=head1 BUGS
+
+C<Curses.pm> doesn't support the C<tstp()> function, so I'm trying to handle
+that signal myself, with varying degrees of success.  This is my first
+program of any kind using curses, so I'm probably not doing things very
+efficiently.  The logic is somewhat spaghetti-like, but not much worse than
+the original C version.  Hey, at least there are no gotos...
+
+=head1 COPYRIGHT
+
+Copyright(c) 1999 by John C. Siracusa.  All rights reserved.  This program is
+free software; you can redistribute it and/or modify it under the same terms
+as Perl itself.
+
+=cut

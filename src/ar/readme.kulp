@@ -1,0 +1,10 @@
+Here's a BSD 'ar'.  Not much use without ld, but it can be used as a
+poor man's tar or to read BSD archives on other machines.
+
+It uses the POSIX strftime, which is apparently bad, but I didn't see
+a point of working around this unless there was a real interest in
+including this in ppt.
+
+The pod is swiped directly from the BSD man page.
+
+-d

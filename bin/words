@@ -1,10 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 
 use strict;
 
 use File::Basename;
-
 use Getopt::Std;
+
+use vars qw($VERSION);
+$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
 
 use vars qw($opt_w $opt_m);
 
@@ -49,7 +51,7 @@ while (defined($word = <DICT>)) {
 
     next WORD if (length($word) < $minlen);
                                      # verify length
-    next WORD if ($word =~ /[^$letters]/);
+    next WORD if ($word =~ /[^$letters]/o);
                                      # verify letters used
                                      # comments also skipped here
 
@@ -107,6 +109,11 @@ the specified length.
 
 F<wordlist>          the list of words, found with the executable
 
+For a comprehensive word list, the author recommends the ENABLE word
+list, with more than 172,000 words, which can be found at
+http://personal.riverusers.com/~thegrendel/software.html .
+                
+
 =head1 BUGS
 
 This implementation of B<words> has no known bugs.
@@ -114,13 +121,16 @@ This implementation of B<words> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: words,v $
-    Revision 1.1.1.1  2001/06/06 08:55:24  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
 
-    Revision 1.1  2001/05/14 00:49:40  sdague
-    added more files
+    Revision 1.2  1999/06/22 02:20:13  rjk
+    added /o to regex which verifies letters used
+      (regex is constant in this implementation of words)
+    added link to ENABLE word list in POD
+    added $VERSION
 
-    Revision 1.1  1999/13/06 21:57:42  rjk
+    Revision 1.1  1999/06/14 02:28:41  rjk
     Initial revision
 
 =head1 AUTHOR

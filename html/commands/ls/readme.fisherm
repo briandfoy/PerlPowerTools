@@ -1,0 +1,92 @@
+The enhancement list is:
+* Formatted to fit in 72 columns to get around the TCE
+  email gateway.  (Yes, I do work with 8-column tabstops.)
+  (I think after this I should just be able to post
+  patches, rather than posting the whole thing again.)
+* Multi-column output when going to a tty.  At least
+  on NT4 SP3 and Solaris 2.6, this is portable.  Note
+  that this doesn't work yet for options -s and -i.
+  (Thanks for the code, Tom.)
+* Added the -1 option to force 1 entry/line output.
+* Only core modules are "use"d (documentation change for
+  the web page). So no more Date::Format or
+  Stat::lsMode.
+* Only the necessary part of Stat::lsMode is included
+  in-line.
+* Total directory sizes are printed for -s and -l.
+* Separate README file (see below).
+* 10-digit field for the inode number.
+* Now passes -w and "use strict".
+* Tom's suggested PPT license is used.
+
+The bug fix list is:
+* Numeric user and group IDs are used when a named entry
+  cannot be found.
+* The time options -t, -c, and -u now default to
+  sorting by descending time as documented in V7
+  and BSD.
+* Only 1 copy of the directory name is printed for -R.
+* Special files have the stat 'dev' field printed as
+  2 16-bit hex words.
+
+On Solaris 2.6, time for a reasonable size
+directory tree (667 files), where 'ls' is the
+system command and 'pls' is my command:
+
+	$ time ls -lR /www/data/ctm >/dev/null
+
+	real    0m0.11s
+	user    0m0.05s
+	sys     0m0.06s
+	$ time pls -lR /www/data/ctm >/dev/null
+
+	real    0m0.71s
+	user    0m0.56s
+	sys     0m0.06s
+
+Meanwhile, with beta19 of Cygnus' GNU ls ('ls')
+and my ls ('pls') on 'c:/' (12,245 files)
+on Windows NT4 SP3:
+	bash.exe-2.01$ time ls -lR c:/ >/nul:
+
+	real    0m23.764s
+	user    0m6.539s
+	sys     0m16.583s
+	bash.exe-2.01$ time pls -lR c:/ >nul:
+
+	real    0m22.452s
+	user    0m0.040s
+	sys     0m0.010s
+===============================================
+Mark Leighton Fisher            fisherm@tce.com
+Thomson Consumer Electronics    Indianapolis IN
+"Browser Torture Specialist, First Class"
+
+=================README========================
+This is an enhanced V7 version of the Unix ls(1)
+command.  Notably, these BSD options are recognized:
+
+-1 Force single-column output even to a tty
+-R Recursively list directories
+-S Sort by descending size
+-g Accepted but ignored (uid and gid are always
+   listed for -l)
+-k Use 1024-byte blocks instead of 512-byte blocks
+-n List numeric uid and gid (default on platforms
+   without getpwuid() like Win3/95/NT)
+
+Other BSD options won't print any error messages,
+but they won't work either.
+
+Also, this 'ls' defaults to multi-column output
+when output is to a tty, like BSD 'ls' does.
+
+This Perl implementation of I<ls>
+was written by Mark Leighton Fisher of Thomson
+Consumer Electronics, fisherm@tce.com.
+
+This program is free and open software. You may use,
+modify, distribute, and sell this program (and any
+modified variants) in any way you wish, provided you
+do not restrict others from doing the same.
+=================ls============================

@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: moo,v 1.1.1.1 2001/06/06 08:54:50 sdague Exp $
+# $Id: moo,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: moo,v $
-# Revision 1.1.1.1  2001/06/06 08:54:50  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.1  1999/02/28 14:28:46  abigail
 # Initial revision
@@ -17,7 +14,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 # Print a usuage message on a unknown option.
 $SIG {__WARN__} = sub {
@@ -151,11 +148,8 @@ I<moo> does not have any known bugs.
 =head1 REVISION HISTORY
 
     $Log: moo,v $
-    Revision 1.1.1.1  2001/06/06 08:54:50  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
     Revision 1.1  1999/02/28 14:28:46  abigail
     Initial revision

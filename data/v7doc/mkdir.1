@@ -1,0 +1,26 @@
+
+MKDIR(1)						 MKDIR(1)
+
+NAME
+       mkdir  -	 make a directory
+
+SYNOPSIS
+       mkdir dirname ...
+
+DESCRIPTION
+       Mkdir creates specified directories in mode 777.	 Standard
+       entries, `.', for the directory itself, and `..'	 for  its
+       parent, are made automatically.
+
+       Mkdir requires write permission in the parent directory.
+
+SEE ALSO
+       rm(1)
+
+DIAGNOSTICS
+       Mkdir returns exit code 0 if all directories were success-
+       fully made.  Otherwise it prints a diagnostic and  returns
+       nonzero.
+
+								1
+

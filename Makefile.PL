@@ -1,106 +1,12 @@
-use ExtUtils::MakeMaker;
+my $bin = 'bin';
+opendir BIN, $bin or die $!;
+my @exe_files = map "$bin/$_", grep { $_ !~ /^\./ } readdir BIN;
+closedir BIN;
 
+use ExtUtils::MakeMaker;
 WriteMakefile(
-              'VERSION' => '0.12',
-	      'PREFIX' => '/usr/local/ppt',
-              'NAME' => 'ppt',
-              'macro' => {
-                          MAN1EXT => '1p',
-                         },
-              'EXE_FILES' => [qw(
-                                 bin/arithmetic
-                                 bin/addbib
-                                 bin/banner
-                                 bin/asa
-                                 bin/awk
-                                 bin/head
-                                 bin/grep
-                                 bin/basename
-                                 bin/cal
-                                 bin/cat
-                                 bin/chgrp
-                                 bin/ching
-                                 bin/chown
-                                 bin/clear
-                                 bin/cmp
-                                 bin/colrm
-                                 bin/comm
-                                 bin/cp
-                                 bin/cut
-                                 bin/date
-                                 bin/deroff
-                                 bin/diff
-                                 bin/dirname
-                                 bin/du
-                                 bin/echo
-                                 bin/ed
-                                 bin/env
-                                 bin/expand
-                                 bin/expr
-                                 bin/false
-                                 bin/file
-                                 bin/find
-                                 bin/fish
-                                 bin/fold
-                                 bin/fortune
-                                 bin/from
-                                 bin/id
-                                 bin/join
-                                 bin/kill
-                                 bin/ln
-                                 bin/look
-                                 bin/ls
-                                 bin/mail
-                                 bin/maze
-                                 bin/mkfifo
-                                 bin/moo
-                                 bin/morse
-                                 bin/demorse
-                                 bin/nlcvt
-                                 bin/od
-                                 bin/paste
-                                 bin/patch
-                                 bin/ping
-                                 bin/pom
-                                 bin/ppt
-                                 bin/pr
-                                 bin/primes
-                                 bin/printenv
-                                 bin/printf
-                                 bin/pwd
-                                 bin/rain
-                                 bin/random
-                                 bin/rev
-                                 bin/rm
-                                 bin/rmdir
-                                 bin/shar
-                                 bin/sleep
-                                 bin/sort
-                                 bin/split
-                                 bin/strings
-                                 bin/sum
-                                 bin/tac
-                                 bin/tail
-                                 bin/tee
-                                 bin/test
-                                 bin/touch
-                                 bin/tr
-                                 bin/true
-                                 bin/tsort
-                                 bin/uname
-                                 bin/unexpand
-                                 bin/uniq
-                                 bin/unshar
-                                 bin/wc
-                                 bin/what
-                                 bin/which
-                                 bin/whois
-                                 bin/words
-                                 bin/wump
-                                 bin/xargs
-                                 bin/yes
-                                )],
-              'PREREQ_PM' => {
-                              "Algorithm::Diff" => 1.1,
-                             },
-             );
+              VERSION   => '0.13',
+	          PREFIX    => '/usr/local/ppt',
+              NAME      => 'ppt',
+              EXE_FILES => \@exe_files,
+);

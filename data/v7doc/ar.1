@@ -1,0 +1,87 @@
+
+AR(1)							    AR(1)
+
+NAME
+       ar - archive and library maintainer
+
+SYNOPSIS
+       ar key [ posname ] afile name ...
+
+DESCRIPTION
+       Ar  maintains  groups  of  files	 combined  into	 a single
+       archive file.  Its  main	 use  is  to  create  and  update
+       library	files  as  used	 by  the loader.  It can be used,
+       though, for any similar purpose.
+
+       Key is one character from the set drqtpmx, optionally con-
+       catenated  with	one  or	 more  of  vuaibcl.  Afile is the
+       archive file.  The names	 are  constituent  files  in  the
+       archive file.  The meanings of the key characters are:
+
+       d      Delete the named files from the archive file.
+
+       r      Replace  the  named  files in the archive file.  If
+	      the optional character u is used with r, then  only
+	      those  files  with  modified  dates  later than the
+	      archive files are replaced.  If an  optional  posi-
+	      tioning  character  from	the set abi is used, then
+	      the posname argument must be present and	specifies
+	      that new files are to be placed after (a) or before
+	      (b or i) posname.	 Otherwise new files  are  placed
+	      at the end.
+
+       q      Quickly  append  the  named files to the end of the
+	      archive file.  Optional positioning characters  are
+	      invalid.	 The  command  does not check whether the
+	      added members are already in the	archive.   Useful
+	      only  to	avoid  quadratic behavior when creating a
+	      large archive piece-by-piece.
+
+       t      Print a table of contents of the archive file.   If
+	      no  names	 are  given, all files in the archive are
+	      tabled.  If names are given, only those  files  are
+	      tabled.
+
+       p      Print the named files in the archive.
+
+       m      Move the named files to the end of the archive.  If
+	      a positioning character is present, then	the  pos-
+	      name  argument must be present and, as in r, speci-
+	      fies where the files are to be moved.
+
+       x      Extract the named files.	If no  names  are  given,
+	      all files in the archive are extracted.  In neither
+	      case does x alter the archive file.
+
+       v      Verbose.	Under the  verbose  option,  ar	 gives	a
+	      file-by-file  description	 of  the  making of a new
+
+								1
+
+AR(1)							    AR(1)
+
+	      archive file from the  old  archive  and	the  con-
+	      stituent	files.	When used with t, it gives a long
+	      listing of all information about the  files.   When
+	      used with p, it precedes each file with a name.
+
+       c      Create.	Normally  ar  will  create  afile when it
+	      needs to.	 The create option suppresses the  normal
+	      message that is produced when afile is created.
+
+       l      Local.   Normally	 ar places its temporary files in
+	      the directory /tmp.  This option causes them to  be
+	      placed in the local directory.
+
+FILES
+       /tmp/v*	 temporaries
+
+SEE ALSO
+       ld(1), ar(5), lorder(1)
+
+BUGS
+       If  the	same file is mentioned twice in an argument list,
+       it may be put in the archive twice.
+
+								2
+

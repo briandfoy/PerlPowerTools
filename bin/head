@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: head,v 1.1.1.1 2001/06/06 08:54:01 sdague Exp $
+# $Id: head,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: head,v $
-# Revision 1.1.1.1  2001/06/06 08:54:01  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.4  1999/03/02 17:37:26  abigail
 # Added __DIE__ handler. Simplified dying on illegal count arguments.
@@ -27,7 +24,7 @@
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 END {
     close STDOUT || die "can't close stdout: $!\n";
@@ -127,11 +124,8 @@ This I<head> implementation is compatible with the B<OpenBSD> implementation.
 =head1 REVISION HISTORY
 
     $Log: head,v $
-    Revision 1.1.1.1  2001/06/06 08:54:01  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
     Revision 1.4  1999/03/02 17:37:26  abigail
     Added __DIE__ handler. Simplified dying on illegal count arguments.

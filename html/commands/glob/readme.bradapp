@@ -1,0 +1,100 @@
+Brad Appleton writes:
+> sub explode($) {
+>    local $_ = shift;
+>    my @elems = map { /^\{([^\{\}]*)\}$/ ? [split ",", $1] : $_ }
+>                   (split /(\{[^\{\}]*\})/ );
+>    return @elems unless (@elems > 1);
+>    my @alts = ("");
+>    my ($e, $i);
+>    for $e (@elems) {
+>       (ref $e)  or  $_ .= $e for (@alts);
+>       next unless (ref($e) eq 'ARRAY' and @$e);
+>       my @cp = @alts;
+>       for $i (0 .. $#{$e}) {
+>          my @add = @cp;
+>          $_ .= $e->[$i] for (@add);
+>          splice @alts, ($i ? @alts : 0), ($i ? 0 : @alts), @add;
+>       }
+>    }
+>    @alts;
+> }
+
+Well, as fun as that was. It was rather brutish and forceful. I thought
+up a much better way (IMHO of course) on the way home from work today.
+
+It seems I can make things much easier for myself if I precompute the
+number of exploded items I'll be returning while I'm converting the given
+string into an array of substring & sublist elements.
+
+Then I just pre-allocate an empty string for each "alternative" to
+return, and for each element, append it to the end of each alternative
+(if the element is an m-item list, each item gets appended to only 
+1/m-th of the set of alternatives).
+
+  sub explode($) {
+     my ($n, $e, @a) = (1, '');
+     my @elems = map { !/^{(.+)}$/ ? $_ : (@a = split /,/,$1)
+                                          && ($n*=@a) && [@a] }
+                     split /({[^{}]+})/, shift;
+     my @alts = map("", 1..$n);
+     for $e (@elems) {
+        $alts[$_] .= (ref $e) ? $e->[$_ % @$e] : $e  for (0 .. $#alts);
+     }
+     @alts;
+  }
+
+Thats about 7 statements instead of 15, and a bit more elegant IMHO.
+
+Here's the newest source code!
+-- 
+Brad Appleton <bradapp@enteract.com> | http://www.enteract.com/~bradapp/
+ "And miles to go before I sleep."   |  3700+ WWW links on CS & Sw-Eng
+
+############################################################################
+
+Date:         Thu, 25 Mar 1999 03:41:38 -0600 (CST)
+From:         bradapp@enteract.com (Brad Appleton)
+Subject:      Revised FastGlob::glob
+To:           ppt@perl.com
+Cc:           mengel@fnal.gov (Marc Mengel)
+Reply-to:     bradapp@enteract.com
+Delivery-Date: Thu Mar 25 02:48:18 1999
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+I've made some fairly significant changes (enough so that I think it
+takes up less space to resend the entire file instead of a patch-diff).
+
+I did the following:
+   * Revamped the PODs to document 'glob' both as a script/command,
+     and as a function (with emphasis on the command-interface).
+
+   * Added a subsections to the POD documentation for the DESCRIPTION
+     describing the glob-syntax that is accepted, and also added the
+     OPTIONS, RETURNS and DIAGNOSTICS sections to the PODs
+
+   * Changed the name of some of the subroutines to have a _glob suffix,
+     (match_glob, explode_glob, escape_glob, unescape_glob)
+
+   * Fixed a god-awful bug in explode_glob that made it expand things
+     not only in the wrong order, but with the wrong set of permutations.
+
+   * Error messages and standard output should now be much more closely
+     in line with what is produced by csh.
+
+   * Modified explode_glob to handle nested {...} word-sets, and to
+     escape [{}\\] with backslash, and leave '{}' untouched.
+
+     The result is a horridly ugly regexp-search-and-replace and too
+     many (i.e.  inefficient) repeated "escaping" of special characters
+     due to recursion. Someone with more energy and patience than I is
+     more than welcome to remedy this; I'm all tapped out at present.
+
+Latest version of FastGlob.pm (v1.2_05) follows my signature.
+-- 
+Brad Appleton <bradapp@enteract.com> | http://www.enteract.com/~bradapp/
+ "And miles to go before I sleep."   |  3700+ WWW links on CS & Sw-Eng
+
+#########################################################################
+

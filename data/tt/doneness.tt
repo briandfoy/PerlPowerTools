@@ -1,0 +1,33 @@
+[% META title = 'Long Status Listing' %]
+
+<p>
+  Just because something is marked `done' here does not mean that it
+  can't be improved, or a new version submitted.
+</p>
+
+<table class="doneness">
+  <tr><th>Tool</th><th>Class</th><th>Author(s)</th><th>Updated</th><th>Status</th><th>Docs</th><th>Tests</th></tr>
+[% FOREACH cmd = commands %]
+  <tr>
+    <td nowrap="nowrap"><a class="[% cmd.4 %]" href="commands/[% cmd.0 %]/index.html">[% cmd.0 %]</a></td>
+    <td nowrap="nowrap">[% cmd.1 %]</td>
+    <td nowrap="nowrap">[% cmd.2.join('<br />') %]</td>
+    <td nowrap="nowrap">[% cmd.3.join('<br />') %]</td>
+    <td nowrap="nowrap">[% cmd.4 %]</td>
+    <td nowrap="nowrap">[% cmd.5 %]</td>
+    <td class="tests">
+      [% IF cmd.6.size > 0 %]
+        [% FOREACH test = cmd.6 %]
+           <table class="[% test.result ? 'passed' : 'failed' %]">
+             <tr><td>[% test.command %]</td><td>[% test.result ? 'PASS' : 'FAIL' %]</td></tr>
+             <tr><td colspan="2"><small><strong>[% test.name %]</strong>
+             [%- IF test.info %]: [% test.info %][% END %]</small></td></tr>
+           </table>
+        [% END %]
+      [% ELSE %]
+        no
+      [% END %]
+    </td>
+  </tr>
+[% END %]
+</table>

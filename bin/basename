@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: basename,v 1.1.1.1 2001/06/06 08:54:03 sdague Exp $
+# $Id: basename,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: basename,v $
-# Revision 1.1.1.1  2001/06/06 08:54:03  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:55:38  sdague
-# added initial import of PPT work
 #
 # Revision 1.1  1999/02/27 00:18:47  abigail
 # Initial revision
@@ -18,7 +15,7 @@
 use strict;
 use File::Basename;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 unless (@ARGV == 1 || @ARGV == 2) {
     $0 = basename ($0);
@@ -80,11 +77,8 @@ The I</pattern/> is specific for this Perl implementation.
 =head1 REVISION HISTORY
 
     $Log: basename,v $
-    Revision 1.1.1.1  2001/06/06 08:54:03  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:55:38  sdague
-    added initial import of PPT work
 
     Revision 1.1  1999/02/27 00:18:47  abigail
     Initial revision

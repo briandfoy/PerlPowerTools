@@ -1,0 +1,102 @@
+
+RESTOR(1M)					       RESTOR(1M)
+
+NAME
+       restor - incremental file system restore
+
+SYNOPSIS
+       restor key [ argument ... ]
+
+DESCRIPTION
+       Restor  is used to read magtapes dumped with the dump com-
+       mand.  The key specifies what is to be done.  Key  is  one
+       of the characters rRxt optionally combined with f.
+
+       f      Use  the	first  argument	 as  the name of the tape
+	      instead of the default.
+
+       r or R The tape is read and loaded into	the  file  system
+	      specified	 in  argument.	 This  should not be done
+	      lightly (see below).  If the key is R  restor  asks
+	      which tape of a multi volume set to start on.  This
+	      allows restor to be interrupted and then	restarted
+	      (an icheck -s must be done before restart).
+
+       x      Each  file  on  the  tape	 named	by an argument is
+	      extracted.  The file name has all `mount'	 prefixes
+	      removed;	 for   example,	  /usr/bin/lpr	is  named
+	      /bin/lpr on the tape.  The file extracted is placed
+	      in  a  file  with a numeric name supplied by restor
+	      (actually the inode number).  In order to keep  the
+	      amount  of  tape	read  to a minimum, the following
+	      procedure is recommended:
+
+	      Mount volume 1 of the set of dump tapes.
+
+	      Type the restor command.
+
+	      Restor will announce whether or not  it  found  the
+	      files,  give  the number it will name the file, and
+	      rewind the tape.
+
+	      It then asks you to `mount the  desired  tape  vol-
+	      ume'.   Type  the	 number of the volume you choose.
+	      On a multivolume dump the recommended procedure  is
+	      to  mount the last through the first volume in that
+	      order.  Restor checks to see if any  of  the  files
+	      requested are on the mounted tape (or a later tape,
+	      thus the reverse order) and  doesn't  read  through
+	      the  tape if no files are.  If you are working with
+	      a single volume dump or the number of  files  being
+	      restored	is  large,  respond to the query with `1'
+	      and restor will read the tapes in sequential order.
+
+	      If  you  have  a	hierarchy  to restore you can use
+	      dumpdir(1) to produce the list of names and a shell
+	      script  to move the resulting files to their homes.
+
+								1
+
+RESTOR(1M)					       RESTOR(1M)
+
+       t      Print the date the tape was written  and	the  date
+	      the filesystem was dumped from.
+
+       The  r  option  should  only be used to restore a complete
+       dump tape onto a clear file system or to restore an incre-
+       mental dump tape onto this.  Thus
+
+	    /etc/mkfs /dev/rp0 40600
+	    restor r /dev/rp0
+
+       is a typical sequence to restore a complete dump.  Another
+       restor can be done to get an incremental dump in on top of
+       this.
+
+       A  dump	followed by a mkfs and a restor is used to change
+       the size of a file system.
+
+FILES
+       default tape unit varies with installation
+       rst*
+
+SEE ALSO
+       dump(1), mkfs(1), dumpdir(1)
+
+DIAGNOSTICS
+       There are various diagnostics involved  with  reading  the
+       tape  and writing the disk.  There are also diagnostics if
+       the i-list or the free list of  the  file  system  is  not
+       large enough to hold the dump.
+
+       If  the	dump  extends over more than one tape, it may ask
+       you to change tapes.  Reply with a new-line when the  next
+       tape has been mounted.
+
+BUGS
+       There  is  redundant information on the tape that could be
+       used in case of	tape  reading  problems.   Unfortunately,
+       restor doesn't use it.
+
+								2
+

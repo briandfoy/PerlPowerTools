@@ -1,0 +1,29 @@
+
+DU(1)							    DU(1)
+
+NAME
+       du  -  summarize disk usage
+
+SYNOPSIS
+       du [ -s ] [ -a ] [ name ... ]
+
+DESCRIPTION
+       Du  gives  the number of blocks contained in all files and
+       (recursively) directories within each specified	directory
+       or file name.  If name is missing, `.'  is used.
+
+       The optional argument -s causes only the grand total to be
+       given.  The optional argument -a causes	an  entry  to  be
+       generated  for  each  file.   Absence  of either causes an
+       entry to be generated for each directory only.
+
+       A file which has two links to it is only counted once.
+
+BUGS
+       Non-directories given as arguments (not under  -a  option)
+       are not listed.
+       If there are too many distinct linked files, du counts the
+       excess files multiply.
+
+								1
+

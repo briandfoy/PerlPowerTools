@@ -1,0 +1,30 @@
+
+RANLIB(1)						RANLIB(1)
+
+NAME
+       ranlib - convert archives to random libraries
+
+SYNOPSIS
+       ranlib archive ...
+
+DESCRIPTION
+       Ranlib converts each archive to a form which can be loaded
+       more rapidly by the loader, by adding a table of	 contents
+       named  __.SYMDEF to the beginning of the archive.  It uses
+       ar(1) to reconstruct the archive, so that sufficient  tem-
+       porary  file  space  must  be available in the file system
+       containing the current directory.
+
+SEE ALSO
+       ld(1), ar(1)
+
+BUGS
+       Because generation of a library by ar and randomization by
+       ranlib  are  separate,  phase  errors  are  possible.  The
+       loader ld warns when the modification date of a library is
+       more  recent than the creation of its dictionary; but this
+       means you get the  warning  even	 if  you  only	copy  the
+       library.
+
+								1
+

@@ -1,0 +1,11 @@
+This is my implementation of "id".  It supports the options described in the 
+BSD man page, plus "-h" for help.  The display is a little different from that 
+described on the BSD man page (mine is a semi-combo of the BSD and GNU 
+versions of id).
+
+It can probably be compressed/made more efficient here and there, but it works 
+for now.
+
+BTW: The pod docs were written using the BSD man page as a model.
+
+Suggestion:  How about adding the 'colrm' command to the project?

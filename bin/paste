@@ -1,14 +1,11 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: paste,v 1.1.1.1 2001/06/06 08:54:53 sdague Exp $
+# $Id: paste,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: paste,v $
-# Revision 1.1.1.1  2001/06/06 08:54:53  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.0  1999/02/26 15:39:05  randy
 # Initial revision
@@ -17,7 +14,7 @@
 use strict;
 no strict 'refs';
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my (@fh, $i);
 
@@ -139,11 +136,8 @@ it to work under 'strict refs' would be nice, too.
 =head1 REVISION HISTORY
 
     $Log: paste,v $
-    Revision 1.1.1.1  2001/06/06 08:54:53  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
     Revision 1.0  1999/02/26 15:55:05  randy
     Initial revision

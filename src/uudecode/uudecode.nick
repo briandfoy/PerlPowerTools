@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w
+# uudecode -- original once by Nick Ing-Simmons
+# but since irrecognizably hacked on by Tom Christiansen
+
+use strict;
+
+END {
+    close STDOUT            or die "$0: can't close stdout: $!\n";
+    $? = 1 if $? == 255;    # from die
+} 
+
+FILESPEC :
+while (<>) {
+    my ($mode, $file);
+    next FILESPEC unless ($mode,$file) = /^begin\s+(\d+)\s+(\S+)/;
+    open(OUT, "> $file")     	or die "can't create $file: $!";
+    binmode(OUT);	# winsop
+    # Quickly protect file before data is written.  
+    # XXX: Does this break on sub-Unix systems, like if 
+    #      it's a mode 400 or 000 file? If so, then we must 
+    #      wait until after the close.
+    chmod oct($mode), $file 	or die "can't chmod $file to mode $mode: $!";
+    my $ended = 0;
+LINE:
+    while (<>) {
+	if (/^end$/) {
+	    $ended = 1;
+	    last LINE;
+	} 
+	next LINE if /[a-z]/;
+	next LINE unless int((((ord() - 32) & 077) + 2) / 3) 
+		      == int(length() / 4);
+	print OUT unpack("u", $_)
+			    	or die "can't write $file: $!";
+
+    }
+    close(OUT) 			or die "can't close $file: $!";
+    $ended			or die "missing end; $file may be truncated";
+}

@@ -1,0 +1,30 @@
+
+WALL(1M)						 WALL(1M)
+
+NAME
+       wall  -	write to all users
+
+SYNOPSIS
+       /etc/wall
+
+DESCRIPTION
+       Wall  reads  its	 standard input until an end-of-file.  It
+       then sends this message, preceded  by  `Broadcast  Message
+       ...', to all logged in users.
+
+       The  sender  should  be super-user to override any protec-
+       tions the users may have invoked.
+
+FILES
+       /dev/tty?
+       /etc/utmp
+
+SEE ALSO
+       mesg(1), write(1)
+
+DIAGNOSTICS
+       `Cannot send to ...' when the open on a	user's	tty  file
+       fails.
+
+								1
+

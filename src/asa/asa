@@ -1,0 +1,99 @@
+#!/usr/local/bin/perl -w
+# $Id: asa,v 1.1 2004/07/23 20:09:59 cwest Exp $
+
+use strict;
+
+exit 1 if grep {!-r} @ARGV;		# traditional
+
+if (grep /-/, @ARGV) {
+	$0 =~ s(.*/)();
+	warn "usage: $0 [filename ...]\n";
+	exit 2;						# traditional
+}
+
+while (<>) {
+	chomp;
+	s/^$/ /;
+	s/^[^10+-]/\n/;
+	s/^1/\f/;
+	s/^\+/\r/;
+	s/^0/\n\n/;
+	s/^-/\n\n\n/;
+	print
+		or exit 1;			# traditional
+}
+
+=head1 NAME
+
+asa - interpret ASA/FORTRAN carriage-controls
+
+=head1 SYNOPSIS
+
+asa [I<filename> ...]
+
+=head1 DESCRIPTION
+
+=over 2
+
+Traditional FORTRAN programs put carriage-control characters
+in the first columns of their output,
+which were interpreted by older lineprinters
+according to the ASA vertical format control standard.
+(ASA was the American Standards Association -- now ANSI.)
+
+Under this standard, the first character of each printable record (line)
+determines vertical spacing, as follows:
+
+=over 2
+
+I<blank>    carriage return
+0           two carriage returns
+1           Formfeed
++           overprint
+-           three carriage returns (IBM extension)
+
+=back
+
+All other characters are discarded, and empty lines behave as though
+they have a leading blank.
+
+B<asa> interprets these characters.
+
+=back
+
+=head1 EXIT VALUES
+
+=over 2
+
+0 normal exit
+
+1 inability to write on stdout or to read an input file
+
+2 bad argument
+
+Exit status values chosen from MKS toolkit.
+
+=back
+
+=head1 AUTHOR
+
+Jeffrey S. Haemer
+
+=head1 BUGS
+
+Currently, B<asa> just looks at the readability of its input files
+at startup time.  It should really do it a file at a time,
+but that makes the code look gross.
+
+The carriage-control '-' is an IBM extension.
+Perhaps the default should ignore it
+and there should be a '-i' option to interpret it.
+
+=head1 SEE ALSO
+
+Communications of the ACM, Vol 7, No. 10, p. 606, October
+1964.
+
+NWG/RFC 189, Appendix C
+
+=cut

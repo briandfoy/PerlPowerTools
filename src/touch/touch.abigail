@@ -1,0 +1,239 @@
+#!/usr/local/bin/perl -w
+
+#
+# $Id: touch.abigail,v 1.1 2004/07/23 20:10:18 cwest Exp $
+#
+# $Log: touch.abigail,v $
+# Revision 1.1  2004/07/23 20:10:18  cwest
+# initial import
+#
+# Revision 1.1  1999/02/28 13:00:24  abigail
+# Initial revision
+#
+#
+
+use strict;
+use Getopt::Std;
+
+sub parse_time ($);
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+my $warnings = 0;
+
+# Print a usuage message on a unknown option.
+# Requires my patch to Getopt::Std of 25 Feb 1999.
+$SIG {__WARN__} = sub {
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    if (substr ($_ [0], 0, 14) eq "Unknown option") {
+        warn <<EOF;
+$0 (Perl bin utils) $VERSION
+$0 [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file [files ...]
+EOF
+        exit;
+    }
+    else {
+        $warnings = 1;
+        warn "$0: @_";
+    }
+};
+
+$SIG {__DIE__} = sub {
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    die "$0: @_";
+};
+
+# Get the options.
+getopts ('acmfr:t:', \my %options);
+
+warn "Unknown option" unless @ARGV;
+
+my $access_time       = exists $options {a}  ||  !exists $options {m};
+my $modification_time = exists $options {m}  ||  !exists $options {a};
+my $no_create         = exists $options {c};
+
+my ($atime, $mtime, $special_time);
+if ($options {r}) {
+    ($atime, $mtime) = (stat $options {r}) [8, 9] or die "$options{r}: $!\n";
+    $special_time = 1;
+}
+elsif ($options {t}) {
+    $atime = $mtime = parse_time $options {t};
+    die "-t $options{t}: Time out of range!\n" if $atime < 0;
+    $special_time = 1;
+}
+else {
+    $atime = $mtime = time;
+}
+
+foreach my $file (@ARGV) {
+
+    # Check if the file exists. If not, create it.
+    unless (-f $file) {
+        next if $no_create;
+        local *FILE;
+        require Fcntl;  # Import
+        sysopen FILE, $file, Fcntl::O_CREAT () or do {
+            warn "$file: $!\n";
+            next;
+        };
+        close FILE;
+
+        # Nothing to be done, unless time different than now.
+        next unless $special_time;
+    }
+
+    my ($aorig, $morig) = (stat $file) [8, 9] or do {
+        warn "$file: $!\n";
+        next;
+    };
+
+    my $aset = $access_time       ? $atime : $aorig;
+    my $mset = $modification_time ? $mtime : $morig;
+
+    utime $aset, $mset, $file or do {
+        warn "$file: $!\n";
+        next;
+    };
+}
+
+    
+exit $warnings;
+
+sub parse_time ($) {
+    my $time = shift;
+
+    my ($first, $seconds) = split /\./ => $time, 2;
+    my $year;
+    if ($first =~ /\D/) {die "$time: Illegal time format\n"}
+    elsif (12 == length $first) {
+        $year  = substr $first, 0, 4, '';
+    }
+    elsif (10 == length $first) {
+        $year  = substr $first, 0, 2, '';
+        $year += 100 if $year < 70;
+    }
+    elsif ( 8 == length $first) {
+        $year  = (localtime) [5];
+    }
+    else {die "$time: Illegal time format\n"}
+
+    if (defined $seconds &&
+           ($seconds =~ /\D/ || $seconds > 59 || 2 != length $seconds)) {
+        die "-t $time: Illegal time format\n"
+    }
+    else {
+        $seconds = 0;
+    }
+
+    my ($mon, $day, $hours, $minutes) = $first =~ /(..)(..)(..)(..)/;
+
+    require Time::Local;
+
+    Time::Local::timelocal ($seconds, $minutes, $hours, $day, $mon - 1, $year);
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+touch -- change access and modification times of files.
+
+=head1 SYNOPSIS
+
+touch [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file [files ...]
+
+=head1 DESCRIPTION
+
+I<touch> sets the access and modification timestamps of files. By default,
+both the access and modification times are set to the current time.
+If necessary, files will be created.
+
+I<touch> exits succesfully if and only if all timestamps could be set
+succesfully.
+
+=head2 OPTIONS
+
+I<head> accepts the following options:
+
+=over 4
+
+=item -a
+
+Set the access time of the specified files only, unless I<-m> is given as
+well.
+
+=item -c
+
+Do not create non-existing files. No warning is generated, and it will
+not influence the exit status.
+
+=item -f
+
+This option is ignored, and only recognized for compatability reasons.
+
+=item -m
+
+Set the modification time of the specified files only, unless I<-a> is
+given as well.
+
+=item -r file
+
+Use the access and modification time of I<file> instead of the
+current time.
+
+=item -t [[CC]YY]MMDDhhmm[.SS]
+
+Set the access and modification times to the specified time.
+If B<YY> is present, but B<CC> is not, then B<CC> is assumed to
+be 19 if B<YY> is larger than 69, and 20 otherwise. If B<YY>
+is not present, the current year is assumed.
+
+It should be noted that many systems cannot deal with timestamps
+before Jan 1, 1970 or after Jan 19, 2038.
+
+=back
+
+=head1 ENVIRONMENT
+
+The working of I<touch> is not influenced by any environment variables.
+
+=head1 BUGS
+
+I<touch> does not implement the I<-f> option.
+
+I<touch> uses C<Time::Local> to translate the time format to epoch
+seconds
+
+=head1 STANDARDS
+
+This I<head> implementation is compatible with the B<OpenBSD> implementation,
+except for the I<-f> option.
+
+=head1 REVISION HISTORY
+
+    $Log: touch.abigail,v $
+    Revision 1.1  2004/07/23 20:10:18  cwest
+    initial import
+
+    Revision 1.1  1999/02/28 13:00:24  abigail
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of I<touch> was written by Abigail, I<abigail@fnx.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Abigail 1999.
+
+This program is free and open software. You may use, copy, modify, distribute
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others to do the same.
+
+=cut
+

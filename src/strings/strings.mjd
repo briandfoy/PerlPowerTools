@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+#
+# strings(1)
+#
+# mjd-perl-strings@plover.com
+#
+# Caution: Assumes ASCII. 
+
+$length = 4;
+while ($ARGV[0] =~ /^-/) {
+  my $opt = shift;
+  last if $opt eq '--';
+  if ($opt =~ /^-(\d+)$/ ) {
+    $length = $1 || shift;
+  } elsif ($opt =~ /^-o/) {
+    $opt_o++;
+  } else {
+    die  <<End_of_Usage;
+Usage: strings [-o] [-157]
+-o: Precede each string with its byte offset in the file
+-157: Only locate printable strings of length 157 or greater
+      (Can be any number; default $length.)
+End_of_Usage
+  }	
+}
+$pat = qq{[\\011\\012\\040-\\176]{$length,}};
+$/ = "\0";
+while (<>) {
+  while (/$pat/og) {
+    printf "%07d ", ($l+pos()-length $&) if $opt_o;
+    print $&, "\n" ;
+  }
+  $l += length;
+} continue { $l = 0 if eof }
+

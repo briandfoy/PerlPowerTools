@@ -1,0 +1,43 @@
+Date:         Sun, 13 Jun 1999 12:49:52 -0400
+From:         "Nathan Thompson" <quimby@city-net.com>
+Subject:      spell
+To:           "ppt" <ppt@perl.com>
+Delivery-Date: Sun Jun 13 10:52:58 1999
+
+I'm releasing a version of spell much like the UNIX version.
+You can pick it up at http://www.city-net.com/~quimby/ .
+Here's the READ.ME:
+
+spell: a mostly traditional implementation of the UNIX spelling checker.
+Copyright 1999 Nathan Scott Thompson ( quimby at city-net dot com )
+You may use this according to the GNU Public License: see http://www.gnu.org
+
+VERSION:
+This is the first beta release.
+Consider especially the word lists and the stop list likely to change.
+
+FILES:
+    depod       - pod filter
+    deroff      - troff filter
+    spell       - spelling checker
+    spellin     - add words to hashed word list
+    spellout    - compare words to hashed word list
+    Spelling.pm - support module
+    english     - base word list, stemmed
+    american    - American word list, stemmed
+    british     - British word list, stemmed
+    stoplist    - stop list
+    build.bat - script to build the hashed word lists
+
+The word lists derive from those provided with Ispell 3.1 by Geoff Kuenning
+(see http://fmg-www.cs.ucla.edu/geoff/ispell.html).
+I deleted some apparent errors and reduced the lists by stemming.
+Nothing has been done to prevent overstemming (reduction to a valid but
+unrelated stem word.)
+
+INSTALLATION:
+The file build.bat is provided to build the hashed word files.
+It's a DOS batch file but works fine as a UNIX shell script.
+The resulting files are named hlista, hlistb and hstop.
+spell expects these files to be in /usr/dict; alternatively
+you can supply another path in the SPELLDIR environment variable.

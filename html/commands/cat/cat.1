@@ -1,0 +1,36 @@
+
+CAT(1)							   CAT(1)
+
+NAME
+       cat - catenate and print
+
+SYNOPSIS
+       cat [ -u ] file ...
+
+DESCRIPTION
+       Cat reads each file in sequence and writes it on the stan-
+       dard output.  Thus
+
+	      cat file
+
+       prints the file and
+
+	      cat file1 file2 >file3
+
+       concatenates the first two files and places the result  on
+       the third.
+
+       If  no  file  is	 given, or if the argument `-' is encoun-
+       tered, cat reads	 from  the  standard  input.   Output  is
+       buffered	 in 512-byte blocks unless the standard output is
+       a terminal or the -u option is present.
+
+SEE ALSO
+       pr(1), cp(1)
+
+BUGS
+       Beware of `cat a b >a' and `cat a  b  >b',  which  destroy
+       input files before reading them.
+
+								1
+

@@ -1,0 +1,56 @@
+
+SPLINE(1G)					       SPLINE(1G)
+
+NAME
+       spline - interpolate smooth curve
+
+SYNOPSIS
+       spline [ option ] ...
+
+DESCRIPTION
+       Spline  takes  pairs of numbers from the standard input as
+       abcissas and ordinates of a function.  It produces a simi-
+       lar   set,  which  is  approximately  equally  spaced  and
+       includes the input set, on the standard output.	The cubic
+       spline output (R. W. Hamming, Numerical Methods for Scien-
+       tists and Engineers, 2nd ed., 349ff)  has  two  continuous
+       derivatives,  and  sufficiently many points to look smooth
+       when plotted, for example by graph(1).
+
+       The following options are recognized, each as  a	 separate
+       argument.
+
+       -a   Supply abscissas automatically (they are missing from
+	    the input); spacing is given by the next argument, or
+	    is	assumed to be 1 if next argument is not a number.
+
+       -k   The constant k used in the boundary value computation
+
+	      (2nd deriv. at end) = k*(2nd deriv. next to end)
+
+	    is set by the next argument.  By default k = 0.
+
+       -n   Space output points so that approximately n intervals
+	    occur between the lower and upper x limits.	 (Default
+	    n = 100.)
+
+       -p   Make output periodic, i.e. match derivatives at ends.
+	    First and last input values should normally agree.
+
+       -x   Next 1 (or 2) arguments are lower (and upper) x  lim-
+	    its.   Normally  these limits are calculated from the
+	    data.   Automatic  abcissas	 start	at  lower   limit
+	    (default 0).
+
+SEE ALSO
+       graph(1)
+
+DIAGNOSTICS
+       When data is not strictly monotone in x, spline reproduces
+       the input without interpolating extra points.
+
+BUGS
+       A limit of 1000 input points is enforced silently.
+
+								1
+

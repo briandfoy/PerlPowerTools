@@ -1,0 +1,103 @@
+#!/usr/bin/perl
+# $Id: from.jv,v 1.1 2004/07/23 20:10:06 cwest Exp $
+
+# This program requires perl version 3.0, patchlevel 4 or higher
+
+# Show messages from a Unix mailbox. With -n: shown message numbers also.
+#
+# Usage "from [-n] MAILBOX..."
+#
+# Don't forget: perl is a Practical Extract and Report Language!
+#
+# Copyright 1989,1993 Johan Vromans <jv@mh.nl>, no rights reserved.
+# Copyright 1993,1995 Johan Vromans <jv@nl.net>, no rights reserved.
+# Copyright 1995,1996 Johan Vromans <jvromans@squirrel.nl>, no rights reserved.
+# Usage and redistribution is free and encouraged.
+
+# Default output format
+format =
+@<<<<<<<<<<< "@<<<<<<<<<<<<" @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$date,        $from,         $subj
+.
+
+# Output format when sequence numbers are requested
+format format_n =
+@>: @<<<<<<<<<<< "@<<<<<<<<<<<<" @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$seq, $date,      $from,         $subj
+.
+
+# Parse and stash away -n switch, if provided
+if ($#ARGV >= 0 && $ARGV[0] eq '-n') {
+  shift (@ARGV);
+  $~ = "format_n";
+}
+
+# Use system mailbox if none was specified on the command line
+if ( $#ARGV < 0 ) {
+  if ( ! ($user = getlogin)) {
+    @a = getpwuid($<);
+    $user = $a[0];
+  }
+  if ( -r "/var/spool/mail/$user" ) {		# Modern systems
+    @ARGV = ("/var/spool/mail/$user");
+  }
+  elsif ( -r "/usr/mail/$user" ) {		# System V
+    @ARGV = ("/usr/mail/$user");
+  }
+  elsif ( -r "/usr/spool/mail" ) {	# BSD
+    @ARGV = ("/usr/spool/mail/$user");
+  }
+  else {
+    printf STDERR "No mail for $user.\n";
+    exit 1;
+  }
+}
+  
+$seq = 0;
+# Read through input file(s)
+while (<>) {
+
+  # Look for a "From_" header (See RFC822 and associated documents).
+  next unless /^From\s+(\S+)\s+.*(\w{3}\s+\d+\s+\d+:\d+)/;
+
+  chop;
+  $from = $1;  
+  $date = $2;
+  if ( $date eq "" || $from eq "" ) {
+    print STDERR "Possible garbage: $_\n";
+    next;
+  }
+
+  $seq++;
+  # Get user name from uucp path
+  $from = $1 if $from =~ /.*!(.+)/;
+
+  # Now, scan for Subject or empty line
+  $subj = "";
+  while ( <> ) {
+    chop ($_);
+
+    if ( /^$/ || /^From / ) {
+      # force fall-though
+      $subj = "<none>" unless $subj;
+    }
+    else {
+      $subj = $1 if /^Subject\s*:\s*(.*)/i;
+      if ( /^From\s*:\s*/ ) {
+        $_ = $';
+        if ( /\((.+)\)/i ) { $from = $1; } 
+        elsif ( /^\s*(.+)\s*<.+>/i ) { $from = $1; } 
+        elsif ( /^<.+>\s*(.+)/i ) { $from = $1; } 
+      }
+    }
+
+    # do we have enough info?
+    if ( $from && $subj ) {
+      # sorry, cannot use ^<<<... format (doesn't work?)
+      substr($subj,47) = "..." if length($subj) > 50;
+      write;
+      last;
+    }
+  }
+}
+

@@ -1,0 +1,168 @@
+#!/usr/bin/perl -w
+# Perl Power Tools contribution -- the cal program
+# 
+=head1 NAME
+
+cal - displays a calendar
+
+=head1 SYNOPSIS
+
+cal [[month] year]
+
+=head1 DESCRIPTION
+
+cal displays a simple calendar.  If no arguments are specified, the
+current month is displayed.  A single argument is interpreted as a year
+and the calendar for every month in that year is displayed.  Two arguments
+are taken as a month/year pair and the calendar for that month will
+be output.
+
+=head1 BUGS
+
+This version will not display calendars for years outside of what can
+be represented by gmtime.  A replacement find_day_of_week function that
+handles arbitrary years would fix this problem.  And we don't properly
+display the calendar for 1752.  Sorry, but if you need it for planning
+your social calendar, well, then you have other serious problems..
+
+The author also doesn't have a clue about how to use formats.  If
+anyone has a better way to produce the output for full year calendars,
+please let me know.
+
+=head1 HISTORY
+
+A cal command appeared in Version 6 AT&T Unix
+
+=head1 AUTHOR
+
+Tramm Hudson hudson@swcp.com 28 Feb 1999
+
+=cut
+
+use strict;
+use Time::Local;
+
+my @months = (
+	['January',	31],
+	['February',	28],
+	['March',	31],
+	['April',	30],
+	['May',		31],
+	['June',	30],
+	['July',	31],
+	['August',	31],
+	['September',	30],
+	['October',	31],
+	['Novemeber',	30],
+	['December',	31]);
+
+my $day_names = 'Su Mo Tu We Th Fr Sa';
+
+#my $time = timelocal($sec,$min,$hours,$mday,$mon,$year);
+my ($month,$year,$full_year);
+
+if( @ARGV >= 2 ) {
+	($month,$year) = @ARGV;
+} elsif( @ARGV == 1 ) {
+	($year) = @ARGV;
+	$month = 0;
+	$full_year = 1;
+} else {
+	($month,$year) = (localtime)[4,5];
+	$year += 1900;
+	$month++;
+}
+
+  
+my $cal;
+if( $full_year ) {
+	my @cals;
+	for( my $month = 1 ; $month <= 12 ; $month ++ ) {
+		push @cals, [split /\n/, mk_cal( $month, $year, 1 )];
+	}
+
+        print <<EOH;
+                                  $year
+
+EOH
+
+	$: = "\n";
+	my $base = 0;
+	format =
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][0],        $cals[$base+1][0],        $cals[$base+2][0]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][1],        $cals[$base+1][1],        $cals[$base+2][1]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][2],        $cals[$base+1][2],        $cals[$base+2][2]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][3],        $cals[$base+1][3],        $cals[$base+2][3]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][4],        $cals[$base+1][4],        $cals[$base+2][4]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][5],        $cals[$base+1][5],        $cals[$base+2][5]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][6],        $cals[$base+1][6],        $cals[$base+2][6]
+^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<   ^<<<<<<<<<<<<<<<<<<<
+$cals[$base+0][7],        $cals[$base+1][7],        $cals[$base+2][7]
+.
+	write;
+	$base+=3; write;
+	$base+=3; write;
+	$base+=3; write;
+	
+#$cals[3]               $cals[4]               $cals[5]
+#$cals[6]               $cals[7]               $cals[8]
+#$cals[9]               $cals[10]              $cals[11]
+	
+} else {
+	die "cal: illegal month value: use 1-12\n"
+		if $month > 12 or $month < 1;
+	print mk_cal( $month, $year );
+}
+
+sub find_day_of_week
+{
+	my ($day, $month, $year) = @_;
+	my $first_of_month = timelocal(0,0,0,$day,$month,$year);
+	my $day_of_week = (gmtime($first_of_month))[6];
+}
+
+sub mk_cal
+{
+	my ($month,$year,$full_year) = @_;
+	$month--;
+
+	my ($month_name,$days) = @{$months[$month]};
+	$month_name .= " $year" unless $full_year;
+
+        # Leap year fix
+	if( $month == 1 and
+		( ($year%4 == 0 and $year%100 != 0) or ($year%400 == 0))) {
+		$days = 29;
+	}
+
+	my $header_pad = ' ' x ((20 - length($month_name)) / 2);
+	my $header = "$header_pad$month_name$header_pad\n$day_names\n";
+	
+
+	my $day_of_week = find_day_of_week( 1, $month, $year );
+
+	$header .= '   ' x $day_of_week;
+	for( my $day = 1 ; $day <= $days ; $day++, $day_of_week++ ) {
+		$header .= ' ' if $day < 10;
+		$header .= "$day ";
+
+		$header .= "\n" if $day_of_week % 7 == 6;
+	}
+
+	$header .= "\n \n \n";
+}
+__END__
+
+-- 
+  o   hudson@swcp.com                 tbhudso@cs.sandia.gov   O___|   
+ /|\  http://www.swcp.com/~hudson/          H 505.266.59.96   /\  \_  
+ <<   KC5RNF @ N5YYF.NM.AMPR.ORG            W 505.284.24.32   \ \/\_\  
+  0                                                            U \_  | 
+

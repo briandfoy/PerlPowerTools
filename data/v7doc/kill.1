@@ -1,0 +1,35 @@
+
+KILL(1)							  KILL(1)
+
+NAME
+       kill - terminate a process with extreme prejudice
+
+SYNOPSIS
+       kill [ -signo ] processid ...
+
+DESCRIPTION
+       Kill  sends  signal  15	(terminate) to the specified pro-
+       cesses.	If a signal number preceded by `-'  is	given  as
+       first  argument,	 that signal is sent instead of terminate
+       (see signal(2)).	 This will kill	 processes  that  do  not
+       catch  the  signal;  in particular `kill -9 ...' is a sure
+       kill.
+
+       By convention, if process number 0 is specified, all  mem-
+       bers  in	 the process group (i.e. processes resulting from
+       the current login) are signaled.
+
+       The killed processes  must  belong  to  the  current  user
+       unless  he is the super-user.  To shut the system down and
+       bring it up single user the super-user may  use	`kill  -1
+       1'; see init(8).
+
+       The process number of an asynchronous process started with
+       `&' is reported by the shell.  Process numbers can also be
+       found by using ps(1).
+
+SEE ALSO
+       ps(1), kill(2), signal(2)
+
+								1
+

@@ -1,0 +1,10 @@
+Attached is a shot at another absolutely essential Unix command:
+robots.  I based the functionality on the OpenBSD version of
+robots (bug-for-bug, as they say), and I tried to restrain myself
+when it came to extra features.  It's numbered version 0.50, so
+expect bug-fixes in the future...
+
+-John
+
+P.S.- CCed to tchrist because I've been getting weird
+      bounces from the ppt@perl.com address.

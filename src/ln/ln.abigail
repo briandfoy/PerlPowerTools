@@ -1,0 +1,185 @@
+#!/usr/local/bin/perl -w
+
+#
+# $Id: ln.abigail,v 1.1 2004/07/23 20:10:07 cwest Exp $
+#
+# $Log: ln.abigail,v $
+# Revision 1.1  2004/07/23 20:10:07  cwest
+# initial import
+#
+# Revision 1.1  1999/03/14 05:26:18  abigail
+# Initial revision
+#
+#
+
+use strict;
+use Getopt::Std;
+
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+
+my $warnings = 0;
+
+# Print a usuage message on a unknown option.
+# Requires my patch to Getopt::Std of 25 Feb 1999.
+$SIG {__WARN__} = sub {
+    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    $warnings = 1;
+    warn "$0: @_";
+};
+
+$SIG {__DIE__} = sub {
+    require File::Basename;
+    $0 = File::Basename::basename ($0);
+    if (substr ($_ [0], 0,  5) eq "Usage") {
+        die <<EOF;
+$0 (Perl bin utils) $VERSION
+$0 [-sf] source_file [target_file | [source_files ...] target_directory]
+EOF
+    }
+    die "$0: @_";
+};
+
+# Get the options.
+#     s   =>  symbolic links.
+#     f   =>  force.
+getopts ('sf', \my %options);
+
+die "Usage" unless @ARGV;
+
+my $target;
+if (@ARGV > 1) {
+    $target = pop @ARGV;
+}
+else {
+    require File::Basename;
+    $target = File::Basename::basename ($ARGV [0]);
+    die "$target: cannot overwrite directory" if -d $target;
+}
+
+# Deal with the force option in that case of a "file" target.
+unless (-d $target) {
+    if (exists $options {f} && -e $target) {
+        unlink $target or die "cannot unlink `$target': $!";
+    }
+}
+
+# Since creating symbolic links uses a different function than creating
+# hard links, we stick it in a closure.
+# Note that we can't do the obvious symlink (@_), as those bloody prototypes
+# force use to spell out the arguments, and & can't be used on buildins.
+# perlsub also hints it's possible to override the global link(), and
+# hence have symlink() called if the 's' option is given. But perlsub
+# cowardly calls Exporter -> export() instead of explaining it, and the
+# author of Exporter.pm should be shot for the lack of comments.
+# I don't feel like plowing through its code.
+my $link = exists $options {s} ? sub {symlink ($_ [0], $_ [1])}
+                               : sub {   link ($_ [0], $_ [1])};
+
+foreach my $file (@ARGV) {
+    my $this_target;
+    if (-d $target) {
+        require File::Basename;
+        require File::Spec;
+        # Isn't this silly? Two File:: namespaces, one is procedurial,
+        # the other OO. And what's the point of the OO-ness of File::Spec
+        # anyway??
+        my $this_file = File::Basename::basename ($file);
+        $this_target  = File::Spec -> catfile ($target, $this_file);
+        # Deal with the force option.
+        if (exists $options {f} && -e $this_target) {
+            unlink $this_target or do {
+                warn "cannot unlink `$this_target': $!";
+                next;
+            };
+        }
+    }
+    else {
+        $this_target = $target;
+    }
+
+    # Now it's time to make the link.
+    $link -> ($file, $this_target) or
+         warn "failed to link $file to $this_target: $!";
+}
+
+    
+exit $warnings;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+B<ln> -- create links
+
+=head1 SYNOPSIS
+
+B<ln> [B<-sf>] I<source_file> [I<target_file> | [I<source_files> ... I<target_directory>]]
+
+=head1 DESCRIPTION
+
+B<ln> creates I<hard> or I<symbolic links> between files. If more than one
+argument is given, and the last argument is a directory, links will be
+created in this directory; their names will consist of the last components
+of the I<source files>. If only one argument is given, the link will be
+created in the current directory, and its name will consist of the last
+component of the I<source file>.
+
+=head2 OPTIONS
+
+B<ln> accepts the following options:
+
+=over 4
+
+=item B<-s>
+
+Create symbolic links instead of hard links (the default).
+
+=item B<-f>
+
+If the I<target> is not a directory, try to remove any existing
+I<target>s before creating the links. Failure of removing the
+target results in a warning and no futher attempt to make the 
+link will be made.
+
+=back
+
+=head1 ENVIRONMENT
+
+The working of B<ln> is not influenced by any environment variables.
+
+=head1 PORTABILITY
+
+B<ln> will not do much on platforms that do not know the concept of
+links. B<ln -s> will not do much on platforms that do know symbolic links.
+
+=head1 BUGS
+
+There are no known bugs in this implementation of B<ln>.
+
+=head1 REVISION HISTORY
+
+    $Log: ln.abigail,v $
+    Revision 1.1  2004/07/23 20:10:07  cwest
+    initial import
+
+    Revision 1.1  1999/03/14 05:26:18  abigail
+    Initial revision
+
+=head1 AUTHOR
+
+The Perl implementation of B<ln> was written by Abigail, I<abigail@fnx.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright by Abigail 1999.
+
+This program is free and open software. You may use, copy, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.
+
+=cut
+

@@ -1,0 +1,133 @@
+#!/usr/local/bin/perl
+
+#
+# An implementation of the 'kill' utility in Perl.  Written for the Perl
+# Power Tools (PPT) project by Theo Van Dinter (felicity@kluge.net).
+#
+# $Id: kill.theo,v 1.1 2004/07/23 20:10:07 cwest Exp $
+#
+use strict;
+use Config;
+use integer;
+
+# die if no signals or no arguments
+die "No signals defined ?!?" unless defined $Config{"sig_name"};
+die "$0: Too few arguments; try $0 -h\n" unless ( @ARGV );
+
+my(@signals) = split(/\s+/,$Config{"sig_name"});
+my(%hsignals) = map { $_ => 1 } @signals;
+my($signal) = "TERM"; # default of SIGTERM
+
+if ( $ARGV[0] =~ /^-l$/i ) { # list signals
+	for(my($i)=1;$i<=$#signals;$i++){
+		printf "%2d:%-6s%s",$i,$signals[$i],
+			( ($i % 8 == 0) || ($i == $#signals) )?"\n":" ";
+	}
+	exit 0;
+}
+elsif ( $ARGV[0] =~ /^-h$/i ) { # help me!
+	print "usage:  $0 [-s signalname] PIDS ...
+	$0 [-signalname] PIDS ...
+	$0 [-signalnumber] PIDS ...
+	$0 PIDS ...
+	$0 [-l]
+	$0 [-h]
+";
+	exit 0;
+}
+elsif ( $ARGV[0] =~ /^-\d+$/ ) { # -signalnumber
+	($signal)=($ARGV[0]=~/^-(\d+)/);
+	die "$0: Bad signal number.\n" if ( $signal > $#signals );
+	shift @ARGV;
+}
+elsif ( $ARGV[0] =~ /^-/ ) { # -NAME or -s NAME
+	($signal)=($ARGV[0]=~/^-(.+)$/);
+	shift @ARGV;
+	$signal = shift @ARGV if ( lc $signal eq "s" ); # -s has signalname param.
+	$signal = uc $signal;
+	$signal =~ s/^SIG//; # remove the "SIG" from SIGNAME
+	die "$0: $signal: Unknown signal; $0 -l lists signals.\n"
+		unless ( $hsignals{$signal} );
+}
+
+die "$0: No PIDs specified.\n" unless ( @ARGV );
+
+my($ret) = 0;
+foreach ( @ARGV ) { # do the kills...
+	unless (kill $signal, $_) {
+		warn "$0: $_: $!\n";
+		$ret = 1;
+	}
+}
+
+exit $ret;
+
+=head1 NAME
+
+kill - send signals to a process
+
+=head1 SYNOPSIS
+
+B<kill>
+[ B<-s> I<signalname> C<PIDS ...> ]
+[ B<-signalname> C<PIDS ...> ]
+[ B<-signalnumber> C<PIDS ...> ]
+[ C<PIDS ...> ]
+[ B<-l> ]
+[ B<-h> ]
+
+=head1 DESCRIPTION
+
+B<kill> sends a signal to all PIDS specified on the command line.  This is
+typically done to cause a process to terminate and/or to reload configuration
+files, etc.  Signal handlers are specified per program, so the effects of a
+received signal may vary.
+
+=head1 OPTIONS AND ARGUMENTS
+
+=item I<-s>	This parameter takes a single argument of a signal name (see -l)
+to be sent to the specified PIDs.
+
+=item I<-signalname>	A short form of the C<-s signalname> parameter.
+
+=item I<-signalnumber>	This parameter specifies that the given signal number
+should be sent to the specified PID listing.
+
+=item I<-l>	Display a listing of all available signals on the current system.
+
+=item I<-h>	Display the usage help message.
+
+=head1 NOTES
+
+If no signal is specified on the command line, SIGTERM is sent to the
+specified PIDs.
+
+kill returns 0 on success or >0 if an error occurred.
+
+kill is built-in to csh(1);  See csh(1) for details.
+
+Only the super-user may send signals to other users' processes.
+
+This version of kill does not support I<-l [signal]> since there didn't seem
+to be any use to the parameter (it didn't work on any platform I tried
+either.)
+
+Signal names may have the I<SIG> prefix.  i.e.: C<kill -HUP> and C<kill
+-SIGHUP> are equivalent.
+
+The signal list C<kill -l> displays in an "extended" form which lists both
+the signal name and the signal number for easy reference.
+
+=head1 HISTORY
+
+Perl version rewritten for the Perl Power Tools project from the
+description of the kill program in OpenBSD.
+
+=head1 AUTHOR
+
+Theo Van Dinter (felicity@kluge.net)
+
+=head1 SEE ALSO
+
+csh(1), ps(1), kill(2)
+

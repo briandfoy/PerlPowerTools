@@ -1,0 +1,247 @@
+Here's my completely-gestated version of apply, since Tom put my
+incomplete one on the web page.
+
+This one supports -\? and respects the $SHELL variable, and has
+a hack that makes it faster than the original apply for t?csh.  
+I still have some questions - see comments in the code.
+
+By the way, I think we should all grant Tom unrestricted editorial
+powers over the submitted scripts, because of the desirability of
+a uniform style within the set.  That's assuming that Tom can think
+of something to do with unrestricted powers once he has them.
+
+R
+
+--
+
+#!/usr/bin/perl
+# apply - apply a command to a set of arguments
+# VERSION 1.0
+#
+# incompatibility note: this implementation does not limit
+# %-expressions to %[1-9].  Is this bad?  Should it be
+# reserved for apply.fancy ? 
+#
+# similarly, the version of apply I have requires that
+# SHELL contain the complete path to the shell.  Isn't  
+# that a bit much ?
+ 
+END {
+    close STDOUT || die "$0: can't close stdout: $!\n";
+    $? = 1 if $? == 255;  # from die
+}
+
+unless (@ARGV) {
+    die "usage: $0 [-ac] [-#] command argument [...]\n";
+}
+
+# do we want to do this, to get a standard behavior on
+# platforms that do not have a shell or do not define
+# $ENV{SHELL}?  'sh' should come with the ppt set anyway.
+#
+# The alternative is to just let 'system' use some kind 
+# of native command interpreter.
+
+$ENV{SHELL}    ||= 'sh';         
+
+# I vote yes.  Bringing a standard to all systems is the 
+# idea; if they don't define $ENV{SHELL}, they are in
+# need of a standard.
+
+# Still need to learn about flags needed for other shells 
+# that may appear in $ENV{SHELL} in VMS, OS/2, 95, NT for 
+# starters.
+
+my %shell_flags = (
+    sh   => '-s',
+    bash => '-s',
+    zsh  => '-s',
+    ksh  => '-s',
+    csh  => '-st',
+    tcsh => '-st',
+    rc   => ''
+);
+
+my $shell_regexp = join '|', keys %shell_flags;
+my $shell_flavor = lc ( ($ENV{SHELL} =~ m/^.*\b($shell_regexp)$/g)[0] );
+my $cshish       = 1 if $shell_flavor =~ /^t?csh$/;
+my $magic_char   = '%';
+my $dollop       = 1;
+my $command;
+my $interp;
+my $pre_command;
+my $post_command;
+
+$post_command = "\n" if $cshish;
+
+# This raised-eyebrow-inducing nugget makes running a command 
+# under t?csh faster, since we effect loading of ~/.t?cshrc, 
+# but skip loading ~/.history or ~/.cshdirs, which are not 
+# needed.  This can be 2-50 times faster, depending.
+
+if ($shell_flavor =~ /tcsh$/) {
+    if (-r "$ENV{HOME}/.tcshrc") {
+        $pre_command = "source $ENV{HOME}/.tcshrc; ";
+    } elsif (-r "$ENV{HOME}/.tcshrc") {
+        $pre_command = "source $ENV{HOME}/.cshrc; ";    
+    }
+    $shell_flags{$shell_flavor} .= 'f';
+} elsif ($shell_flavor =~ /csh$/) {
+    $pre_command  = "source $ENV{HOME}/.cshrc; ";    
+    $shell_flags{$shell_flavor} .= 'f';
+}
+
+while (@ARGV) {
+    my $item= shift;
+
+    $item =~ /^--$/     and  $command    = shift , last;
+    $item =~ /^-\?$/    and  manual();           # exits
+    $item =~ /^-a(.)$/  and  $magic_char = $1    , next;
+    $item =~ /^-(\d+)$/ and  $dollop     = $1    , next;
+
+    $command = $item;
+    last;
+}
+
+my $try_execvp   = 1 if $command =~ /^\w+$/ && $shell_flavor =~ /^(?:sh|)$/;
+
+unless (@ARGV) {
+    die "usage: $0 [-ac] [-#] command argument [...]\n";
+}
+
+if ($command =~ m/$magic_char[1-9]\d*/) {
+    $interp = 1;
+    $dollop = (sort {$a <=> $b} $command =~ m/$magic_char([1-9]\d*)/g)[-1];
+}
+
+while (@ARGV) {
+
+    unless (@ARGV >= $dollop) {
+        die "$0: expecting argument(s) after $ARGV[-1]\n";
+    }
+
+    my @args    = splice @ARGV, 0, $dollop;
+    shift @ARGV if $dollop == 0;
+    my $command = $command;
+
+    if ($interp) {
+        $command =~ s/$magic_char([1-9]\d*)/$args[$1-1]/ge;
+    } else {
+        if ($try_execvp) {               # trying to be maximally             
+            system $command,@args;       # efficient about something
+            next;                        # inherently slow
+        }
+        $command .= ' '. join ' ' , @args;
+    } 
+
+    shellrun ($command);
+} 
+
+# Are we obliged to use a new shell for each command ?
+# The standard 'apply' seems to do so.  We might consider
+# an option to run all the commands in one shell.  Much
+# faster, and no different for most common uses.
+
+sub shellrun {
+    if ($shell_flavor =~ /^(?:sh|)$/) {
+      system $_[0];
+    } else {
+      open  SHELL, "| $ENV{SHELL} $shell_flags{$shell_flavor}";
+      print SHELL  $pre_command . $_[0] . $post_command;
+      close SHELL;      
+    }
+}
+
+sub manual {
+
+  # why is pod2text the only reasonable way to feed pod in 
+  # on STDIN ?  Would rather use "|perldoc -", as it already
+  # knows about pager, etc.
+
+  open  MAN, "|pod2text" or die "$0: Cannot open pod2text converter\n";
+  print MAN  <DATA>;
+  close MAN;
+  exit;
+}
+
+__END__
+
+=head1 NAME
+
+apply - apply a command to a set of arguments
+
+=head1 SYNOPSIS
+
+apply B<[-ac]> B<[-#]> I<command> I<argument> I<[argument ... ]>
+
+=head1 DESCRIPTION
+
+I<apply> runs the named I<command> on each argument I<argument>.
+
+By default, arguments are taken one at a time, and the command is 
+executed with each argument in turn.  The command is interpreted 
+by the default shell, which may vary depending on the platform and
+the setting of the SHELL environment variable.
+
+B<%> is a magic character in the command string.  If I<command> 
+contains a character sequence of the form B<%i>, where B<i> is 
+an non-negative integer, the magic character sequence will be
+replaced by the B<i>'th argument of the arguments remaining to be
+processed.  This also indicates that each command will process
+at least B<i> arguments, rather than processing and discarding 
+them singly.
+
+=head2 OPTIONS
+
+=over 
+
+=item -#
+
+process B<#> arguments per command, where B<#> is a non-negative 
+integer.  For example, setting B<-3> is analogous to specifying 
+a command string of B<'command %1 %2 %3'>.  If B<#> is zero, the
+arguments themselves will be discarded, and B<command> will be 
+executed once for each argument.
+
+This option may be overridden by giving magic sequences in the
+command string, as described above.
+
+=item -aE<lt>characterE<gt>
+
+The magic character (normally B<%>) can be changed by setting 
+the B<-a> option.
+
+=back
+
+=head1 ENVIRONMENT
+
+The following environment variable affects the execution of I<apply>:
+
+ SHELL  Pathname of shell to use.  If this variable is 
+        not defined, the Bourne shell (sh) is used.
+
+=head1 BUGS
+
+I<apply> was reverse engineered, including behaviors that weren't well-defined
+by the manuals, for maximum compatibility.  There are plenty of places
+where we could improve the error messages, etc. 
+
+For instance, if the environment variable SHELL is set to 
+a_nonexistent_shell, I<apply> simply exits without a warning or error 
+code.  Surely we can do better without breaking anything.
+
+Hasn't been tested on non-Unix platforms.
+
+=head1 AUTHOR   
+
+D Roland Walker, I<E<lt>walker@pobox.comE<gt>>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright (c) Roland Walker 1999.
+
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.
+
+

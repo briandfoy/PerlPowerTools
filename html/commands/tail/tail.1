@@ -1,0 +1,31 @@
+
+TAIL(1)							  TAIL(1)
+
+NAME
+       tail - deliver the last part of a file
+
+SYNOPSIS
+       tail _number[___] [ file ]
+
+DESCRIPTION
+       Tail  copies  the named file to the standard output begin-
+       ning at a designated place.  If	no  file  is  named,  the
+       standard input is used.
+
+       Copying	begins at distance +number from the beginning, or
+       -number from the end of the input.  Number is  counted  in
+       units  of  lines,  blocks  or characters, according to the
+       appended option l, b or c.  When no units  are  specified,
+       counting is by lines.
+
+SEE ALSO
+       dd(1)
+
+BUGS
+       Tails  relative to the end of the file are treasured up in
+       a buffer, and thus are limited in length.   Various  kinds
+       of  anomalous  behavior	may happen with character special
+       files.
+
+								1
+

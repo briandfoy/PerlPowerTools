@@ -1,0 +1,42 @@
+
+CALENDAR(1)					      CALENDAR(1)
+
+NAME
+       calendar - reminder service
+
+SYNOPSIS
+       calendar [ - ]
+
+DESCRIPTION
+       Calendar	 consults  the	file  `calendar'  in  the current
+       directory and prints out lines  that  contain  today's  or
+       tomorrow's  date	 anywhere  in  the line.  Most reasonable
+       month-day dates such as `Dec. 7,'  `december  7,'  `12/7,'
+       etc.,  are recognized, but not `7 December' or `7/12'.  On
+       weekends `tomorrow' extends through Monday.
+
+       When an argument is present, calendar  does  its	 job  for
+       every  user  who has a file `calendar' in his login direc-
+       tory and sends him any positive results by mail(1).   Nor-
+       mally this is done daily in the wee hours under control of
+       cron(8).
+
+FILES
+       calendar
+       /usr/lib/calendar to figure  out	 today's  and  tomorrow's
+       dates
+       /etc/passwd
+       /tmp/cal*
+       egrep, sed, mail subprocesses
+
+SEE ALSO
+       at(1), cron(8), mail(1)
+
+BUGS
+       Your  calendar  must  be public information for you to get
+       reminder service.
+       Calendar's extended idea of `tomorrow' doesn't account for
+       holidays.
+
+								1
+

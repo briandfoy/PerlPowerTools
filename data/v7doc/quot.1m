@@ -1,0 +1,39 @@
+
+QUOT(1M)						 QUOT(1M)
+
+NAME
+       quot - summarize file system ownership
+
+SYNOPSIS
+       quot [ option ] ...  [ filesystem ]
+
+DESCRIPTION
+       Quot  prints  the number of blocks in the named filesystem
+       currently owned by each user.  If no filesystem is  named,
+       a  default  name	 is  assumed.	The following options are
+       available:
+
+       -n     Cause the pipeline ncheck filesystem | sort  +0n	|
+	      quot  -n	filesystem to produce a list of all files
+	      and their owners.
+
+       -c     Print three columns giving  file	size  in  blocks,
+	      number  of files of that size, and cumulative total
+	      of blocks in that size or smaller file.
+
+       -f     Print count of number of files  as  well	as  space
+	      owned by each user.
+
+FILES
+       Default file system varies with system.
+       /etc/passwd to get user names
+
+SEE ALSO
+       ls(1), du(1)
+
+BUGS
+       Holes  in  files	 are counted as if they actually occupied
+       space.
+
+								1
+

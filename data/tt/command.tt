@@ -1,0 +1,54 @@
+[% META navpre = '../../' %]
+
+<p>
+  This is the homepage for the <a href="../../index.html">Perl Power
+  Tools</a> implementation of the standard <em>[% command %]</em>
+  command.
+</p>
+
+[% IF contrib %]
+  Current Perl implementations are:
+  <ul>
+  [% FOREACH c = contrib %]
+    <li> Here is a <a href="[% c.name %]">version</a> 
+    [% IF c.manpage %]
+      and its <a href="[% c.name %].html">manpage</a>
+    [% END %]
+    by 
+    [% IF c.url %]
+      <a href="[% c.url %]">[% c.author %]</a>
+    [% ELSIF c.email %]
+      <a href="mailto:[% c.email %]">[% c.author %]</a>
+    [% ELSE %]
+      [% c.author %]
+    [% END %]
+    ([% c.date %]).
+    [% IF c.support %]
+      <br />Supporting files: 
+      [% FOREACH file = c.support.split %]
+         <a href="[% file %]">[% file %]</a>
+         [%- loop.last ? '.' : ',' %]
+      [% END %]
+    [% END %]
+    </li>
+  [% END %]
+  </ul>
+[% ELSE %]
+  <p><em>
+    No implementations available.
+  </em></p>
+[% END %]
+
+Baseline documentation:
+
+<ul>
+  [% IF v7 %]
+    <li>
+      <a href="[% v7 %]">Version 7</a>
+    </li>
+  [% END %]
+    <li>
+      <a href="http://www.openbsd.org/cgi-bin/man.cgi?query=[% name.split('\.').0 %]&amp;sektion=[% name.split('\.').1 %]&amp;apropos=0&amp;manpath=OpenBSD+Current">BSD</a>
+      (with POSIX.2 info, if relevant)
+    </li>
+</ul>

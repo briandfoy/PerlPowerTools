@@ -1,0 +1,96 @@
+#!/usr/local/bin/perl5 -w
+# uniq for ppt
+# silmaril@best.com 1999-02-26
+
+use strict;
+
+my %opt = process_opts();
+my($infh, $outfh) = open_files($opt{"infile"}, $opt{"outfile"});
+uniq($infh, $outfh, %opt);
+
+sub usagemsg {
+<<EOT;
+usage: uniq [-c|-d|-u][-f fields][-s char] [input_file [output_file]]
+or:    uniq [-c|-d|-u][-n][+m] [input_file [output_file]]
+EOT
+}
+
+sub uniq {
+	my($infile, $outfile, %opt) = @_;
+	for(qw(c d f s u)) {
+		$opt{$_} ||= 0;
+	}
+	my($old, $old_cmp, $new, $new_cmp, $count, $eof, $first, $cmp_eq);
+	my $fields = '\s*\S+' x $opt{"f"};
+	$count = 0;
+	$first = 1;
+	while(!$eof) {
+		if(defined($new = <$infile>)) {
+                        ($new_cmp = $new) =~ s/$fields//o;
+                        substr($new_cmp, 0, $opt{"s"}) = "";
+			$cmp_eq = $first ? 1 : $new_cmp eq $old_cmp;
+			$eof = 0;
+		}
+		else {
+			$cmp_eq = 0;
+			$eof = 1;
+		}
+		if(!$first && !$cmp_eq) {
+			if(!($opt{"d"} && $count == 1) &&
+				!($opt{"u"} && $count > 1)) {
+				print $outfile $opt{"c"} ?
+					"    $count $old" :
+					$old;
+			}
+			$count = 0;
+		}
+		if($first || !$cmp_eq) {
+			$old = $new;
+			$old_cmp = $new_cmp;
+		}
+		$count++;
+		$first = 0;
+	}
+}
+
+sub process_opts {
+	my(@options) = @_;
+	my %opt;
+	while(defined($_ = shift @ARGV)) {
+		if(/^-c$/) 	{ $opt{"c"} = 1 }
+		elsif(/^-d$/)	{ $opt{"d"} = 1 }
+		elsif(/^-f$/)	{ $opt{"f"} = getposint() }
+		elsif(/^-s$/)	{ $opt{"s"} = getposint() }
+		elsif(/^-u$/)	{ $opt{"u"} = 1 }
+		elsif(/^-([0-9]+)$/) { $opt{"f"} = $1 }
+		elsif(/^\+([0-9]+)$/) { $opt{"s"} = $1 }
+		elsif(/^-\?$/) 	{ die usagemsg() }
+		elsif(/^(.+)$/ && !$opt{"infile"}) { $opt{"infile"} = $1 }
+		elsif(/^(.+)$/ && !$opt{"outfile"}) { $opt{"outfile"} = $1 } 
+		else { die usagemsg() }
+	}
+	return %opt;
+}
+
+sub getposint {
+	if($ARGV[0] =~ /^\d+$/) {
+		return shift @ARGV;
+	}
+	die usagemsg();
+}
+
+sub open_files {
+	my($infile, $outfile) = @_;
+	my($infh, $outfh) = (\*STDIN, \*STDOUT);
+	if($infile) {
+		open IN, $infile or
+			die "couldn't open $infile: $!\n", usagemsg();
+		$infh = \*IN;
+	}
+	if($outfile) {
+		open OUT, ">$outfile" or
+			die "couldn't open >$outfile: $!\n", usagemsg();
+		$outfh = \*OUT;
+	}
+	return($infh, $outfh);
+}

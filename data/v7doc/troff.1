@@ -1,0 +1,119 @@
+
+TROFF(1)						 TROFF(1)
+
+NAME
+       troff, nroff - text formatting and typesetting
+
+SYNOPSIS
+       troff [ option ] ...  [ file ] ...
+
+       nroff [ option ] ...  [ file ] ...
+
+DESCRIPTION
+       Troff  formats  text  in the named files for printing on a
+       Graphic Systems C/A/T  phototypesetter;	nroff  for  type-
+       writer-like  devices.  Their capabilities are described in
+       the Nroff/Troff user's manual.
+
+       If no file argument is  present,	 the  standard	input  is
+       read.   An  argument  consisting	 of a single minus (-) is
+       taken to be a file  name	 corresponding	to  the	 standard
+       input.  The options, which may appear in any order so long
+       as they appear before the files, are:
+
+       -olist Print only pages whose page numbers appear  in  the
+	      comma-separated  list  of	 numbers  and  ranges.	A
+	      range N-M means pages N through M;  an  initial  -N
+	      means  from the beginning to page N; and a final N-
+	      means from N to the end.
+
+       -nN    Number first generated page N.
+
+       -sN    Stop every N pages.  Nroff will halt prior to every
+	      N	 pages	(default  N=1)	to allow paper loading or
+	      changing, and will resume upon receipt  of  a  new-
+	      line.   Troff will stop the phototypesetter every N
+	      pages, produce a trailer	to  allow  changing  cas-
+	      settes, and resume when the typesetter's start but-
+	      ton is pressed.
+
+       -mname Prepend the macro file  /usr/lib/tmac/tmac.name  to
+	      the input files.
+
+       -raN   Set register a (one-character) to N.
+
+       -i     Read  standard  input  after  the	 input	files are
+	      exhausted.
+
+       -q     Invoke the simultaneous input-output mode of the rd
+	      request.
+
+       Nroff only
+
+       -Tname Prepare output for specified terminal.  Known names
+	      are 37 for the (default) Teletype Corporation Model
+	      37  terminal, tn300 for the GE TermiNet 300 (or any
+	      terminal without half-line  capability),	300S  for
+	      the  DASI-300S,  300  for the DASI-300, and 450 for
+
+								1
+
+TROFF(1)						 TROFF(1)
+
+	      the DASI-450 (Diablo Hyterm).
+
+       -e     Produce equally-spaced  words  in	 adjusted  lines,
+	      using full terminal resolution.
+
+       -h     Use  output tabs during horizontal spacing to speed
+	      output and reduce output character count.	 Tab set-
+	      tings  are  assumed to be every 8 nominal character
+	      widths.
+
+       Troff only
+
+       -t     Direct output to the standard output instead of the
+	      phototypesetter.
+
+       -f     Refrain  from feeding out paper and stopping photo-
+	      typesetter at the end of the run.
+
+       -w     Wait until phototypesetter is  available,	 if  cur-
+	      rently busy.
+
+       -b     Report  whether  the  phototypesetter  is	 busy  or
+	      available.  No text processing is done.
+
+       -a     Send a printable ASCII approximation of the results
+	      to the standard output.
+
+       -pN    Print  all characters in point size N while retain-
+	      ing all prescribed spacings and motions, to  reduce
+	      phototypesetter elasped time.
+
+       -g     Prepare  output  for  a  GCOS  phototypesetter  and
+	      direct it to the standard output (see gcat(1)).
+
+       If the file /usr/adm/tracct is writable, troff keeps  pho-
+       totypesetter  accounting	 records there.	 The integrity of
+       that file may be secured by making troff a  `set	 user-id'
+       program.
+
+FILES
+       /usr/lib/suftab	     suffix hyphenation tables
+       /tmp/ta*		     temporary file
+       /usr/lib/tmac/tmac.*  standard macro files
+       /usr/lib/term/*	     terminal driving tables for nroff
+       /usr/lib/font/*	     font width tables for troff
+       /dev/cat		     phototypesetter
+       /usr/adm/tracct	     accounting statistics for /dev/cat
+
+SEE ALSO
+       J. F. Ossanna, Nroff/Troff user's manual
+       B. W. Kernighan, A TROFF Tutorial
+       eqn(1), tbl(1)
+       col(1), tk(1) (nroff only)
+       tc(1), gcat(1) (troff only)
+
+								2
+

@@ -21,7 +21,7 @@ use Getopt::Std;
 #
 # You may distribute this module under the same terms as Perl itself.
 #
-# $Revision: 1.1.1.1 $ $Date: 2001/06/06 08:54:45 $
+# $Revision: 1.1 $ $Date: 2004/07/23 20:08:37 $
 
 my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
 my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);

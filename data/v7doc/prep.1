@@ -1,0 +1,42 @@
+
+PREP(1)							  PREP(1)
+
+NAME
+       prep - prepare text for statistical processing
+
+SYNOPSIS
+       prep [ -dio ] file ...
+
+DESCRIPTION
+       Prep  reads  each  file	in  sequence and writes it on the
+       standard output, one `word' to a line.  A word is a string
+       of  alphabetic characters and imbedded apostrophes, delim-
+       ited by space or punctuation.  Hyphented words are  broken
+       apart;  hyphens	at  the	 end of lines are removed and the
+       hyphenated parts are joined.  Strings of digits	are  dis-
+       carded.
+
+       The following option letters may appear in any order:
+
+       -d     Print  the  word	number (in the input stream) with
+	      each word.
+
+       -i     Take the next file  as  an  `ignore'  file.   These
+	      words will not appear in the output.  (They will be
+	      counted, for purposes of the -d count.)
+
+       -o     Take the next file as an `only' file.   Only  these
+	      words  will appear in the output.	 (All other words
+	      will also be counted for the -d count.)
+
+       -p     Include punctuation marks	 (single  nonalphanumeric
+	      characters) as separate output lines.  The punctua-
+	      tion marks are not counted for the -d count.
+
+       Ignore and only files contain words, one per line.
+
+SEE ALSO
+       deroff(1)
+
+								1
+

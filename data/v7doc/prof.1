@@ -1,0 +1,49 @@
+
+PROF(1)							  PROF(1)
+
+NAME
+       prof - display profile data
+
+SYNOPSIS
+       prof [ -v ] [ -a ] [ -l ] [ -low [ -high ] ] [ file ]
+
+DESCRIPTION
+       Prof  interprets	 the file mon.out produced by the monitor
+       subroutine.  Under default modes, the symbol table in  the
+       named  object  file (a.out default) is read and correlated
+       with the mon.out profile file.  For each external  symbol,
+       the percentage of time spent executing between that symbol
+       and the next is printed (in  decreasing	order),	 together
+       with  the  number of times that routine was called and the
+       number of milliseconds per call.
+
+       If the -a option is used, all symbols are reported  rather
+       than just external symbols.  If the -l option is used, the
+       output is listed by symbol value	 rather	 than  decreasing
+       percentage.
+
+       If the -v option is used, all printing is suppressed and a
+       graphic version of the profile is produced on the standard
+       output  for  display  by the plot(1) filters.  The numbers
+       low and high, by default 0 and 100, cause a selected  per-
+       centage	of  the	 profile  to  be plotted with accordingly
+       higher resolution.
+
+       In order for the number of calls to a routine to	 be  tal-
+       lied,  the  -p  option of cc must have been given when the
+       file containing the routine  was	 compiled.   This  option
+       also arranges for the mon.out file to be produced automat-
+       ically.
+
+FILES
+       mon.out	for profile
+       a.out	for namelist
+
+SEE ALSO
+       monitor(3), profil(2), cc(1), plot(1)
+
+BUGS
+       Beware of quantization errors.
+
+								1
+

@@ -1,13 +1,10 @@
 #!/usr/bin/perl -w
 #
-# $Id: printenv,v 1.1.1.1 2001/06/06 08:55:03 sdague Exp $
+# $Id: printenv,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: printenv,v $
-# Revision 1.1.1.1  2001/06/06 08:55:03  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.0  1999/02/26 02:55:05  randy
 # Initial revision
@@ -15,7 +12,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 if (@ARGV) {
     if ($ARGV[0] eq '-?') {
@@ -80,11 +77,8 @@ I<printenv> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: printenv,v $
-    Revision 1.1.1.1  2001/06/06 08:55:03  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
     Revision 1.0  1999/02/26 02:55:05  randy
     Initial revision

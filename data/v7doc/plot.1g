@@ -1,0 +1,50 @@
+
+PLOT(1G)						 PLOT(1G)
+
+NAME
+       plot - graphics filters
+
+SYNOPSIS
+       plot [ -Tterminal [ raster ] ]
+
+DESCRIPTION
+       These  commands	read  plotting instructions (see plot(5))
+       from the standard input, and in general	produce	 plotting
+       instructions  suitable  for  a  particular terminal on the
+       standard output.
+
+       If no terminal type is specified, the environment  parame-
+       ter $TERM (see environ(5)) is used.  Known terminals are:
+
+       4014   Tektronix 4014 storage scope.
+
+       450    DASI Hyterm 450 terminal (Diablo mechanism).
+
+       300    DASI 300 or GSI terminal (Diablo mechanism).
+
+       300S   DASI 300S terminal (Diablo mechanism).
+
+       ver    Versatec	D1200A	printer-plotter.  This version of
+	      plot   places    a    scan-converted    image    in
+	      `/usr/tmp/raster'	 and sends the result directly to
+	      the plotter device rather than to the standard out-
+	      put.   The  optional  argument  causes a previously
+	      scan-converted file raster to be sent to the  plot-
+	      ter.
+
+FILES
+       /usr/bin/tek
+       /usr/bin/t450
+       /usr/bin/t300
+       /usr/bin/t300s
+       /usr/bin/vplot
+       /usr/tmp/raster
+
+SEE ALSO
+       plot(3), plot(5)
+
+BUGS
+       There is no lockout protection for /usr/tmp/raster.
+
+								1
+

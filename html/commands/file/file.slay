@@ -1,0 +1,944 @@
+#!/usr/bin/perl
+
+use Getopt::Long ;
+use File::Type qw( add_mime_types get_type type_2_mime ) ;
+
+GetOptions(
+   \%options,
+   'debug|d+',
+   'types|type=s@',
+   'tests|tests=i@',
+   'mime-file=s',
+) ;
+
+if ( defined( $options{'mime-file'} ) ) {
+   add_mime_types( $options{'mime-file'} ) ;
+}
+
+for ( @ARGV ) {
+   $types{$_} = get_type( \%options, $_ ) ;
+   $max_name_length = length( $_ )
+      if length( $_ ) > $max_name_length ;
+   $max_type_length = length( $_ )
+      if length( $_ ) > $max_type_length ;
+}
+
+++$max_name_length ;
+for ( sort keys %types ) {
+   my $type = $types{$_} ;
+   printf( 
+      "%-${max_name_length}s %-${max_type_length}s %s\n", 
+      "$_:", 
+      $type, 
+      type_2_mime( $type ) 
+   ) ; 
+}
+
+0 ;
+
+##########################################
+package File::Type;
+
+=head1 NAME
+
+File::Type - Determine a file's contents by looking at the name and contents
+
+=head1 SYNOPSIS
+
+   use File::Type qw( get_type type_2_mime ) ;
+
+   File::Type::load_magic( "type_file" ) ;
+   File::Type::load_magic( \@type_defs ) ;
+
+   my $file_type = get_type( "foo.pl" ) ;
+
+   print type_2_mime( $file_type ) ;
+
+=head1 DESCRIPTION
+
+A perl module that acts a lot like the traditional Unix C<file> command,
+but using regular expressions to do the job.
+
+File types are defined in a data structure that's passed in or in a file
+that contains such a data structure.  Default file types 
+are defined in the module, so you don't need to C<load_magic()> in some 
+cases.
+
+=cut
+
+################################################################
+
+use strict ;
+use Exporter ;
+use vars qw( $VERSION @ISA @EXPORT_OK ) ;
+
+@ISA = qw( Exporter ) ;
+@EXPORT_OK = qw(
+   add_mime_types 
+   get_type 
+   load_magic 
+   type_2_mime 
+) ;
+$VERSION = 0.10 ;
+
+################################################################
+################################################################
+#
+# Globals
+#
+
+#
+# This global variable is set to the file name being evaluated before
+# any tests are run.  DO NOT CHANGE IT IN A TEST!!!
+#
+my $_file_name ;
+
+#
+# This global variable is set if the caller supplied a (possibly empty)
+# string containing the guts of the file being tested.
+#
+my $_file_guts_provided ;
+
+#
+# The data structure currently in use
+#
+my $_current_magic ;
+
+#
+# The number of rounds of testing contained in $_current_magic
+#
+my $_max_test ;
+
+#
+# Used to cache the value of -T $_file_name
+#
+my $_op_T_result ;
+
+#
+# The name of the file type currently being evaluated
+#
+my $_type_name ;
+
+#
+# The name of the currently executing test
+#
+my $_test_name ;
+
+#
+# hmmm.....
+#
+my $debug = 0 ;
+
+################################################################
+################################################################
+
+=head2 FUNCTIONS
+
+=over
+
+=item add_magic
+
+Adds more types to the current magic database.
+
+NOT IMPLEMENTED
+
+#############################
+
+=item add_mime_types
+
+Adds the contents of a mime types file to the current magic database.
+
+=cut
+
+sub add_mime_types {
+   my $mime_file_name = shift ;
+
+   open( MIMES, "<$mime_file_name" ) or
+      die "$!: $mime_file_name" ;
+   while ( <MIMES> ) {
+      #
+      # Parse lines that look like "text/html html htm"
+      #
+      next if /^\s*#/ ;
+      next unless m@^\s*([\w.-/]+)\s+(\S(?:.+\S)?)\s*$@ ;
+
+      my $mime_type = $1 ;
+      my @exts = split( /\s+/, $2 ) ;
+
+      #
+      # See if any existing items have one or more of these extensions
+      # by pretending we have a file with that extension and no contents
+      # and seeing if test #1 returns a type name. If so, set the mime
+      # type.
+      #
+      my %done ;
+
+      my $type_names = {} ;
+      map {
+         $type_names->{$_} = 1 ;
+      } keys %$_current_magic ;
+
+      for my $ext ( @exts ) {
+         $_file_name = "a.$ext" ;
+         my @results = _do_test( $type_names, 1 ) ;
+         for my $type_name ( @results ) {
+            $_current_magic->{$type_name}->[0]->[0] = $mime_type ;
+            $done{$ext} = 1 ;
+         }
+      }
+
+      #
+      # Create new file types for any mime types we didn't find.
+      #
+      my @remaining = grep{
+         ! exists $done{$_} ;
+      } @exts ;
+      if ( @remaining ) {
+         $_current_magic->{$mime_type} = [
+            [ $mime_type, $mime_type ],
+            \@remaining,
+         ] ;
+      }
+
+   }
+   close( MIMES ) or
+      die "$!: $mime_file_name" ;
+
+#for ( sort keys %$_current_magic ) {
+#   print( $_, " => [ [ ", join( ',', @{$_current_magic->{$_}->[0]} ), "], [", ( ref( $_current_magic->{$_}[1]) eq 'ARRAY' ? join( ',', @{$_current_magic->{$_}->[1]} ) : 'undef' ), "] ]\n" ) ;
+#}
+
+   # Should rescan $_current_magic to get $_max_test in case it grew...
+}
+
+#############################
+
+=item load_magic
+
+C<load_magic()> takes either a file name or a reference to an array and
+sets up the internal data structures needed by C<get_type()> and
+C<type_2_mime()>.  See the source code for the module for more information
+on the data structure required.
+
+The types included with this module are not that comprehensive, since 
+Safari needs to know about very few of them.  Submissions of new and
+better recognizers are appreciated.
+
+=cut
+
+sub load_magic {
+   my $types = shift ;
+   if ( ! ref( $types ) ) {
+      my $new_magic = do $types ;
+      unless (defined( $new_magic )) {
+         die "couldn't parse $types: $@" if $@;
+         die "couldn't do $types: $!"    unless defined $new_magic;
+         die "couldn't run $types"       unless $new_magic;
+      }
+      die "$types must enclose all data in '[' and ']'"
+         unless ref( $new_magic ) eq 'ARRAY' ;
+      $types = $new_magic ;
+   } ;
+
+   $_current_magic = $types ;
+   $_max_test = 1 ;
+
+   for $_type_name ( keys %$_current_magic ) {
+      my $type = $_current_magic->{$_type_name} ;
+
+      #
+      # Line noise $#{$type} is the index of the last element in @{$type}.
+      #
+      my $_max_test_for_type = $#{$type} ;
+
+      $_max_test = $_max_test_for_type
+         if $_max_test_for_type > $_max_test ;
+   }
+
+   return 1 ;
+}
+
+#############################
+
+=item get_type
+
+C<get_type()> does three levels of check and returns the result of the first
+sucessful check.
+
+C<get_type()> first stats the file, then looks at it's extension, then looks
+inside the file using regular expressions.  Since perl5 regular expressions
+are pretty darn comprehensive, this should allow complete emulation of the
+magic files used by the Unix C<file> command as well as the language 
+identification heuristics.  
+
+If a second argument is provided, it will be used as the file's contents,
+and the file will not be opened.  The contents must be from the beginning
+of the file for most binary file types, and should be for most text file
+types.  As much data as is feasible should be provided.
+
+=cut
+
+sub get_type {
+   #
+   # Set up globals
+   #
+   my $options = {} ;
+   if ( ref( $_[ 0 ] ) eq 'HASH' ) {
+      $options = shift  ;
+      $debug ||= $options->{debug} ? $options->{debug} : 0 ;
+   }
+
+   $_file_name = shift ;
+   $_file_guts_provided = @_ ;
+
+   $_op_T_result = undef ;
+
+   unless ( $_file_guts_provided ) {
+      return 'symbolic link' if -l $_file_name ;
+      return 'directory' if -d _ ;
+   }
+
+   my @results ;
+
+   #
+   # Declare this now and make it undefined.  Later it will hold the
+   # first few chunks of the file's guts. Making it undefined allows
+   # -w to warn the user if a filename test fails.
+   #
+   local $_ ;
+
+   #
+   # Start off by applying tests for all types unless the caller only
+   # wants a short list of types.
+   #
+   my $_type_names ;
+   map{ $_type_names->{$_} = 1 } @{$options->{types}} 
+      if exists $options->{types} && @{$options->{types}};
+   unless ( $_type_names ) {
+      map {
+         $_type_names->{ $_ } = 1 ;
+      } keys %$_current_magic ;
+   }
+
+   my @tests = ( exists $options->{tests} && @{$options->{tests}} ) ? 
+      @{$options->{tests}} : 
+      ( 1..$_max_test ) ;
+   my %tests ;
+   map{ $tests{$_} = 1 } @tests ;
+
+   #
+   # Scan for filename matches
+   #
+   @results = _do_test( $_type_names, 1 ) 
+      if $tests{1} ;
+
+   unless ( @results ) {
+      #
+      # Look inside the file
+      #
+      if ( $_file_guts_provided ) {
+         $_ = shift ;
+      }
+      else {
+         open( FILE, "<$_file_name" ) or
+            die "$!: $_file_name" ;
+         defined( read( FILE, $_, 16384 ) ) or
+            die "$!: $_file_name" ;
+         close( FILE ) or
+            die "$!: $_file_name" ;
+      }
+
+      #
+      # Scan for guts matches
+      #
+      for ( my $test = 2 ; $test <= $_max_test ; ++$test ) {
+         next
+            unless $tests{$test} ;
+         @results = _do_test( $_type_names, $test ) ;
+         last
+            if @results ;
+      }
+   }
+
+   return @results ? join( ' ', @results ) : is_text() ? 'text' : 'data' ;
+}
+
+#############################
+
+sub _do_test {
+   my ( $_type_names, $offset ) = @_ ;
+
+   my @results ;
+   my $score_level = 0 ;
+
+   $_test_name = (
+      $offset == 1 ?
+      'file name test' :
+      'guts test ' . ( $offset - 1 )
+   ) ;
+
+   for my $a ( keys %$_type_names ) {
+      $_type_name = $a ;
+      my $type = $_current_magic->{$_type_name} ;
+      next unless $offset <= $#$type ;
+
+      my $test = $type->[$offset] ;
+      next unless defined $test ;
+
+      my $score ;
+      my $test_type = ref( $test ) ;
+      if ( $test_type eq 'ARRAY' ) {
+         if ( $offset == 1 ) {
+            $score = has_extension( @$test ) ;
+         }
+         else {
+            $score = match_and_score( @$test ) ;
+         }
+      }
+      elsif ( $test_type eq 'Regexp' ) {
+         if ( $offset == 1 ) {
+            $score = matches_name( $test ) ;
+         }
+         else {
+            $score = m/$test/m ;
+         }
+      }
+      elsif ( $test_type eq 'CODE' ) {
+         $score = &{$test}() ;
+      }
+      else {
+         abort( "Invalid type for test: '$test_type'" )
+      }
+
+      next unless defined $score ;
+
+      abort( "Non-numeric score ($score) returned" ) 
+         unless $score =~ /^(?:[-+]?(?:\d+|\d*\.\d*))?$/ ;
+
+      if ( $score > 0 ) {
+         debug( "score $score" ) ;
+         if ( $score > $score_level ) {
+            @results = ( $_type_name ) ;
+            $score_level = $score ;
+         }
+         elsif ( $score == $score_level ) {
+            push( @results, $_type_name ) ;
+         }
+      }
+      elsif ( $score < 0 ) {
+         debug( "eliminated" ) ;
+         delete $_type_names->{$_type_name} ;
+      }
+   }
+
+   return @results ;
+}
+
+=item type_2_mime
+
+Takes the result from a get_type call and returns the corresponding 
+mime_type.
+
+=cut
+
+sub type_2_mime {
+   return $_current_magic->{$_[0]}->[0]->[1] ;
+}
+
+################################################################
+################################################################
+
+=head2 MAGIC DATA STRUCTURE
+
+The format of the magic data structure is:
+
+   {
+      'file type' => [  # reported when a match is found
+         [
+           'long type'    # Unix find-like description
+           'mime type',   # used to translate file type to mime type
+         ],
+         name_test,     # the test applied when only the file name is known
+         guts_test_1,   # the first test applied if the file name test fails.
+         guts_test_2,   # the second test applied if guts_test_1 fails
+         ...
+      ],
+      'another type' => [
+         ...
+      ],
+      ...
+  }
+
+See C<file_type> for a description of the testing algorithm.
+
+=cut
+
+my $default_magic = 
+{
+   'c' => [
+      [ 'c program', 'text/plain', ],
+      [qw( c h )],
+      \&must_be_text,
+      sub{ m/^#!/ ? -1 : 0 },    # No shebang allowed
+      sub{ match_and_score( 
+         qr{
+            ^(?:
+               \#\s*(?:
+                  include\s*".*"       |
+                  include\s*<.*>       |
+                  if(\s+\defined)?     |
+                  ifdef\s+\w+          |
+                  ifndef\s+\w+         |
+                  define\s+\w+         |
+                  undef\s+\w+
+               )
+            ) |
+            /\*\W*    |
+            //.*$  |
+            \b(?:
+               struct |
+               union
+            )\s+\{ |
+            \b(?:
+               s?printf |
+               if       |
+               while
+            )\s*\( |
+            (?:(?:const|register|volatile)\s+)?
+            (?:
+               void    |
+               int     |
+               char
+            )\s*[\*&]?\w*
+         }x
+      )}
+   ],
+
+   'c++' => [
+      [ 'c++ program', 'text/plain', ],
+      [qw( C H CC HH cc hh cpp hpp )],
+      \&must_be_text,
+      sub{ m/^#!/ ? -1 : 0 },    # No shebang allowed
+      sub{ match_and_score( 
+         qr{
+            ^(?:
+               \#\s*(?:
+                  include\s*".*"       |
+                  include\s*<.*>       |
+                  if(\s+\defined)?     |
+                  ifdef\s+\w+          |
+                  ifndef\s+\w+         |
+                  define\s+\w+         |
+                  undef\s+\w+
+               )
+            ) |
+            /\*\W*    |
+            //.*$  |
+            \b(?:
+               struct |
+               union  |
+               class\s*:(?:\s*i(?:public|private|protected)[,\w]+)
+            )\s+\{ |
+            ^\s*(?:public|private|protected): |
+            \b(?:
+               s?printf |
+               if       |
+               while
+            )\s*\( |
+            (?:(?:const|register|volatile)\s+)?
+            (?:
+               void    |
+               char    |
+               (?:long\s+)?
+               (?:
+                  int     |
+                  double  |
+                  long    |
+                  float
+               )
+            )\s*[\*&]?\w* |
+            \b(?:\*\s*)?this\s*(?:->)?
+         }x
+      )}
+   ],
+
+   'data' => [
+      [ 'text', 'application/octet-stream' ],
+      undef,
+      \&must_be_text,
+   ],
+
+   'diff' => [
+      [ 'diff output', 'text/plain' ],
+      undef,
+      \&must_be_text,
+      undef,
+      sub { match_and_score(
+         qr{ ^ [-+!<>@* =] (?:.(?!^[^ -+!<>\@\*]))* }xms,
+      )},
+   ],
+        
+
+   'html' => [
+      [ 'html', 'text/html', ],
+      [qw( html htm )],
+      \&must_be_text,
+      qr/\A\s*<HTML>/,
+      [qw(
+         <HTML> <HEAD> <TITLE> </TITLE> </HEAD>
+         <BODY </BODY> </HTML> <P </P> <PRE> </PRE> <FONT
+         <TR </TR> <TD </TD>
+         <UL> </UL> <OL> </OL> <LI> </LI>
+         <DL> <DT> </DT> <DD> </DD> </DL>
+         <H1 </H1> <H2 </H2> <H3 </H3> <H4 </H4> <H5 </H5> <H6 </H6>
+         <BR> <HR>
+      )],
+   ],
+
+   'makefile' => [
+      [ 'makefile', 'text/plain', ],
+      qr/^(?:GNU)?Makefile|\.mak/i,
+   ],
+
+   'perl' => [
+      [ 'perl commands', 'text/plain', ],
+      [qw( pl pm pod PL )],
+      \&must_be_text,
+      qr/\A#!.*perl\b/,
+      sub { match_and_score(
+         qr{
+            ^(?:
+               =head1    |
+               =cut      |
+               \s*(?:
+                  package\s+\w+(?:::)?                        |
+                  use\s+strict                                |
+                  sub\s+\w                                    |
+                  while\s+\(\s+<>\s+\)                        |
+                  (?:if|unless|while|for|until)\s*\(.+\)\s*\{ |
+                  \#.*\n
+               )
+            )                                |
+            \s*(?:
+               \b(?:
+                  if     |
+                  else   |
+                  elsif  |
+                  next   |
+                  last   |
+                  my     |
+                  local  |
+                  unless |
+                  qr     |
+                  qq     |
+                  qw     |
+                  q      |
+                  eq     |
+                  ne     |
+                  gt     |
+                  lt     |
+                  ge     |
+                  le     
+               )\b                           |
+               [\$\@\%\&]+\w+                |
+               "[^"]*"                       |
+               '[^']*'                       |
+               <=>                           |
+               =~                            |
+               !~                            |
+               =                             |
+               !=                            |
+               [|&<>]+=                      |
+               \.\.                          |
+               \.                            |
+               s/[^/]+/[^/]+/\w*             |
+               tr/[^/]+/[^/]+/\w*            |
+               m/[^/]+/\w*                   |
+               [(),[\]]                      |
+               ;\s*$
+            )
+         }mxs
+      )}
+   ],
+
+   'sh' => [
+      [ 'sh commands', 'text/plain', ],
+      [qw( sh rc )],
+      \&must_be_text,
+      qr/\A#!.*sh\b/,
+      sub { match_and_score(
+         qr{
+            ^\s*\#.*\n               |
+            \s*(?:
+            \b(?:
+                  echo   |
+                  case   |
+                  esac   |
+                  if     |
+                  fi     |
+                  then   |
+                  do     |
+                  done   |
+                  for    |
+                  while  |
+                  cat    |
+                  sed    |
+                  awk    |
+                  find
+               )\b     |
+               "[^"]*" |
+               '[^']*' |
+               \|      |
+               \&      |
+               \;      |
+               \&\&    |
+               \|\|    |
+               (?:[\./]*\w+)+
+            )
+         }msx
+      )}
+   ],
+   'text' => [
+      [ 'text', 'text/plain' ],
+      undef,
+      \&must_be_text,
+   ],
+} ;
+
+################################################################
+################################################################
+
+=head2 Primitive tests
+
+These functions may be used in the magic data structure as complete
+tests or as part of other tests.
+
+The text / binary primitives only test the file state once and cache the
+results.
+
+=over
+
+=cut
+
+#############################
+
+=item abort
+
+Aborts all testing by dieing with the message passed.
+
+=cut
+
+sub abort {
+   my $message = shift ;
+   die "$_file_name, $_type_name $_test_name: $message" ;
+}
+
+#############################
+
+=item debug
+
+Prints a message if debugging is enabled.
+
+=cut
+
+sub debug {
+   my $message = shift ;
+   print "$_file_name, $_type_name $_test_name: $message\n" 
+      if $debug;
+}
+
+#############################
+
+=item has_extension
+
+Returns 1 if the file name has an extension matching any of the arguments
+
+=cut
+
+sub has_extension {
+   abort "No parameters passed to has_extension()"
+      unless @_ ;
+
+   my $exts = join( '|', map{ quotemeta( $_ ) } @_ ) ;
+   return $_file_name =~ m/\.(?:$exts)$/ ;
+}
+
+#############################
+
+=item is_text
+
+Returns 1 if the file is text, 0 if it is not.
+
+=cut
+
+sub is_text {
+   abort "Parameter(s) '" . join( "', '", @_ ) . "' passed to is_text()"
+      if @_ ;
+   unless ( defined $_op_T_result ) {
+      if ( $_file_guts_provided ) {
+         # THIS NEEDS TO BE CHECKED AGAINST THE PERL SOURCE: IT'S A ROUGH
+         # APPROXIMATION OF -T
+         my $match_chars = length( join( '', m/([\r\n\t -\x7F]+)/g ) ) ;
+         $_op_T_result = ( $match_chars + 10 ) / length( $_ ) > 0.95 ;
+      }
+      else {
+         $_op_T_result = ( -T $_file_name ? 1 : 0 )
+      }
+   }
+   return $_op_T_result ;
+}
+
+#############################
+
+=item is_binary
+
+Returns 1 if the file is not text, 0 if it is.
+
+=cut
+
+sub is_binary {
+   abort "Parameter(s) '" . join( "', '", @_ ) . "' passed to is_binary()"
+      if @_ ;
+
+   return is_text() ? 0 : 1 ;
+}
+
+#############################
+
+=item match_and_score
+
+Returns a score based on where and how many of the words or regular 
+expression arguments match. This is the routine used internally when a word
+list or a regular expression is used in the magic structure.
+
+=cut
+
+sub match_and_score {
+   abort "No parameters passed in to match_and_score"
+      unless @_ ;
+
+   abort "Undefined parameters passed in to match_and_score: " .
+      join( ', ', map{ defined( $_ ) ? $_ : 'undef' } @_ )
+      if grep{ ! defined( $_ )} @_ ;
+
+   my $regex = 
+      join( 
+         '|', 
+         map{
+            ref( $_ ) eq 'Regexp' ? $_ : quotemeta( $_ ) ;
+         } @_ 
+      )
+   ;
+
+   debug( $regex )
+      if $debug > 1 ;
+
+   abort "Pattern matches the empty string"
+      if '' =~ m/$regex/m ;
+
+   my @matches = split ( m/((?:$regex)+)/m ) ;
+
+   # Look at the matches
+   my $is_odd = 1 ;
+   my $match_length = 0 ;
+   for ( @matches ) {
+      $is_odd = ! $is_odd ;
+      next unless defined $_ ;
+      if ( ! $is_odd ) {
+         debug( "didn't match '$_'" )
+            if $debug > 3 && ! /^\s*$/;
+         next ;
+      }
+
+      $match_length += length( $_ ) ;
+
+      chomp ;
+      debug( "matched '$_'" ) 
+         if $debug > 2 ;
+   }
+
+   return length( $_ ) ? $match_length * 100 / length( $_ ) : 0 ;
+}
+
+#############################
+
+=item matches_name
+
+Returns 1 if the file name matches the regular expression or strings passed in.
+
+=cut
+
+sub matches_name {
+   abort "No parameters passed to matches_name()"
+      unless @_ ;
+
+   if ( ref( $_[0] ) ) {
+      return $_file_name =~ m/$_[0]/ ;
+   }
+   else {
+      my $names= join( '|', map{ quotemeta( $_ ) } @_ ) ;
+      return $_file_name =~ m/\.(?:$names)$/ ;
+   }
+}
+
+#############################
+
+=item must_be_text
+
+Returns -1 if the file is not text (according to -T), 0 if it is.  This 
+is used to disqualify a type for a file without scoring the file, since
+0 means 'can't tell', and -1 means it's not that type.
+
+=cut
+
+sub must_be_text {
+   abort "Parameter(s) '" . join( "', '", @_ ) . "' passed to must_be_text()" 
+      if @_ ;
+   return is_text() ? 0 : -1 ;
+}
+
+#############################
+
+=item must_be_binary
+
+Returns -1 if the file is text (according to -T), 0 otherwise.
+
+=cut
+
+sub must_be_binary {
+   abort "Parameter(s) '" . join( "', '", @_ ) . "' passed to must_be_binary()"
+      if @_ ;
+   return is_text() ? -1 : 0 ;
+}
+
+################################################################
+################################################################
+
+load_magic $default_magic ;
+
+#$_file_name = "dlinkedlist.hpp" ;
+#open( A, $_file_name ) ; 
+#
+#read(A,$_,16384) ;
+#
+#print &{$_current_magic->[0]->[4]}, "\n" ;
+#
+#exit ;
+
+sub test {
+   my $options = {} ;
+   $options = shift
+      if ( ref( $_[ 0 ] ) eq 'HASH' ) ;
+   @_ = @ARGV
+      unless @_ ;
+   map{ print $_ . ": " . file_type( $options, $_ ) . "\n" } @_ ;
+}
+
+=back
+
+=head1 AUTHOR
+
+Barrie Slaymaker
+
+=cut
+

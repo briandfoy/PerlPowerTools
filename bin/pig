@@ -1,0 +1,95 @@
+Erhapspay isthay ouldway ogay ellway inway away ipepay ithway
+banner(6).
+-- 
+Jonathan Feinberg   jdf@pobox.com   Sunny Brooklyn, NY
+http://pobox.com/~jdf
+
+#!/usr/bin/perl -w
+# pig - eformatray inputway asway Igpay Atinlay
+use strict;
+$|++;
+
+my $VERSION = '1.0';
+
+END {
+  close STDOUT || die "$0: can't close stdout: $!\n";
+  $? = 1 if $? == 255;  # from die
+}
+
+sub help { 
+  print "$0\n";
+  exit 0;
+}
+
+sub version { print "$0 (Erlpay Owerpay Oolstay) $VERSION\n"; exit 0; }
+
+# options
+while (@ARGV && $ARGV[0] =~ /^[-+]/) {
+  local $_ = shift;
+  /^-[h?]$/    && help();        # terminates
+  /^-v$/       && version();     # terminates
+  die "$0: invalid option -- $_\n";
+}
+
+# Dr. Bronner's top secret pig-latin algorithm!
+# ALL-ONE! ALL-ONE! ALL-ONE!
+sub igpay {
+  local $_ = shift;
+  my $ordway;
+  my $initcaps = /^[A-Z]/;
+  my $allcaps  = /^[A-Z]+$/;
+  if (/^[aeiou]/i) { 
+     $ordway = $_ . ($allcaps ? 'WAY' : 'way');
+  }
+  else {
+    /([^aieou]+)(.*)/i;
+    $ordway = ($2 || '') . lcfirst $1 . 'ay';
+    $ordway = ucfirst $ordway if $initcaps;
+    $ordway = uc $ordway      if $allcaps;
+  }
+  return $ordway;
+}
+
+while (<>) {
+  s/([A-Z]+)/igpay($1)/gexi;
+  print;
+}
+
+exit 0;
+
+__END__
+
+=head1 NAME 
+
+B<pig> - eformatray inputway asway Igpay Atinlay
+
+=head1 SYNOPSIS
+
+B<pig>
+
+=head1 DESCRIPTION
+
+Ethay igpay utilityway eadsray ethay andardstay inputway andway iteswray
+itway outway otay andardstay outputway inway Igpay Atinlay.
+
+Usefulway orfay eneratinggay onthlymay eportsray.
+
+=head1 BUGS
+
+I<pig> ashay onay ownknay ugsbay.
+
+=head1 AUTHOR
+
+Ethay Erlpay implementationway ofway I<pig> asway ittenwray byay
+Onathanjay Einbergfay, I<jdf@pobox.omcay>.
+
+=head1 COPYRIGHT and LICENSE
+
+Isthay ogrampray isway opyrightcay (c) Onathanjay Einbergfay 1999.
+
+Isthay ogrampray isway eefray andway openway oftwaresay. Ouyay aymay
+useway, odifymay, istributeday, andway ellsay isthay ogrampray (andway
+anyway odifiedmay ariantsvay) inway anyway ayway ouyay ishway,
+ovidedpray ouyay oday otnay estrictray othersway omfray oingday ethay
+amesay.
+

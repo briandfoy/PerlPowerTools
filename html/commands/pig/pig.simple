@@ -1,0 +1,10 @@
+[jdf writes]
+> Erhapspay isthay ouldway ogay ellway inway away ipepay ithway
+> banner(6).
+
+pig.simple
+
+#!/usr/people/walker/bin/perl -p
+s/\b(?:(?-i)([b-df-hj-np-tv-z])|([B-DF-HJ-NP-TV-Z]))([b-df-hj-np-tv-z]*)([aeiouy])(['a-z]*)/$2?uc(substr $4,0,1).(substr $4,1).lc "$5$2$3ay":"$4$5$1$3ay"/geieio;
+
+

@@ -1,0 +1,242 @@
+
+BAS(1)							   BAS(1)
+
+NAME
+       bas - basic
+
+SYNOPSIS
+       bas [ file ]
+
+DESCRIPTION
+       Bas  is	a  dialect  of Basic.  If a file argument is pro-
+       vided, the file is used for input before the  terminal  is
+       read.  Bas accepts lines of the form:
+
+	  statement
+	  integer statement
+
+       Integer numbered statements (known as internal statements)
+       are stored for later execution.	They are stored in sorted
+       ascending  order.  Non-numbered statements are immediately
+       executed.  The result of an immediate expression statement
+       (that  does  not	 have  `='  as	its  highest operator) is
+       printed.	 Interrupts suspend computation.
+
+       Statements have the following syntax:
+
+       expression
+	    The expression  is	executed  for  its  side  effects
+	    (assignment	 or  function  call)  or  for printing as
+	    described above.
+
+       comment
+	    This statement is ignored.	It is used  to	interject
+	    commentary in a program.
+
+       done
+	    Return to system level.
+
+       dump
+	    The	 name  and  current  value  of	every variable is
+	    printed.
+
+       edit
+	    The UNIX editor, ed, is invoked with the  file  argu-
+	    ment.   After  the	editor exits, this file is recom-
+	    piled.
+
+       for name = expression expression statement
+       for name = expression expression
+       next
+	    The for statement repetitively executes  a	statement
+	    (first  form)  or a group of statements (second form)
+	    under control of  a	 named	variable.   The	 variable
+	    takes  on  the value of the first expression, then is
+	    incremented by one on each loop, not  to  exceed  the
+	    value of the second expression.
+
+								1
+
+BAS(1)							   BAS(1)
+
+       goto expression
+	    The	 expression is evaluated, truncated to an integer
+	    and execution goes to the corresponding integer  num-
+	    bered statment.  If executed from immediate mode, the
+	    internal statements are compiled first.
+
+       if expression statement
+       if expression
+       [ else
+       fi
+	    The statement (first form)	or  group  of  statements
+	    (second form) is executed if the expression evaluates
+	    to non-zero.  In the second form,  an  optional  else
+	    allows  for a group of statements to be executed when
+	    the first group is not.
+
+       list [expression [expression]]
+	    is used to print out the stored internal  statements.
+	    If	no  arguments  are given, all internal statements
+	    are printed.  If one argument  is  given,  only  that
+	    internal  statement	 is listed.  If two arguments are
+	    given, all internal	 statements  inclusively  between
+	    the arguments are printed.
+
+       print list
+	    The	 list of expressions and strings are concatenated
+	    and printed.  (A string is	delimited  by  "  charac-
+	    ters.)
+
+       prompt list
+	    Prompt  is	the  same as print except that no newline
+	    character is printed.
+
+       return [expression]
+	    The expression is evaluated and the result is  passed
+	    back  as the value of a function call.  If no expres-
+	    sion is given, zero is returned.
+
+       run
+	    The internal statements  are  compiled.   The  symbol
+	    table is re-initialized.  The random number generator
+	    is reset.  Control is passed to the	 lowest	 numbered
+	    internal statement.
+
+       save [expression [expression]]
+	    Save  is  like list except that the output is written
+	    on the file argument.  If no argument is given on the
+	    command, b.out is used.
+
+       Expressions have the following syntax:
+
+       name
+	    A name is used to specify a variable.  Names are com-
+	    posed of a letter followed	by  letters  and  digits.
+
+								2
+
+BAS(1)							   BAS(1)
+
+	    The	 first four characters of a name are significant.
+
+       number
+	    A number is used to represent a  constant  value.	A
+	    number is written in Fortran style, and contains dig-
+	    its, an optional decimal point, and possibly a  scale
+	    factor  consisting	of  an	e  followed by a possibly
+	    signed exponent.
+
+       ( expression )
+	    Parentheses are used to alter normal order of evalua-
+	    tion.
+
+       _ expression
+	    The result is the negation of the expression.
+
+       expression operator expression
+	    Common  functions of two arguments are abbreviated by
+	    the two arguments separated by an  operator	 denoting
+	    the	 function.  A complete list of operators is given
+	    below.
+
+       expression ( [expression [ , expression] ... ] )
+	    Functions of an arbitrary number of arguments can  be
+	    called  by an expression followed by the arguments in
+	    parentheses	 separated  by	commas.	  The  expression
+	    evaluates  to  the	line  number  of the entry of the
+	    function in the internally stored  statements.   This
+	    causes  the	 internal  statements to be compiled.  If
+	    the expression evaluates negative, a builtin function
+	    is	called.	  The  list  of builtin functions appears
+	    below.
+
+       name [ expression [ , expression ] ...  ]
+	    Each expression is truncated to an integer	and  used
+	    as a specifier for the name.  The result is syntacti-
+	    cally identical to a name.	a[1,2]	is  the	 same  as
+	    a[1][2].  The truncated expressions are restricted to
+	    values between 0 and 32767.
+
+       The following is the list of operators:
+
+       =      = is the assignment  operator.   The  left  operand
+	      must  be a name or an array element.  The result is
+	      the right operand.  Assignment binds right to left,
+
+       &  |   &	 (logical  and)	 has result zero if either of its
+	      arguments are zero.  It has result one if both  its
+	      arguments	 are non-zero.	| (logical or) has result
+	      zero if both of its arguments  are  zero.	  It  has
+	      result one if either of its arguments are non-zero.
+
+       <  <=  >	 >=  ==	 <>
+	      The relational operators (< less than, <= less than
+
+								3
+
+BAS(1)							   BAS(1)
+
+	      or equal, > greater than, >= greater than or equal,
+	      == equal to, <> not equal to) return one	if  their
+	      arguments	 are  in  the  specified  relation.  They
+	      return zero otherwise.  Relational operators at the
+	      same  level extend as follows: a>b>c is the same as
+	      a>b&b>c.
+
+       + -    Add and subtract.
+
+       * /    Multiply and divide.
+
+       ^      Exponentiation.
+
+       The following is a list of builtin functions:
+
+       arg(i) is the value of the i -th actual parameter  on  the
+	      current level of function call.
+
+       exp(x) is the exponential function of x.
+
+       log(x) is the natural logarithm of x.
+
+       sqr(x) is the square root of x.
+
+       sin(x) is the sine of x (radians).
+
+       cos(x) is the cosine of x (radians).
+
+       atn(x) is  the arctangent of x.	Its value is between -n/2
+	      and n/2.
+
+       rnd( ) is a uniformly distributed  random  number  between
+	      zero and one.
+
+       expr( )
+	      is  the only form of program input.  A line is read
+	      from the input and evaluated as an expression.  The
+	      resultant value is returned.
+
+       abs(x) is the absolute value of x.
+
+       int(x) returns x truncated (towards 0) to an integer.
+
+FILES
+       /tmp/btm? temporary
+       b.out	      save file
+       /bin/ed	 for edit
+
+DIAGNOSTICS
+       Syntax errors cause the incorrect line to be typed with an
+       underscore where the parse failed.  All other  diagnostics
+       are self explanatory.
+
+								4
+
+BAS(1)							   BAS(1)
+
+BUGS
+       Has been known to give core images.
+       Catches interrupts even when they are turned off.
+
+								5
+

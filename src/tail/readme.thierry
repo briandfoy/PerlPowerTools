@@ -1,0 +1,13 @@
+This is a new tail. It now includes an implementation of Chip
+Rosenthal's xtail. To use it, rename this program "xtail" (or create a
+symlink), or call "tail -f". It can be used to monitor the growth of
+multiple (hundreds) of log files. `pod2text tail | more' for more
+information. This version should be complete ; nothing is supposed to
+be added, only bugs should be removed.
+
+Before my signature is a simple test program which can be used to
+simulate multiple log files, for test purpose. I would appreciate if
+someone tries to test my tail implementation.. After the signature is
+the real program.
+
+Thierry Bézecourt.

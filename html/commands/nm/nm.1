@@ -1,0 +1,43 @@
+
+NM(1)							    NM(1)
+
+NAME
+       nm  -  print name list
+
+SYNOPSIS
+       nm [ -gnopru ] [ file ... ]
+
+DESCRIPTION
+       Nm prints the name list (symbol table) of each object file
+       in the argument list.  If an argument  is  an  archive,	a
+       listing	for  each object file in the archive will be pro-
+       duced.  If no file is given, the symbols	 in  `a.out'  are
+       listed.
+
+       Each symbol name is preceded by its value (blanks if unde-
+       fined) and one of the letters U (undefined), A (absolute),
+       T  (text	 segment symbol), D (data segment symbol), B (bss
+       segment symbol), or C (common symbol).  If the  symbol  is
+       local  (non-external)  the  type	 letter is in lower case.
+       The output is sorted alphabetically.
+
+       Options are:
+
+       -g     Print only global (external) symbols.
+
+       -n     Sort numerically rather than alphabetically.
+
+       -o     Prepend file or archive element name to each output
+	      line rather than only once.
+
+       -p     Don't sort; print in symbol-table order.
+
+       -r     Sort in reverse order.
+
+       -u     Print only undefined symbols.
+
+SEE ALSO
+       ar(1), ar(5), a.out(5)
+
+								1
+

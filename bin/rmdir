@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: rmdir,v 1.1.1.1 2001/06/06 08:55:06 sdague Exp $
+# $Id: rmdir,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: rmdir,v $
-# Revision 1.1.1.1  2001/06/06 08:55:06  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 # Revision 1.1  1999/02/28 13:32:45  abigail
 # Initial revision
@@ -18,7 +15,7 @@
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -120,11 +117,8 @@ which is expected to be compatible with the B<IEEE Std1003.2-1992>
 =head1 REVISION HISTORY
 
     $Log: rmdir,v $
-    Revision 1.1.1.1  2001/06/06 08:55:06  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
     Revision 1.1  1999/02/28 13:32:45  abigail
     Initial revision

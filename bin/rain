@@ -1,20 +1,17 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: rain,v 1.1.1.1 2001/06/06 08:55:04 sdague Exp $
+# $Id: rain,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: rain,v $
-# Revision 1.1.1.1  2001/06/06 08:55:04  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:39  sdague
-# added more files
 #
 #
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 if (@ARGV) {
     require File::Basename;
@@ -57,11 +54,8 @@ I<rain> does not have any known bugs.
 =head1 REVISION HISTORY
 
     $Log: rain,v $
-    Revision 1.1.1.1  2001/06/06 08:55:04  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:39  sdague
-    added more files
 
 
 =head1 AUTHOR

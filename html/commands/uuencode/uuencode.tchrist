@@ -1,0 +1,79 @@
+#!/usr/bin/perl -w
+# uuencode -- by Tom Christiansen
+
+use strict;
+
+END {
+    close STDOUT            || die "$0: can't close stdout: $!\n";
+    $? = 1 if $? == 255;    # from die
+} 
+
+sub usage {    
+    warn "$0: @_\n" if @_;
+    die <<USAGE;
+usage: $0 [file] name
+       $0 -p [file ...]
+USAGE
+}
+
+sub encode($$);
+
+my(
+    $stream_out,		# writing everything to stdout?
+);
+
+if (@ARGV && $ARGV[0] =~ /^-/) {
+    if ($ARGV[0] ne '-p') { usage "bad option $ARGV[0]" } 
+    shift;
+    $stream_out = 1;
+} 
+
+usage "need arguments" 	    unless @ARGV;
+usage "too many arguments"  unless @ARGV < 3 || $stream_out;
+
+if ($stream_out) {
+    for my $input (@ARGV) {
+	encode($input => $input);
+    } 
+    exit;
+} 
+
+if (@ARGV == 2) {
+    my($in, $out) = @ARGV;
+    encode($in => $out);
+    exit;
+} 
+
+if (@ARGV == 1) {
+    my($out) = @ARGV;
+    encode("-" => $out);
+    exit;
+} 
+
+die "XXX: Not reached";
+
+sub encode($$) {
+    my($source, $destination) = @_;
+    my $mode;
+
+    if ($source eq '-' && -t STDIN) {
+	warn "$0: WARNING: reading from standard input\n";
+    } 
+
+    if ($source ne '-') {
+	$mode = (stat($source))[2] & 0666;
+    } 
+
+    printf "begin %03o $destination\n", $mode || 0644;
+
+    local *INPUT;
+    open(INPUT, "< $source") 	|| die "can't open $source: $!";
+    binmode(INPUT);   # winsop
+
+    my $block;
+    print pack ("u", $block) while read (INPUT, $block, 45);
+    print "`\n";
+    print "end\n";
+
+    close(INPUT)		|| die "can't close $source: $!";
+} 

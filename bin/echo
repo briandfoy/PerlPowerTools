@@ -1,14 +1,11 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: echo,v 1.1.1.1 2001/06/06 08:54:26 sdague Exp $
+# $Id: echo,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: echo,v $
-# Revision 1.1.1.1  2001/06/06 08:54:26  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:56:06  sdague
-# added initial import of PPT work
 #
 # Revision 1.0  1999/02/26 01:29:05  randy
 # Initial revision
@@ -16,7 +13,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 exit if not @ARGV;
 
@@ -87,11 +84,8 @@ I<echo> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: echo,v $
-    Revision 1.1.1.1  2001/06/06 08:54:26  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:56:06  sdague
-    added initial import of PPT work
 
     Revision 1.0  1999/02/26 01:29:05  randy
     Initial revision

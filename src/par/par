@@ -1,0 +1,363 @@
+#!/usr/bin/perl -w
+#
+# par - create a Perl archive of files
+#
+# mail tgy@chocobo.org < bug_reports
+#
+# Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
+# You may play with this software in accordance with the Perl Artistic License.
+
+my $VERSION = '0.08';
+
+use File::Find;
+use File::Basename;
+use Cwd;
+
+eval 'use Stat::lsMode';
+my $stat_lsmode = not $@;
+
+use strict;
+use vars qw/$size $mode $name/;
+
+$|++;
+binmode STDIN;
+binmode STDOUT;
+
+# Are we 'par' or 'shar'?
+($0) = $0 =~ /(\w+)$/;
+
+# Check for arguments.
+@ARGV or die "usage: $0 [-s submitter] [-STBqvz] file [files...]\n";
+
+# Get options.
+my %opts;
+while (@ARGV && $ARGV[0] =~ s/^-//) {
+    local $_ = shift;
+    while (/([sSTBVqvz])/g) {
+        if ($1 eq 's') {
+            $opts{'s'} = /\G(.*)/g && $1 ? $1 : shift;
+        } else {
+            $opts{$1}++;
+        }
+    }
+}
+
+# Print version.
+if ($opts{'v'}) {
+    print "$0 $VERSION\n";
+    exit;
+}
+
+# Want shar output.
+$0 = 'shar' if $opts{'z'};
+
+# Read STDIN for filenames.
+if ($opts{'S'}) {
+    chomp(my @files = <STDIN>);
+    push @ARGV, @files;
+}
+
+# Work quietly.
+local $SIG{__WARN__} = sub {} if $opts{'q'};
+
+# Header info.
+my $date = localtime;
+my $cwd  = cwd;
+my $user = $opts{'s'} || do {
+    require Sys::Hostname;
+    (getlogin || getpwuid($<) || $ENV{USER} || $ENV{LOGNAME} || 'nobody')
+    . '@'
+    . Sys::Hostname::hostname();
+};
+
+# Header.
+print $0 eq 'shar' ? <<INTRO_SHAR : <<INTRO_PAR;
+#!/bin/sh
+# This is a shell archive (produced by par $VERSION).
+# To extract the files from this archive, save it to some FILE, remove
+# everything before the '#!/bin/sh' line above, then type 'sh FILE'.
+INTRO_SHAR
+#!/usr/bin/perl
+# This is a Perl archive (produced by par $VERSION).
+# To extract the files from this archive, save it to some FILE, remove
+# everything before the '#!/usr/bin/perl' line above, then type 'perl FILE'.
+INTRO_PAR
+
+# More header.
+print <<INTRO;
+#
+# Made on $date by <$user>.
+# Source directory was '$cwd'.
+#
+# Existing files will *not* be overwritten unless '-c' is specified.
+#
+# This $0 contains:
+# length mode       name
+# ------ ---------- ------------------------------------------
+INTRO
+
+# Format for index of files.
+format INDEX =
+@ @>>>>> @>>>>>>>>> @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+'#', $size, $mode, $name
+.
+
+# Store file stats here.
+my %index;
+
+# Stat files and directories, and print out an index.
+find sub {
+    $name = $File::Find::name;
+    my %stat;
+    @stat{'mode', 'size', 'atime', 'mtime'} = (stat)[2,7,8,9];
+    ($mode, $size) = @stat{'mode', 'size'};
+    my $oct = (join '' => 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
+    $mode = $stat_lsmode ? format_mode($mode) : $oct;
+    $stat{mode} = $oct;
+    if ($0 eq 'shar') {
+        for ('atime', 'mtime') {
+            my ($sec,$min,$hour,$mday,$mon,$year) = localtime $stat{$_};
+            $stat{$_} = sprintf '%02d%02d%02d%02d.%02d',
+                $mon + 1, $mday, $hour, $min, $sec;
+        }
+    }
+    $index{$name} = \%stat;
+    local $~ = 'INDEX';
+    write;
+}, @ARGV;
+
+print "#\n";
+
+# List of template names and values.
+my %par;
+
+# Fill in template and print.
+sub printc {
+    my $mark = $0 eq 'shar' ? ':' : '|';
+    local $_ = join "\n", shift(@_) =~ /^\s*\Q$mark\E(.*)/mog, '';
+    s/%(\w+)%/$par{$1}/g;
+    print;
+}
+
+# Break path into component directories:
+#   print map ">$_\n", path 'i/want/a/moogle/stuffy'
+#   >i
+#   >i/want
+#   >i/want/a
+#   >i/want/a/moogle
+sub path {
+    my $path = shift;
+    my @path;
+    while (1) {
+        my $was = $path;
+        $path = dirname $path;  # File::Basename
+        last if $path eq $was;
+        unshift @path, $path;
+    }
+    shift @path;
+    @path;
+}
+
+# Print code that will create a directory.
+sub create_dir {
+    $par{dir} = shift;
+    printc <<'    DIR';
+        |# ============= %dir% ==============
+        |unless (-d '%dir%') {
+        |  warn "x - creating directory %dir%\n";
+        |  mkdir '%dir%', 0777 or die "Couldn't mkdir '%dir%': $!";
+        |}
+        :# ============= %name% ==============
+        :if ! test -d '%dir%'; then
+        :  echo "x - creating directory %dir%"
+        :  mkdir '%dir%'
+        :fi
+    DIR
+}
+
+# Print code to create all directories in file paths.
+my %saw;
+for (@ARGV) {
+    for (path $_) {
+        create_dir $_ unless $saw{$_}++;
+    }
+}
+
+# Print code to create each file.
+find sub {
+    my $name = $File::Find::name;
+
+    # Create directory.
+    if (-d) {
+        create_dir $name unless $saw{$_}++;
+        return;
+    }
+
+    # Set up template values.
+    %par = %{$index{$name}};
+    $par{name} = $name;
+    my $bin = $opts{'T'} ? 0 :
+              $opts{'B'} ? 1 :
+              -B;
+    $par{type}  = $bin ? 'binary' : 'text';
+    $par{redir} = $bin ? '| uudecode' : "> $par{name}";
+
+    warn "$0: Saving $name ($par{type})\n";
+
+    # Code to start here-doc.
+    printc <<'    FILE';
+        |# ============= %name% ==============
+        |if (-e '%name%' && $ARGV[0] ne '-c') {
+        |  warn "x - skipping %name% (file already exists)\n";
+        |} else  {
+        |  warn "x - extracting %name% (%type%)\n";
+        |  $_ = <<'PAR_EOF';
+        :# ============= %name% ==============
+        :if test -f '%name%' && test X"$1" != X"-c"; then
+        :  echo 'x - skipping %name% (file already exists)'
+        :else
+        :  echo 'x - extracting %name% (%type%)'
+        :  sed 's/^X//' << 'SHAR_EOF' %redir%
+    FILE
+
+    # Inline file as here-doc.
+    open F, "< $_" or die "Couldn't open '$_': $!";
+    binmode F;
+    if ($bin) {
+        local $_;
+        my $block;
+        print "begin $index{$name}{mode} $name\n" if $0 eq 'shar';
+        print pack 'u', $block while read F, $block, 45;
+        print "end\n" if $0 eq 'shar';
+    } else {
+        local $_;
+        print "X$_" while <F>;
+    }
+    close F;
+
+    # Code to extract file.
+    printc <<'    FILE';
+        |PAR_EOF
+        |  open F, "> %name%" or die "Couldn't open '%name%': $!";
+        |  binmode F;
+    FILE
+    printc $bin ? <<'    BINARY' : <<'    TEXT';
+        |  $len = 0;
+        |  for (split /^/gm) {
+        |    my $line = unpack 'u', $_;
+        |    $len += length $line;
+        |    print F $line;
+        |  }
+    BINARY
+        |  s/^X//gm;
+        |  $len = length;
+        |  print F $_;
+    TEXT
+
+    # Code to chmod and touch.
+    printc <<'    FILE';
+        |  close F;
+        |  %size% == $len
+        |    or warn "%name%: original size %size%, current size $len";
+        |  utime %atime%, %mtime%, '%name%' or die "Couldn't touch '%name%': $!";
+        |  chmod %mode%, '%name%' or die "Couldn't chmod '%name%': $!";
+        |}
+        :SHAR_EOF
+        :  shar_size=`wc -c < '%name%'`
+        :  if test %size% -ne $shar_size; then
+        :    echo "%name%: original size %size%, current size $shar_size"
+        :  fi
+        :  touch -at %atime% '%name%'
+        :  touch -mt %mtime% '%name%'
+        :  chmod %mode% '%name%'
+        :fi
+    FILE
+}, @ARGV;
+
+# The end.
+printc <<'END';
+    |__END__
+    :exit 0
+END
+
+__END__
+
+=head1 NAME
+
+par - create a Perl archive of files
+
+=head1 SYNOPSIS
+
+B<par> [-s submitter] [-STBqvz] file [files...]
+
+=head1 DESCRIPTION
+
+B<par> creates a Perl archive of the I<files> on the command line. The Perl
+archive is a Perl script, and executing it will recreate the I<files>. If any of
+the I<files> include a path, directories in that path will also be recreated. If
+any of the I<files> is a directory, the contents of that directory will be
+archived.
+
+=head1 OPTIONS
+
+B<par> automatically determines if files are text or binary unless B<-B> or
+B<-T> is used.
+
+=over
+
+=item -B
+
+All files are binary.  Encode files with B<uuencode>.  B<uudecode> will be
+required to recover the files.
+
+=item -S
+
+Read standard input for files, one file per line, as though they were included
+on the command line.  For example:
+
+    find . -name 'chapter[1-9].txt' -print | par -S > story.par
+
+=item -T
+
+All files are text.  No encoding necessary.
+
+=item -s submitter
+
+Use I<submitter> for the email address included in the B<par> header.
+
+=item -q
+
+Shhh!
+
+=item -v
+
+Print version info and exit.
+
+=item -z
+
+Mimic B<shar>.  Create a shell archive instead of a Perl archive.
+
+=back
+
+=head1 NOTES
+
+Renaming or linking B<par> to C<shar> will cause it to create shell scripts:
+
+    ln par shar
+    shar moogle.txt > moogle.shar
+
+=head1 SEE ALSO
+
+B<shar>, B<unpar>, B<uuencode>
+
+=head1 AUTHOR
+
+Tim Gim Yee | tgy@chocobo.org | I want a moogle stuffy!
+
+=head1 COPYRIGHT
+
+Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
+
+You may play with this software in accordance with the Perl Artistic License.
+
+=cut

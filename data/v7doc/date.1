@@ -1,0 +1,38 @@
+
+DATE(1)							  DATE(1)
+
+NAME
+       date - print and set the date
+
+SYNOPSIS
+       date [ yymmddhhmm [ .ss ] ]
+
+DESCRIPTION
+       If  no  argument	 is  given, the current date and time are
+       printed.	 If an argument is given,  the	current	 date  is
+       set.   yy is the last two digits of the year; the first mm
+       is the month number; dd is the day number in the month; hh
+       is  the hour number (24 hour system); the second mm is the
+       minute number; .ss is optional and is  the  seconds.   For
+       example:
+
+	      date 10080045
+
+       sets the date to Oct 8, 12:45 AM.  The year, month and day
+       may be omitted, the current  values  being  the	defaults.
+       The  system  operates in GMT.  Date takes care of the con-
+       version to and from local standard and daylight time.
+
+FILES
+       /usr/adm/wtmp to record time-setting
+
+SEE ALSO
+       utmp(5)
+
+DIAGNOSTICS
+       `No permission' if you aren't the super-user and	 you  try
+       to  change  the	date; `bad conversion' if the date set is
+       syntactically incorrect.
+
+								1
+

@@ -1,0 +1,75 @@
+
+DIFF(1)							  DIFF(1)
+
+NAME
+       diff - differential file comparator
+
+SYNOPSIS
+       diff [ -efbh ] file1 file2
+
+DESCRIPTION
+       Diff  tells  what  lines	 must  be changed in two files to
+       bring them into agreement.  If file1 (file2) is	`-',  the
+       standard	 input is used.	 If file1 (file2) is a directory,
+       then a file in that directory whose file-name is the  same
+       as  the	file-name  of  file2 (file1) is used.  The normal
+       output contains lines of these forms:
+
+	    n1 a n3,n4
+	    n1,n2 d n3
+	    n1,n2 c n3,n4
+
+       These lines resemble ed commands	 to  convert  file1  into
+       file2.	The  numbers  after the letters pertain to file2.
+       In fact, by exchanging `a' for `d'  and	reading	 backward
+       one may ascertain equally how to convert file2 into file1.
+       As in ed, identical pairs where n1 = n2 or  n3  =  n4  are
+       abbreviated as a single number.
+
+       Following  each of these lines come all the lines that are
+       affected in the first file flagged by `<',  then	 all  the
+       lines that are affected in the second file flagged by `>'.
+
+       The -b option causes trailing blanks (spaces and tabs)  to
+       be ignored and other strings of blanks to compare equal.
+
+       The -e option produces a script of a, c and d commands for
+       the editor ed, which will recreate file2 from file1.   The
+       -f  option  produces a similar script, not useful with ed,
+       in the opposite order.  In connection with -e, the follow-
+       ing shell program may help maintain multiple versions of a
+       file.  Only an ancestral file ($1) and a chain of version-
+       to-version  ed scripts ($2,$3,...) made by diff need be on
+       hand.  A `latest version' appears on the standard  output.
+
+	    (shift; cat $*; echo '1,$p') | ed - $1
+
+       Except in rare circumstances, diff finds a smallest suffi-
+       cient set of file differences.
+
+       Option -h does a fast, half-hearted job.	  It  works  only
+       when  changed  stretches are short and well separated, but
+       does work on files of unlimited length.	Options -e and -f
+       are unavailable with -h.
+
+FILES
+       /tmp/d?????
+       /usr/lib/diffh for -h
+
+								1
+
+DIFF(1)							  DIFF(1)
+
+SEE ALSO
+       cmp(1), comm(1), ed(1)
+
+DIAGNOSTICS
+       Exit  status  is	 0  for no differences, 1 for some, 2 for
+       trouble.
+
+BUGS
+       Editing scripts produced under the -e  or  -f  option  are
+       naive about creating lines consisting of a single `.'.
+
+								2
+

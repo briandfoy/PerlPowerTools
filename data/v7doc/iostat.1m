@@ -1,0 +1,69 @@
+
+IOSTAT(1M)					       IOSTAT(1M)
+
+NAME
+       iostat - report I/O statistics
+
+SYNOPSIS
+       iostat [ option ] ...  [ interval [ count ] ]
+
+DESCRIPTION
+       Iostat  delves into the system and reports certain statis-
+       tics kept about	input-output  activity.	  Information  is
+       kept  about  up	to three different disks (RF, RK, RP) and
+       about typewriters.  For each disk, IO completions and num-
+       ber of words transferred are counted; for typewriters col-
+       lectively, the number of input and output  characters  are
+       counted.	  Also,	 each  sixtieth of a second, the state of
+       each disk is examined and a tally is made if the	 disk  is
+       active.	 The  tally  goes  into	 one  of four categories,
+       depending on whether the system is executing in user mode,
+       in `nice' (background) user mode, in system mode, or idle.
+       From all these numbers and from the known  transfer  rates
+       of  the	devices	 it  is possible to determine information
+       such as the degree of IO overlap and  average  seek  times
+       for each device.
+
+       The  optional  interval	argument  causes iostat to report
+       once each interval seconds.  The first report is for   all
+       time  since a reboot and each subsequent report is for the
+       last interval only.
+
+       The  optional  count  argument  restricts  the  number  of
+       reports.
+
+       With  no	 option argument iostat reports for each disk the
+       number of transfers per minute, the milliseconds per aver-
+       age seek, and the milliseconds per data transfer exclusive
+       of seek time.  It also gives the percentage  of	time  the
+       system  has spend in each of the four categories mentioned
+       above.
+
+       The following options are available:
+
+       -t     Report the number of characters of terminal IO  per
+	      second as well.
+
+       -i     Report  the percentage of time spend in each of the
+	      four categories mentioned above, the percentage  of
+	      time  each  disk	was  active (seeking or transfer-
+	      ring), the percentage of time any disk was  active,
+	      and  the	percentage  of	time  spent in `IO wait:'
+	      idle, but with a disk active.
+
+       -s     Report the raw timing information: 32 numbers indi-
+	      cating  the percentage of time spent in each of the
+	      possible configurations of 4 system states and 8 IO
+	      states (3 disks each active or not).
+
+								1
+
+IOSTAT(1M)					       IOSTAT(1M)
+
+       -b     Report on the usage of IO buffers.
+
+FILES
+       /dev/mem, /unix
+
+								2
+

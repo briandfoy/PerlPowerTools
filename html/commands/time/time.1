@@ -1,0 +1,29 @@
+
+TIME(1)							  TIME(1)
+
+NAME
+       time - time a command
+
+SYNOPSIS
+       time command
+
+DESCRIPTION
+       The  given command is executed; after it is complete, time
+       prints the elapsed time during the command, the time spent
+       in the system, and the time spent in execution of the com-
+       mand.  Times are reported in seconds.
+
+       The execution time can depend on what kind of  memory  the
+       program	happens to land in; the user time in MOS is often
+       half what it is in core.
+
+       The times are printed on the diagnostic output stream.
+
+BUGS
+       Elapsed time is accurate to  the	 second,  while	 the  CPU
+       times  are  measured  to the 60th second.  Thus the sum of
+       the CPU times can be  up	 to  a	second	larger	than  the
+       elapsed time.
+
+								1
+

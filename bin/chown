@@ -1,14 +1,11 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: chown,v 1.1.1.1 2001/06/06 08:54:17 sdague Exp $
+# $Id: chown,v 1.1 2004/07/23 20:08:36 cwest Exp $
 #
 # $Log: chown,v $
-# Revision 1.1.1.1  2001/06/06 08:54:17  sdague
+# Revision 1.1  2004/07/23 20:08:36  cwest
 # initial import
-#
-# Revision 1.1.1.1  2001/05/13 19:55:54  sdague
-# added initial import of PPT work
 #
 # Revision 1.1  1999/02/28 19:59:17  abigail
 # Initial revision
@@ -17,7 +14,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -189,11 +186,8 @@ I<chown> uses C<File::Find> to recurse.
 =head1 REVISION HISTORY
 
     $Log: chown,v $
-    Revision 1.1.1.1  2001/06/06 08:54:17  sdague
+    Revision 1.1  2004/07/23 20:08:36  cwest
     initial import
-
-    Revision 1.1.1.1  2001/05/13 19:55:54  sdague
-    added initial import of PPT work
 
     Revision 1.1  1999/02/28 19:59:17  abigail
     Initial revision

@@ -1,13 +1,10 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: which,v 1.1.1.1 2001/06/06 08:55:22 sdague Exp $
+# $Id: which,v 1.1 2004/07/23 20:08:37 cwest Exp $
 #
 # $Log: which,v $
-# Revision 1.1.1.1  2001/06/06 08:55:22  sdague
+# Revision 1.1  2004/07/23 20:08:37  cwest
 # initial import
-#
-# Revision 1.1  2001/05/14 00:49:40  sdague
-# added more files
 #
 # Revision 1.1  1999/02/25 04:57:21  abigail
 # Initial revision
@@ -15,7 +12,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1.1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
 
 my $opt_a = 0;
 
@@ -208,11 +205,8 @@ I<which> will examine aliases under MPW (Mac) and symbols under DCL
 =head1 REVISION HISTORY
 
     $Log: which,v $
-    Revision 1.1.1.1  2001/06/06 08:55:22  sdague
+    Revision 1.1  2004/07/23 20:08:37  cwest
     initial import
-
-    Revision 1.1  2001/05/14 00:49:40  sdague
-    added more files
 
     Revision 1.1  1999/02/25 04:57:21  abigail
     Initial revision

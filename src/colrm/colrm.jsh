@@ -1,0 +1,82 @@
+#!/usr/local/bin/perl -w
+# $Id: colrm.jsh,v 1.1 2004/07/23 20:10:02 cwest Exp $
+
+use strict;
+
+$0 =~ s(.*/)();
+my $usage = "usage: $0 [startcol endcol]\n";
+my ($startcol, $endcol);
+
+# I could be more clever, but this will run faster
+
+if (@ARGV > 2) {
+	die $usage;
+} elsif (@ARGV == 0) {
+	print while(<>);
+} elsif (@ARGV == 1) {
+	$startcol = (shift() - 1); 
+	while (<>) {
+		print substr $_, 0, $startcol;
+		print "\n";
+	}
+} elsif (@ARGV == 2) {
+	$startcol = (shift() - 1); 
+	$endcol = (shift() - 1);
+	while (<>) {
+		chomp;
+		substr($_, $startcol, $endcol) = '';
+		print "$_\n";
+	}
+}
+
+=head1 NAME
+
+colrm - remove columns from a file
+
+=head1 SYNOPSIS
+
+colrm [startcol [endcol]]
+
+=head1 DESCRIPTION
+
+B<colrm> removes the named columns from each line of its standard input
+(one column = one character).
+Column numbering starts at 1, not 0.
+
+If a only I<startcol> is provided, removes all columns from I<startcol>
+rightwards.
+
+If both I<startcol> and I<endcol> are provided, removes all columns from
+I<startcol> to I<endcol>, inclusive.
+
+If neither is provided, acts just like B<cat>.
+
+If I<firstcol> is greater than I<lastcol>, or the arguments aren't numeric,
+it pretends it heard no arguments at all, just like the Linux version.
+
+=head1 OPTIONS AND ARGUMENTS
+
+=over 2
+
+=item I<startcol>
+
+The first column to remove.
+
+=item I<endcol>
+
+The last column to remove.
+
+=back
+
+=head1 AUTHOR
+
+  Jeffrey S. Haemer
+
+=head1 BUGS
+
+Lacks the special-case handling of backspace and tab added in some
+other versions.  Acts, instead, like the simpler Linux and SunOS versions.
+
+=head1 SEE ALSO
+
+  awk(1)
