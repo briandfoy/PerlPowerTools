@@ -3,7 +3,7 @@
 #  By: Theo Van Dinter (felicity@kluge.net)
 #
 # It's sad, the docs are longer than the code...
-# $Id: arch,v 1.1 2004/07/23 20:08:36 cwest Exp $
+# $Id: arch,v 1.2 2004/08/05 14:17:43 cwest Exp $
 
 use POSIX qw(uname);
 $arch=(uname())[4]; # machine ... (uname -m)

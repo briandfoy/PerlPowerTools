@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: clear.jsh,v 1.1 2004/07/23 20:08:51 cwest Exp $
+# $Id: clear.jsh,v 1.3 2004/08/05 14:18:02 cwest Exp $
 
 use Term::Cap;
 use strict;

@@ -1,9 +1,12 @@
 #!/usr/bin/perl -w
 #
-# $Id: od.kahn,v 1.1 2004/07/23 20:09:29 cwest Exp $
+# $Id: od.kahn,v 1.3 2004/08/05 14:21:14 cwest Exp $
 #
 # $Log: od.kahn,v $
-# Revision 1.1  2004/07/23 20:09:29  cwest
+# Revision 1.3  2004/08/05 14:21:14  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:13  cwest
 # initial import
 #
 # Revision 1.1  1999/03/06 06:12:24  kahn

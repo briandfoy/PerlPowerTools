@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: mkfifo.jsh,v 1.1 2004/07/23 20:09:25 cwest Exp $
+# $Id: mkfifo.jsh,v 1.3 2004/08/05 14:20:35 cwest Exp $
 
 use strict;
 use POSIX "mkfifo";

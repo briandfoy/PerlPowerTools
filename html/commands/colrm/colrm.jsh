@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: colrm.jsh,v 1.1 2004/07/23 20:08:51 cwest Exp $
+# $Id: colrm.jsh,v 1.3 2004/08/05 14:18:05 cwest Exp $
 
 use strict;
 

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: tcsort,v 1.1 2004/07/23 20:09:49 cwest Exp $
+# $Id: tcsort,v 1.3 2004/08/05 14:24:05 cwest Exp $
 
 use strict;
 

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: addbib.jsh,v 1.1 2004/07/23 20:08:39 cwest Exp $
+# $Id: addbib.jsh,v 1.3 2004/08/05 14:17:45 cwest Exp $
 
 use strict;
 use Getopt::Std;

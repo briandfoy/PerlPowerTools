@@ -1,10 +1,13 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: echo,v 1.1 2004/07/23 20:08:36 cwest Exp $
+# $Id: echo,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: echo,v $
-# Revision 1.1  2004/07/23 20:08:36  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:03  cwest
 # initial import
 #
 # Revision 1.0  1999/02/26 01:29:05  randy
@@ -13,7 +16,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
 
 exit if not @ARGV;
 
@@ -84,7 +87,10 @@ I<echo> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: echo,v $
-    Revision 1.1  2004/07/23 20:08:36  cwest
+    Revision 1.2  2004/08/05 14:17:43  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:03  cwest
     initial import
 
     Revision 1.0  1999/02/26 01:29:05  randy

@@ -1,3 +1,9 @@
+0.14    2004-07-XX
+
+  - 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
+  - New col and words, Ronald J Kimball
+  - Website now includes version number, Casey West
+
 0.13    2004-07-23
 
   - Casey West takes over management.

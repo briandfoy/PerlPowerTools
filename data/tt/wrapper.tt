@@ -32,7 +32,7 @@
   </head>
   <body>
     [% INCLUDE navbar %]
-    <h1>Perl Power Tools: [% template.title || command %]</h1>
+    <h1>Perl Power Tools v[% version %]: [% template.title || command %]</h1>
     [% PROCESS $template %]
     [% INCLUDE navbar %]
   </body>

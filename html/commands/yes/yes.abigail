@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: yes.abigail,v 1.1 2004/07/23 20:09:56 cwest Exp $
+# $Id: yes.abigail,v 1.3 2004/08/05 14:24:50 cwest Exp $
 #
 # $Log: yes.abigail,v $
-# Revision 1.1  2004/07/23 20:09:56  cwest
+# Revision 1.3  2004/08/05 14:24:50  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:22  cwest
 # initial import
 #
 # Revision 1.2  1999/02/25 01:20:35  abigail
@@ -17,7 +20,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.3 $' =~ /([.\d]+)/;
 
 if (@ARGV) {
     if ($ARGV [0] eq '--version') {
@@ -98,7 +101,10 @@ I<yes> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: yes.abigail,v $
-    Revision 1.1  2004/07/23 20:09:56  cwest
+    Revision 1.3  2004/08/05 14:24:50  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:22  cwest
     initial import
 
     Revision 1.2  1999/02/25 01:20:35  abigail

@@ -1,9 +1,12 @@
 #!/usr/bin/perl
 #
-# $Id: fortune,v 1.1 2004/07/23 20:08:36 cwest Exp $
+# $Id: fortune,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: fortune,v $
-# Revision 1.1  2004/07/23 20:08:36  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:05  cwest
 # initial import
 #
 #
@@ -18,7 +21,7 @@ use Getopt::Std;
 
 $|++;
 
-my ($VERSION) = ' $Revision: 1.1 $ ';
+my ($VERSION) = ' $Revision: 1.2 $ ';
 
 my $home = "$Bin/fortunes";
 

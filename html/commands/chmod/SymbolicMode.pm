@@ -1,10 +1,13 @@
 package SymbolicMode;
 
 #
-# $Id: SymbolicMode.pm,v 1.1 2004/07/23 20:08:50 cwest Exp $
+# $Id: SymbolicMode.pm,v 1.3 2004/08/05 14:18:01 cwest Exp $
 #
 # $Log: SymbolicMode.pm,v $
-# Revision 1.1  2004/07/23 20:08:50  cwest
+# Revision 1.3  2004/08/05 14:18:01  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:01  cwest
 # initial import
 #
 # Revision 1.1  1999/03/07 12:03:54  abigail

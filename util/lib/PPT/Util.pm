@@ -1,5 +1,5 @@
 package PPT::Util;
-# $Id: Util.pm,v 1.1 2004/07/23 20:10:22 cwest Exp $
+# $Id: Util.pm,v 1.2 2004/08/05 14:24:55 cwest Exp $
 use strict;
 
 #BEGIN{sub Pod::Simple::DEBUG () {10} }
@@ -13,7 +13,7 @@ use CGI qw[:all];
 use Template;
 
 use vars qw[@EXPORT $BASE $CONFIG $HTML $SRC $V7DOC $HTMLSRC $TT
-$TTWRAPPER $TEMPLATE $BIN $CFG];
+$TTWRAPPER $TEMPLATE $BIN $CFG $README];
 @EXPORT = qw[config_read config_cmds create_cmd_doc copy_cmd_src
 create_cmd_index copy_v7doc clean_html_dir generate_what generate_table
 generate_page clean_bin_dir copy_dist_contrib];
@@ -26,8 +26,13 @@ $HTMLSRC   = "$BASE/html-src";
 $TT        = "$BASE/data/tt";
 $TTWRAPPER = "$TT/wrapper.tt";
 $BIN       = "$BASE/bin";
-$TEMPLATE  = Template->new({PROCESS => $TTWRAPPER, OUTPUT_PATH => $HTML, ABSOLUTE => 1});
-
+$README    = "$BASE/README"; do $README; # evil trick for easy version numbering
+$TEMPLATE  = Template->new({
+    PROCESS     => $TTWRAPPER,
+    OUTPUT_PATH => $HTML,
+    ABSOLUTE    => 1,
+    VARIABLES   => { version => __PACKAGE__->VERSION },
+});
 
 sub config_read {
     my $config = shift || $CONFIG;
@@ -127,7 +132,7 @@ sub create_cmd_index {
 }
 
 sub clean_html_dir {
-    `rm -rf $HTML/commands/*`; # I know, it's cheap.
+    `find $HTML/commands/* -type f | grep -v CVS | xargs rm`; # I know, it's cheap.
     `rm $HTML/*.html`;
 }
 

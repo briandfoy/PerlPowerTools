@@ -5,8 +5,8 @@ closedir BIN;
 
 use ExtUtils::MakeMaker;
 WriteMakefile(
-              VERSION   => '0.13',
-	          PREFIX    => '/usr/local/ppt',
-              NAME      => 'ppt',
-              EXE_FILES => \@exe_files,
+              VERSION_FROM => 'README',
+              PREFIX       => '/usr/local/ppt',
+              NAME         => 'ppt',
+              EXE_FILES    => \@exe_files,
 );

@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -wT
 
 #
-# $Id: cat.abigail,v 1.1 2004/07/23 20:08:48 cwest Exp $
+# $Id: cat.abigail,v 1.3 2004/08/05 14:17:56 cwest Exp $
 #
 # $Log: cat.abigail,v $
-# Revision 1.1  2004/07/23 20:08:48  cwest
+# Revision 1.3  2004/08/05 14:17:56  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:01  cwest
 # initial import
 #
 # Revision 1.1  1999/02/26 03:21:14  abigail
@@ -15,7 +18,7 @@
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.3 $' =~ /([.\d]+)/;
 
 # Get the options.
 
@@ -157,7 +160,10 @@ This I<cat> implementation is compatible with the B<OpenBSD> implementation.
 =head1 REVISION HISTORY
 
     $Log: cat.abigail,v $
-    Revision 1.1  2004/07/23 20:08:48  cwest
+    Revision 1.3  2004/08/05 14:17:56  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:01  cwest
     initial import
 
     Revision 1.1  1999/02/26 03:21:14  abigail

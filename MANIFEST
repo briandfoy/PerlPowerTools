@@ -1,3 +1,8 @@
+Changes
+MANIFEST
+META.yml
+Makefile.PL
+README
 bin/addbib
 bin/apply
 bin/ar
@@ -16,6 +21,7 @@ bin/chmod
 bin/chown
 bin/clear
 bin/cmp
+bin/col
 bin/colrm
 bin/comm
 bin/cp
@@ -113,7 +119,6 @@ bin/words
 bin/wump
 bin/xargs
 bin/yes
-Changes
 data/index.cfg
 data/tt/command.tt
 data/tt/doneness.tt
@@ -274,12 +279,6 @@ data/v7doc/write.1
 data/v7doc/wump.6
 data/v7doc/xsend.1
 data/v7doc/yacc.1
-html-src/index.html
-html-src/p5p-note.html
-html-src/poem.html
-html-src/whence.html
-html-src/who.html
-html-src/why.html
 html/commands/addbib/addbib.jsh
 html/commands/addbib/addbib.jsh.html
 html/commands/addbib/index.html
@@ -410,6 +409,8 @@ html/commands/cmp/index.html
 html/commands/cmp/readme.roland
 html/commands/co/index.html
 html/commands/col/col.1
+html/commands/col/col.rjk
+html/commands/col/col.rjk.html
 html/commands/col/index.html
 html/commands/colcrt/index.html
 html/commands/colrm/colrm.jsh
@@ -613,6 +614,7 @@ html/commands/ipsend/index.html
 html/commands/iptest/index.html
 html/commands/ispcvt/index.html
 html/commands/join/index.html
+html/commands/join/join-test.tgz
 html/commands/join/join.1
 html/commands/join/join.feinberg
 html/commands/join/join.feinberg.html
@@ -635,9 +637,9 @@ html/commands/lam/index.html
 html/commands/larn/index.html
 html/commands/last/index.html
 html/commands/lastcomm/index.html
-html/commands/ld.so/index.html
 html/commands/ld/index.html
 html/commands/ld/ld.1
+html/commands/ld.so/index.html
 html/commands/ldd/index.html
 html/commands/leave/index.html
 html/commands/less/index.html
@@ -689,12 +691,14 @@ html/commands/mail/mail.clintp.html
 html/commands/mailq/index.html
 html/commands/mailstats/index.html
 html/commands/make/index.html
+html/commands/make/Make-0.03.tar.gz
 html/commands/make/make.1
 html/commands/make/pmake
 html/commands/make/pmake.html
 html/commands/man/index.html
 html/commands/man/man
 html/commands/man/man.1
+html/commands/man/tchrist-man.tar.gz
 html/commands/maze/index.html
 html/commands/maze/maze.6
 html/commands/maze/maze.caputo
@@ -761,6 +765,7 @@ html/commands/od/od.kahn.html
 html/commands/pagesize/index.html
 html/commands/par/index.html
 html/commands/par/par
+html/commands/par/par-tests.tgz
 html/commands/par/par.html
 html/commands/passwd/index.html
 html/commands/passwd/passwd.1
@@ -768,6 +773,7 @@ html/commands/paste/index.html
 html/commands/paste/paste.randy
 html/commands/paste/paste.randy.html
 html/commands/patch/index.html
+html/commands/patch/patch-tests.tgz
 html/commands/patch/patch.fuzzy
 html/commands/patch/patch.fuzzy.html
 html/commands/pax/index.html
@@ -899,6 +905,7 @@ html/commands/sort/sort.dvornik.html
 html/commands/sort/sort.pudge
 html/commands/sort/sort.pudge.html
 html/commands/spell/index.html
+html/commands/spell/spell-beta.tar.gz
 html/commands/spell/spell-beta.tar.gz.html
 html/commands/spell/spell.1
 html/commands/spell/spell.readme.quimby
@@ -1097,11 +1104,14 @@ html/what.html
 html/whence.html
 html/who.html
 html/why.html
-Makefile.PL
-MANIFEST			This list of files
-META.yml
+html-src/index.html
+html-src/p5p-note.html
+html-src/poem.html
+html-src/whence.html
+html-src/who.html
+html-src/why.html
+original/ppt.tar.gz
 original/README
-README
 src/addbib/addbib.jsh
 src/apply/apply.abigail
 src/apply/apply.roland
@@ -1135,6 +1145,7 @@ src/chown/chown.abigail
 src/clear/clear.jsh
 src/cmp/cmp.roland
 src/cmp/readme.roland
+src/col/col.rjk
 src/colrm/colrm.jsh
 src/comm/comm.mjd
 src/cp/cp.schumacks
@@ -1186,6 +1197,7 @@ src/head/head.fancy
 src/id/id.theo
 src/id/readme.theo
 src/install/install.gbacon
+src/join/join-test.tgz
 src/join/join.feinberg
 src/kill/kill.theo
 src/ln/ln.abigail
@@ -1196,8 +1208,10 @@ src/ls/ls.mjd
 src/ls/lst
 src/ls/readme.fisherm
 src/mail/mail.clintp
+src/make/Make-0.03.tar.gz
 src/make/pmake
 src/man/man
+src/man/tchrist-man.tar.gz
 src/maze/maze.caputo
 src/mimedecode/mimedecode
 src/mkdir/mkdir.abigail
@@ -1209,7 +1223,9 @@ src/morse/demorse.abigail
 src/morse/morse.dragons
 src/od/od.kahn
 src/par/par
+src/par/par-tests.tgz
 src/paste/paste.randy
+src/patch/patch-tests.tgz
 src/patch/patch.fuzzy
 src/pig/pig.feinberg
 src/pig/pig.simple
@@ -1236,6 +1252,7 @@ src/sleep/sleep.randy
 src/sort/readme.dvornik
 src/sort/sort.dvornik
 src/sort/sort.pudge
+src/spell/spell-beta.tar.gz
 src/spell/spell.readme.quimby
 src/spell/spell.snow
 src/split/split.lafferty
@@ -1290,4 +1307,5 @@ src/yes/yes.abigail
 src/yes/yes.neuron
 util/lib/PPT/Util.pm
 util/mkbin
+util/mkmanifest
 util/mksite

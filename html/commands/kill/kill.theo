@@ -4,7 +4,7 @@
 # An implementation of the 'kill' utility in Perl.  Written for the Perl
 # Power Tools (PPT) project by Theo Van Dinter (felicity@kluge.net).
 #
-# $Id: kill.theo,v 1.1 2004/07/23 20:09:16 cwest Exp $
+# $Id: kill.theo,v 1.3 2004/08/05 14:19:42 cwest Exp $
 #
 use strict;
 use Config;

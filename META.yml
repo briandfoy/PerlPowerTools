@@ -1,8 +1,8 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         ppt
-version:      0.13
-version_from: 
+version:      0.14
+version_from: README
 installdirs:  site
 requires:
 

@@ -1,9 +1,12 @@
 #!/usr/local/bin/perl -w
 
-# $Id: pwd,v 1.1 2004/07/23 20:08:37 cwest Exp $
+# $Id: pwd,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: pwd,v $
-# Revision 1.1  2004/07/23 20:08:37  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:15  cwest
 # initial import
 #
 # Revision 1.0  1999/03/04 15:19:03  meltzek
@@ -14,7 +17,7 @@
 use strict;
 use Cwd;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
 
 my $dir;
 
@@ -56,7 +59,10 @@ I<pwd> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: pwd,v $
-    Revision 1.1  2004/07/23 20:08:37  cwest
+    Revision 1.2  2004/08/05 14:17:43  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:15  cwest
     initial import
 
     Revision 1.0  1999/03/04 15:19:03  meltzek

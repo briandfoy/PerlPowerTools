@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: head,v 1.1 2004/07/23 20:08:36 cwest Exp $
+# $Id: head,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: head,v $
-# Revision 1.1  2004/07/23 20:08:36  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:06  cwest
 # initial import
 #
 # Revision 1.4  1999/03/02 17:37:26  abigail
@@ -24,7 +27,7 @@
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
 
 END {
     close STDOUT || die "can't close stdout: $!\n";
@@ -124,7 +127,10 @@ This I<head> implementation is compatible with the B<OpenBSD> implementation.
 =head1 REVISION HISTORY
 
     $Log: head,v $
-    Revision 1.1  2004/07/23 20:08:36  cwest
+    Revision 1.2  2004/08/05 14:17:43  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:06  cwest
     initial import
 
     Revision 1.4  1999/03/02 17:37:26  abigail

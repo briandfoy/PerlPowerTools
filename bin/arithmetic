@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: arithmetic,v 1.1 2004/07/23 20:08:36 cwest Exp $
+# $Id: arithmetic,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: arithmetic,v $
-# Revision 1.1  2004/07/23 20:08:36  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:09:59  cwest
 # initial import
 #
 # Revision 1.1  1999/03/14 07:44:35  abigail
@@ -15,7 +18,7 @@
 use strict;
 use integer;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -219,7 +222,10 @@ character.
 =head1 REVISION HISTORY
 
     $Log: arithmetic,v $
-    Revision 1.1  2004/07/23 20:08:36  cwest
+    Revision 1.2  2004/08/05 14:17:43  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:09:59  cwest
     initial import
 
     Revision 1.1  1999/03/14 07:44:35  abigail

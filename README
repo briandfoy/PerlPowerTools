@@ -1,3 +1,5 @@
+our $VERSION = '0.14';
+__DATA__
 Perl Power Tools: Unix Reconstruction Project
 
 The legacy continues!

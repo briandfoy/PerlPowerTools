@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: random,v 1.1 2004/07/23 20:08:37 cwest Exp $
+# $Id: random,v 1.2 2004/08/05 14:17:43 cwest Exp $
 #
 # $Log: random,v $
-# Revision 1.1  2004/07/23 20:08:37  cwest
+# Revision 1.2  2004/08/05 14:17:43  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:15  cwest
 # initial import
 #
 # Revision 1.1  1999/02/28 22:10:55  abigail
@@ -15,7 +18,7 @@
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -112,7 +115,10 @@ There are no known bugs in I<random>.
 =head1 REVISION HISTORY
 
     $Log: random,v $
-    Revision 1.1  2004/07/23 20:08:37  cwest
+    Revision 1.2  2004/08/05 14:17:43  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:15  cwest
     initial import
 
     Revision 1.1  1999/02/28 22:10:55  abigail

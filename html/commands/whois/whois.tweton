@@ -204,7 +204,10 @@ I<whois> has no known bugs, however I am sure there may be.
 =head1 REVISION HISTORY
 
     $Log: whois.tweton,v $
-    Revision 1.1  2004/07/23 20:09:55  cwest
+    Revision 1.3  2004/08/05 14:24:41  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:21  cwest
     initial import
 
     Revision 1.0  1999/03/04 15:19:03  Casey Tweten

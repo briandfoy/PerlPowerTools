@@ -1,10 +1,13 @@
 #!/usr/bin/perl -wT
 
 #
-# $Id: rev.murren,v 1.1 2004/07/23 20:09:36 cwest Exp $
+# $Id: rev.murren,v 1.3 2004/08/05 14:22:05 cwest Exp $
 #
 # $Log: rev.murren,v $
-# Revision 1.1  2004/07/23 20:09:36  cwest
+# Revision 1.3  2004/08/05 14:22:05  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:15  cwest
 # initial import
 #
 # Revision 1.0 1999/03/03 andy murren
@@ -20,7 +23,7 @@ use Carp;
 $|++;  
 
 # version information set up for use with RCS/CVS
-my $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/g); sprintf
+my $VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf
 "%d."."%02d" x $#r, @r }; 
 
 # set up some variables
@@ -124,7 +127,10 @@ I<rev> has no known bugs.
 =head1 REVISION HISTORY
 
 	$Log: rev.murren,v $
-	Revision 1.1  2004/07/23 20:09:36  cwest
+	Revision 1.3  2004/08/05 14:22:05  cwest
+	cleanup, new version number on website
+	
+	Revision 1.1  2004/07/23 20:10:15  cwest
 	initial import
 	
 	Revision 1.0 1999/03/03 andy murren

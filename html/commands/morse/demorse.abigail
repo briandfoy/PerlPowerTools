@@ -1,10 +1,13 @@
 #!/usr/local/bin/perl -w
 
 #
-# $Id: demorse.abigail,v 1.1 2004/07/23 20:09:27 cwest Exp $
+# $Id: demorse.abigail,v 1.3 2004/08/05 14:20:44 cwest Exp $
 #
 # $Log: demorse.abigail,v $
-# Revision 1.1  2004/07/23 20:09:27  cwest
+# Revision 1.3  2004/08/05 14:20:44  cwest
+# cleanup, new version number on website
+#
+# Revision 1.1  2004/07/23 20:10:13  cwest
 # initial import
 #
 # Revision 1.1  1999/03/06 03:58:58  abigail
@@ -14,7 +17,7 @@
 
 use strict;
 
-my ($VERSION) = '$Revision: 1.1 $' =~ /([.\d]+)/;
+my ($VERSION) = '$Revision: 1.3 $' =~ /([.\d]+)/;
 
 my $warnings = 0;
 
@@ -134,7 +137,10 @@ form, even if the input was given in dits and daws.
 =head1 REVISION HISTORY
 
     $Log: demorse.abigail,v $
-    Revision 1.1  2004/07/23 20:09:27  cwest
+    Revision 1.3  2004/08/05 14:20:44  cwest
+    cleanup, new version number on website
+
+    Revision 1.1  2004/07/23 20:10:13  cwest
     initial import
 
     Revision 1.1  1999/03/06 03:58:58  abigail
