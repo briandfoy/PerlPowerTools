@@ -1,0 +1,113 @@
+#!/usr/bin/perl
+
+BEGIN { require 5.005 }     # qr//
+use IO::Tac;
+use Getopt::Std;
+
+my $VERSION = '0.01';
+
+getopts('bBrs:S:', \my %opts);
+my %long = qw/
+    b before
+    B binary
+    r regex
+    s separator
+    S size
+/;
+%opts = map {$long{$_}, $opts{$_}} keys %opts;
+
+if (defined $opts{separator} && $opts{regex}) {
+    for ($opts{separator}) {
+        s!^/(.*)/\z!$1!s;
+        $_ = qr/$_/;
+    }
+}
+
+$opts{files} = \@ARGV;
+
+my $fh = new IO::Tac %opts or die "$0: can't open file: $!\n";
+print while <$fh>;
+
+END {
+    close STDOUT || die "$0: can't close stdout: $!\n";
+    $? = 1 if $? == 255;  # from die
+}
+
+__END__
+
+=head1 NAME
+
+tac - concatenate and print files in reverse
+
+=head1 SYNOPSIS
+
+B<tac> [-br] [-s separator] [-B] [-S bytes] [file...]
+
+=head1 DESCRIPTION
+
+B<tac> copies files or standard input to standard output with the order of
+records reversed.
+
+=head1 OPTIONS
+
+=over
+
+=item -b
+
+Attach separator to the beginning of the record that it precedes in the file.
+
+=item -B
+
+Read files in binary mode.
+
+=item -r
+
+The separator is a regular expression.
+
+=item -s STRING
+
+Use STRING as record separator.  Set to C<''> for paragraph mode.  Defaults to
+newline.
+
+=item size
+
+=item -S BYTES
+
+Number of bytes to read at a time.  Defaults to 8192.
+
+=back
+
+=head1 NOTES
+
+=over
+
+=item 1
+
+B<-B> and B<-S> are peculiar to this implementation of B<tac>.
+
+=item 2
+
+Regular expressions reek of camel.  Here are a few constructs to watch out for:
+
+    \A, \Z, \z      anchors are not useful...
+    ^ $             ...maybe with /m
+    ()              capturing parenthesis are not useful
+    |               alternation may match out of sequence
+
+=back
+
+=head1 AUTHOR
+
+Fuzzy | tgy@chocobo.org | Will hack Perl for a moogle stuffy! =^.^=
+
+=head1 COPYRIGHT
+
+Copyright (c) 1999 Moogle Stuffy, Inc.  All rights reserved.
+
+This program is cookie-ware.  Cookie contributions in denominations of three
+are accepted.  Chocolate chip is preferred.  E-mail for more info.
+
+You may otherwise play with this software in accordance with Perl's Artistic
+License.
+
+=cut

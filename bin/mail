@@ -1,0 +1,1331 @@
+#!/usr/bin/perl -w
+
+#
+# Class that holds a couple of things for all of the 
+# other classes here.  Mostly 'cause they all need 
+# an AUTOLOAD and DESTROY, but they're all almost the same.
+#
+package mailprog;
+
+sub AUTOLOAD {
+        my $self=shift;
+        my $type=ref($self) or die "$self is not an object";
+
+        my $name=$AUTOLOAD;
+        $name=~s/.*://;
+        unless (exists $self->{_permitted}->{$name} ) {
+                die "Can't access '$name' field in class $type";
+        }
+        if (@_) {
+                return $self->{$name}=shift;
+        } else {
+                return $self->{$name};
+        }
+}
+sub DESTROY { }
+1;
+package mailer;
+@ISA=('mailprog');
+
+use IO::Socket;
+use Sys::Hostname;   # Claims to be standard?
+
+%mailer::fields=( 
+	  user => undef, 
+	  "hostname" => undef,
+	  relayhost => undef,
+	  replyaddr => undef,
+	  "socket" => undef,
+	);
+
+sub new {
+	my $class=shift;
+	my $self={_permitted => \%mailer::fields, %mailer::fields};
+	if (@_) {
+		my $a;
+		while(defined ($a=shift)) {
+			$self->{$a}=shift;
+		}
+	}
+	bless($self, $class);
+
+	#
+	# Ok, this is where I start making assumptions
+	# I'm doing this by hand because of the PPT "requirement" that
+	# only core-modules be used.  Mail::Mailer would be MUCH better
+	# suited for this task IMHO...
+	#
+	if (! exists $ENV{REPLYADDR}) {    
+		# Find my name...
+		if (! defined $self->user) {
+			if (exists $ENV{USER} or exists $ENV{LOGNAME}) {
+				if (exists $ENV{USER}) {
+					$self->user($ENV{USER});
+				} else {
+					$self->user($ENV{LOGNAME});
+				}
+			} else {
+				die "Your username is not defined.  \$USER or \$LOGNAME must be set.\n";
+			}
+		}
+		# Find my address...
+		if (! defined $ENV{HOSTNAME}) {
+			my $hostname=hostname();
+			if (! $hostname) {
+				die "Unable to find a reasonable hostname.  Use \$HOSTNAME.\n";
+			}
+			$self->hostname($hostname);
+		} else {
+			$self->hostname($ENV{HOSTNAME});
+		}
+		# Don't like this?  Too bad.  That's why ken gave us an environment...
+		$self->replyaddr($self->user . "@" . $self->hostname);
+	} else {
+		$self->replyaddr($ENV{REPLYADDR});  # Better be valid!
+	}
+	my $emsg;
+	if (! exists $ENV{RELAYHOST}) {
+		# Expensive.  Check to see if this system answers SMTP
+		$self->relayhost('localhost');
+		$emsg="You did not specify an \$RELAYHOST\nor this system is not listening to SMTP\n";
+	} else {
+		$self->relayhost($ENV{RELAYHOST});
+		$emsg="Unable to connect to the specified relay host\n";
+	}
+	$socket=IO::Socket::INET->new(
+			PeerAddr => $self->relayhost,
+			PeerPort => 25,
+			Proto => "tcp",
+			Type => SOCK_STREAM,
+			Timeout => 15,
+	);
+	if (! $socket) {
+		die $emsg;
+	}
+	my($ofh)=select($socket); $|=1; select($ofh);
+
+	# Get the SMTP header
+	$_=<$socket>;
+	
+	$self->socket($socket);   # Use this quickly, it may expire.
+	return $self;
+}
+sub send {
+	my $self=shift;
+	my $message=shift;   # Full message object.
+
+
+	# Ok, here we go.
+	my $sock=$self->socket;
+	main::debug("Mailed from " . $self->replyaddr);
+	print $sock "mail from: " . $self->replyaddr . "\n";  $_=<$sock>;
+	{
+	   if (defined $message->to) {
+		foreach my $recipient (@{$message->to}) {
+			main::debug("Sending to recipient $recipient");
+			print $sock "rcpt to: $recipient\n";
+			$_=<$sock>; main::debug("reply: $_");
+		}
+	   } else {
+		die "No recipient.\n";
+	   }
+	   if (defined $message->cc) {
+		foreach my $recipient (@{$message->cc}) {
+			main::debug("Sending to recipient $recipient");
+			print $sock "rcpt to: $recipient\n";
+			$_=<$sock>; main::debug("reply: $_");
+		}
+	   }
+	   if (defined $message->bcc) {
+		foreach my $recipient (@{$message->bcc}) {
+			main::debug("Sending to recipient $recipient");
+			print $sock "rcpt to: $recipient\n";
+			$_=<$sock>; main::debug("reply: $_");
+		}
+	   }
+  	   my($to,$cc);
+	   $to=join(', ', @{$message->to});
+	   print $sock "data\n";    $_=<$sock>;
+	   if ($to) {
+		print $sock "To: $to\n";
+	   }
+	   if (defined $message->cc) {
+		$cc=join(', ', @{$message->cc});
+		print $sock "Cc: $cc\n";
+	   }
+	   if ($message->subject) {
+		print $sock "Subject: " . $message->subject . "\n";
+	   }
+	   print $sock "X-Mailer: Perl Power Tools mail v", $main::VERSION, "\n\n";
+           print $sock $message->body;
+	   print $sock "\n.\n";
+	   $_=<$sock>;
+	   main::debug("received after body: $_");
+	}
+}
+sub DESTROY {
+	my $self=shift;
+
+	if (defined $self->socket) {
+		my $sock=$self->socket;
+		close($sock);
+	}
+}
+1;
+package message;
+@ISA=('mailprog');
+
+%message::fields=( subject => undef,
+	  from => undef,
+	  deleted => undef,
+	  "read" => undef,
+	  neverseen => undef,
+	  to => undef,
+	  bcc => undef,
+	  cc => undef,
+	  lines => undef,
+	  bytes => undef,
+	  date => undef,
+	  status => undef,
+	  sequence => undef,
+	);
+
+sub new {
+	my $class=shift;
+	my $self={_permitted => \%message::fields, %message::fields};
+
+	bless($self, $class);
+	return $self;
+}
+sub load_from_array {   # Already chomped.
+	my $self=shift;
+
+	my($l, @head, @body);
+	$self->lines(scalar @_);
+	my $bytes;
+	foreach(@_) {
+		$bytes+=length($_);
+	}
+	$bytes+=($self->lines)*length($/);  # Correct for chomp.
+	$self->bytes($bytes);
+	while($l=shift) {
+		push(@head, $l)
+	}
+	@body=@_;
+	
+	push(@{$self->{body}}, @body);
+	push(@{$self->{head}}, @head);
+	$self->_extract;
+}
+sub _extract {
+	my $self=shift;
+
+	foreach(@{$self->{head}}) {
+		unless (/^\s+/) { 
+			push(@hc, $_);
+		} else {
+			$hc[$#hc].=$_;
+		}
+	}
+	$self->neverseen(1);
+	$self->read(0);
+	while ($line=shift @hc) {
+		my($foo, $bar);
+		if (($foo)=$line=~/^Subject:\s+(.*)/i) {
+			$self->subject($foo);
+		}
+		# Ok, so beat me over the head with an FAQ.
+		if (($foo)=$line=~/^To:\s+(.*)/i) {
+			my @toaddrs;
+			$foo=~s/"[^"]+"//g;   # Remove comments?
+			foreach my $addtest (split(/[,\s]+/, $foo)) {
+				$addtest=~s/^\s+//g; $addtest=~s/\s$//g;
+				next if (! $addtest);
+				if ($addtest=~/<(.*)>/) {
+					push(@toaddrs, $1);
+				} elsif ($addtest=~/(\w+@[\w.]+)/){
+					push(@toaddrs, $1);
+				} else {
+					push(@toaddrs, $addtest);
+				}
+			}
+			$self->to([@toaddrs]);
+		}
+		if (($foo)=$line=~/^CC:\s+(.*)/i) {
+			my @toaddrs;
+			$foo=~s/"[^"]+"//g;   # Remove comments?
+			foreach my $addtest (split(/[,\s]+/, $foo)) {
+				$addtest=~s/^\s+//g; $addtest=~s/\s$//g;
+				next if (! $addtest);
+				if ($addtest=~/<(.*)>/) {
+					push(@toaddrs, $1);
+				} elsif ($addtest=~/(\w+@[\w.]+)/){
+					push(@toaddrs, $1);
+				} else {
+					push(@toaddrs, $addtest);
+				}
+			}
+			$self->cc([@toaddrs]);
+		}
+		if (($foo,$bar)=$line=~/^From\s+(.*)\s+(\w{3}\s+\w{3}\s+\d+\s+\d+:\d+):\d+\s+\d+$/i) {
+			$self->date($bar);
+			$self->from($foo);
+		}
+		if (($foo)=$line=~/^Status:\s+(.*)/i) {
+			$foo=~/O/ and $self->neverseen(0);
+			$foo=~/R/ and $self->read(1);
+		}
+	}
+	$self->deleted(0);
+}
+sub add_to_body {
+	my $self=shift;
+
+	push(@{$self->{body}}, @_);
+}
+sub _printablestatus {
+	my $self=shift;
+
+	return("X") if ($self->deleted);
+	return(" ") if ($self->read);
+	return("N") if ($self->neverseen);
+	return("U");
+}
+sub outputstatus {     # Why the hell mail uses one status flag in the file,
+	my $self=shift; # and a _different_ one onscreen escapes me.  Lunacy.
+	
+	my $status;
+	$status.="R" if ($self->read);
+	$status.="O";
+	return($status);
+}
+
+# Given a message, return a 1 line summary, takes sequence # as arg
+sub summary {
+	my $self=shift;
+ 
+	my $line=sprintf "%2s %2d %16s  %16s %3d/%4d ", 
+		$self->_printablestatus,
+		$self->sequence,
+		(defined $self->from)?substr($self->from, 0, 16):" ",
+		(defined $self->date)?$self->date:" ",
+		$self->lines,
+		$self->bytes;
+
+	if (defined $self->subject) {
+		$line.=substr($self->subject, 0, $main::COLS-length($line)-1);
+	} else {
+		$line.="(no subject)";
+	}
+	return($line);
+		     
+}
+sub printhead {
+	my $self=shift;
+	
+	$self->read(1);
+	return join("\n", grep(!/^Status:/i, @{$self->{head}}));
+}
+sub body {
+	my $self=shift;
+	
+	$self->read(1);
+	return join("\n", @{$self->{body}} );
+}
+sub whole {
+	my $self=shift;
+	my $lines=shift;
+	
+	$self->read(1);
+	if (! defined $lines) {
+		return 	join("\n", grep(!/^Status:/i, @{$self->{head}}), "",@{$self->{"body"}});
+	} else {
+		return 	join("\n", ( grep(!/^Status:/i, @{$self->{head}}), "",@{$self->{"body"}})[0..$lines] );
+	}
+}
+1;
+#
+# Class to hold info about the mailbox.
+#
+package mailbox;
+@ISA=('mailprog');
+use vars qw($AUTOLOAD %fields);
+
+%mailbox::fields=( size => undef, file => undef, append => undef);
+
+sub new {
+	my $class=shift;
+	my $self={_permitted => \%mailbox::fields, %mailbox::fields};
+	if (@_) {
+		my $a;
+		while(defined ($a=shift)) {
+			$self->{$a}=shift;
+		}
+	}
+	# Ok, this is here 'cause I want the displayed message numbers to 
+	# match the offsets in the array.  (Saves headaches later, believe it
+	# or not.)
+	@{$self->{messages}}="Invalid";
+
+	bless($self, $class);
+	return $self;	
+}
+sub load {
+	my $self=shift;
+
+	print "Loading the mailfile ", $self->file, "\n";
+	my $start=1;
+	if (! defined $self->file) { die "No mailbox specified in class\n"; }
+	open(MBOX, $self->file) || return;
+	$self->size(-s $self->file);
+	my @MESS=();
+	while(<MBOX>) {
+		chomp;
+		if (@MESS and /^From /) {
+			my $message=new message;
+			$message->load_from_array(@MESS);
+			$message->sequence($start++);
+			push(@{$self->{messages}}, $message);
+			@MESS=();
+		}
+		push(@MESS, $_)
+	}
+	if (@MESS) {
+		my $message=new message;
+		$message->load_from_array(@MESS);
+		$message->sequence($start++);
+		push(@{$self->{messages}}, $message);
+	}
+	close(MBOX);
+	return 1;
+}
+sub stuff {
+	my $self=shift;
+
+	print "In the stuff method\n";
+	push(@{$self->{messages}}, $_[0]);
+	$self->size(0);
+}
+sub write {
+	my $self=shift;
+	my $wa=shift;
+
+	$of=">" . $self->file;
+	if (exists $$wa{append} ) {
+		$of=">$of";
+	}
+	my $alt_msg="\"" . $self->file . "\" ";
+	$alt_msg.=(-e $self->file)?"[Appended]":"[New File]";
+	if (! open(MBOX, $of )) {
+		warn "Failed to write to ", $self->file, ": $!\n";
+		return;
+	}
+	my $bytes=(-s $self->file);   # cheat
+	my $lines;
+	foreach(1..$self->lastmsg) {
+		my $message=$self->messagex($_);
+		next if ($message->deleted);
+
+		if (! exists $$wa{bodyonly}) {
+			my $foo=$message->printhead;
+			print MBOX $foo, "\n";
+			$lines+=$foo=~tr/\n//;
+
+			print MBOX "Status: ", $message->outputstatus, "\n";
+			$lines+=1;
+		}
+
+		$foo=$message->body;
+		print MBOX "\n", $foo, "\n";
+		$lines+=$foo=~tr/\n//;
+		$lines+=2;
+
+		if (exists $$wa{unread}) {
+			$message->read(0);
+		}
+	}
+	close(MBOX);
+	$bytes=(-s $self->file) - $bytes;
+	$alt_msg.=" $lines/$bytes";
+
+	return($alt_msg, undef);
+}
+sub messagex {
+	my $self=shift;
+	
+	my $num=shift;
+	if ($num<=0) {
+		die "Invalid message specification, $num (Should Not Happen)";
+	}
+	
+	return(${$self->{messages}}[$num]);
+}
+sub replace {
+	my $self=shift;
+	${$self->{messages}}[$_[0]]=$_[1];   # Replace that message
+}
+sub lastmsg {
+	my $self=shift;
+	return(scalar( @{$self->{messages}} )-1)
+}
+sub nextmsg {              # Returns sequence number of next (not deleted) message
+	my $self=shift;
+	my $current=shift;
+
+	my $msg;
+	while($msg=$self->messagex($current)) {
+		if (! defined $msg) {
+			return undef;
+		}
+		if ($msg->deleted) {
+			$current++;
+			next;
+		}
+		last;
+	}
+	return($current);
+}
+1;
+package editor;
+@ISA=('mailprog');
+
+%editor::fields=(message => undef, mesgno => undef);
+sub new {
+	my $class=shift;
+	my $self={_permitted => \%editor::fields, %editor::fields};
+	if (@_) {
+		my $a;
+		while(defined ($a=shift)) {
+			$self->{$a}=shift;
+		}
+	}
+
+	bless($self, $class);
+	return $self;
+}
+sub edit {
+	my $self=shift;
+	my $args=shift;
+	
+	my $msg=$self->message;
+	if (! defined $msg) {
+		die "Should Not Happen, edit without message";
+	}
+	if (exists $$args{subject}) {
+		my $subj;
+		print "Subject: ";
+		$subj=<STDIN>; chomp($subj);
+		$msg->subject($subj);
+	}
+	my($line,$tilde,$cmd,$arg);
+	my @BODY;
+EDLOOP: {
+		$line=<STDIN>;
+		if ( (not defined $line) or ($line=~/^\.\s+$/)) { last EDLOOP; }
+
+		chomp $line;
+		unless ( $line=~/^~[^~]/) {
+			$line=~s/^~+/~/g;   # Extra tildes changed to one.
+			push(@BODY, $line);
+			redo EDLOOP;
+		}
+		($tilde,$cmd,$arg)=$line=~/(~)(.)\s*(.*)?/;
+		warn "Bad line" if (! defined $tilde);
+		$_=$cmd;
+		SWITCH: {
+			/s/ && do { $msg->subject($arg); last SWITCH; };
+			/q/ && do { return; };
+			/\!/ && do { system($arg); last SWITCH; };
+			/c/ && do { 
+					my $ccs=$msg->cc;
+					push(@{$ccs}, split(/[\s,;]+/, $arg));
+					$msg->cc($ccs);
+					last SWITCH;
+				};
+			/b/ && do { 
+					my $ccs=$msg->bcc;
+					push(@{$ccs}, split(/[\s,;]+/, $arg));
+					$msg->bcc($ccs);
+					last SWITCH;
+				};
+			/t/ && do {
+					my $tos=$msg->to;
+					push(@{$tos}, split(/[\s,;]+/, $arg));
+					$msg->to($tos);
+					last SWITCH;
+				};
+			/m/ && do {
+					my $msgs=main::parse_msg_list($arg,$self->mesgno);
+					foreach(@$msgs) {
+						my $rmsg=$main::box->messagex($_);
+						next if (! defined $rmsg);
+						push(@BODY, grep(s/^/> /g, split(/\n/, $rmsg->whole)));
+					}
+					last SWITCH
+				};
+			/f/ && do {
+					my $msgs=main::parse_msg_list($arg,$self->mesgno);
+					foreach(@$msgs) {
+						my $rmsg=$main::box->messagex($_);
+						next if (! defined $rmsg);
+						push(@BODY, split(/\n/, $rmsg->whole));
+					}
+					last SWITCH;
+				};
+			/r/ && do {
+				open(F, $arg) || do { warn "Unable to open $arg: $!\n"; last SWITCH; };
+				my $bytes=(-s $arg);
+				my(@FOO)=<F>;
+				close(F);
+				chomp(@FOO);
+				push(@BODY, @FOO);
+				print "read $arg $bytes bytes\n";
+			};
+			/v/ && do {
+				if (! $ENV{VISUAL}) {
+					$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
+					if (! $ENV{VISUAL}) {
+						warn "No VISUAL in environment\n";
+						last SWITCH;
+					}
+				}
+				open(F, ">/tmp/ppt_mail$$") || do { warn "Unable to open temp file"; last SWITCH; };
+				@BODY=grep(s/$/\n/g, @BODY);
+				print F @BODY;
+				close(F);
+				system("$ENV{VISUAL} /tmp/ppt_mail$$");
+				open(F, "/tmp/ppt_mail$$") || die "Unable to re-open temp file";
+				@BODY=<F>;
+				chomp(@BODY);
+				close(F);
+				print "(Continued)\n";
+			};
+		}
+	redo EDLOOP;
+	}
+	$msg->add_to_body(@BODY);
+	$self->message($msg);
+	return($self->message);
+}
+
+1;
+package main;
+
+use English;
+use Getopt::Std;
+use vars qw($VERSION $ROWS $BUFFERL $box);
+
+$VERSION=".02"; 
+$ROWS=23;         # Screen Dimensions.  Yeah, this sucks.
+$COLS=80;
+$BUFFERL=2;	  # Lines needed for "fluff"
+
+%commands=(
+	"chdir" => { alias => 'c',   args  => 'path', },
+	copy  => { alias => 'co',  args  => 'msg,path', func=> \&msg_copy },
+	"delete" =>{ alias => 'd',   args  => 'msg', func => \&msg_delete },
+	"exit"  => { alias => 'ex,x',                func => sub { exit; } },
+	from  => { alias => 'f',   args  => 'msg', func => \&from },
+	headers=>{ alias => 'h',   args  => 'msg', func => \&listing },
+	hold  => { alias => 'ho,preserve', args => 'msg', func => \&unread },
+	mail  => { alias => 'm',   args  => 'addr',func=> \&mail },
+	"next"  => { alias => 'n',                   func => \&msg_next },
+	"print" => { alias => 'p',   args  => 'msg', func => \&msg_print },
+	quit  => { alias => 'q', 		   func => \&quit },
+	reply => { alias => 'r',   args  => 'msg', func => \&replyCC },  # Weird.
+	Reply => { alias => 'R',   args  => 'msg', func => \&reply },
+	save  => { alias => 's',   args  => 'msg,path', func => \&msg_save },
+	shell => { alias => 'sh', 		   func => \&shell },
+	top   => {                                 func => \&top },
+	undelete=>{ alias => 'u',  args => 'msg',  func => \&undelete },
+	unread =>{ alias => 'U', args => 'msg',    func => \&unread },
+	visual => { alias => 'v', args => 'msg',   func => \&visual },
+	"write"  => { alias => 'w', args => 'msg,path',   func => \&msg_write },
+);
+
+$SET::toplines=5;
+
+#
+# Funcs which implement all that garbage above.
+#
+sub listing {
+	my ($first)=@_;   # Pass in a mailbox, current message
+
+	$first=$$first[0];
+	foreach($first..$first+$ROWS-$BUFFERL) {
+		$message=$box->messagex($_);
+		if (! defined $message) {
+			warn "Invalid message number: $first\n" if ($_ == $first);
+			last;
+		}
+		print $message->summary, "\n";
+	}
+	return $first;
+}
+sub shell {
+	# How to get an interactive shell in Perl.  Hmmm...
+	system("/bin/sh");   # For now.  :-)
+}
+sub mail {
+	my($list,$mesgno)=@_;   # Target addresses
+	my $msg=new message;
+	$msg->to($list);    # For whom the message tolls
+	my $editor=new editor;
+	$editor->mesgno($mesgno);
+	$editor->message($msg);
+	$msg=$editor->edit({ subject => 1});
+	if (! defined $msg) {
+		print "Aborted\n";
+		return;
+	}
+	my $mailer=new mailer;
+	$mailer->send($msg);
+}
+sub replyCC {
+	my($list)=@_;   # Target addresses
+	
+	my(@ccaddrs, @replies, $subj, $tc);
+	foreach(@$list) {
+		my $original=$box->messagex($_);
+		next if (!defined $original);
+		if (! $subj) {
+			$subj=$original->subject;
+			unless ($subj=~/^re:/i) {
+				$subj="re: $subj";
+			}
+		}
+		push(@replies, $original->from);
+		$tc=$original->cc;
+		push(@ccaddrs, @$tc);
+	}
+
+	my $msg=new message;
+	$msg->to(\@replies);    # For whom the message tolls
+	$msg->cc(\@ccaddrs);
+	$msg->subject($subj);
+	my $editor=new editor;
+	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
+	$editor->message($msg);
+	print "To: ", join(',', @replies), "\n";
+	if (@ccaddrs) {
+		print "Cc: ", join(',', @ccaddrs), "\n";
+	}
+	print "Subject: $subj\n";
+	$msg=$editor->edit;
+	if (! defined $msg) {
+		print "Aborted\n";
+		return;
+	}
+	my $mailer=new mailer;
+	$mailer->send($msg);
+}
+sub reply {
+	my($list)=@_;   # Target addresses
+	
+	my(@replies, $subj);
+	foreach(@$list) {
+		my $original=$box->messagex($_);
+		next if (!defined $original);
+		if (! $subj) {
+			$subj=$original->subject;
+			unless ($subj=~/^re:/i) {
+				$subj="re: $subj";
+			}
+		}
+		push(@replies, $original->from);
+	}
+
+	my $msg=new message;
+	$msg->to(\@replies);    # For whom the message tolls
+	$msg->subject($subj);
+	my $editor=new editor;
+	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
+	$editor->message($msg);
+	print "To: ", join(',', @replies), "\n";
+	print "Subject: $subj\n";
+	$msg=$editor->edit;
+	if (! defined $msg) {
+		print "Aborted\n";
+		return;
+	}
+	my $mailer=new mailer;
+	$mailer->send($msg);
+}
+sub quit {
+	if ( (-s $box->file) != $box->size ) {
+		warn "Mail folder has changed size, not writing\n";
+	}
+	$box->write;
+	exit;
+}
+sub visual {
+	my($list)=@_;
+
+	if (! $ENV{VISUAL}) {
+		$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
+		if (! $ENV{VISUAL}) {
+			warn "No VISUAL in environment\n";
+			return;
+		}
+	}
+
+	foreach my $msgno (@$list) {
+		$message=$box->messagex($msgno);
+		if (! defined $message) {
+			warn "Invalid message number: $msgno\n";
+			return;
+		}
+		my $tmbox=new mailbox(file => "/tmp/ppt_mail$$");
+		$tmbox->stuff($message);
+		$tmbox->file("/tmp/ppt_mail$$");
+		$tmbox->write;
+		system("$ENV{VISUAL} /tmp/ppt_mail$$");
+		$tmbox2=new mailbox(file => "/tmp/ppt_mail$$");  # Hope this isn't a leak
+		print Dumper $tmbox2;
+		$tmbox2->load;
+		print Dumper $tmbox2;
+		$box->replace($msgno, $tmbox2->messagex(1));
+	}
+}
+sub from {
+	my ($list)=@_;
+	my $lastgood;
+	foreach my $msgno (@$list) {
+		$message=$box->messagex($msgno);
+		if (! defined $message) {
+			warn "Invalid message number: $msgno\n";
+			return;
+		}
+		print "Message: ", $message->sequence, "\n";
+		print $message->printhead, "\n";
+		$lastgood=$msgno;
+	}
+	return $lastgood;
+}
+sub top {
+	msg_print(@_, $SET::toplines);
+}
+sub msg_print {
+	my ($list, $dummy, $nlines)=@_;
+	my $lastgood;
+	foreach my $msgno (@$list) {
+		$message=$box->messagex($msgno);
+		if (! defined $message) {
+			warn "Invalid message number: $msgno\n";
+			return;
+		}
+		print "Message: ", $message->sequence, "\n";
+		print $message->whole($nlines), "\n";
+		$lastgood=$msgno;
+	}
+	return $lastgood;
+}
+sub unread { toggle(@_, 'unread'); }
+sub undelete { toggle(@_, 'undelete'); }
+sub msg_delete { toggle(@_, 'delete'); }
+sub toggle {
+	my ($msgs, $dumb, $option)=@_;
+
+	foreach my $msgno (@$msgs) {
+		$message=$box->messagex($msgno);
+		if (! defined $message) {
+			warn "Invalid message number: $msgno\n";
+			return;
+		}
+		if ($option eq 'unread') {
+			$message->read(0);
+		}
+		if ($option eq 'undelete') {
+			$message->deleted(0);
+		}
+		if ($option eq 'delete') {
+			$message->deleted(1);
+		}
+	}
+	return;
+}
+sub msg_next {
+	my($first)=@_;
+	$first=$$first[0];
+
+	my $nmsg=$box->nextmsg($first);
+	if (! defined $nmsg) {
+		warn "At EOF\n";
+		return;
+	}
+	my $ret=msg_print([ $nmsg ]);
+	return ++$nmsg if (defined $ret);
+	return;
+}
+sub msg_save { msg_store(@_, { append => 1 }); }
+sub msg_copy { msg_store(@_, { append => 1, "unread" => 1,} ); }
+sub msg_write {	msg_store(@_, { append => 1, bodyonly => 1,} ); }
+
+sub msg_store {
+	my($msgs, $file, $options)=@_;
+
+	print "Saving message...$msgs to $file\n";
+	my $tempbox=new mailbox(file => $file);
+	foreach my $msg (@$msgs) {
+		$message=$box->messagex($msg);
+		if (! defined $message) {
+			warn "Invalid message number: $msg\n";
+			return;
+		}
+		$tempbox->stuff($message);
+	}
+	my($short, $long)=$tempbox->write( $options );
+	print "$short\n";
+}
+#
+# Helpers for Interactive();
+#
+sub parseargs {
+	my($cmd, $mesgno)=@_;
+	my($cref)=undef;
+	my $word=$cmd;
+	$word=~s/^([a-zA-Z]+).*/$1/;
+	foreach (keys %commands) {
+		if ($word eq $_) {
+			$cref=$commands{$_};
+		} elsif (exists $commands{$_}{alias}) {
+			if (grep($word eq $_, split(/,/, $commands{$_}{alias}))) {
+				$cref=$commands{$_};
+			}
+		}
+	}
+	return if (! defined $cref);
+	if (! exists $$cref{args}) {   # No arguments to speak of.
+		return($word, $$cref{func}, [ $mesgno ]);   # Always return current...
+	}
+	# Arguments.  Deal with them
+	if ($$cref{args}=~/msg,path/) {  # Multiples
+		my $list=$cmd;  $list=~s/^[a-zA-Z]+//g;
+		my($arg1,$arg2)=$list=~/(.*)\s+([^\s+]+)$/;
+		$arg1=parse_msg_list($arg1, $mesgno);
+		return($cmd, $$cref{func}, $arg1, $arg2);
+	}
+	if ($$cref{args} eq 'addr') {
+		my $list=$cmd;  $list=~s/^[a-zA-Z]+\s*//g;
+		my @foo=split(/[\s,;]+/, $list);
+		return($cmd, $$cref{func}, [ @foo ], $mesgno);
+	}
+	if ($$cref{args} eq 'msg') {
+		# Remove the word at the beginning
+		my $list=$cmd;
+		$list=~s/^[a-zA-Z]+//g;
+		my $msglist=parse_msg_list($list, $mesgno);
+		return($cmd, $$cref{func}, $msglist);
+	}
+}
+# Accepts empty, Accepts lists of space or comma-seperated numbers
+# Accepts ranges (1-5), Accepts offsets (+1, -5), Special 
+# $=last message *=all messages
+sub parse_msg_list {
+	my($list, $current)=@_;
+
+
+	$list=~s/^\s+//g;  $list=~s/\s$//g;
+	if (! $list) {
+		return([ $current ]);
+	}
+	# Get ugly.
+	my @list=();
+	foreach my $stuff (split(/[, ]+/, $list)) {
+		$stuff="1-\$" if ($stuff=~/^\*$/);
+		$stuff=~s/\$/($box->lastmsg)-1/e;
+		push(@list, $stuff) if ($stuff=~/^\d+$/);
+		push(@list, $1..$2) if ($stuff=~/^(\d+)-(\d+)/);
+	}
+	return(\@list);
+}
+#
+# All of the interactive stuff is here...
+#
+sub Interactive {
+	my($file)=@_;
+	$box=new mailbox(file => $file);
+	if (! $box->load ) {
+		print "You have no mail\n";
+		exit;
+	}
+	my $current=1; 
+
+	select STDOUT; $|=1;
+	print "Mail [$VERSION Perl] [$OSNAME]\n";   # This is fluff.
+	$cmd="Init";
+
+CMDS:	{
+		if ($cmd eq "Init") {
+			$cmd="h";
+		} else {
+			print "> ";
+			$cmd=<STDIN>;
+			chomp $cmd;
+		}
+	GOTONE: {
+			if ($cmd=~/^[a-zA-Z]+/) {
+				($cmd, $fref, $arg1, $arg2)=parseargs($cmd, $current);
+				if (! defined $cmd) {
+					warn "Unknown command $cmd\n";
+					redo CMDS;
+				}
+				if (! defined $fref) {
+					warn "Unimplemented command $cmd\n";
+					redo CMDS;
+				}
+				$current=&$fref($arg1, $arg2);
+				if (! defined $current) {
+					$current=1;
+				}
+			} elsif ($cmd=~/^!(.*)/) {
+				system("$1");
+			} elsif ($cmd=~/^[0-9]/) {
+				$cmd="p $cmd";
+				redo GOTONE;
+			} elsif (! $cmd) {
+				$cmd="p";
+				redo GOTONE;
+			} else {
+				warn "Unknown command\n";
+			}
+		}
+		redo CMDS;
+	}
+}
+sub debug {
+	if ($opt_v) {
+                print STDERR @_, (($_[$#_]=~/\n$/)?"":"\n");
+	}
+}
+sub Batch {
+	my $message=new message;
+	$message->to([@_]);
+	$message->cc([ split(/,/, $opt_c) ]) if ($opt_c);
+	$message->bcc([ split(/,/, $opt_b) ]) if ($opt_b);
+	$message->subject($opt_s) if ($opt_s);
+	my $mailer=new mailer;
+	my @BODY=<STDIN>;
+	chomp(@BODY);
+	$message->add_to_body(@BODY);
+	$mailer->send($message);
+}
+$main::opt_v=0;   # Keep -w quiet.
+getopts("f:s:c:b:v") || die <<USAGE;
+$0 [-f mailbox]
+$0 [-s subject] [-c cc-addrs] [-b bcc-addrs] to-addr [..toaddr..]
+USAGE
+
+if (@ARGV) {   # Assume batch-mode
+	Batch(@ARGV);
+} else {
+	if ($opt_f) {
+		Interactive($opt_f);
+	} else {
+		if (exists $ENV{MAIL}) {
+			Interactive($ENV{MAIL});
+		} else {
+			if (! exists $ENV{HOME}) {
+				Interactive("mbox");
+			} else {
+				Interactive($ENV{HOME} . "/mbox");
+			}
+		}
+	}
+}
+
+=pod
+
+=head1 NAME
+
+mail -- implementation of Berkeley mail(1)
+
+=head1 SYNOPSIS
+
+mail [B<-f> mailbox]
+
+mail [B<-s> subject] [B<-c> cc-addrs] [B<-b> bcc-addrs] to-addr [..toaddr..]
+
+=head1 DESCRIPTION
+
+When called without command-line options (except B<-f>) I<mail> allows the user to 
+interactively send mail, and manage a mail folder.  Otherwise, I<mail> allows 
+the user to send outgoing E-mail to recipients.
+
+When run interactively, the mail folder ~/mbox is used.  If the home
+directory cannot be determined, ./mbox is assumed.  This can be overridden
+with the B<-f> option.
+
+=head2 OPTIONS
+
+I<mail> accepts the following options
+
+=over 4
+
+=item B<-f> mailbox
+
+Specifies a mail folder to use.
+
+=item B<-s> subject
+
+Specify a subject for the mail message.
+
+=item B<-c> cc-addrs
+
+A I<comma-separated> list of addresses to be copied to on the mail message.
+
+=item B<-b> bcc-addrs
+
+A I<comma-separated> list of addresses to be copied to on the mail message,
+without appearing in the headers.
+
+=item to-addr
+
+E-Mail destination addresses.  You may not be notified if mail fails to 
+deliver to the address properly.
+
+=back
+
+=head2 COMMANDS
+
+In the list below, "msg" indicates a message list.  Acceptable values are comma or
+space separated lists, ranges (i.e. 1-5) or single digits.  Special values are "$" 
+(end of list) and * (all messages).  If messages are unspecified, the current message
+is used.  "path" indicates a filename argument.  "addr"
+indicates a mail message address list (comma or space separated).
+
+=over 4
+
+=item number
+
+Read message I<number>.  
+
+=item !command
+
+Execute the "command" with the command interpreter.
+
+=item copy msg path
+
+Copy indicated messages (I<msg>) to filename at I<path>.  
+B<co> is an alias for this command.
+
+=item delete msg
+
+Delete indicated messages.
+B<d> is an alias for this command.
+
+=item exit
+
+Exit the I<mail> program saving no changes to the mailbox.  
+B<x> is an alias for this command.
+
+=item from msg
+
+Display the headers from the specified messages.
+B<f> is an alias for this command.
+
+=item headers msg
+
+Display a brief list of headers from the messages.
+B<h> is an alias for this command.
+
+=item hold msg
+
+Mark messages as unread.  B<ho,preserve> are aliases for
+this command.
+
+=item mail addr
+
+Send a mail message to addr.  B<m> is an alias for this command.
+
+=item next
+
+Print the next message in sequence.  B<n> is an alias for this command.
+
+=item print msg
+
+Print the specified mail message.  B<p,CR> are aliases for this command.
+
+=item quit
+
+Exit the mail program.  The (possibly) edited mailbox is re-written to
+its original file.  See B<Bugs>.  B<q> is an alias for this command.
+
+=item reply msg
+
+Reply to the original sender of I<msg>.  B<r> is an alias for this command.
+
+=item Reply msg
+
+Reply to the original sender, and all visible recipients of I<msg>.
+B<R> is an alias for this command.
+
+=item save msg path
+
+Save I<msg> into the file specified at I<path>.  If the file exists, it
+is appended.  B<s> is an alias for this command.
+
+=item shell
+
+Start an interactive I<bourne> shell.  (This does not work under Win32).
+B<sh> is an alias for this command.
+
+=item top
+
+Display the first few lines of the current mail message.
+
+=item undelete msg
+
+Mark as undeleted any specified mail messages.
+B<u> is an alias for this command.
+
+=item unread msg
+
+Mark as unread any specified mail messages.
+B<U> is an alias for this command.
+
+=item visal msg
+
+Invoke the visual editor (specified in $VISUAL, or /usr/bin/vi) on the
+indicated messages.  Re-read those messages in afer the editing session.
+B<v> is an alias for this command.
+
+=item write msg path
+
+Write the I<bodies> of the indicated messages to path.
+B<w> is an alias for this command.
+
+=back
+
+=head2 EDITING COMMANDS
+
+When sending a mail message (commands B<mail, reply or Reply>) a primitive
+line-mode editor is used to get the body of the mail message, and possibly 
+change any header options.  During the editing session, special commands may
+be used when typed at the beginning of the line.
+
+To send the message, send an EOF character or a "." on a line by itself.
+
+=over 4
+
+=item ~ssubject
+
+Change message subject to I<subject>.
+
+=item ~q
+
+Quit the message editor.  No changes are made, no message is sent.
+
+=item ~caddr[,addr...]
+
+Add the I<addr>s to the CC list for the message
+
+=item ~baddr[,addr...]
+
+Add the I<addr>s to the BCC list for the message
+
+=item ~taddr[,addr...]
+
+Add the I<addr>s to the To: list for the message
+
+=item ~mmsg
+
+Read the specified messages into the current message at the end.
+
+=item ~fmsg
+
+Read the specified messages into the current message at the end,
+indenting each line with the sequence "> ".
+
+=item ~rfile
+
+Read the contents of I<file> into the message.
+
+=item ~v
+
+Invoke the visual editor on the message.  When the user is done 
+editing the message, read the message back in, and continue editing
+at the end.
+
+=back
+
+=head1 BUGS
+
+Numerous.  Mostly lack of refinement in the implementation, any of
+which can be fixed without hassle, I'm sure.
+
+=over 4
+
+=item *
+
+Many (many, many..) features left unimplemented.  Command-line, 
+commands and editing functions have all been decimated. I only implemented what
+I thought was useful.  I<BSD mail> had many years to develop its many 
+tentacles.  I don't have that kind of patience.
+
+=item *
+
+Keeping track of the "current" message in the mail folder is sloppy.
+
+=item *
+
+Screen length is assumed to be 23 characters.  Width is 79.
+
+=item * 
+
+Argument parsing doesn't ensure sane (and legal) combinations.
+
+=item *
+
+There is B<no> file locking.  Of anything.  You wanna re-write the
+mailbox and there's local delivery going on?  Fine.  Have fun.  I<mail>
+will refuse to write back a mailbox whose size has changed however...
+
+=item *
+
+I<mail> doesn't act as a Local Delivery Agent.
+
+=item *
+
+I<mail>'s method of picking through mail message headers to find from, to 
+and cc addresses violates several FAQ's, RFC's, and is void where prohibited.
+Also easy to fix, I simply ran out of patience.  See the _extract method in the
+message class if you're adventuresome.
+
+=item *
+
+To perform delivery, mail searches for C<$USER> or C<$LOGNAME> in your environment to see who
+you are (for a From address).  It then searches for an SMTP agent on localhost.
+Not finding that, it wants $RELAYHOST set to your SMTP relaying host name.  Your 
+reply address is taken from $REPLYADDR or your system's environment.  Whichever 
+is easier.  Win32 systems, be prepared to setup your environment properly for
+this to work!
+
+=item *
+
+...speaking of SMTP... I<mail> talks directly to SMTP instead of using a more
+sane method like Mail::Mailer.  This was done so that PPT mail(1) could remain
+"pure" and un-encumbered by external modules.
+
+=item *
+
+This code is not "use strict" safe.  Although there's not much keeping it from 
+being "use strict" safe.  Use of package-based variables will probably get me
+thumped from Tom.
+
+=back
+
+=head1 AUTHOR
+
+The Perl implementation of I<mail> was written by 
+Clinton Pierce, I<clintp@geeksalad.org>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is Copyright 1999, by Clinton Pierce.
+
+Freely redistributable under the Perl Artistic License.
+
+=cut
+
+1;

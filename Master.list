@@ -1,0 +1,94 @@
+Here is list of all the programs included, with credits and comments.
+--------------------------------------------------
+* addbib - Jeffrey S. Haemer
+* arithmetic - Abigail <abigail@fnx.com>
+* asa - Jeffrey S. Haemer
+* awk - Tom Christiansen <tchrist@perl.com>
+* banner - unknown (no man page either)
+* basename - Abigail <abigail@fnx.com>
+* cal - Michael E. Schechter <mschechter@earthlink.net>
+* cat - Abigail <abigail@fnx.com>
+* chgrp - Abigail <abigail@fnx.com>
+* ching - Albert Dvornik <bert@genscan.com>
+! * chmod - has external modules... need to make a call on namespacing
+* chown - Abigail <abigail@fnx.com>
+* clear - Jeffrey S. Haemer
+* cmp - D Roland Walker <walker@pobox.com>
+* colrm - Jeffrey S. Haemer
+* comm - M-J. Dominus <mjd-perl-comm@plover.com>
+* cp - Ken Schumack <schumacks@att.net>
+* cut - Rich Lafferty <rich@alcor.concordia.ca>
+* date - Joshua Gross (no man page)
+* diff - M-J. Dominus <mjd-perl-comm@plover.com>
+* dirname - Abigail <abigail@fnx.com>
+* du - Greg Hewgill <greg@hewgill.com>
+* echo - Randy Yarger <randy.yarger@nextel.com>
+* ed - George M Jones <gmj@infinet.com> (no man page)
+* env - Matthew Bafford
+* expand - Thierry Bezecourt <thbzcrt@worldnet.fr>
+* expr - Michael Robinson <smrf@sans.vuw.ac.nz>
+! * factor - have to decide which one.
+* false -  Abigail <abigail@fnx.com>
+* file - dkulp
+* find - Greg Snow <snow@biostat.washington.edu>
+* fish - Clinton Pierce <clintp@geeksalad.org>
+* fold - Clinton A. Pierce
+* fortune - Andy Murren <andy@murren.org>
+* from - Vromans <jvromans@squirrel.nl> (no man page)
+* grep - many (see man page for more info)
+* head - Abigail <abigail@fnx.com>
+* id - Theo Van Dinter <felicity@kluge.net>
+* join - Jonathan Feinberg <jdf@pobox.com>
+* kill - Theo Van Dinter <felicity@kluge.net>
+* ln - Abigail <abigail@fnx.com>
+* look - Tom Christiansen <tchrist@perl.com>
+* ls -  Mark Leighton Fisher <fisherm@tce.com>
+* mail - Clinton Pierce <clintp@geeksalad.org>
+* maze - Rocco Caputo <troc@netrus.net>
+* mkfifo - Jeffrey S. Haemer and Louis Krupp
+* moo - Abigail <abigail@fnx.com>
+* morse - Matthew Bafford
+* demorse - Abigail <abigail@fnx.com>
+* nlcvt - Tom Christiansen <tchrist@perl.com>
+* od - Mark Kahn <mkahn@vbe.com>
+* paste - Randy Jay Yarger <randy.yarger@nextel.com>
+* patch - tgy@chocobo.org
+* ping - Nick Ing-Simmons <nick@ni-s.u-net.com>
+* pom - Rocco Caputo <troc@netrus.net>
+* ppt - mjd@plover.com (no man page)
+* pr - Clinton Pierce <clintp@geeksalad.org>
+* primes - Jonathan Feinberg and Benjamin Tilly
+* printenv - Randy Yarger <randy.yarger@nextel.com>
+* printf - Tom Christiansen <tchrist@perl.com>
+* pwd - Kevin Meltzer <perlguy@perlguy.com>
+* rain - Abigail <abigail@fnx.com>
+* random - Abigail <abigail@fnx.com>
+* rev - Andy Murren <andy@murren.org>
+* rm - Steve Kemp <skx@tardis.ed.ac.uk>
+* rmdir - Abigail <abigail@fnx.com>
+* shar - Rich Salz <salzr@certo.com>
+* sleep - Randy Yarger <randy.yarger@nextel.com>
+* sort - Chris Nandor E<pudge@pobox.com>
+* split - Rich Lafferty <rich@alcor.concordia.ca>
+* strings - Nathan Scott Thompson <quimby at city-net dot com>
+* sum - Theo Van Dinter <felicity@kluge.net>
+* tac - Fuzzy <tgy@chocobo.org>
+* tail - Thierry Bezecourt <thbzcrt@worldnet.fr>
+* tee - Tom Christiansen <tchrist@perl.com>
+* test - Brad Appleton
+* touch - Abigail <abigail@fnx.com>
+* tr - Abigail <abigail@fnx.com>
+* true - Abigail <abigail@fnx.com>
+* tsort - Jeffrey S. Haemer
+* uname - Jeffrey S. Haemer
+* unexpand - Thierry Bezecourt <thbzcrt@worldnet.fr>
+* uniq - Jonathan Feinberg
+* unshar - Larry Wall
+* wc - Peter Prymmer <pvhp@best.com>
+* what - Ken Schumack <schumacks@att.net>
+* which - Abigail <abigail@fnx.com>
+* whois - Yiorgos Adamopoulos <adamo@ieee.org>
+* words - Ronald J Kimball <rjk@linguist.dartmouth.edu>
+* wump - Amir Karger <karger@post.harvard.edu>
+* xargs - Gurusamy Sarathy <gsar@umich.edu>
+* yes - Abigail <abigail@fnx.com>

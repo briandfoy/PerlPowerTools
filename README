@@ -1,0 +1,45 @@
+This is a packaging of the Perl Power Tools with a Makefile.PL.
+More info on the Perl Power Tools project can be found at 
+(http://language.perl.com/ppt).
+
+All the code is copyright the respective author(s), please see the source 
+code or man page for the program to find out who that is.  Each program
+has its own terms of redistribution, please see the source code of
+the programs for that as well.
+
+If it is found useful enough, I'll upload it to CPAN.  I am unclear
+as to the current status of the Perl Power Tools, so I don't want to
+do that if someone else is working on this.
+
+What you see here is the easy part, I only included the files that I
+could easily drop into a Makefile.PL structure without having to think
+about namespacing, or including modules not currently on CPAN.
+
+This software distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+INSTALLATION:
+
+tar -xvzf PerlPowerTools-0.1.tar.gz
+cd PerlPowerTools-0.1
+perl Makefile.PL
+make
+make test (nothing will happen here yet)
+make install
+
+I have set PREFIX to /usr/local/ppt for now, as these tools will
+replace your system tools otherwise.  Replacing ls by default seems
+like a bad idea.  (Feel free to change PREFIX to /usr if you want to
+do that).
+
+TODO:
+
+The harder convertions (make, tar, and spell being good examples)
+
+Test cases for everything.  There were some included in the PPT package
+but they were specific to the individual directory structure.  I was lame
+and have not yet taken the time to add them.
+
+Man pages for those commands that don't have them (there are a few included).
+

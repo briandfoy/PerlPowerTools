@@ -1,0 +1,158 @@
+#!/usr/bin/perl -w
+# look - display lines beginning with a given search
+
+use strict;
+use locale;
+use Search::Dict;
+
+END {
+    close STDOUT || die "$0: can't close stdout: $!\n";
+    $? = 1 if $? == 255;  # from die
+} 
+
+sub usage {
+    warn "$0: @_\n" if @_;
+    die "usage: $0 [-df] string [file ...]\n";
+} 
+
+my (
+    @dicts, 	# file list
+    $search,	# the string to look for
+    %opt, 	# option hash
+    $opened,	# did we ever open something?
+    $found, 	# did we ever find something?
+    $def_dict,  # did we use the default dict list?
+);
+
+@opt{ qw/d f/ } = (0, 0);
+
+while ($ARGV[0] =~ /^-/) {
+    $ARGV[0] =~ s/^-//; 
+    for my $flag (split(//,$ARGV[0])) {
+	usage("unknown flag: `$flag'") unless 'df' =~ /\Q$flag/;
+        warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
+    } 
+    shift;
+}
+
+@dicts = qw(
+    /usr/dict/words
+    /usr/share/dict/words
+);
+
+$opened = $found = 0;
+
+$search = shift;
+
+if (@ARGV) { 
+    @dicts = @ARGV;
+    $def_dict = 0;
+} else {
+    @opt{ qw/d f/ } = (1, 1);
+    $def_dict = 1;
+} 
+
+$search = squish($search);
+
+FILE: for my $file (@dicts) {
+
+    unless (open(DICT, "< $file")) {
+	warn "$0: can't open $file: $!\n" unless $def_dict;
+	next FILE;
+    } 
+
+    $opened++;
+
+    if (-1 == look(*DICT, $search, $opt{'d'}, $opt{'f'})) {
+	last FILE;
+    } 
+
+LINE:
+    while (<DICT>) {
+	if (0 == index(squish($_), $search)) {
+	    print;
+	    $found++;
+	} else {
+	    last LINE;
+	} 
+    } 
+    close(DICT) || die "can't close $file: $!";
+    last FILE;
+} 
+
+if ($opened == 0) {
+    warn "$0: No dictionaries in default list (@dicts)\n"
+	if $def_dict;
+    exit 2;
+} 
+
+exit($found == 0 ? 1 : 0);
+
+sub squish {
+    my $str = shift;
+    $str = lc($str) 	    if $opt{'f'};
+    $str =~ s/[^\w\s]//g    if $opt{'d'};
+    return $str;
+} 
+
+
+__END__
+
+=head1 NAME 
+
+look - find lines in a sorted list
+
+=head1 SYNOPSIS
+
+look [ -df ] I<string> [ I<file> ... ]
+
+=head1 DESCRIPTION
+
+Look uses a binary search against a sorted file to print out 
+all lines that begin with the given string.  It does make 
+use of Perl's C<use locale> pragma.
+
+The B<-d> and B<-f> options affect comparisons as in sort(1):
+
+=over 
+
+=item d
+
+`Dictionary' order: only non-alphanumerics and underscores
+participate in comparisons.
+
+=item f   
+
+Fold.  Upper case letters compare equal to lower case.
+
+=back
+
+If no file is specified, F</usr/dict/words> (or F</usr/share/dict/words>
+if the former is missing) is  assumed with a collating sequence B<-df>.
+
+=head1 FILES
+
+/usr/dict/words
+
+/usr/share/dict/words
+
+=head1 SEE ALSO
+
+sort(1), grep(1), L<perllocale>
+
+=head1 BUGS
+
+I<look> has no known bugs.
+
+=head1 AUTHOR
+
+The Perl implementation of I<look> was written by Tom Christiansen,
+I<tchrist@perl.com>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright (c) Tom Christiansen 1999.
+
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.

@@ -1,0 +1,66 @@
+#!/usr/local/bin/perl -w
+use strict;
+use Getopt::Std;
+use Socket;
+use Net::Ping;
+my %opt;
+getopts('nI:',\%opt);
+die "Usage: $0 host [timeout]\n" unless @ARGV;
+my $host = shift;
+my $timeout = (@ARGV) ? shift : 20;
+my $a = gethostbyname($host);
+if (defined $a)
+ {
+  if ($opt{'n'})
+   {
+    my $name = inet_ntoa($a);
+    $host = $name if (defined $name);
+   }
+  else
+   {
+    my $name = gethostbyaddr($a,PF_INET);
+    $host = $name if (defined $name);
+   }
+  my $handle = Net::Ping->new($> ? 'udp' : 'icmp', $timeout);
+
+  if ($handle->ping($host))
+   {
+    warn "$host is alive\n";
+   }
+  else
+   {
+    die "No answer from $host";
+   }
+ }
+else
+ {
+  die "Unknown host $host\n";
+ }
+
+__END__
+
+=head1 NAME
+
+ping - probe for network hosts
+
+=head1 SYNOPSIS
+
+  ping [-n] hostname [ timeout ]
+
+=head1 DESCRIPTION
+
+C<ping> looks up I<hostname> and then attempts to contact it via the network.
+If the effective userid permits an ICMP (Internet Control Message Protocol)
+ECHO_REQUEST packet is sent, otherwise and attempt is made to connect to
+the echo port using UDP protocol.
+
+A I<timeout> may be specified in seconds. The default is 20 seconds.
+
+If C<-n> option is specified then the address of I<hostname> is reported
+as numbers.
+
+=head1 AUTHOR
+
+Nick Ing-Simmons <nick@ni-s.u-net.com>
+
+=cut
