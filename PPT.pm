@@ -1,6 +1,6 @@
 package Bundle::PPT;
 
-$VERSION = "0.10";
+$VERSION = "0.12";
 
 1;
 
@@ -16,7 +16,7 @@ C<perl -MCPAN -e 'install Bundle::PPT'>
 
 =head1 CONTENTS
 
-S/SD/SDAGUE/ppt-0.10.tar.gz
+S/SD/SDAGUE/ppt-0.12.tar.gz
 
 Make
 
