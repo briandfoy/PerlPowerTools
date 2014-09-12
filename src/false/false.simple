@@ -1,3 +1,0 @@
-#!/usr/bin/perl -w
-# false -- return false exit status
-exit 1;
