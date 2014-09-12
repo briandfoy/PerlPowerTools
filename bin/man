@@ -680,6 +680,7 @@ sub man {
 	} 
 
 	if ($show_all) {
+		no strict 'refs';
 	    local(@pages);
 	    local($was_defined) = defined $idx_topic;
 	    @pages = &find_files($target);
@@ -689,13 +690,13 @@ sub man {
 	    } 
 	    while ($tpage = shift @pages) {
 		undef $idx_topic unless $was_defined;
-		do $roff(&verify($tpage));
+		do &{"$roff"}(&verify($tpage));
 		&prompt_RTN("to read $pages[0]") 
 		    if $roff eq 'nroff' && @pages;
 	    } 
 	} else {
 	    $target = &get_page($target) unless $fromfile;
-	    do $roff($target) if $target;
+	    do &{"$roff"}($target) if $target;
 	}
 	&prompt_RTN("to read man page for $ARGV[0]") 
 	    if $roff eq 'nroff' && @ARGV;
