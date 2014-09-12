@@ -11,5 +11,5 @@ foreach my $file ( @files ) {
 
 	$name //= $file;
 
-	say "=item $name";
+	say "=item $name\n";
 	}
