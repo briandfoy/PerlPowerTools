@@ -233,7 +233,6 @@ END_HELP
 	exit;
 }
 
-# POD SECTION #
 
 =head1 NAME
 
