@@ -1,14 +1,10 @@
-my $bin = 'bin';
-opendir BIN, $bin or die $!;
-my @exe_files = map "$bin/$_", grep { $_ !~ /^\./ } readdir BIN;
-closedir BIN;
-
 use ExtUtils::MakeMaker 6.64;
 
+
+my @exe_files = glob "bin/*";
 my $main_file = 'lib/PerlPowerTools.pm';
 
-WriteMakefile
-	(
+WriteMakefile(
 	'NAME'          => 'PerlPowerTools',
 	'ABSTRACT_FROM' => $main_file,
 	'VERSION_FROM'  => $main_file,
