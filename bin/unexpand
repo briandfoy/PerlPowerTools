@@ -102,6 +102,8 @@ for my $file (@files) {
 
 __END__
 
+=head1 NAME
+
 expand, unexpand - expand tabs to spaces, and vice versa
 
 =head1 SYNOPSIS

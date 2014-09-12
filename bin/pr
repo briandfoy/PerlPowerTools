@@ -332,7 +332,7 @@ sub printpage {
 
 =head1 NAME
 
-pr -- convert text files for printing
+pr - convert text files for printing
 
 =head1 SYNOPSIS
 

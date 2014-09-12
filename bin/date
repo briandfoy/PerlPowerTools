@@ -155,4 +155,10 @@ formats
 # manner, so long as you don't restrict the ability of other to do likewise.
 # This program is offered with no guarantees, warranties, or vague promises.
 
+=encoding utf8
+
+=head1 NAME
+
+date - display or set date and time
+
 

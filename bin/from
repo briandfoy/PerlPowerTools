@@ -101,3 +101,8 @@ while (<>) {
   }
 }
 
+=encoding utf8
+
+=head1 NAME
+
+from - print names of those who have sent mail

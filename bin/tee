@@ -49,3 +49,9 @@ sub PLUMBER {
     $status++;
     delete $fh{$fh};
 } 
+
+=encoding utf8
+
+=head1 NAME
+
+tee - pipe fitting

@@ -42,3 +42,9 @@ while($line = <$sock>) {
 }
 
 close($sock);
+
+=encoding utf8
+
+=head1 NAME
+
+whois - Internet domain name and network number directory service

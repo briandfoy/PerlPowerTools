@@ -44,3 +44,9 @@ print $r1 if defined $r1 && $COL[1];
 print "\t", $r2 if defined $r2 && $COL[2];
 if ($COL[1]) { print while <F1> }
 if ($COL[2]) { print "\t", $_ while <F2> }
+
+=encoding utf8
+
+=head1 NAME
+
+comm - select or reject lines common to two files

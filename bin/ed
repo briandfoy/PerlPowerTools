@@ -984,3 +984,10 @@ sub edWarn {
 	print STDERR "$original_ed_msg\n";
     }
 }
+
+
+=encoding utf8
+
+=head1 NAME
+
+ed - text editor

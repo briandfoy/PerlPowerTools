@@ -12,3 +12,8 @@ for (split //, <>) {
 
 print "----------\n";
 
+=encoding utf8
+
+=head1 NAME
+
+ppt - reformat input as paper tape

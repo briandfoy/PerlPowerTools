@@ -77,3 +77,10 @@ sub encode($$) {
 
     close(INPUT)		|| die "can't close $source: $!";
 } 
+
+=encoding utf8
+
+=head1 NAME
+
+uudecode, uuencode - encode/decode a binary file
+

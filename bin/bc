@@ -2388,3 +2388,10 @@ define j(n,x) {
   }
 }
 #line 2391 "y.tab.pl"
+
+=pod
+
+=head1 NAME
+
+bc - An arbitrary precision calculator language
+

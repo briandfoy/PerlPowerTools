@@ -98,7 +98,7 @@ sub print_noose {
 
 =head1 NAME
 
-B<hangman> - perl version of the game hangman.  Part of the Perl Power Tools.
+hangman - perl version of the game hangman
 
 =head1 SYNOPSIS
 

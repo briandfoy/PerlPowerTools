@@ -131,7 +131,7 @@ __END__
 
 =head1 NAME
 
-chown -- change ownership of files.
+chown - change ownership of files.
 
 =head1 SYNOPSIS
 

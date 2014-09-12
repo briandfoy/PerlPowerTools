@@ -1567,3 +1567,10 @@ EOCODE
     } 
     exit ($status || !$found);
 } 
+
+=encoding utf8
+
+=head1 NAME
+
+man - format and display the on-line manual page
+

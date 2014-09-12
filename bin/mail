@@ -1038,7 +1038,7 @@ if (@ARGV) {   # Assume batch-mode
 
 =head1 NAME
 
-mail -- implementation of Berkeley mail(1)
+mail - implementation of Berkeley mail(1)
 
 =head1 SYNOPSIS
 

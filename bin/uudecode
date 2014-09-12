@@ -37,3 +37,9 @@ LINE:
     close(OUT) 			or die "can't close $file: $!";
     $ended			or die "missing end; $file may be truncated";
 }
+
+=encoding utf8
+
+=head1 NAME
+
+uudecode, uuencode - encode/decode a binary file

@@ -4,3 +4,9 @@ use POSIX ();
 use strict;
 die "not a tty" unless -t;
 print POSIX::ttyname(0), "\n";
+
+=encoding utf8
+
+=head1 NAME
+
+tty - return user's terminal name

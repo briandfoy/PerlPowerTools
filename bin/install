@@ -332,7 +332,7 @@ __END__
 
 =head1 NAME
 
-B<install> - install files and directories
+install - install files and directories
 
 =head1 SYNOPSIS
 

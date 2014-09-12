@@ -231,3 +231,9 @@ else
    }
  }
 __END__
+
+=encoding utf8
+
+=head1 NAME
+
+tar - manipulate tape archives
