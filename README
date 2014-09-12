@@ -19,7 +19,7 @@ This will install the PPT binaries in /usr/local/ppt/bin, and their manpages
 in /usr/local/ppt/man.
 
 If you would like to change the location that the PPT are installed in,
-use the PREFIX argument to Makefile.PL
+use the INSTALL_BASE argument to Makefile.PL
 
-  perl Makefile.PL PREFIX=~/ppt
+  perl Makefile.PL INSTALL_BASE=~/ppt
 
