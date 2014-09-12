@@ -230,7 +230,7 @@ __END__
 
 =head1 NAME
 
-wc - paragraph, line, word, character, and byte counter.
+wc - paragraph, line, word, character, and byte counter
 
 =head1 SYNOPSIS
 

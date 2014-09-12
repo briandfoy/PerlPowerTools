@@ -233,7 +233,7 @@ if ($myb==$yourb) {
 
 =head1 NAME
 
-fish -- plays the children's game of Go Fish
+fish - plays the children's game of Go Fish
 
 =head1 SYNOPSIS
 

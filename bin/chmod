@@ -136,7 +136,7 @@ __END__
 
 =head1 NAME
 
-chmod - change permissions of files.
+chmod - change permissions of files
 
 =head1 SYNOPSIS
 

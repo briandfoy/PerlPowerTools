@@ -243,3 +243,9 @@ Usage: rm [-fiPrR] file ...
 E-O-F
     exit;
 }
+
+=encoding utf8
+
+=head1 NAME
+
+rm - remove directory entries

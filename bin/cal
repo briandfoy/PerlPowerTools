@@ -237,7 +237,7 @@ END_HELP
 
 =head1 NAME
 
-cal.pl - member of the Perl Power Tools.
+cal - displays a calendar and the date of easter
 
 =head1 SYNOPSIS
 
