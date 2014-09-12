@@ -5,7 +5,6 @@ closedir BIN;
 
 use ExtUtils::MakeMaker 6.64;
 
-
 my $main_file = 'lib/PerlPowerTools.pm';
 
 WriteMakefile
