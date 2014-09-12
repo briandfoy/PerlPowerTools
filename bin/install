@@ -1,37 +1,8 @@
-I'm sure I haven't hit every codepath, so please bang away at this.
-
-Enjoy,
-Greg
-
------
 #! /usr/bin/perl -w
-
-# $Id: install,v 1.2 2004/08/05 14:17:43 cwest Exp $
-
-# $Log: install,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:07  cwest
-# initial import
-#
-# Revision 1.12  1999/07/29 15:41:18  gbacon
-# must printf to use %o (in modify_file)!
-#
-# Revision 1.11  1999/07/29 15:36:20  gbacon
-# beef up the docs!
-#
-# Revision 1.1  1999/07/27 15:49:47  gbacon
-# added parens to File::Copy::{copy,move} calls
-# fixed $opt{D} versus $Debug botch :-(
-#
-# Revision 1.0  1999/07/27 15:36:55  gbacon
-# Initial revision
-#
 
 use strict;
 
-my($VERSION) = '$Revision: 1.2 $' =~ /([\d.]+)/;
+my ($VERSION) = '1.2';
 
 sub usage () {
     <<EOUsage;
@@ -430,34 +401,6 @@ The combination of creation of and setting permissions for files and
 directories is not atomic, so there are lots of possibilities for
 race conditions.  If you are really concerned about this, use a umask
 of 77.
-
-=head1 REVISION HISTORY
-
-    $Log: install,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:07  cwest
-    initial import
-
-    Revision 1.14  1999/07/29 18:36:38  gbacon
-    remove C<use Data::Dumper>
-
-    Revision 1.13  1999/07/29 18:35:34  gbacon
-    make -p imply -C as documented
-
-    Revision 1.12  1999/07/29 15:41:18  gbacon
-    must printf to use %o (in modify_file)!
-
-    Revision 1.11  1999/07/29 15:36:20  gbacon
-    beef up the docs!
-
-    Revision 1.1  1999/07/27 15:49:47  gbacon
-    added parens to File::Copy::{copy,move} calls
-    fixed $opt{D} versus $Debug botch :-(
-
-    Revision 1.0  1999/07/27 15:36:55  gbacon
-    Initial revision
 
 =head1 AUTHOR
 

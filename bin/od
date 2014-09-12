@@ -1,18 +1,4 @@
 #!/usr/bin/perl -w
-#
-# $Id: od,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: od,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:13  cwest
-# initial import
-#
-# Revision 1.1  1999/03/06 06:12:24  kahn
-# Initial revision
-#
-#
 use strict;
 use Getopt::Std;
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_h $opt_i $opt_l $opt_o

@@ -1,23 +1,8 @@
 #!/usr/bin/perl -w
 
-#
-# $Id: false,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: false,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:05  cwest
-# initial import
-#
-# Revision 1.1  1999/02/25 04:16:05  abigail
-# Initial revision
-#
-#
-
 use strict;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 my $STATUS = $0 =~ /true$/ ? 0 : 1;
 

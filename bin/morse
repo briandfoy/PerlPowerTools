@@ -1,23 +1,8 @@
 #!/usr/local/bin/perl -w
 
-#
-# $Id: morse,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: morse,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:13  cwest
-# initial import
-#
-# Revision 1.1  1999/03/06 03:58:58  abigail
-# Initial revision
-#
-#
-
 use strict;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
@@ -133,18 +118,6 @@ The working of I<morse> is not influenced by any environment variables.
 
 I<morse> will report an unknown sequence of dots and dashes in short
 form, even if the input was given in dits and daws.
-
-=head1 REVISION HISTORY
-
-    $Log: morse,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:13  cwest
-    initial import
-
-    Revision 1.1  1999/03/06 03:58:58  abigail
-    Initial revision
 
 =head1 AUTHOR
 

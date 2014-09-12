@@ -1,24 +1,9 @@
 #!/usr/local/bin/perl -w
 
-#
-# $Id: rmdir,v 1.2 2004/08/05 14:17:44 cwest Exp $
-#
-# $Log: rmdir,v $
-# Revision 1.2  2004/08/05 14:17:44  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:16  cwest
-# initial import
-#
-# Revision 1.1  1999/02/28 13:32:45  abigail
-# Initial revision
-#
-#
-
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
@@ -116,18 +101,6 @@ I<rmdir> does not have any known bugs.
 This I<head> implementation is compatible with the B<OpenBSD> implementation,
 which is expected to be compatible with the B<IEEE Std1003.2-1992>
 (aka B<POSIX.2>) standard.
-
-=head1 REVISION HISTORY
-
-    $Log: rmdir,v $
-    Revision 1.2  2004/08/05 14:17:44  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:16  cwest
-    initial import
-
-    Revision 1.1  1999/02/28 13:32:45  abigail
-    Initial revision
 
 =head1 AUTHOR
 

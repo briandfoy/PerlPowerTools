@@ -1,19 +1,5 @@
 #!/usr/bin/perl -wT
 
-#
-# $Id: rev,v 1.2 2004/08/05 14:17:44 cwest Exp $
-#
-# $Log: rev,v $
-# Revision 1.2  2004/08/05 14:17:44  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:15  cwest
-# initial import
-#
-# Revision 1.0 1999/03/03 andy murren
-# Inital Revision
-#
-
 # packages used in this program
 use FileHandle;
 use strict;
@@ -22,9 +8,7 @@ use Carp;
 # unbuffer output to make it look speedier
 $|++;  
 
-# version information set up for use with RCS/CVS
-my $VERSION = do { my @r = (q$Revision: 1.2 $ =~ /\d+/g); sprintf
-"%d."."%02d" x $#r, @r }; 
+my ($VERSION) = '1.2';
 
 # set up some variables
 my $debug = 0;  # 0 for no anything else to debug
@@ -123,18 +107,6 @@ Prints out its version number, then exits.
 =head1 BUGS
 
 I<rev> has no known bugs.
-
-=head1 REVISION HISTORY
-
-	$Log: rev,v $
-	Revision 1.2  2004/08/05 14:17:44  cwest
-	cleanup, new version number on website
-	
-	Revision 1.1  2004/07/23 20:10:15  cwest
-	initial import
-	
-	Revision 1.0 1999/03/03 andy murren
-	Inital Revision
 
 =head1 AUTHOR
 

@@ -1,21 +1,7 @@
 #!/usr/local/bin/perl -w
-#
-# $Id: which,v 1.2 2004/08/05 14:17:44 cwest Exp $
-#
-# $Log: which,v $
-# Revision 1.2  2004/08/05 14:17:44  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:21  cwest
-# initial import
-#
-# Revision 1.1  1999/02/25 04:57:21  abigail
-# Initial revision
-#
-
 use strict;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 my $opt_a = 0;
 
@@ -204,18 +190,6 @@ I<which> does not do that, because there are more shells than I<csh>.
 
 I<which> will examine aliases under MPW (Mac) and symbols under DCL
 (VMS).
-
-=head1 REVISION HISTORY
-
-    $Log: which,v $
-    Revision 1.2  2004/08/05 14:17:44  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:21  cwest
-    initial import
-
-    Revision 1.1  1999/02/25 04:57:21  abigail
-    Initial revision
 
 =head1 AUTHOR
 

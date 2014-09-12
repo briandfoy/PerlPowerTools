@@ -1,18 +1,4 @@
 #!/usr/bin/perl
-#
-# $Id: fortune,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: fortune,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:05  cwest
-# initial import
-#
-#
-# Revision 1.0 1999/04/30 andy murren
-# Inital Revision
-#
 
 use strict;
 use FindBin qw($Bin);
@@ -21,7 +7,7 @@ use Getopt::Std;
 
 $|++;
 
-my ($VERSION) = ' $Revision: 1.2 $ ';
+my ($VERSION) = '1.2';
 
 my $home = "$Bin/fortunes";
 
@@ -589,17 +575,6 @@ Command line input of files does not work.
 =head1 TO DO
 
 Get the command line args of files and percentages to work.
-
-=head1 REVISION HISTORY
-
-	Revision 1.0.1 1999/06/07 andy murren
-	Small fixes and code clean up
-	FindBin now helps locate the directory of fortunes
-	Will search multiple files for a match
-	Dumped the -g option I tried in the original
-
-	Revision 1.0 1999/04/01 andy murren
-	Inital Revision
 
 =head1 AUTHOR
 

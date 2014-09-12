@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 use strict;
-### no need to edit next line. Set by CS-RCS... http://www.componentsoftware.com/csrcs/uhome.htm
-#REV='@(#)$RCSfile: what,v $ $Revision: 1.2 $ $Date: 2004/08/05 14:17:44 $';
 
 sub printWhat($$$);
 
@@ -135,20 +133,6 @@ B<a.out;>
 =head1 BUGS
 
 B<what> has no known bugs.
-
-=head1 REVISION HISTORY
-
-$Log: what,v $
-Revision 1.2  2004/08/05 14:17:44  cwest
-cleanup, new version number on website
-
-Revision 1.1  2004/07/23 20:10:21  cwest
-initial import
- Revision 1.2 1999/03/28 06:28:47 schumacks Handles binary files better 
-
-Revision 1.1 1999/03/23 10:57:39 schumacks Initial revision 
-
-$Revision: 1.2 $ 
 
 =head1 AUTHOR
 

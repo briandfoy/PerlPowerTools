@@ -583,38 +583,6 @@ files whose names match the pattern.
 
 =back
 
-=head1 REVISION HISTORY
-
-    tcgrep: tom christiansen's rewrite of grep
-    v1.0: Thu Sep 30 16:24:43 MDT 1993
-    v1.1: Fri Oct  1 08:33:43 MDT 1993
-
-    Revision by Greg Bacon <gbacon@cs.uah.edu>
-    Fixed up highlighting for those of us trapped in terminfo
-    implemented -f
-    v1.2: Fri Jul 26 13:37:02 CDT 1996
-
-    Revision by Greg Bacon <gbacon@cs.uah.edu>
-    Avoid super-inefficient matching (almost twice as fast! :-)
-    v1.3: Sat Aug 30 14:21:47 CDT 1997
-
-    Revision by Paul Grassie <grassie@worldnet.att.net>
-    Removed vestiges of Perl4, made strict
-    v1.4: Mon May 18 16:17:48 EDT 1998
-
-    Revision by Greg Bacon <gbacon@cs.uah.edu>
-    Add fgrep functionality for PPT
-    v1.5: Mon Mar  8 12:05:29 CST 1999
-
-    Revision by Bill Benedetto <bbenedetto@goodyear.com>
-    Added CLOSE after each file is done to reset counters
-    v1.6: Sat Mar 20 23:05:35 1999
-
-    Revision by Paul Johnson <paul@pjcj.net>
-    Add support for bzip2 and zip files
-    File names are printed by default when using -r and supplying no directory
-    v1.7: Thu May 27 00:25:30 BST 1999
-
 =head1 AUTHOR
 
 B<tcgrep> was written by Tom Christiansen with updates by Greg Bacon

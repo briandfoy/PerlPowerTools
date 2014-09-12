@@ -1,24 +1,9 @@
 #!/usr/local/bin/perl -w
 
-#
-# $Id: random,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: random,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:15  cwest
-# initial import
-#
-# Revision 1.1  1999/02/28 22:10:55  abigail
-# Initial revision
-#
-#
-
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
@@ -111,18 +96,6 @@ The working of I<random> is not influenced by any environment variables.
 =head1 BUGS
 
 There are no known bugs in I<random>.
-
-=head1 REVISION HISTORY
-
-    $Log: random,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:15  cwest
-    initial import
-
-    Revision 1.1  1999/02/28 22:10:55  abigail
-    Initial revision
 
 =head1 AUTHOR
 

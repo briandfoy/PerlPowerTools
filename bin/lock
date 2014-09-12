@@ -1,7 +1,4 @@
 #!/usr/local/bin/perl -w
-#
-# $Revision: 1.1 $
-#
 
 use strict;
 use POSIX qw(:termios_h);

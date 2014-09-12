@@ -5,7 +5,7 @@ use strict;
 use Getopt::Std;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
+$VERSION = '1.1';
 
 use vars qw($opt_b $opt_f $opt_p $opt_x $opt_l);
 use vars qw($opt_e $opt_E $opt_s $opt_t);
@@ -416,23 +416,6 @@ This implementation of B<col> was compared to the B<col> utility on
 IRIX and BSD, and includes compatibility modes for both those systems.
 The B<col> utilities on other systems may have further differences in
 behavior.
-
-=head1 REVISION HISTORY
-
-    $Log: col,v $
-    Revision 1.1  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.3  2003/06/06 03:44:01  rjk
-    updates to POD
-    new email address
-
-    Revision 1.2  2001/04/11 03:54:36  rjk
-    avoid POD warnings for bare -E, etc.
-
-    Revision 1.1  2000/02/12 15:46:03  rjk
-    Initial revision
-
 
 =head1 AUTHOR
 

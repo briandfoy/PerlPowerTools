@@ -3,9 +3,6 @@
 #
 # An implementation of the 'cksum' utility in Perl.  Written for the Perl
 # Power Tools (PPT) project by Theo Van Dinter (felicity@kluge.net).
-#
-# $Id: sum,v 1.2 2004/08/05 14:17:44 cwest Exp $
-#
 
 use integer;
 use Getopt::Std;

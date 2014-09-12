@@ -1,24 +1,9 @@
 #!/usr/local/bin/perl -wT
 
-#
-# $Id: cat,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: cat,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:01  cwest
-# initial import
-#
-# Revision 1.1  1999/02/26 03:21:14  abigail
-# Initial revision
-#
-#
-
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 # Get the options.
 
@@ -156,18 +141,6 @@ This I<cat> implementation is compliant with the B<IEEE Std1003.2-1992>
 specification, also known as B<POSIX.2>.
 
 This I<cat> implementation is compatible with the B<OpenBSD> implementation.
-
-=head1 REVISION HISTORY
-
-    $Log: cat,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:01  cwest
-    initial import
-
-    Revision 1.1  1999/02/26 03:21:14  abigail
-    Initial revision
 
 =head1 AUTHOR
 

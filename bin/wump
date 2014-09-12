@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 # HUNT THE WUMPUS
-#
-# $Id: wump,v 1.2 2004/08/05 14:17:44 cwest Exp $
-#
+
 # Perl port by Amir Karger (karger@post.harvard.edu), March 1999.
 # See documentation for LICENSE etc.
 #

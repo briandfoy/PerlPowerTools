@@ -6,7 +6,7 @@ use File::Basename;
 use Getopt::Std;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
+$VERSION = '1.2';
 
 use vars qw($opt_w $opt_m);
 
@@ -122,28 +122,6 @@ http://personal.riverusers.com/~thegrendel/software.html.
 =head1 BUGS
 
 This implementation of B<words> has no known bugs.
-
-=head1 REVISION HISTORY
-
-    $Log: words,v $
-    Revision 1.2  2004/08/05 14:17:44  cwest
-    cleanup, new version number on website
-
-    Revision 1.4  2003/06/06 02:27:35  rjk
-    trivial changes to POD
-    new email address
-
-    Revision 1.3  1999/08/26 17:10:32  rjk
-    Removed L<> from around link in pod - pod2html doesn't handle L<> properly
-
-    Revision 1.2  1999/06/22 02:20:13  rjk
-    added /o to regex which verifies letters used
-      (regex is constant in this implementation of words)
-    added link to ENABLE word list in POD
-    added $VERSION
-
-    Revision 1.1  1999/06/14 02:28:41  rjk
-    Initial revision
 
 =head1 AUTHOR
 

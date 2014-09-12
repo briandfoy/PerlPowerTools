@@ -1,23 +1,8 @@
 #!/usr/local/bin/perl -w
 
-#
-# $Id: moo,v 1.2 2004/08/05 14:17:43 cwest Exp $
-#
-# $Log: moo,v $
-# Revision 1.2  2004/08/05 14:17:43  cwest
-# cleanup, new version number on website
-#
-# Revision 1.1  2004/07/23 20:10:12  cwest
-# initial import
-#
-# Revision 1.1  1999/02/28 14:28:46  abigail
-# Initial revision
-#
-#
-
 use strict;
 
-my ($VERSION) = '$Revision: 1.2 $' =~ /([.\d]+)/;
+my ($VERSION) = '1.2';
 
 # Print a usuage message on a unknown option.
 $SIG {__WARN__} = sub {
@@ -147,18 +132,6 @@ The working of I<moo> is not influenced by any environment variables.
 =head1 BUGS
 
 I<moo> does not have any known bugs.
-
-=head1 REVISION HISTORY
-
-    $Log: moo,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:12  cwest
-    initial import
-
-    Revision 1.1  1999/02/28 14:28:46  abigail
-    Initial revision
 
 =head1 AUTHOR
 
