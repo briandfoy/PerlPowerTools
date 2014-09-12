@@ -21,6 +21,7 @@ WriteMakefile
 	'EXE_FILES'     => \@exe_files,
 
 	'PREREQ_PM'     => {
+		'App::a2p'     => '0',
 		'Make'         => '0',
 		'MIME::Parser' => '0',
 		},

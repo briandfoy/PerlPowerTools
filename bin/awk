@@ -3,6 +3,8 @@
 
 use strict;
 
+use App::a2p;
+
 my(
     $program,		# the code to eval
     $tmpin, 		# the files a2p reads
@@ -94,7 +96,13 @@ $| = 1;
 system 'a2p', @nargs;
 
 if ($?) {
-    die "Couldn't run a2p (wait status == $?)";
+    die <<"HERE";
+Couldn't run a2p (wait status == $?)
+
+a2p used to come with perl, but is now distributed separately in
+the App::a2p module.
+
+HERE
 } 
 
 die "empty program" unless -s TMPOUT;
