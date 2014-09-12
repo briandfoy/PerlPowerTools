@@ -21,7 +21,8 @@ WriteMakefile
 	'EXE_FILES'     => \@exe_files,
 
 	'PREREQ_PM'     => {
-		Make => '0',
+		'Make'         => '0',
+		'MIME::Parser' => '0',
 		},
 
 	'META_MERGE' => {
