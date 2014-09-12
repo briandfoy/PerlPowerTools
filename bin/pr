@@ -9,13 +9,13 @@
 #       didn't see the point, and was tired of looking at it.
 #   Some implementations of pr(1) (notably AIX's) have a column-smart folding
 #       built in.  Not implemented here, but would be nice.
-#   
+#
 #   The version I tested against seemed to adjust page-length automagically
 #   according to screen-length if output was to a tty.  Cute and usable, but
 #   not implemented.
 #   The BSD manual says that input formfeed characters cause a page-feed.
 #       I could not reliably get this to happen with the BSD code to test,
-#       so it's left unimplemented, but it shouldn't be hard--I just didn't 
+#       so it's left unimplemented, but it shouldn't be hard--I just didn't
 #       know what it should look like.
 #
 
@@ -41,7 +41,7 @@ my $roundrobin=0;		# across not down.  STR   (Bool)
 
 # Constants that are useful
 my $trailerlength=5;
-my $numberchar="\t";	
+my $numberchar="\t";
 
 my $curfile="";
 my(@FINFO, @COLINFO);
@@ -77,10 +77,10 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     if (s/^d//) { warn "-d flag already set" if $doublespace++; redo OPTION; }
     if (s/(^F)//i) { warn "-$1 flag already set" if $formfeed++; redo OPTION; }
     if (s/^r//) { warn "-r flag already set" if $quietskip++; redo OPTION; }
-    if (s/^t//) { 
-	warn "-t flag already set" unless ( $trailer); 
+    if (s/^t//) {
+	warn "-t flag already set" unless ( $trailer);
 	$trailer=0;
-	redo OPTION; 
+	redo OPTION;
     }
 
     # normal "-opt value" arguments
@@ -90,7 +90,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     }
 
     if (s/^o//) {
-	warn "-o option already used" if $offsetspaces; 
+	warn "-o option already used" if $offsetspaces;
 	$offsetspaces=shift;
 	redo OPTION;
     }
@@ -99,21 +99,21 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 	$length=shift;
 	redo OPTION;
     }
-	
+
     if (s/^h//) {
-	warn "-h option already used" if $header; 
+	warn "-h option already used" if $header;
 	$header=shift;
 	redo OPTION;
     }
-	
+
     # Accept -2, -3, etc...
-    if (s/^(\d.*)//) { 
+    if (s/^(\d.*)//) {
         $columns = $1;
         next OPTION;
     }
-	
+
     usage("unexpected option: -$_");
-} 
+}
 
 # One more option
 if (@ARGV and $ARGV[0]=~/^\+(\d+)/) {
@@ -135,14 +135,14 @@ my @files;
 my $pageno=$startpageno;
 
 foreach(1..$columns) {
-	push(@COLINFO, &create_col); 
+	push(@COLINFO, &create_col);
 }
 foreach(@ARGV) {
 	my $fh=new FileHandle "$_", "r";
 	if (! $fh) {
 		next if ($quietskip);
 		die "$0: Can't open $_";
-	}	
+	}
 	push(@FINFO, {  name  => $_,
 			handle=> $fh,
 			lineno=> 0,
@@ -156,7 +156,7 @@ if ($roundrobin) {   # Across the columns fill, pagebreak on EOF or end
 NEXTREAD:	while(! $$fstruct{handle}->eof) {
 			foreach my $col (@COLINFO) {
 				if (! &fill_column_1($col, $fstruct)) {
-					&printpage;					
+					&printpage;
 					next NEXTREAD;
 				}
 			}
@@ -168,7 +168,7 @@ NEXTREAD:	while(! $$fstruct{handle}->eof) {
 		my $i=0;
 		foreach my $col (@COLINFO) {
 			my $fstruct=$FINFO[$i];
-			if (! $$fstruct{handle}->eof) {	
+			if (! $$fstruct{handle}->eof) {
 				fill_column($col, $fstruct);
 			}
 			$i++;
@@ -209,7 +209,7 @@ sub create_col  {
 	my($col)=@_;
 
 	my $pagelen=$length-($trailerlength*2);
-	if($doublespace) {		
+	if($doublespace) {
 		$pagelen=($pagelen%2 == 0)?$pagelen/2:int($pagelen/2)+1;
 	}
 	return({ height => $pagelen,
@@ -217,7 +217,7 @@ sub create_col  {
 		 cfile =>"",
 		 text => [],
 		});
-} 
+}
 sub stillhavefiles {
 	my $eof=0;
 	foreach my $fstruct (@FINFO) {
@@ -243,9 +243,9 @@ sub fill_column {
 sub fill_column_1 {
 	my($col, $fstruct)=@_;
 
-	return if (! $$col{height});    
+	return if (! $$col{height});
 	my $foo=$$fstruct{handle};  # Couldn't read it directly.  Syntax?
-	my $line=<$foo>;   
+	my $line=<$foo>;
 	chomp $line;
 
 	# BSD Manual LIES.  Formfeeds are treated strangely, but experimentation
@@ -263,7 +263,7 @@ sub fill_column_1 {
 
 sub print_header {
 	my($col)=@_;		# the current column.
-	return if (!$trailer); 
+	return if (!$trailer);
 
 	print "\n\n", scalar(localtime), " ";
 	if ($header) {
@@ -296,7 +296,7 @@ sub printpage {
 		$colwidth-=(length($numberchar)+$number);
 	}
 
-	print_header($COLINFO[0]);	
+	print_header($COLINFO[0]);
 	foreach my $line (1..$COLINFO[0]{oheight}) {
 		print "O"x${offsetspaces} if ($offsetspaces);
 		foreach my $column (@COLINFO) {
@@ -308,7 +308,7 @@ sub printpage {
 				$numbering=sprintf("$pfmt", $$column{text}[$line-1]{lineno});
 				# Truncate off left hand side
 				$numbering=substr($numbering, length($numbering)-$number, $number);
-			} 
+			}
 			print $numbering;
 			print $numberchar if ($number);
 
@@ -344,7 +344,7 @@ C<pr -m [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
 
 =head1 DESCRIPTION
 
-I<pr> formats text into fixed-length pages with headers, multiple columns and 
+I<pr> formats text into fixed-length pages with headers, multiple columns and
 other options suitable for hardcopy output.
 
 =head2 OPTIONS
@@ -357,7 +357,7 @@ I<pr> accepts the following option:
 
 Causes I<pr> to print text in columns down the page.  Note that I<pr> does not attempt
 to fold lines which are too long to fit in their column and long lines and control characters
-will affect output.  Column width decreases as the number of columns goes up.  I<-w> 
+will affect output.  Column width decreases as the number of columns goes up.  I<-w>
 should be used to make the page wider.
 
 =item +page
@@ -379,7 +379,7 @@ Output is double-spaced
 
 =item -f
 
-Formfeed characters are used instead of trailing blank lines to control 
+Formfeed characters are used instead of trailing blank lines to control
 page length.  I<-F> is a synonym for I<-f>.
 
 =item -r
@@ -392,13 +392,13 @@ Suppress the 5-line header and 5-line trailer on each page
 
 =item -sB<char>
 
-The single character B<char> will be used to separate multi-column output.  
+The single character B<char> will be used to separate multi-column output.
 Note that the columns are no-longer fixed-width with this option.
 
 =item -n[B<char>[B<count>]]
 
-Precede each column with a line number.  B<count> is the desired width of 
-the line numbering (numbers too large are truncated).  B<char> can be used to 
+Precede each column with a line number.  B<count> is the desired width of
+the line numbering (numbers too large are truncated).  B<char> can be used to
 separate numbers from the output line, tab is used if B<char> is not specified.
 
 =item -e
@@ -420,7 +420,7 @@ Length of the page, in lines.  Defaults to 66.
 
 =item -o B<count>
 
-Offset each line with a left margin B<count> characters wide.  This is in addition to 
+Offset each line with a left margin B<count> characters wide.  This is in addition to
 the width specified with the I<-w> option.
 
 =item -h B<text>

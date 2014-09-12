@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 
 #
-# Class that holds a couple of things for all of the 
-# other classes here.  Mostly 'cause they all need 
+# Class that holds a couple of things for all of the
+# other classes here.  Mostly 'cause they all need
 # an AUTOLOAD and DESTROY, but they're all almost the same.
 #
-package mailprog;
+package PerlPowerTools::mailprog;
 
 sub AUTOLOAD {
         my $self=shift;
@@ -55,7 +55,7 @@ sub new {
 	# only core-modules be used.  Mail::Mailer would be MUCH better
 	# suited for this task IMHO...
 	#
-	if (! exists $ENV{REPLYADDR}) {    
+	if (! exists $ENV{REPLYADDR}) {
 		# Find my name...
 		if (! defined $self->user) {
 			if (exists $ENV{USER} or exists $ENV{LOGNAME}) {
@@ -106,7 +106,7 @@ sub new {
 
 	# Get the SMTP header
 	$_=<$socket>;
-	
+
 	$self->socket($socket);   # Use this quickly, it may expire.
 	return $self;
 }
@@ -212,7 +212,7 @@ sub load_from_array {   # Already chomped.
 		push(@head, $l)
 	}
 	@body=@_;
-	
+
 	push(@{$self->{body}}, @body);
 	push(@{$self->{head}}, @head);
 	$self->_extract;
@@ -221,7 +221,7 @@ sub _extract {
 	my $self=shift;
 
 	foreach(@{$self->{head}}) {
-		unless (/^\s+/) { 
+		unless (/^\s+/) {
 			push(@hc, $_);
 		} else {
 			$hc[$#hc].=$_;
@@ -293,7 +293,7 @@ sub _printablestatus {
 }
 sub outputstatus {     # Why the hell mail uses one status flag in the file,
 	my $self=shift; # and a _different_ one onscreen escapes me.  Lunacy.
-	
+
 	my $status;
 	$status.="R" if ($self->read);
 	$status.="O";
@@ -303,8 +303,8 @@ sub outputstatus {     # Why the hell mail uses one status flag in the file,
 # Given a message, return a 1 line summary, takes sequence # as arg
 sub summary {
 	my $self=shift;
- 
-	my $line=sprintf "%2s %2d %16s  %16s %3d/%4d ", 
+
+	my $line=sprintf "%2s %2d %16s  %16s %3d/%4d ",
 		$self->_printablestatus,
 		$self->sequence,
 		(defined $self->from)?substr($self->from, 0, 16):" ",
@@ -318,24 +318,24 @@ sub summary {
 		$line.="(no subject)";
 	}
 	return($line);
-		     
+
 }
 sub printhead {
 	my $self=shift;
-	
+
 	$self->read(1);
 	return join("\n", grep(!/^Status:/i, @{$self->{head}}));
 }
 sub body {
 	my $self=shift;
-	
+
 	$self->read(1);
 	return join("\n", @{$self->{body}} );
 }
 sub whole {
 	my $self=shift;
 	my $lines=shift;
-	
+
 	$self->read(1);
 	if (! defined $lines) {
 		return 	join("\n", grep(!/^Status:/i, @{$self->{head}}), "",@{$self->{"body"}});
@@ -362,13 +362,13 @@ sub new {
 			$self->{$a}=shift;
 		}
 	}
-	# Ok, this is here 'cause I want the displayed message numbers to 
+	# Ok, this is here 'cause I want the displayed message numbers to
 	# match the offsets in the array.  (Saves headaches later, believe it
 	# or not.)
 	@{$self->{messages}}="Invalid";
 
 	bless($self, $class);
-	return $self;	
+	return $self;
 }
 sub load {
 	my $self=shift;
@@ -452,12 +452,12 @@ sub write {
 }
 sub messagex {
 	my $self=shift;
-	
+
 	my $num=shift;
 	if ($num<=0) {
 		die "Invalid message specification, $num (Should Not Happen)";
 	}
-	
+
 	return(${$self->{messages}}[$num]);
 }
 sub replace {
@@ -506,7 +506,7 @@ sub new {
 sub edit {
 	my $self=shift;
 	my $args=shift;
-	
+
 	my $msg=$self->message;
 	if (! defined $msg) {
 		die "Should Not Happen, edit without message";
@@ -536,13 +536,13 @@ EDLOOP: {
 			/s/ && do { $msg->subject($arg); last SWITCH; };
 			/q/ && do { return; };
 			/\!/ && do { system($arg); last SWITCH; };
-			/c/ && do { 
+			/c/ && do {
 					my $ccs=$msg->cc;
 					push(@{$ccs}, split(/[\s,;]+/, $arg));
 					$msg->cc($ccs);
 					last SWITCH;
 				};
-			/b/ && do { 
+			/b/ && do {
 					my $ccs=$msg->bcc;
 					push(@{$ccs}, split(/[\s,;]+/, $arg));
 					$msg->bcc($ccs);
@@ -615,7 +615,7 @@ use English;
 use Getopt::Std;
 use vars qw($VERSION $ROWS $BUFFERL $box);
 
-$VERSION=".02"; 
+$VERSION=".02";
 $ROWS=23;         # Screen Dimensions.  Yeah, this sucks.
 $COLS=80;
 $BUFFERL=2;	  # Lines needed for "fluff"
@@ -683,7 +683,7 @@ sub mail {
 }
 sub replyCC {
 	my($list)=@_;   # Target addresses
-	
+
 	my(@ccaddrs, @replies, $subj, $tc);
 	foreach(@$list) {
 		my $original=$box->messagex($_);
@@ -721,7 +721,7 @@ sub replyCC {
 }
 sub reply {
 	my($list)=@_;   # Target addresses
-	
+
 	my(@replies, $subj);
 	foreach(@$list) {
 		my $original=$box->messagex($_);
@@ -919,7 +919,7 @@ sub parseargs {
 	}
 }
 # Accepts empty, Accepts lists of space or comma-seperated numbers
-# Accepts ranges (1-5), Accepts offsets (+1, -5), Special 
+# Accepts ranges (1-5), Accepts offsets (+1, -5), Special
 # $=last message *=all messages
 sub parse_msg_list {
 	my($list, $current)=@_;
@@ -949,7 +949,7 @@ sub Interactive {
 		print "You have no mail\n";
 		exit;
 	}
-	my $current=1; 
+	my $current=1;
 
 	select STDOUT; $|=1;
 	print "Mail [$VERSION Perl] [$OSNAME]\n";   # This is fluff.
@@ -1048,8 +1048,8 @@ mail [B<-s> subject] [B<-c> cc-addrs] [B<-b> bcc-addrs] to-addr [..toaddr..]
 
 =head1 DESCRIPTION
 
-When called without command-line options (except B<-f>) I<mail> allows the user to 
-interactively send mail, and manage a mail folder.  Otherwise, I<mail> allows 
+When called without command-line options (except B<-f>) I<mail> allows the user to
+interactively send mail, and manage a mail folder.  Otherwise, I<mail> allows
 the user to send outgoing E-mail to recipients.
 
 When run interactively, the mail folder ~/mbox is used.  If the home
@@ -1081,7 +1081,7 @@ without appearing in the headers.
 
 =item to-addr
 
-E-Mail destination addresses.  You may not be notified if mail fails to 
+E-Mail destination addresses.  You may not be notified if mail fails to
 deliver to the address properly.
 
 =back
@@ -1089,7 +1089,7 @@ deliver to the address properly.
 =head2 COMMANDS
 
 In the list below, "msg" indicates a message list.  Acceptable values are comma or
-space separated lists, ranges (i.e. 1-5) or single digits.  Special values are "$" 
+space separated lists, ranges (i.e. 1-5) or single digits.  Special values are "$"
 (end of list) and * (all messages).  If messages are unspecified, the current message
 is used.  "path" indicates a filename argument.  "addr"
 indicates a mail message address list (comma or space separated).
@@ -1098,7 +1098,7 @@ indicates a mail message address list (comma or space separated).
 
 =item number
 
-Read message I<number>.  
+Read message I<number>.
 
 =item !command
 
@@ -1106,7 +1106,7 @@ Execute the "command" with the command interpreter.
 
 =item copy msg path
 
-Copy indicated messages (I<msg>) to filename at I<path>.  
+Copy indicated messages (I<msg>) to filename at I<path>.
 B<co> is an alias for this command.
 
 =item delete msg
@@ -1116,7 +1116,7 @@ B<d> is an alias for this command.
 
 =item exit
 
-Exit the I<mail> program saving no changes to the mailbox.  
+Exit the I<mail> program saving no changes to the mailbox.
 B<x> is an alias for this command.
 
 =item from msg
@@ -1200,7 +1200,7 @@ B<w> is an alias for this command.
 =head2 EDITING COMMANDS
 
 When sending a mail message (commands B<mail, reply or Reply>) a primitive
-line-mode editor is used to get the body of the mail message, and possibly 
+line-mode editor is used to get the body of the mail message, and possibly
 change any header options.  During the editing session, special commands may
 be used when typed at the beginning of the line.
 
@@ -1243,7 +1243,7 @@ Read the contents of I<file> into the message.
 
 =item ~v
 
-Invoke the visual editor on the message.  When the user is done 
+Invoke the visual editor on the message.  When the user is done
 editing the message, read the message back in, and continue editing
 at the end.
 
@@ -1258,9 +1258,9 @@ which can be fixed without hassle, I'm sure.
 
 =item *
 
-Many (many, many..) features left unimplemented.  Command-line, 
+Many (many, many..) features left unimplemented.  Command-line,
 commands and editing functions have all been decimated. I only implemented what
-I thought was useful.  I<BSD mail> had many years to develop its many 
+I thought was useful.  I<BSD mail> had many years to develop its many
 tentacles.  I don't have that kind of patience.
 
 =item *
@@ -1271,7 +1271,7 @@ Keeping track of the "current" message in the mail folder is sloppy.
 
 Screen length is assumed to be 23 characters.  Width is 79.
 
-=item * 
+=item *
 
 Argument parsing doesn't ensure sane (and legal) combinations.
 
@@ -1287,7 +1287,7 @@ I<mail> doesn't act as a Local Delivery Agent.
 
 =item *
 
-I<mail>'s method of picking through mail message headers to find from, to 
+I<mail>'s method of picking through mail message headers to find from, to
 and cc addresses violates several FAQ's, RFC's, and is void where prohibited.
 Also easy to fix, I simply ran out of patience.  See the _extract method in the
 message class if you're adventuresome.
@@ -1296,8 +1296,8 @@ message class if you're adventuresome.
 
 To perform delivery, mail searches for C<$USER> or C<$LOGNAME> in your environment to see who
 you are (for a From address).  It then searches for an SMTP agent on localhost.
-Not finding that, it wants $RELAYHOST set to your SMTP relaying host name.  Your 
-reply address is taken from $REPLYADDR or your system's environment.  Whichever 
+Not finding that, it wants $RELAYHOST set to your SMTP relaying host name.  Your
+reply address is taken from $REPLYADDR or your system's environment.  Whichever
 is easier.  Win32 systems, be prepared to setup your environment properly for
 this to work!
 
@@ -1309,7 +1309,7 @@ sane method like Mail::Mailer.  This was done so that PPT mail(1) could remain
 
 =item *
 
-This code is not "use strict" safe.  Although there's not much keeping it from 
+This code is not "use strict" safe.  Although there's not much keeping it from
 being "use strict" safe.  Use of package-based variables will probably get me
 thumped from Tom.
 
@@ -1317,7 +1317,7 @@ thumped from Tom.
 
 =head1 AUTHOR
 
-The Perl implementation of I<mail> was written by 
+The Perl implementation of I<mail> was written by
 Clinton Pierce, I<clintp@geeksalad.org>.
 
 =head1 COPYRIGHT and LICENSE

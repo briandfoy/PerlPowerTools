@@ -50,7 +50,7 @@ $| = 1 if exists $options {r};
 my $frac = 1 / $denominator;
 
 while (<>) {print if $frac >= rand;}
-    
+
 exit $warnings;
 
 __END__

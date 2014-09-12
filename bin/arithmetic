@@ -65,7 +65,7 @@ my $questions = 0;
 my $correct   = 0;
 
 $SIG {INT}    = \&report;
-    
+
 use constant QUESTIONS => 20;
 use constant REMEMBER  => 20;  # One in five? *shrug*
 
@@ -138,7 +138,7 @@ sub report {
                      map {/^1 / ? $_ : $_ . "s"}
                        grep {!/^0/}
                          "$hours hour", "$minutes minute", "$seconds second") ||
-                       "no time at all!"; 
+                       "no time at all!";
 
     print "\nYou had $correct answers correct, our of $questions. ",
             "It took you $time.\n";
@@ -161,7 +161,7 @@ B<arithmetic> [B<-o> B<+-x/>] [B<-r> I<range>]
 =head1 DESCRIPTION
 
 B<arithmetic> prompts you with simple arithmetic exercises, and
-verifies your answers. B<arithmetic> will reply with B<Right!> 
+verifies your answers. B<arithmetic> will reply with B<Right!>
 if you answered correctly, and with B<What?> if you answered incorrectly.
 If B<arithmetic> thinks your answer is not a number, it will
 respond with B<Please type a number!> and repeat the exercise.

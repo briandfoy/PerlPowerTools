@@ -106,7 +106,7 @@ sub modify_file {
     }
     chmod oct ($realmode), $file or warn "$!\n";
 }
-    
+
 exit $warnings;
 
 __END__
@@ -251,7 +251,7 @@ S<    [I<who>] I<operator> [I<permissions>] [I<operator> [I<permissions>] ...]>
 
 I<who> consists of zero or more of the following symbols:
 
-=over 
+=over
 
 =item B<u>
 
@@ -307,7 +307,7 @@ I<permission>s, for those groups indicated by I<who>.
 
 Set permissions. The permission bits indicated by I<who> are
 all cleared. If I<who> isn't given, all permission bits are
-cleared. Then, if I<who> isn't given, those permission bits 
+cleared. Then, if I<who> isn't given, those permission bits
 in I<permission> whose corresponding bit in the I<umask> is clear
 are set. Otherwise, the permission bits are set as indicated
 by I<who> and I<permission>.
@@ -334,7 +334,7 @@ The execute permission bit.
 
 The execute permission bit, but only if the target is either a directory,
 or has at least one execution bit set in the unmodified permission
-bits. Furthermore, this permission is ignored if I<operator> is either 
+bits. Furthermore, this permission is ignored if I<operator> is either
 B<E<45>> or B<E<61>>.
 
 =item B<s>
@@ -383,9 +383,9 @@ B<chmod> can loop forever when symbolic links create cycles.
 
 B<chmod> uses I<File::Find> to recurse.
 
-This manual should have been written in Texinfo, LaTeX, or a funky 
+This manual should have been written in Texinfo, LaTeX, or a funky
 SGML application. B<pod2man>, B<pod2html>, B<pod2text> and B<pod2latex>
-are all broken beyond belief. 
+are all broken beyond belief.
 
 =head1 STANDARDS
 

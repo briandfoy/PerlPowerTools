@@ -60,7 +60,7 @@ sub processFile()
     {
 	rmdir( $fileName );
     }
-    elsif( -f $fileName ) 
+    elsif( -f $fileName )
     {
 	removeFile( $fileName );
     }
@@ -73,24 +73,24 @@ sub removeDirectory( )
     my ( $dirName ) = @_;
     my ( $path );
 
-    unless (opendir(DIR, $dirName)) 
+    unless (opendir(DIR, $dirName))
     {
 	warn "Can't open $dirName\n";
 	closedir(DIR);
 	return;
     }
 
-    foreach (readdir(DIR)) 
+    foreach (readdir(DIR))
     {
 	next if $_ eq '.' || $_ eq '..';
 	$path = "$dirName/$_";
 
-	if (-d $path) 
-	{		
+	if (-d $path)
+	{
 	    &removeDirectory($path);
 	}
-	elsif (-f _) 
-	{	
+	elsif (-f _)
+	{
 	    removeFile( $path );
 	}
     }
@@ -195,12 +195,12 @@ sub overWriteFile( )
 
 #
 #  Read the options from the command line.
-sub getOptions() 
+sub getOptions()
 {
      # Process options, if any.
      # Make sure defaults are set before returning!
      return unless @ARGV > 0;
-    
+
      if ( !getopts( 'ifPrR' )  )
      {
 	 showUsage();

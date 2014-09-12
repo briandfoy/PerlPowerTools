@@ -8,12 +8,12 @@ use Search::Dict;
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
-} 
+}
 
 sub usage {
     warn "$0: @_\n" if @_;
     die "usage: $0 [-df] string [file ...]\n";
-} 
+}
 
 my (
     @dicts, 	# file list
@@ -27,11 +27,11 @@ my (
 @opt{ qw/d f/ } = (0, 0);
 
 while ($ARGV[0] =~ /^-/) {
-    $ARGV[0] =~ s/^-//; 
+    $ARGV[0] =~ s/^-//;
     for my $flag (split(//,$ARGV[0])) {
 	usage("unknown flag: `$flag'") unless 'df' =~ /\Q$flag/;
         warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
-    } 
+    }
     shift;
 }
 
@@ -44,13 +44,13 @@ $opened = $found = 0;
 
 $search = shift;
 
-if (@ARGV) { 
+if (@ARGV) {
     @dicts = @ARGV;
     $def_dict = 0;
 } else {
     @opt{ qw/d f/ } = (1, 1);
     $def_dict = 1;
-} 
+}
 
 $search = squish($search);
 
@@ -59,13 +59,13 @@ FILE: for my $file (@dicts) {
     unless (open(DICT, "< $file")) {
 	warn "$0: can't open $file: $!\n" unless $def_dict;
 	next FILE;
-    } 
+    }
 
     $opened++;
 
     if (-1 == look(*DICT, $search, $opt{'d'}, $opt{'f'})) {
 	last FILE;
-    } 
+    }
 
 LINE:
     while (<DICT>) {
@@ -74,17 +74,17 @@ LINE:
 	    $found++;
 	} else {
 	    last LINE;
-	} 
-    } 
+	}
+    }
     close(DICT) || die "can't close $file: $!";
     last FILE;
-} 
+}
 
 if ($opened == 0) {
     warn "$0: No dictionaries in default list (@dicts)\n"
 	if $def_dict;
     exit 2;
-} 
+}
 
 exit($found == 0 ? 1 : 0);
 
@@ -93,12 +93,12 @@ sub squish {
     $str = lc($str) 	    if $opt{'f'};
     $str =~ s/[^\w\s]//g    if $opt{'d'};
     return $str;
-} 
+}
 
 
 __END__
 
-=head1 NAME 
+=head1 NAME
 
 look - find lines in a sorted list
 
@@ -108,20 +108,20 @@ look [ -df ] I<string> [ I<file> ... ]
 
 =head1 DESCRIPTION
 
-Look uses a binary search against a sorted file to print out 
-all lines that begin with the given string.  It does make 
+Look uses a binary search against a sorted file to print out
+all lines that begin with the given string.  It does make
 use of Perl's C<use locale> pragma.
 
 The B<-d> and B<-f> options affect comparisons as in sort(1):
 
-=over 
+=over
 
 =item d
 
 `Dictionary' order: only non-alphanumerics and underscores
 participate in comparisons.
 
-=item f   
+=item f
 
 Fold.  Upper case letters compare equal to lower case.
 

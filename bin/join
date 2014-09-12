@@ -80,7 +80,7 @@ while (@buf1 && @buf2) {
       }
     }
   }
-  
+
   if ($eof1) { @buf1 = () }
   else       { splice @buf1, 0, @buf1 - 1 }
 
@@ -109,8 +109,8 @@ sub get_a_line {
   my $not_eof = defined(my $line = <$fh>);
   if ($not_eof) {
     chomp $line;
-    push (@$aref, 
-	  defined $delimiter ? 
+    push (@$aref,
+	  defined $delimiter ?
 	  [split $delimiter, $line, -1] : [split ' ', $line, -1]);
   }
   else { push @$aref, undef }
@@ -153,14 +153,14 @@ sub get_arg {
   my ($arg,$opt) = shift;
   if    (length) { $opt = $_ }
   elsif (@ARGV)  { $opt = shift @ARGV }
-  else           {die "$0: option requires an argument -- $arg\n"}  
+  else           {die "$0: option requires an argument -- $arg\n"}
   return $opt;
 }
 
 sub get_numeric_arg {
   my ($argname, $desc) = @_;
   my $opt = get_arg($argname);
-  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";  
+  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";
   return $opt;
 }
 
@@ -214,14 +214,14 @@ sub get_options {
 
 __END__
 
-=head1 NAME 
+=head1 NAME
 
 join - relational database operator
 
 =head1 SYNOPSIS
 
-join [B<-a> I<file_number> | B<-v> I<file_number>] [B<-e> I<string>] 
-     [B<-o> I<list>] [B<-t> I<char>] 
+join [B<-a> I<file_number> | B<-v> I<file_number>] [B<-e> I<string>]
+     [B<-o> I<list>] [B<-t> I<char>]
      [B<-1> I<field>] [B<-2> I<field>] I<file1> I<file2>
 
 =head1 DESCRIPTION
@@ -248,13 +248,13 @@ options are available:
 
 =over
 
-=item B<-a> I<file_number> 
+=item B<-a> I<file_number>
 
 In addition to the default output, produce a line for each unpairable
 line in file file_number. (The argument to B<-a> must not be preceded
 by a space; see the L<COMPATIBILITY> section.)
 
-=item B<-e> I<string> 
+=item B<-e> I<string>
 
 Replace empty output fields with I<string>.
 
@@ -295,7 +295,7 @@ unpairable line in file I<file_number>. The options B<-v 1> and B<-v
 
 Join on the I<field>'th field of file 1.
 
-=item B<-2> I<field>    
+=item B<-2> I<field>
 
 Join on the I<field>'th field of file 2.
 
@@ -320,22 +320,22 @@ are available:
 
 =over
 
-=item B<-j1> I<field>   
+=item B<-j1> I<field>
 
 Join on the I<field>'th field of file 1.
 
-=item B<-j2> I<field>   
+=item B<-j2> I<field>
 
 Join on the I<field>'th field of file 2.
 
-=item B<-j> I<field>    
+=item B<-j> I<field>
 
 Join on the I<field>'th field of both file 1 and file 2.
 
 =item B<-o> I<list> I<...>
 
 Historical implementations of B<join> permitted multiple arguments to
-the B<-o> option.  These arguments were of the form 
+the B<-o> option.  These arguments were of the form
 ``I<file_number>.I<field_number>'' as described for the current
 -o option.  This has obvious difficulties in the presence of
 files named ``1.2''.

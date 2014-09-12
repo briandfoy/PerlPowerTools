@@ -18,7 +18,7 @@ if (($opt_d + $opt_m + $opt_p + $opt_q + $opt_r + $opt_t + $opt_x) != 1) {
 # -i is the same as -b
 $opt_b |= $opt_i;
 
-# just ignore minor opts that don't apply to a major opt 
+# just ignore minor opts that don't apply to a major opt
 
 # extract position offset
 my $position;
@@ -31,7 +31,7 @@ my $archive = shift;
 my $pAr = {};	    # the archive is just a hash of name => [ header, data ]
 my $pNames = [];         # a ref to an array of names in the order they appear
 
-# read the archive 
+# read the archive
 if ($opt_d || $opt_m || $opt_p || $opt_t || $opt_x || ( -e $archive && $opt_r))
 {
     ($pAr,$pNames) = readAr($archive);
@@ -42,7 +42,7 @@ my $idx;
 if ($opt_b || $opt_a) {
     if ($pAr->{$position}) {
 	$idx = $pAr->{$position}[0];
-	
+
 	if ($opt_b) { $idx--; }
     }
     else {
@@ -76,7 +76,7 @@ foreach $file (@ARGV) {
 	# remove from current position
 	@{$pNames->[$pAr->{$name}[0]]} = grep(!/^$name$/,
 					      @{$pNames->[$pAr->{$name}[0]]} );
-	
+
 	# relocate to $putpos
 	$pAr->{$name}[0] = $putpos;
 	push(@{$pNames->[$putpos]},$name);
@@ -145,7 +145,7 @@ if (!@ARGV) {
 	    foreach $name (@$group) {
 		if ($opt_p) { printMember($name,$pAr,$opt_v); }
 		elsif ($opt_t) { printList($name,$pAr,$opt_v); }
-		elsif ($opt_x) { extractMember($name, $pAr, $opt_v, 
+		elsif ($opt_x) { extractMember($name, $pAr, $opt_v,
 					       $opt_o, $opt_u); }
 	    }
 	}
@@ -165,7 +165,7 @@ exit 0;
 # dump an archive member as per -p option
 sub printMember {
     my ($name, $pAr, $verbose) = @_;
-    
+
     print "\n<$name>\n\n" if $verbose;
 
     # dump the data
@@ -178,7 +178,7 @@ sub printList {
     my $attr = $pAr->{$name};
     if ($verbose) {
 	printf "%9s %7d/%-7d %7d %s %s\n",
-		strmode($attr->[4]), 
+		strmode($attr->[4]),
 		$attr->[2],
 		$attr->[3],
 		$attr->[5],
@@ -209,7 +209,7 @@ sub extractMember {
 
     }
     else {
-	($uid,$gid,$mode,$modt) = (int($attr->[2]), int($attr->[3]), 
+	($uid,$gid,$mode,$modt) = (int($attr->[2]), int($attr->[3]),
 				   oct($attr->[4]), int($attr->[1]));
     }
 
@@ -224,7 +224,7 @@ sub extractMember {
     if ($settime) {
 	utime $modt, $modt, $name;
     }
-    
+
     print "x - $name\n" if $verbose;
 }
 
@@ -243,7 +243,7 @@ sub readFile {
     my @stat = stat($file);
 
     # return an array ref of attrs and data
-    return [ undef, $stat[9], $stat[4], $stat[5], 
+    return [ undef, $stat[9], $stat[4], $stat[5],
 	     sprintf("%o",$stat[2]), $stat[7], $data ];
 }
 
@@ -261,7 +261,7 @@ sub readAr {
 
     my $arfh = new FileHandle "< $archive" or die "$0: $archive: $!\n";
     binmode($arfh);
-    
+
     # read magic
     my $magic;
     read($arfh,$magic,8);
@@ -279,7 +279,7 @@ sub readAr {
 	 $arfh->read($mode, 8 ) == 8  and
 	 $arfh->read($sz,   10) == 10 and
 	 $arfh->read($delim,2) == 2 and
-	 $delim eq "`\n") or 
+	 $delim eq "`\n") or
 	   die "$0: $archive: Inappropriate file type or format\n";
 
 	# read the file
@@ -340,7 +340,7 @@ sub writeAr {
 		if (length($name) > 16) {
 		    $sz += length($name);
 		    printf $arfh "#1/%-13d",length($name);
-		    printf $arfh "%-12d%-6d%-6d%-8s%-10d", @$attr[1..4],$sz; 
+		    printf $arfh "%-12d%-6d%-6d%-8s%-10d", @$attr[1..4],$sz;
 		    print $arfh "`\n$name";
 		}
 		else {
@@ -357,7 +357,7 @@ sub writeAr {
 	    }
 	}
     }
-    
+
     $arfh->close();
 }
 
@@ -368,17 +368,17 @@ sub strmode {
 
     # just the RWX bits.
     $mode = oct($mode) & 0777;
-    my @modemap = (0400 => 'r',    #  R for owner 
-		   0200 => 'w',    #  W for owner 
-		   0100 => 'x',    #  X for owner 
-		      	    
-		   0040 => 'r',    #  R for group 
-		   0020 => 'w',    #  W for group 
-		   0010 => 'x',    #  X for group 
-		      	    
-		   0004 => 'r',    #  R for other 
-		   0002 => 'w',    #  W for other 
-		   0001 => 'x');   #  X for other 
+    my @modemap = (0400 => 'r',    #  R for owner
+		   0200 => 'w',    #  W for owner
+		   0100 => 'x',    #  X for owner
+
+		   0040 => 'r',    #  R for group
+		   0020 => 'w',    #  W for group
+		   0010 => 'x',    #  X for group
+
+		   0004 => 'r',    #  R for other
+		   0002 => 'w',    #  W for other
+		   0001 => 'x');   #  X for other
 
     my $modestr;
     while (@modemap) {
@@ -484,7 +484,7 @@ Identical to the -B<b> option.
 
 Move the specified archive files within the archive.  If one of
 the options -B<a>, -B<b> or -B<i> is specified, the files are moved before
-or after the position file in the archive.  If none of those options 
+or after the position file in the archive.  If none of those options
 are specified, the files are moved to the end of the
 archive.
 
@@ -497,7 +497,7 @@ file or the super-user.
 
 =item -p
 
-Write the contents of the specified archive files to the standard 
+Write the contents of the specified archive files to the standard
 output.  If no files are specified, the contents of all the files
 in the archive are written in the order they appear in the
 archive.
@@ -506,8 +506,8 @@ archive.
 
 (Quickly) append the specified files to the archive.  If the
 archive does not exist a new archive file is created.  Much
-faster than the -B<r> option, when creating a large archive piece-by-piece, 
-as no checking is done to see if the files already 
+faster than the -B<r> option, when creating a large archive piece-by-piece,
+as no checking is done to see if the files already
 exist in the archive.
 
 =item -r

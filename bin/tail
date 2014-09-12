@@ -26,8 +26,8 @@ sub usage($;$)
 {
     print STDERR "$_[1]\n" if $_[1];
     print STDERR <<EOF;
-Usage: 
-    tail [-f | -r] [-h] [-b number | -c number | -n number | [-+]number] 
+Usage:
+    tail [-f | -r] [-h] [-b number | -c number | -n number | [-+]number]
         [file ...]
     xtail [-h] file ...
 EOF
@@ -60,7 +60,7 @@ sub parse_args()
 
     # If called as xtail, then no option is used except -h
     if ($me eq "xtail") {
-	
+
 	GetOptions("h");
 	usage 0 if $opt_h;
 
@@ -79,15 +79,15 @@ sub parse_args()
 	$point = check_number($opt_n), $type = "n" if $opt_n;
 
 	for (@ARGV) {
-	    $point = check_number($1), shift @ARGV, last 
+	    $point = check_number($1), shift @ARGV, last
 		if /^([-+].*)$/;
 	}
 
 	usage 1, "The number cannot be null" if $point == 0;
-	
+
 	$point = $point ? $point : -10;
     }
-    
+
     $files = [ @ARGV ];
 
     return ($point, $type, $files);
@@ -104,9 +104,9 @@ sub print_tail(*$$$)
 
     my $i=0;
     my @buf;
-    
+
     if($type eq "n") {  # line
-	
+
 	if($p > 0) { # start from the beginning of the file
 
  	    if($opt_r) {  # reverse
@@ -131,7 +131,7 @@ sub print_tail(*$$$)
 		$i++;
 		$buf[$i%(-$p)] = $_;
 	    }
-	    my @tail = (@buf[ ($i%(-$p) + 1) .. $#buf ], 
+	    my @tail = (@buf[ ($i%(-$p) + 1) .. $#buf ],
 			@buf[  0 .. $i%(-$p) ]);
 	    @tail = reverse @tail if $opt_r;
 	    for (@tail) {
@@ -141,14 +141,14 @@ sub print_tail(*$$$)
 
     } elsif ($type eq "c" or $type eq "b") {  # character or block
 	if($p > 0) {   # start from the beginning of the file
- 
+
 	    if($opt_r) {  # reverse
 		if($type eq "c") {
 		    while($p-- and ($_ = getc $fh)) {
 			$buf[$p] = $_;
 		    }
 		} else {
-		    while($p-- and read($fh, $_, $block_size)) { 
+		    while($p-- and read($fh, $_, $block_size)) {
 			$buf[$p] = $_;
 		    }
 		}
@@ -161,7 +161,7 @@ sub print_tail(*$$$)
 		} else {
 		    while(--$p and read($fh, $_, $block_size)) { }
 		}
-		
+
 		if($p == 0) {
 		    while(read $fh, $_, $block_size) {
 			print;
@@ -192,7 +192,7 @@ sub print_tail(*$$$)
 		    print;
 		}
 	    }
-	    
+
 	}
     }
 }
@@ -207,7 +207,7 @@ sub get_existing_files(\@\@)
     my ($filelist, $dirlist) = @_;
 
     my @files = grep { -e $_ } @$filelist;
-    
+
     for my $d(@$dirlist) {
 	opendir(DIR, $d) or die "can't open directory $d: $!";
 	push @files, map { "$d/$_" } grep { -f "$d/$_" } readdir(DIR);
@@ -222,7 +222,7 @@ sub get_existing_files(\@\@)
 # -f option : monitor several files
 #
 # Algorithm : each second, we compare the size of each file with the size of
-# the file one second before. If it is different, we reopen the file and 
+# the file one second before. If it is different, we reopen the file and
 # print the difference. It might be nice to keep some file handles open for
 # a while, but opening and reopening hundreds of file each seconds seems to
 # work pretty well on my Linux box. According to comments in the
@@ -240,8 +240,8 @@ sub tail_f(\@\@$$)
 
     my ($ino, $size, $mtime);
 
-    map { 
-	(undef, $ino, undef, undef, undef, undef, undef, $size, 
+    map {
+	(undef, $ino, undef, undef, undef, undef, undef, $size,
 	 undef, $mtime) = stat($_);
 	$info{$_} = [$ino, $size, $mtime];
     } get_existing_files(@filelist, @dirlist);
@@ -254,7 +254,7 @@ sub tail_f(\@\@$$)
 	map {
 	    unless(exists $info{$_}) {
 		print "\n*** '$_' has been created ***\n";
-		(undef, $ino, undef, undef, undef, undef, undef, $size, 
+		(undef, $ino, undef, undef, undef, undef, undef, $size,
 		 undef, $mtime) = stat($_);
 		# Set size to zero to print the whole new file
 		$info{$_} = [$ino, 0, $mtime];
@@ -267,23 +267,23 @@ sub tail_f(\@\@$$)
 	    if(-e $file) {
 
 		my ($oldino, $oldsize, $oldmtime) = @{ $info{$file} };
-		
+
 		# get fresh information on the file
-		(undef, $ino, undef, undef, undef, undef, undef, $size, 
+		(undef, $ino, undef, undef, undef, undef, undef, $size,
 		 undef, $mtime) = stat($file);
-		
+
 		# Removed the check on the mtime, because a program which send
 		# its output to the file may change the mtime of the file at
 		# some moment without actually sending data, and thus without
 		# changing the size of the file.
-		# if( $ino != $oldino or $size < $oldsize or 
+		# if( $ino != $oldino or $size < $oldsize or
 		#    ($size == $oldsize and $mtime > $oldmtime))
 		if( $ino != $oldino or $size < $oldsize)
 		{
 		    # The file has probably been completely changed,
 		    # we reopen it and read the last lines.
-		    open FH, $file or 
-			do {print STDERR 
+		    open FH, $file or
+			do {print STDERR
 				"Couldn't reopen $file for reading: $!\n";
 			    exit 1;};
 		    print "\n*** '$file' has been truncated or replaced ***\n";
@@ -291,18 +291,18 @@ sub tail_f(\@\@$$)
 		    $current = $file;
 		    print_tail \*FH, $file, $point, $type;
 		    close FH;
-		} 
+		}
 		elsif($size > $oldsize)
 		{
 		    # Only some data has been appended. We print them.
 		    open FH, $file or
-			do {print STDERR 
+			do {print STDERR
 				"Couldn't reopen $file for reading: $!\n";
 			    exit 1;};
 
 		    seek FH, ($oldsize - $size), 2;
 		    read FH, $_, $size - $oldsize;
-		    print("\n*** $file ***\n"), $current = $file 
+		    print("\n*** $file ***\n"), $current = $file
 			unless(defined($current) and $current eq $file);
 		    print;
 
@@ -328,9 +328,9 @@ sub handle_INT()
 
     my $f;
     my $i=1;
-    for $f (reverse sort { $info{$a}[2] <=> $info{$b}[2] } 
+    for $f (reverse sort { $info{$a}[2] <=> $info{$b}[2] }
 	    keys %info) {
-	print sprintf("%3d  %s  %s", 
+	print sprintf("%3d  %s  %s",
 		      $i, scalar localtime($info{$f}[2]), $f)."\n";
 	$i++;
     }
@@ -341,7 +341,7 @@ sub handle_INT()
 	sprintf("%3d files %3d dirs %3d unknown entries\n",
 		scalar @existing, scalar @dirlist, scalar @unknown);
 
-    # On some systems (NT, for instance), it is necessary to 
+    # On some systems (NT, for instance), it is necessary to
     # reinstall the signal handler
     $SIG{'INT'} = \&handle_INT;
 }
@@ -371,14 +371,14 @@ sub handle_args($$$)
 	# Ignore the directories
 	my $file;
 	for $file (@files) {
-	    
+
 	    # do not die if the file does not exist, when -f is used
 	    next if(!-e $file and ($opt_f or $me eq "xtail"));
 
 	    open FH, "< $file"
-		or do { print STDERR 
-			    "Couldn't open $file for reading: $!\n"; 
-			    exit 1 }; 
+		or do { print STDERR
+			    "Couldn't open $file for reading: $!\n";
+			    exit 1 };
 
 	    # Do not print the tail of the files if we are using xtail
 	    unless($me eq "xtail") {
@@ -389,7 +389,7 @@ sub handle_args($$$)
 
 	    close FH;
 	}
-	
+
 	if($opt_f or ($me eq "xtail")) {
 	    tail_f(@files, @dirs, $point, $type);
 	}
@@ -398,7 +398,7 @@ sub handle_args($$$)
 	print_tail \*STDIN, "stdout", $point, $type;
 	# Ignore the -f option
     }
-    
+
 }
 
 my ($point, $type, $files) = parse_args();

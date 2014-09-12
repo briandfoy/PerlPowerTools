@@ -23,7 +23,7 @@ sub usage($;$)
 {
     print <<"EOF";
 Usage:
-expand [-h] [-tabstop] [-tab1, tab2, ...] [file ...]  
+expand [-h] [-tabstop] [-tab1, tab2, ...] [file ...]
 EOF
     print STDERR $_[1] if $_[1];
     exit $_[0];
@@ -54,7 +54,7 @@ if(scalar @tabstops == 0) {
     map { $tabs{$_} = 1 } @tabstops;
     for (my $i = $tabstops[$#tabstops]-1; $i >= 0; $i--) {
         # how far is the $i-th column from the next tab
-	$line_desc{$i} = $howfar;  
+	$line_desc{$i} = $howfar;
 	$howfar = 0 if defined $tabs{$i};
 	$howfar++;
     }
@@ -65,10 +65,10 @@ sub do_expand(@)
     my $incr;
     for my $line(@_) {
 	my $curs = 0;
-	for my $c (split //, $line)  { 
+	for my $c (split //, $line)  {
 
 	    if($c eq "\010") {  # backspace
-		$curs -= 2; 
+		$curs -= 2;
 		$curs = -1 unless $curs >= 0;
 	    }
 
@@ -86,13 +86,13 @@ sub do_expand(@)
 		print " " x $incr;
 		$curs += $incr;
   	    } else {
-		print $c; 
+		print $c;
 		$curs++;
 	    }
 
 	}
     }
-    
+
 }
 
 for my $file (@files) {
@@ -156,7 +156,7 @@ more characters.
 
 =head1 AUTHOR
 
-=for html 
+=for html
 The Perl implementation was written by <A
 href="mailto:thbzcrt@worldnet.fr">Thierry B&eacute;zecourt</A> for the
 <A href="http://language.perl.com/ppt/">Perl Power Tools project</A>,

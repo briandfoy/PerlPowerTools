@@ -77,7 +77,7 @@ foreach my $file (@ARGV) {
     }
     close FILE or die "$file: $!\n";
 }
-    
+
 exit $warnings;
 
 __END__
@@ -106,7 +106,7 @@ on a comma terminated line.
 Short and long form can be mixed, as well as I<morse(6)> format and
 space separated letters.
 
-Any characters that can't be interpreted as part of the morse 
+Any characters that can't be interpreted as part of the morse
 sequence is copied untouched. The program will die when encountering
 a series of dots and dashes that it cannot translate.
 

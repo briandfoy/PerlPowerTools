@@ -54,7 +54,7 @@ if (exists $options {m} && $options {m} =~ /[^0-7]/) {
 # into a list of anon arrays. Each anon array has 2 elements, a directory
 # name, and a flag to indicate whether it's an "intermediate" directory
 # or not. "intermediate" directories are the directories interfered by
-# -p, but not given on the command line. 
+# -p, but not given on the command line.
 if (exists $options {p}) {
     require File::Basename;
     my @ARGV2;
@@ -101,7 +101,7 @@ foreach my $directory (@ARGV) {
 
         # Turn on write and search permission for the user.
         $modes [0] |= 3;
-        
+
         # Reassemble.
         $mode       = join "" => @modes;
 

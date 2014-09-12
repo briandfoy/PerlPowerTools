@@ -92,7 +92,7 @@ what searches each filename for occurrences of the pattern
 B<@>(#) that the SCCS get command substitutes for the %Z% ID
 keyword, and prints what follows up to a ", >, NEWLINE,
 \, or null character. What can be used on any type of file,
-NOT just SCCS files. Just put the magic 4 character B<@>(#) 
+NOT just SCCS files. Just put the magic 4 character B<@>(#)
 pattern in your file and you are set.
 
 =head2 OPTIONS

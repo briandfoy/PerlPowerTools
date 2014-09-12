@@ -54,7 +54,7 @@ foreach my $directory (@ARGV) {
     }
 }
 
-    
+
 exit $warnings;
 
 __END__

@@ -36,7 +36,7 @@ I<pwd> takes no options.
 
 =head1 ENVIRONMENT
 
-The working of I<pwd> is not influenced by any environment variables. 
+The working of I<pwd> is not influenced by any environment variables.
 
 =head1 BUGS
 

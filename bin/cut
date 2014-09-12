@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-#   
+#
 # cut -- remove sections from each line of files
 #
-#        Rich Lafferty <rich@alcor.concordia.ca> 
+#        Rich Lafferty <rich@alcor.concordia.ca>
 #        Thu Mar  4 02:33:30 EST 1999
 #
 #   Perl Power Tools -- http://language.perl.com/ppt/
-# 
+#
 
 $^W = 1;    # -w
 use strict;
@@ -18,10 +18,10 @@ my $me = basename($0);
 
 ## Grab options
 getopts ('b:c:d:f:ns', \my %opt);
-   
-# There's no difference between -b and -c on any unix I 
+
+# There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
-$opt{b} = $opt{c} if defined $opt{c}; 
+$opt{b} = $opt{c} if defined $opt{c};
 
 ## Byte operations
 if (defined ($opt{b})) {
@@ -33,32 +33,32 @@ if (defined ($opt{b})) {
 
 	foreach my $item (@list) {
 	    my ($start,$end) = split (/-/, $item);
-	    die "$me: invalid byte list\nType '$me' alone for usage.\n" 
+	    die "$me: invalid byte list\nType '$me' alone for usage.\n"
 		if ($start and $end and $start > $end);  # parameters overlap?
 
 	    # change cut's list parameters to substr's parameters
 	    $start--;			   # cut counts from 1, not 0
-	    $start = 0 if $start < 0;          
+	    $start = 0 if $start < 0;
 	    $end = $start + 1 unless $item =~ /-/;
 	    $start = length if $start > length;
 
-	    if ($end) {  
-		$end = length if $end > length; 
+	    if ($end) {
+		$end = length if $end > length;
 		printf ("%s", substr ($_, $start, $end - $start));
-	    } else {     
+	    } else {
 		printf ("%s", substr ($_, $start));
 	    }
 	}
 	print "\n";
     }
     exit 0;
-} 
+}
 
 ## Field operations
 elsif (defined ($opt{f})) {
 
     my @list = split (/,/, $opt{f});
-    
+
     my $delim = "\t";
     $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
 
@@ -66,19 +66,19 @@ elsif (defined ($opt{f})) {
 	chomp;
 
 	# Only waste time on lines with delimiters
-	if (/$delim/) {   
+	if (/$delim/) {
 	    foreach my $item (@list) {
 		my ($start,$end) = split (/-/, $item);
-		die "$me: invalid byte list\nType '$me' alone for usage.\n" 
+		die "$me: invalid byte list\nType '$me' alone for usage.\n"
 		    if ($start and $end and $start > $end);   # parameters overlap?
-		
+
 		# change cut's list parameters to substr's parameters
 		$start--;			   # cut counts from 1, not 0
-		$start = 0 if $start < 0;          
+		$start = 0 if $start < 0;
 		$end = $start + 1 unless $item =~ /-/;
 
 		my @hunk = split (/$delim/, $_);
-	    
+
 		# don't let parameters exceed number of fields
 		$end = @hunk if (! $end or $end > @hunk);
 		$start = @hunk if $start > @hunk;
@@ -165,15 +165,15 @@ B<cut> accepts the following options:
 
 =over 4
 
-=item -b list     
+=item -b list
 
 The I<list> specifies byte positions.
 
-=item -c list     
+=item -c list
 
 The I<list> specifies character positions.
 
-=item -d string   
+=item -d string
 
 Use the first character of I<string> as the field delimiter character
 instead of the tab character.

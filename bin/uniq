@@ -26,7 +26,7 @@ sub get_numeric_arg {
   if    (length) { $opt = $_ }
   elsif (@ARGV)  { $opt = shift @ARGV }
   else           {die "$0: option requires an argument -- $argname\n"}
-  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";  
+  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";
   $opt;
 }
 
@@ -53,12 +53,12 @@ exit 0 unless defined $line;
 if ($optf) {($comp) = (split ' ', $comp, $optf+1)[$optf] }
 if ($opts) { $comp  =  substr($comp, $opts) }
 
-LINES: 
+LINES:
 while (!$eof) {
   $save_line = $line;
   $save_comp = $comp;
   $count = 1;
- DUPS: 
+ DUPS:
   while (!($eof = eof())) {
     $comp = $line = <>;
     if ($optf) {($comp) = (split ' ', $comp, $optf+1)[$optf] }
@@ -78,7 +78,7 @@ exit 0;
 
 __END__
 
-=head1 NAME 
+=head1 NAME
 
 uniq - report or filter out repeated lines in a file
 

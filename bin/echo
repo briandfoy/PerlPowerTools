@@ -20,7 +20,7 @@ Options:
        -?:     Display usage information.
 EOF
   exit;
-} 
+}
 
 do { $N = 0; shift; } if $ARGV[0] eq '-n';
 
@@ -64,7 +64,7 @@ Print out a short help message, then exit.
 
 =head1 ENVIRONMENT
 
-The working of I<echo> is not influenced by any environment variables. 
+The working of I<echo> is not influenced by any environment variables.
 
 =head1 BUGS
 

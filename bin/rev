@@ -6,7 +6,7 @@ use strict;
 use Carp;
 
 # unbuffer output to make it look speedier
-$|++;  
+$|++;
 
 my ($VERSION) = '1.2';
 
@@ -37,7 +37,7 @@ elsif (-f $ARGV[0]) {
 
 	# in case the file handle does not open
     unless (defined ($fh)) {
-		croak "did not open file $ARGV[0] $!\n";  
+		croak "did not open file $ARGV[0] $!\n";
 	}
 
 	# iterate over the file and put each line into an
@@ -46,7 +46,7 @@ elsif (-f $ARGV[0]) {
 		my @a = split(//, $_);
 		print reverse @a;
 	}
-	print "\n";  
+	print "\n";
 	$fh->close;  # close the file handle
 }
 else {
@@ -58,16 +58,16 @@ else {
 	for (my $cnt = ($len - 1); $cnt >= 0; $cnt-- ) {
 		my @b = split(//, $ARGV[$cnt]);
 		print reverse @b;
-		
+
 		# since each white space is denotes the next arg
-		# we have to put spaces back in.  $cnt is checked to 
+		# we have to put spaces back in.  $cnt is checked to
 		# see if we have reached the end yet.  If there are
 		# no more args we do not want to append an extra space
 		# that was not on the input.
 
 		if ($cnt) {print ' ';}
 	}
-	print "\n";  
+	print "\n";
 }
 
 exit 1;
@@ -86,8 +86,8 @@ rev [options] [file]
 
 =head1 DESCRIPTION
 
-The rev utility copies the specified files to the standard output, 
-reversing the order of characters in every line.  If no files are 
+The rev utility copies the specified files to the standard output,
+reversing the order of characters in every line.  If no files are
 specified, the standard input is read.
 
 =head2 OPTIONS
@@ -96,7 +96,7 @@ I<rev> accepts the following options:
 
 =over 4
 
-=item  --help || -h || ? 
+=item  --help || -h || ?
 
 Print a short help message, then exits.
 

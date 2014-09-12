@@ -13,12 +13,12 @@ my(
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
-} 
+}
 
 sub usage {
     warn "$0: @_\n" if @_;
     die "usage: $0 [-csd] string1 string2 [file ...]\n";
-} 
+}
 
 @opt{ qw/c s d U C/ } = ('') x 5;
 
@@ -27,7 +27,7 @@ while ($ARGV[0] =~ s/^-(?=.)//) {
         usage("unknown flag: `$flag'") unless 'csdUC' =~ /\Q$flag/;
         warn "$0: `$flag' flag already set\n" if $opt{$flag};
         $opt{$flag} = $flag;
-    } 
+    }
     shift;
 }
 
@@ -36,17 +36,17 @@ usage("Not enough arguments") unless @ARGV > 1;
 # remove spurious [...]
 for (($string1, $string2) = splice(@ARGV, 0, 2)) {
     s/^\[(.*?)\]$/$1/;
-} 
+}
 
 my $opts = join('', @opt{qw/c s d/});
 
-# this is in an eval because tr/// needs to 
+# this is in an eval because tr/// needs to
 # see its parts at compile time
 eval qq{
     while (<>) {
 	tr[$string1][$string2]$opts;
 	print;
-    } 
+    }
 };
 
 die if $@;
@@ -75,23 +75,23 @@ Here are the options:
 
 =over
 
-=item c   
+=item c
 
 Complement the SEARCHLIST.
 
-=item d   
+=item d
 
 Delete found but unreplaced characters.
 
-=item s   
+=item s
 
 Squash duplicate replaced characters.
 
-=item U   
+=item U
 
 Translate to/from UTF-8.
 
-=item C   
+=item C
 
 Translate to/from 8-bit char (octet).
 
@@ -135,11 +135,11 @@ The following command strips the 8th bit from an input file:
 
 The following command translates Latin-1 to Unicode:
 
-    tr -CU "\0-\xFF" "" 
+    tr -CU "\0-\xFF" ""
 
 The following command translates Unicode to Latin-1
 
-    tr -UC "\0-\x{FF}" "" 
+    tr -UC "\0-\x{FF}" ""
 
 =head1 NOTE
 

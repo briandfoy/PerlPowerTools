@@ -6,11 +6,11 @@ use strict;
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
-} 
+}
 
 unless (@ARGV) {
     die "usage: $0 format [argument ...]\n";
-} 
+}
 
 my $format = shift;
 eval qq(printf "$format", \@ARGV);
@@ -29,7 +29,7 @@ B<printf> I<format> [ I<argument> ... ]
 =head1 DESCRIPTION
 
 The B<printf> command uses the first argument as the format that describes
-how to print the remaining arguments.  Unlike the standard 
+how to print the remaining arguments.  Unlike the standard
 printf(1) command, this one uses the Perl version, which means
 that the C<\v> escape is not supported, but various other things are.
 See L<perlfunc/sprintf> for details.

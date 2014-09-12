@@ -43,37 +43,37 @@ my %ESC = ( n => "\n",
 # from the BSD names.h, some tokens for hard-coded checks of
 # different texts.  This isn't rocket science.  It's prone to
 # failure so these checks are only a last resort.
-my %SPECIALS = 	("C program" => [ "/*",          
-				  "#include",    
+my %SPECIALS = 	("C program" => [ "/*",
+				  "#include",
 				  "char",
-				  "double",      
-				  "extern",      
-				  "float",       
-				  "real",        
-				  "struct",      
+				  "double",
+				  "extern",
+				  "float",
+				  "real",
+				  "struct",
 				  "union" ],
  		 "C++ program" => [ "template",
  				    "virtual",
- 				    "class",  
+ 				    "class",
  				    "public:",
  				    "private:" ],
- 		 "make commands" => [ "CFLAGS",   
- 				      "LDFLAGS",  
- 				      "all:",     
+ 		 "make commands" => [ "CFLAGS",
+ 				      "LDFLAGS",
+ 				      "all:",
  				      ".PRECIOUS" ],
- 		 "assembler program" => [ ".ascii",      
- 					  ".asciiz",     
- 					  ".byte",       
- 					  ".even",       
- 					  ".globl",      
- 					  ".text",       
+ 		 "assembler program" => [ ".ascii",
+ 					  ".asciiz",
+ 					  ".byte",
+ 					  ".even",
+ 					  ".globl",
+ 					  ".text",
  					  "clr" ],
-		 "mail" => [ "Received:",   
-			     ">From",       
+		 "mail" => [ "Received:",
+			     ">From",
 			     "Return-Path:",
 			     "Cc:",         ],
-		 "news", => [ "Newsgroups:", 
-			      "Path:",       
+		 "news", => [ "Newsgroups:",
+			      "Path:",
 			      "Organization:" ] );
 
 my $magicFile = $ENV{MAGIC}||$FindBin::Bin . "/../share/magic";
@@ -88,14 +88,14 @@ GetOptions("m=s",\$magicFile,
 
 # the names of the files are in $fileList.
 if ($fileList) {
-    my $fileListFH = new FileHandle "< $fileList" or 
+    my $fileListFH = new FileHandle "< $fileList" or
       die "$F: $fileList: $!\n";
     unshift(@ARGV,<$fileListFH>);
     $fileListFH->close();
 }
 
-if (!@ARGV && !$checkMagic) { 
-    die "usage: $F [-cL] [-f filelist] [-m magicfile] file ...\n"; 
+if (!@ARGV && !$checkMagic) {
+    die "usage: $F [-cL] [-f filelist] [-m magicfile] file ...\n";
 }
 
 if ( ! -f $magicFile ) {
@@ -146,8 +146,8 @@ foreach $file (@ARGV) {
     # 1) check for various special files first
     if ($followLinks) { stat($file); } else { lstat($file); }
     if (! -f _  or -z _) {
-	if ( !$followLinks && -l _ ) { 
-	    $desc .= " symbolic link to ".readlink($file); 
+	if ( !$followLinks && -l _ ) {
+	    $desc .= " symbolic link to ".readlink($file);
 	}
 	elsif ( -d _ ) { $desc .= " directory"; }
 	elsif ( -p _ ) { $desc .= " named pipe"; }
@@ -156,9 +156,9 @@ foreach $file (@ARGV) {
 	elsif ( -c _ ) { $desc .= " character special file"; }
 	elsif ( -z _ ) { $desc .= " empty"; }
 	else { $desc .= " special"; }
-	
+
 	print $desc,"\n";
-	
+
 	next;
     }
 
@@ -216,7 +216,7 @@ foreach $file (@ARGV) {
 	    my $data;
 	    $fh->seek(0,0);
 	    $fh->read($data,8192); # this is how far BSD file looks
-	    
+
 	    # in BSD's version, there's an effort to search from
 	    # more specific to less, but I don't do that.
 	    my ($type,$token);
@@ -231,7 +231,7 @@ foreach $file (@ARGV) {
 		    }
 		}
 	    }
-	    
+
 	  ALLDONE:
 	    $desc .= " text";
 	}
@@ -240,7 +240,7 @@ foreach $file (@ARGV) {
     $fh->close();
 
     print $desc,"\n";
-	
+
 }
 
 if ($checkMagic) {
@@ -276,8 +276,8 @@ sub magicMatch {
     # false for every item which allows reading/checking the entire
     # magic file.
     return unless defined($fh);
-    
-    my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval, 
+
+    my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval,
 	$template, $message, $subtests) = @$item;
 
     # bytes from file
@@ -305,7 +305,7 @@ sub magicMatch {
 
     if ($type eq 'string') {
 	# read the length of the match string unless the
-	# comparison is '>' ($numbytes == 0), in which case 
+	# comparison is '>' ($numbytes == 0), in which case
 	# read to the next null or "\n". (that's what BSD's file does)
 	if ($numbytes > 0) {
 	    if ($fh->read($data,$numbytes) != $numbytes) { return; }
@@ -341,8 +341,8 @@ sub magicMatch {
 	# read up to 4 bytes
 	if ($fh->read($data,$numbytes) != $numbytes) { return; }
 
-	# If template is a ref to an array of 3 letters, 
-	# then this is an endian 
+	# If template is a ref to an array of 3 letters,
+	# then this is an endian
 	# number which must be first unpacked into an unsigned and then
 	# coerced into a signed.  Is there a better way?
 	if (ref($template)) {
@@ -407,7 +407,7 @@ sub magicMatch {
 
 	return 1;
     }
-    
+
 }
 
 # readMagicEntry($pa_magic, $MF, $depth)
@@ -438,7 +438,7 @@ sub readMagicEntry {
 	    $$MF[2]++;
 	    next;
 	}
-	
+
 	my ($thisDepth) = ($line =~ /^(>+)/);
 
 	if (length($thisDepth) > $depth) {
@@ -497,9 +497,9 @@ sub readMagicEntry {
 sub readMagicLine {
     my ($line, $line_num, $subtests) = @_;
 
-    my ($offtype, $offset, $numbytes, $type, $mask, 
+    my ($offtype, $offset, $numbytes, $type, $mask,
 	$operator, $testval, $template, $message);
-    
+
     # this would be easier if escaped whitespace wasn't allowed.
 
     # grab the offset and type.  offset can either be a decimal, oct,
@@ -510,7 +510,7 @@ sub readMagicLine {
 	($offset,$type) = ($1,$2);
 
 	if ($offset =~ /^\(/) {
-	    # indirect offset.  
+	    # indirect offset.
 	    $offtype = 1;
 
 	    # store as a reference [ offset1 type template offset2 ]
@@ -553,7 +553,7 @@ sub readMagicLine {
 	warn "$F: Bad Offset/Type at line $line_num. '$line'\n";
 	return;
     }
-    
+
     # check for & operator on type
     if ($type =~ s/&(.*)//) {
 	$mask = $1;
@@ -561,13 +561,13 @@ sub readMagicLine {
 	# convert if needed
 	$mask = oct($mask) if $mask =~ /^0/o;
     }
-    
+
     # check if type is valid
     if (!exists($TEMPLATES{$type})) {
 	warn "$F: Invalid type '$type' at line $line_num\n";
 	return;
     }
-    
+
     # take everything after the first non-escaped space
     if ($line =~ s/([^\\])\s+(.*)/$1/) {
 	$message = $2;
@@ -576,7 +576,7 @@ sub readMagicLine {
 	warn "$F: Missing or invalid test condition or message at line $line_num\n";
 	return;
     }
-    
+
     # remove the return if it's still there
     $line =~ s/\n$//o;
 
@@ -588,7 +588,7 @@ sub readMagicLine {
 	$operator = 'x';
     }
     else { $operator = '='; }
-    
+
 
     if ($type eq 'string') {
 	$testval = $line;
@@ -645,7 +645,7 @@ sub readMagicLine {
 	      unless $operator eq '>' || $operator eq '<';
 	}
     }
-    
+
     return [ $offtype, $offset, $numbytes, $type, $mask,
 	    $operator, $testval, $template, $message, $subtests ];
 }
@@ -662,12 +662,12 @@ sub dumpMagic {
 
 	next if !defined($entry);
 
-	my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval, 
+	my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval,
 	    $template, $message, $subtests) = @$entry;
 
 	print STDERR '>'x$depth;
 	if ($offtype == 1) {
-	    $offset->[2] =~ tr/c/b/; 
+	    $offset->[2] =~ tr/c/b/;
 	    print STDERR "($offset->[0].$offset->[2]$offset->[3])";
 	}
 	elsif ($offtype == 2) {
@@ -724,7 +724,7 @@ The magic number tests are used to check for files with data in
 particular fixed formats.  Such files have a 'magic number' stored in
 a particular place near the beginning of the file that indicates its
 type.  Any file with some invariant identifier at a small fixed offset
-into the file can usually be described in this way.  
+into the file can usually be described in this way.
 
 Finally, if all of the previous tests fail and the file appears to be
 an ASCII file, B<file> attempts to guess its language using a crude

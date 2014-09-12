@@ -46,15 +46,15 @@ elsif ( $opt_p ) { # human-readable form (names when possible, etc.)
 	}
 	else {
 		my($login) = getlogin || die "getlogin failed!";
-	
+
 		$tp.="login $login\n" if ( $login ne scalar getpwuid $< );
-	
+
 		my($uid) = scalar getpwuid $< || $<;
 		$tp.="uid $uid\n";
-	
+
 		my($euid) = scalar getpwuid $> || $>;
 		$tp.="euid $euid\n" if ( $< != $> );
-	
+
 		($rgid,@rgids)=split(/\s+/,$();
 		my($egid)=split(/\s+/,$));
 		my($nrgid) = scalar getgrgid $rgid || $rgid;
@@ -139,7 +139,7 @@ else { # uid=#(name) gid=#(name) euid=#(name) egid=#(name) groups=#(name) ...
 	$tp.=join(",",values %done);
 }
 
-print "$tp\n";	
+print "$tp\n";
 exit 0;
 
 sub help {
@@ -174,26 +174,26 @@ is displayed instead of the information from the calling process.
 
 =head1 OPTIONS AND ARGUMENTS
 
-=item I<-G>	
+=item I<-G>
 Display all of the group IDs (effective, real, etc) separated by a space.
 The IDs are not in a given order.
 
-=item I<-a>	
+=item I<-a>
 Nothing.  The option is included for compatibility with some versions of id.
 
-=item I<-g>	
+=item I<-g>
 Display the effective group ID.
 
-=item I<-h>	
+=item I<-h>
 Display the usage help message.
 
-=item I<-n>	
+=item I<-n>
 Force the options C<-G>, C<-g> and C<-u> to display the matching name
 instead of the number for the user and group IDs.  If any of the ID
 numbers do not have a matching name, the number will be displayed
 as usual.
 
-=item I<-p>	
+=item I<-p>
 Display the user/group information on seperate lines.  If the username
 returned by getlogin is different than the username associated with
 the calling program's user ID, it is displayed preceded by the phrase
@@ -204,11 +204,11 @@ is displayed with each group separated by a space.  All information is
 displayed as names unless there is no name matching the ID.  Then the
 ID is shown as usual.
 
-=item I<-r>	
+=item I<-r>
 Force the options C<-g> and <-u> to display the information associated
 with the real user/group IDs instead of the effective ID information.
 
-=item I<-u>	
+=item I<-u>
 Display the effective user ID.
 
 =head1 NOTES

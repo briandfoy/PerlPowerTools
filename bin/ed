@@ -46,7 +46,7 @@
 # How (Usage):
 #	ed [-ddebugflags] [-v] [-] [file]
 #
-# Irony:  This was, of course, edited originaly with emacs... 
+# Irony:  This was, of course, edited originaly with emacs...
 #
 # Commentary:
 #	The guiding principals of this implentation are:
@@ -114,8 +114,8 @@ $NO_QUESTIONS_MODE = 0;
 $VERSION = "0.1";
 
 #
-# Parse command line ... 
-# 
+# Parse command line ...
+#
 #
 
 $opt_v = 0;
@@ -123,12 +123,12 @@ $opt_d = "";
 $SupressCounts = 0;
 
 unless (getopts('d:v')) {
-    $EXTENDED_MESSAGES = 1; 
+    $EXTENDED_MESSAGES = 1;
     &edDie("Usgae: ed [-v] [-ddebugstring] [-] [filename]","\?",1)
 }
 
 if ($opt_v) {
-    $EXTENDED_MESSAGES = 1; 
+    $EXTENDED_MESSAGES = 1;
 }
 
 print "@ARGV\n";
@@ -245,7 +245,7 @@ while(<>) {
 	} elsif ($command =~ /^Q$/) {
 	    &edQuit($NO_QUESTIONS_MODE);
 	}
-	
+
     } else {
 	edWarn("unrecognized command", "\?");
     }
@@ -317,7 +317,7 @@ sub edSubstitute {
 	$args[0] .= "$char";
 	$PrintLastLine = 1;
     }
-	
+
     # do the search and substitution
 
     $LastMatch = $CurrentLineNum;
@@ -360,7 +360,7 @@ sub edDelete {
 
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
-    $maxline -= $NumLines; 
+    $maxline -= $NumLines;
     $CurrentLineNum = $adrs[0] >= $maxline ? $maxline : $adrs[0]+1;
 }
 
@@ -369,7 +369,7 @@ sub edDelete {
 #
 
 sub edFilename {
- 
+
 
     if (defined($adrs[0]) or defined($adrs[1])) {
 	edWarn("too many addresses for command: $#adrs (@adrs)", "\?");
@@ -475,11 +475,11 @@ sub edEdit {
 	edWarn ("unable to open $filename: $!","\?");
 	return 0;
     }
-    
+
     @tmp_lines = ();
     $tmp_maxline = 0;
     $tmp_chars = 0;
-	
+
     while(<SOURCE>) {
 	push(@tmp_lines,$_);
 	$tmp_chars += length;
@@ -514,7 +514,7 @@ sub edEdit {
 	$NeedToSave = 1;
 	$UserHasBeenWarned = 0;
 
-	
+
     } else {
 	if ($NeedToSave) {
 	    if ($QuestionsMode) {
@@ -525,7 +525,7 @@ sub edEdit {
 		}
 	    }
 	}
-	
+
 	@lines = @tmp_lines;
 	unshift(@lines,undef); # line 0 is not used
 	$maxline = $tmp_maxline;
@@ -534,12 +534,12 @@ sub edEdit {
 	$UserHasBeenWarned = 0;
 	$CurrentLineNum = $maxline;
     }
-    
+
     unless ($lines[$maxline] =~ /\n$/) {
 	$lines[$maxline] .= "\n";
 	print "Newline appended\n";
     }
-    
+
     print "$chars\n" unless ($SupressCounts);
 
     return 1;
@@ -575,7 +575,7 @@ sub edInsert {
     @tmp_lines = ();
     $tmp_maxline = 0;
     $tmp_chars = 0;
-	
+
     while(<>) {
 	last if (/^\.$/);
 	push(@tmp_lines,$_);
@@ -715,7 +715,7 @@ sub edSetCurrentLine {
 	    edWarn("requested line ($adr) out of range: 1-$maxline","\?");
 	    return 0;
 	}
-	
+
     } else {
 
 	# simply increment the line
@@ -789,12 +789,12 @@ sub edParse {
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
 
-    
+
     return 1;
 }
 
 #
-# Given a parsed address expression, calcuate & return the indicated line 
+# Given a parsed address expression, calcuate & return the indicated line
 #
 
 sub CalculateLine {
@@ -831,45 +831,45 @@ sub CalculateLine {
 	if (defined($decimaladr)) {
 	    $myline = $decimaladr;
 	} elsif (defined($dotadr)) {
-	    $myline = $CurrentLineNum; 
+	    $myline = $CurrentLineNum;
 	} elsif (defined($dollaradr)) {
-	    $myline = $maxline; 
+	    $myline = $maxline;
 	} elsif (defined($searchadr)) {
-	    
+
 	    $pattern = $searchadr;
 	    $pattern =~ s/\/$//;
 	    $pattern =~ s/^\///;
-	    
-	    
+
+
 	    if ($wholesearch =~ /^\/.*\/$/) {
 		$myline = edSearchForward($pattern);
 		} else {
 		    $myline = edSearchBackward($pattern);
 		}
-	    
+
 #	    $command = "";
 	}
     }
-    
+
     if (defined($offsetexpr)) {
 	$myline = $CurrentLineNum unless defined($myline);
-	
+
 	if ($offsetdir =~ /^-$/) {
 	    $myline -= $offsetammount;
 	} else {
 	    $myline += $offsetammount;
-	} 
+	}
     }
-    
+
     if (defined($plusesorminusesexpr)) {
 	$myline = $CurrentLineNum unless defined($myline);
-	
+
 	if (defined($pluses)) {
 	    $myline += length($pluses);
 	} elsif (defined($minuses)) {
 	    $myline -= length($minuses);
-	} 
-	
+	}
+
     }
 
     return $myline;
@@ -932,16 +932,16 @@ sub edSearchBackward {
     while ($line > 0) {
 	if ($lines[$line] =~ /$pattern/) {
 	    return $line;
-	}	
-	$line--; 
+	}
+	$line--;
     }
 
     $line = $maxline;
     while ($line >= $CurrentLineNum) {
 	if ($lines[$line] =~ /$pattern/) {
 	    return $line;
-	}	
-	$line--; 
+	}
+	$line--;
     }
 
     return 0;

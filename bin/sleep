@@ -58,7 +58,7 @@ Print out a short help message, then exit.
 
 =head1 ENVIRONMENT
 
-The working of I<sleep> is not influenced by any environment variables. 
+The working of I<sleep> is not influenced by any environment variables.
 
 =head1 BUGS
 

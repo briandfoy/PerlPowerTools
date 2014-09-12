@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# 
+#
 # Perl code is Copyright (c) 1995, 1999 Albert Dvornik <bert@mit.edu>
 #
 # Hexagram text is Copyright (c) 1988 The Regents of the University of
@@ -17,7 +17,7 @@ B<ching> [B<-n>] [B<-r>] [B<-h>] [B<-p> I<program>] [I<hexagram-lines>]
 
 =cut
 
-## usage 
+## usage
 
 sub usage { die "usage:  ching [-nrh] [-p pager] [hexagram-number]\n"; }
 
@@ -153,7 +153,7 @@ sub hexagram {
 
   # Search for the first hexagram.
   $_ = <DATA> while defined($_) && !/^\.H\s+($hex1|$hex2)\s/;
-  defined $_ || die "ching: Hexagram $hex1 or $hex2 missing!\n"; 
+  defined $_ || die "ching: Hexagram $hex1 or $hex2 missing!\n";
   if ($1 eq $hex1) {
     $text1 = get_hex_body($change, $1);
   } else {
@@ -492,10 +492,10 @@ way of consulting the oracle.
 =cut
 
 ### NB: This copyright applies *ONLY* to the macros and text, appended below.
-# 
+#
 # Hexagram text and *ROFF macros Copyright (c) 1988 The Regents of the
 # University of California.  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms are permitted
 # provided that: (1) source distributions retain this entire copyright
 # notice and comment, and (2) distributions including binaries display

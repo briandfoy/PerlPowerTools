@@ -150,7 +150,7 @@ sub calc_phase {
   # phases, calculate this from the local timezone.
 
   my $utc_offset = 0;
-  my $pdate = mdy_to_julian($mm, $dd, $yy) + ($hh/24) + $utc_offset; 
+  my $pdate = mdy_to_julian($mm, $dd, $yy) + ($hh/24) + $utc_offset;
 
   # sun's position
 

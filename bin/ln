@@ -92,7 +92,7 @@ foreach my $file (@ARGV) {
          warn "failed to link $file to $this_target: $!";
 }
 
-    
+
 exit $warnings;
 
 __END__
@@ -130,7 +130,7 @@ Create symbolic links instead of hard links (the default).
 
 If the I<target> is not a directory, try to remove any existing
 I<target>s before creating the links. Failure of removing the
-target results in a warning and no futher attempt to make the 
+target results in a warning and no futher attempt to make the
 link will be made.
 
 =back

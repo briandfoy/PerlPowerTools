@@ -19,7 +19,7 @@ END {
 
 chomp(my $start = @ARGV ? $ARGV[0] : <STDIN>);
 my $end   = $ARGV[1] || 2**32 - 1;
-for ($start, $end) { 
+for ($start, $end) {
   s/^\s*\+?(\d{1,10}).*/$1/ || die "$0: $_: illegal numeric format\n";
   $_ > 2**32 - 1 && die "$0: $_: Numerical result out of range\n";
 }
@@ -91,7 +91,7 @@ sub more_primes {
 
 __END__
 
-=head1 NAME 
+=head1 NAME
 
 primes - generate primes
 

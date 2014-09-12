@@ -82,7 +82,7 @@ cat [-benstuv] [file ...]
 =head1 DESCRIPTION
 
 I<cat> reads and prints the files in order they are given. If no files
-are given, I<standard input> is processed. A lone dash represents 
+are given, I<standard input> is processed. A lone dash represents
 I<standard input> as well.
 
 =head2 OPTIONS
@@ -105,7 +105,7 @@ Number all the lines, starting at 1.
 
 =item -s
 
-The I<squeeze> option. Sequential empty lines are squeezed into a 
+The I<squeeze> option. Sequential empty lines are squeezed into a
 single empty line.
 
 =item -t

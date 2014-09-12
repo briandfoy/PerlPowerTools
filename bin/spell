@@ -18,12 +18,12 @@ my (
 
 sub usage {
   warn "$0: @_\n" if @_;
-  die "usage: $0 [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [ file ... ]\n";  
+  die "usage: $0 [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [ file ... ]\n";
 }
 
 # usage() unless @ARGV;
 
-keys %words = 45402;   # allocate bins for the hash, it may be useful to 
+keys %words = 45402;   # allocate bins for the hash, it may be useful to
                        #  change this if you dict file is larger or smaller.
 
 # process command line args
@@ -69,7 +69,7 @@ while (@ARGV) {
   shift;
 }
 
-unshift @supp, $dict_file;  
+unshift @supp, $dict_file;
 
 # read in dictionary words
 
@@ -82,7 +82,7 @@ for my $dict_file (@supp) {
 
 #  for my $word (@tmp_words) {
 #    $words{lc($word)} = 1;
-#  } 
+#  }
 }
 
 @keys = keys %words;
@@ -121,7 +121,7 @@ exit 0;  # end of main program, below are subroutines.
 sub check_words {
 
   my @check = sort grep { !exists($words{$_}) } @_ ;
-  my @suffs; 
+  my @suffs;
   my $temp;
 
   for my $orig ( @check ) {
@@ -146,7 +146,7 @@ sub check_words {
     for (@check) {
       next unless $_;
       more( "   $_.\n" );
-      
+
       if ($check) {
 	more( "-----\n" );
 	for (&close($_)) {
@@ -164,7 +164,7 @@ sub check_words {
       }
       print "\n-----\n\n";
     }
-    
+
     for (@check) {
       next unless $_;
       print $_."\n";
@@ -184,7 +184,7 @@ sub close {
   # delete 1 char
   $first=$word;
   $last='';
-  
+
   while( $mid=chop($first) ){
     if (exists($words{$first.$last})) {
       $close{$first.$last}=1;
@@ -258,7 +258,7 @@ sub suffix {
     #  with the better dictionary (better in my opinion, yours may
     #  vary), this is mostly commented out and the above fixes realy
     #  not needed.
-  
+
   my $orig = shift;
   my $word;
   ($word = $orig ) =~ s/'s$//;    #';
@@ -279,7 +279,7 @@ sub suffix {
 
 # ($word = $orig ) =~ s/ing$//;
 # if (exists($words{$word})) {
-#   return qq("$orig" = "$word" + "ing"); 
+#   return qq("$orig" = "$word" + "ing");
 # }
 # ($word = $orig ) =~ s/ing$/e/;
 # if (exists($words{$word})) {
@@ -297,7 +297,7 @@ sub suffix {
 # if (exists($words{$word})) {
 #   return qq("$orig" = "$word" + "d");
 # }
-# ($word = $orig ) =~ s/es$//;  
+# ($word = $orig ) =~ s/es$//;
 # if (exists($words{$word})) {
 #   return qq("$orig" = "$word" + "es");
 # }
@@ -342,7 +342,7 @@ spell - scan a file for misspelled words
 
 =head1 SYNOPSIS
 
-B<spell> 
+B<spell>
 [ B<-b>[I<dict>]]
 [B<-c>|B<-x>]
 [B<-v>]
@@ -387,26 +387,26 @@ Same as B<-c> above.
 
 =item B<-v>
 
-Show suffix expansion.  Some words are inferred by modifying 
+Show suffix expansion.  Some words are inferred by modifying
 words in the dictionary, this shows you how that was done on some of
 your words, so you can double check if it did it right.
 
 =item B<-i>
 
-Use interactively.  Prompts for words, processes words after 
+Use interactively.  Prompts for words, processes words after
 each line, instead of after whole file(s), and quit at first blank line
-(do not use on a file, this is for typing in words from standard in).  
+(do not use on a file, this is for typing in words from standard in).
 Also prints descriptive titles and has a very basic pager.
 
 =item B<-s> I<file>
 
-Specify supplemental dictionary.  This dictionary is used 
-in addition to the base word list.  The space before the I<file> is 
+Specify supplemental dictionary.  This dictionary is used
+in addition to the base word list.  The space before the I<file> is
 optional.  Multiple files can be used, but each needs its own B<-s> flag.
 
 =back
 
-Multiple flags can be combined, but B<-b> and B<-s> must come last, i.e. 
+Multiple flags can be combined, but B<-b> and B<-s> must come last, i.e.
 "spell -icvb" instead of "spell -i -c -v -b", and can be specified in any
 order.
 

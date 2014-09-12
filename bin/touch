@@ -87,7 +87,7 @@ foreach my $file (@ARGV) {
     };
 }
 
-    
+
 exit $warnings;
 
 sub parse_time ($) {

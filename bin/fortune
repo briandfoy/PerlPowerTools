@@ -16,7 +16,7 @@ my (@dir_list, @text, $text, $dir, %hash, $f, %args, $size);
 $wait = $size = $found = 0;
 
 my (%opts);
-getopts('adefhilosvwm:', \%opts); 
+getopts('adefhilosvwm:', \%opts);
 
 my $debug = $opts{'d'};
 
@@ -41,7 +41,7 @@ if ($opts{'m'}) {
 	warn "\$find ==> $find" if $debug;
 	study $find;
 }
-	
+
 if (@ARGV) {
 
 	if ($debug) {
@@ -78,7 +78,7 @@ if (@ARGV) {
 if ($opts{f}) {
 	&build_file_list;
 	&print_file_list;
-}else { 
+}else {
 	&build_file_list;
 	my $pfile = &pick_file;
 	my $pick = &pick_fortune($pfile);
@@ -112,7 +112,7 @@ sub build_file_list
 	my $rtn;
 
 	@dir_list = ();
-	if (@ARGV) {  $rtn = &build_w_args; }  
+	if (@ARGV) {  $rtn = &build_w_args; }
 	else { $rtn = &build_wo_args; }
 
 	return $rtn;
@@ -144,18 +144,18 @@ if (%args) {
 			my $rand = int (rand $dir_c);
 			my $tmp = $temp[$rand];
 			if ($debug) { warn "$tmp\n"; }
-			return $tmp;			
+			return $tmp;
 		}
     }
 }
 
 # if no files were specified on the cmd line use this.
-# gets the list of files and their sizes 
+# gets the list of files and their sizes
 
 sub build_wo_args
 {
 
-	opendir D, "$home" or die "could not open $home: $!\n"; 
+	opendir D, "$home" or die "could not open $home: $!\n";
 
 	my @allfiles = readdir D;
 
@@ -165,7 +165,7 @@ sub build_wo_args
 		if ($opts{o})       { next unless  /-o$/ || /limerick$/; }
 		elsif (! $opts{a})  { next     if  /-o$/ || /limerick$/; }
 		next unless -f "$home/$_";
-		push @dir_list, "$home/$_";      
+		push @dir_list, "$home/$_";
 	}
 	if ($debug) {
 		warn "\n\@dir_list in build_wo_args\n";
@@ -177,7 +177,7 @@ sub build_wo_args
 sub pick_file
 {
 	die "\nCould find no files to open!\n" unless @dir_list;
-	
+
 	if ($opts{e}) {
 		my $dir_c = @dir_list;
 		my $rand = int (rand $dir_c);
@@ -283,11 +283,11 @@ sub pick_fortune
 		open F, "< $file" or die "could not open file $file: $!";
 		while (defined ($line = <F>)) {
 			$line =~ s|\%+\n||g;
-			push @text, $line; 
+			push @text, $line;
 		}
 		$text = @text;
 
-	warn "\n\nthe length of \@text is $text\n\n" if $debug; 
+	warn "\n\nthe length of \@text is $text\n\n" if $debug;
 
 	my $num = int (rand $text);
 
@@ -329,7 +329,7 @@ sub pick_fortune
 	return $num;
 }
 
-sub match 
+sub match
 {
 	my $num = shift;
 	my $not_done = shift;
@@ -346,7 +346,7 @@ sub match
 			$num = 0;
 			$wrap++;
 		}
-		
+
 	} else {
 		$picked = 0;
 		$not_done = 0;
@@ -368,7 +368,7 @@ sub new_file
 	push @seen_file, $file;
 	foreach (@seen_file) { warn "seen file => $_\n" if $debug; }
 	$$picked = 1;
-	&find_fortune;	
+	&find_fortune;
 
 }
 
@@ -386,7 +386,7 @@ sub short_long
 			$num++;
 			next;
 		} else {
-			$not_done = 0;				
+			$not_done = 0;
 		}
 
 	} elsif ($opts{'l'}) {  # that's an ell
@@ -394,8 +394,8 @@ sub short_long
 			$num++;
 			next;
 		} else {
-			$not_done = 0;				
-		} 
+			$not_done = 0;
+		}
 	} else {
 		;       # this will let us keep looking
 	}
@@ -414,7 +414,7 @@ sub print_fortune
 		if ($opts{w}) {
 			my $tmp = length $text[$num];
 			$wait = int ($tmp/75);
-		}		
+		}
 
 		print "\n\n$text[$num]\n\n";
 		sleep $wait;
@@ -426,7 +426,7 @@ sub print_fortune
 sub print_file_list
 {
 	my $file_name;
-	print "\n"; 
+	print "\n";
 	foreach (@dir_list) {
 		$file_name = basename($_);
 		print "\t$file_name\n";
@@ -439,27 +439,27 @@ sub print_help
 {
 
 	print <<EOF;
-	
+
 Usage: $0 [-adefhilosw] [-m pattern] [[N%] file/dir/all]
 
 	See the POD for more information.
 
      -a Choose from all lists of maxims, both offensive and not.
-     -e Consider all fortune files to be of equal size.			
+     -e Consider all fortune files to be of equal size.
      -f Print out the list of files which would be searched.
-     -l Long dictums only. 
+     -l Long dictums only.
      -m Print out all fortunes which match the regular expression pattern.
      -o Choose only from potentially offensive aphorisms.
-     -s Short apothegms only.  
+     -s Short apothegms only.
      -i Ignore case for -m patterns.
      -w Wait before termination for a calculated amount of time.
 
      all Same as the -a switch.
 
-     N% file/dir   
-         You can specify a specific file or directory which contains 
-         one or more files.  Any of these may be preceded by a percentage, 
-         which is a number N between 0 and 100 inclusive, followed by a %. 
+     N% file/dir
+         You can specify a specific file or directory which contains
+         one or more files.  Any of these may be preceded by a percentage,
+         which is a number N between 0 and 100 inclusive, followed by a %.
 
 EOF
 
@@ -567,7 +567,7 @@ readme
 
 =head1 BUGS
 
-The matching is only working 50% of the time using single quotes around strings 
+The matching is only working 50% of the time using single quotes around strings
 with white space and not at all for double quotes.
 
 Command line input of files does not work.

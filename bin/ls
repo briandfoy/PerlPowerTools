@@ -11,12 +11,12 @@ use Getopt::Std;
 # ------ partial inline of Stat::lsMode v0.50 code
 # (see http://www.plover.com/~mjd/perl/lsMode/
 # for the complete module)
- 
+
 #
 #
 # Stat::lsMode
 #
-# Copyright 1998 M-J. Dominus 
+# Copyright 1998 M-J. Dominus
 # (mjd-perl-lsmode@plover.com)
 #
 # You may distribute this module under the same terms as Perl itself.
@@ -32,7 +32,7 @@ sub format_mode {
   my $setids = ($mode & 07000)>>9;
   my @permstrs = @perms[($mode&0700)>>6, ($mode&0070)>>3, $mode&0007];
   my $ftype = $ftype[($mode & 0170000)>>12];
-  
+
   if ($setids) {
     if ($setids & 01) {		# Sticky bit
       $permstrs[2] =~ s/([-x])$/$1 eq 'x' ? 't' : 'T'/e;
@@ -188,7 +188,7 @@ my $isdst = 0;
 	} else {
 		if (!defined($Attributes->{$Entry})) {
 			print <<UNDEFSTAT;
-__________ ___ ________ ________ ________ ___ __  _____ 
+__________ ___ ________ ________ ________ ___ __  _____
 UNDEFSTAT
 		} else {
 			$Mode =
@@ -328,7 +328,7 @@ sub List {
 		$Cols = int($WinCols / $Maxlen) || 1;
 		$Rows = int(($#_+$Cols) / $Cols);
 		$Mask = sprintf("%%-%ds ", $Maxlen);
-	
+
 		for ($elt = 0; $elt < $Rows * $Cols; $elt++) {
 			$Target =  ($elt % $Cols) * $Rows +
 			 int(($elt / $Cols));
@@ -508,7 +508,7 @@ ls [-1RSacdfiklnrstu] [file ...]
 
 This programs lists information about files and directories.
 If it is invoked without file/directory name arguments,
-it lists the contents of the current directory.  
+it lists the contents of the current directory.
 Otherwise, B<ls> lists information about the files and
 information about the contents of the directories (but
 see B<-d>).  Furthermore, without any option arguments

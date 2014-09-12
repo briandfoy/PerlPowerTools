@@ -2,12 +2,12 @@
 
 #     units: convert units of measurement
 #     Copyright (C) 1996,1999 M-J. Dominus (mjd-perl-units@plover.com)
-# 
+#
 #     This program is free software; you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation; either version 2 of the License, or
 #     (at your option) any later version, or under Perl's `Artistic License'.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -124,7 +124,7 @@ for (;;) {
     my $p = 1/$q;
     printf "\t* %.6g\n\t/ %.6g\n", $q, $p;
   } else {
-    print 
+    print
       "conformability (Not the same dimension)\n",
       "\t", $have, " is ", text_unit($hu), "\n",
       "\t", $want, " is ", text_unit($wu), "\n",
@@ -142,7 +142,7 @@ sub usage {
 valid options are:
 
         -? --help         display this help text
-        -f --file         use specified definition file instead of 
+        -f --file         use specified definition file instead of
                           @DEFAULT_UNITTABS
         -W --warranty     display information about (lack of) warranty
         -C --copying      display information about license
@@ -165,7 +165,7 @@ sub read_defs {
     print ">>> $_\n" if $DEBUG_d;
     my $r = definition_line($_);
     unless (defined $r) {
-      warn "Error in line $. of $file: $PARSE_ERROR.  Skipping.\n";  
+      warn "Error in line $. of $file: $PARSE_ERROR.  Skipping.\n";
     }
   }
 }
@@ -313,7 +313,7 @@ sub text_unit {
     $text .= " $d";
     $text .= "^$e" if $e > 1;
   }
-  
+
   $text;
 }
 ################################################################
@@ -324,7 +324,7 @@ sub text_unit {
 BEGIN {
   sub sh { ['shift', $_[0]]  };
   sub go { ['goto', $_[0]] };
-  @actions = 
+  @actions =
     (
      # Initial state
      {PREFIX => sh(1),
@@ -366,7 +366,7 @@ BEGIN {
       DIVIDE => sh(12),
       _ =>  ['reduce', 1, 'topunit'],
      },
-     # State 8:   unit -> constant . unit 
+     # State 8:   unit -> constant . unit
      #            unit -> constant .
      {PREFIX => sh(1),
       NUMBER => sh(2), # Shift-reduce conflict resolved in favor of shift
@@ -400,7 +400,7 @@ BEGIN {
      },
      # State 11:  unit -> unit TIMES . unit
      {PREFIX => sh(1),
-      NUMBER => sh(2), 
+      NUMBER => sh(2),
       NAME   => sh(3),
       FUNDAMENTAL => sh(4),
       FRACTION => sh(5),
@@ -410,7 +410,7 @@ BEGIN {
      },
      # State 12:  unit -> unit DIVIDE . unit
      {PREFIX => sh(1),
-      NUMBER => sh(2), 
+      NUMBER => sh(2),
       NAME   => sh(3),
       FUNDAMENTAL => sh(4),
       FRACTION => sh(5),
@@ -420,7 +420,7 @@ BEGIN {
      },
      # State 13:  unit -> unit . TIMES unit
      #            unit -> unit . DIVIDE unit
-     #            unit -> constant unit . 
+     #            unit -> constant unit .
      #            unit -> unit . NUMBER
      {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
       TIMES => sh(11),  # Shift-reduce conflict resolved in favor of shift
@@ -430,16 +430,16 @@ BEGIN {
      # State 14: unit => '(' unit ')' .
      { _ => ['reduce', 3, 'unit', sub {$_[1]}] },
      # State 15: unit  ->  unit . TIMES unit
-     #           unit  ->  unit TIMES unit . 
+     #           unit  ->  unit TIMES unit .
      #           unit  ->  unit . DIVIDE unit
-     #           unit  ->  unit . NUMBER 
+     #           unit  ->  unit . NUMBER
      {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
       _ => ['reduce', 3, 'unit', sub {unit_multiply($_[0], $_[2])}],
      },
      # State 16: unit  ->  unit . TIMES unit
-     #           unit  ->  unit DIVIDE unit . 
-     #           unit  ->  unit . DIVIDE unit 
-     #           unit  ->  unit . NUMBER  
+     #           unit  ->  unit DIVIDE unit .
+     #           unit  ->  unit . DIVIDE unit
+     #           unit  ->  unit . NUMBER
      {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
       _ => ['reduce', 3, 'unit', sub{unit_divide($_[2], $_[0])}],
      },
@@ -474,7 +474,7 @@ sub parse_unit {
       $PARSE_ERROR = 'Syntax error';
       return Zero;
     }
-    
+
     my ($primary, @actargs) = @$action;
     print STDERR "  $primary (@actargs)\n" if $DEBUG_p;
     if ($primary eq 'accept') {
@@ -500,7 +500,7 @@ sub parse_unit {
       push @state_st, $STATE;
 #      $STATE = $state_st[-1];
       print STDERR "Post-reduction state is $STATE.\n" if $DEBUG_p;
-      
+
       # Now look for `goto' actions
       my $goto = $actions[$STATE]{$result_type};
       unless ($goto && $goto->[0] eq 'goto') {
@@ -645,7 +645,7 @@ patent must be licensed for everyone's free use or not licensed at all.
 
   The precise terms and conditions for copying, distribution and
 modification follow.
-
+
 		    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
@@ -700,7 +700,7 @@ above, provided that you also meet all of these conditions:
     License.  (Exception: if the Program itself is interactive but
     does not normally print such an announcement, your work based on
     the Program is not required to print an announcement.)
-
+
 These requirements apply to the modified work as a whole.  If
 identifiable sections of that work are not derived from the Program,
 and can be reasonably considered independent and separate works in
@@ -758,7 +758,7 @@ access to copy from a designated place, then offering equivalent
 access to copy the source code from the same place counts as
 distribution of the source code, even though third parties are not
 compelled to copy the source along with the object code.
-
+
   4. You may not copy, modify, sublicense, or distribute the Program
 except as expressly provided under this License.  Any attempt
 otherwise to copy, modify, sublicense or distribute the Program is
@@ -815,7 +815,7 @@ impose that choice.
 
 This section is intended to make thoroughly clear what is believed to
 be a consequence of the rest of this License.
-
+
   8. If the distribution and/or use of the Program is restricted in
 certain countries either by patents or by copyrighted interfaces, the
 original copyright holder who places the Program under this License

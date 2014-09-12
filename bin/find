@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# find - actually a pass through front end for find2perl 
+# find - actually a pass through front end for find2perl
 
 use strict;
 
@@ -29,7 +29,7 @@ system 'find2perl', @ARGV;
 
 if ($?) {
   die "Couldn't run find2perl (wait status == $?)";
-} 
+}
 
 die "empty program" unless -s TEMPOUT;
 die "empty program" unless -s $temp_file;
@@ -41,14 +41,14 @@ close(TEMPOUT)	   || die "can't close $temp_file: $!";
 open(STDOUT, ">&SAVE_OUT") || die "can't restore stdout: $!";
 
 eval qq{
-  no strict; 
+  no strict;
   local \$^W = 0;
   $program;
-}; 
+};
 
 if ($@) {
   die "Couldn't compile and execute find-t0-perl program: $@\n";
-} 
+}
 
 exit 0;
 
@@ -60,9 +60,9 @@ find - search directory tree for files matching a pattern
 
 =head1 SYNOPSIS
 
-B<find> 
-[ -HdhXxW ] 
-[ F<Directory> ] 
+B<find>
+[ -HdhXxW ]
+[ F<Directory> ]
 [ expression ]
 
 =head1 DESCRIPTION
@@ -80,7 +80,7 @@ then executes user specified commands on those files.
  Examples:
 
 find and print a list of all files on the system (disk) with a F<.pm>
-extension (perl modules).  
+extension (perl modules).
 
 C<find / -name "*.pl" -print>
 
@@ -104,7 +104,7 @@ same restrictions (some have said that find2perl needs updating).
 
 =head1 BUGS
 
-This manpage should probably include the entire 
+This manpage should probably include the entire
 I<find> manpage, and perhaps that of I<find2perl> as well.
 
 =head1 AUTHOR

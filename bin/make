@@ -8,9 +8,9 @@ getopts('gnpf:j:C:');
 
 my @opt = ($opt_g,$opt_f,$opt_j,$opt_C,$opt_p,$opt_n);
 
-my $info = Make->new(GNU      => $opt_g, 
+my $info = Make->new(GNU      => $opt_g,
                      Override => { MAKE => "$^X $0" },
-                     Makefile => $opt_f, 
+                     Makefile => $opt_f,
                      Jobs     => $opt_j,
                      Dir      => $opt_C);
 
@@ -52,7 +52,7 @@ L<Make>, make(1)
 
 =head1 AUTHOR
 
-Nick Ing-Simmons 
+Nick Ing-Simmons
 
 =cut
 

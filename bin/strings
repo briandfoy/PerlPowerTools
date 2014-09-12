@@ -10,9 +10,9 @@ strings - extract strings
 
 =head1 DESCRIPTION
 
-C<strings> prints strings gleaned from the given files 
+C<strings> prints strings gleaned from the given files
 (or from standard input.)  By default strings of less than 4 characters
-are ignored.  A string is considered to be any sequence of graphical ASCII 
+are ignored.  A string is considered to be any sequence of graphical ASCII
 characters (plus space and tab).
 
 Options:
@@ -24,7 +24,7 @@ Options:
   -o            Print each string with the octal offset in the file.
                 (Same as -to).
 
-  -t {d|o|x}    Print each string with the offset in the file; 
+  -t {d|o|x}    Print each string with the offset in the file;
                 specify decimal, octal or hexadecimal respectively.
 
 The -a option is included for compatibility with older versions but does

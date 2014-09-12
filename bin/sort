@@ -132,7 +132,7 @@ sub _sort_file {
 
             push @fh, $sym;
         }
-        
+
     # ooo, get ready, get ready
     } else {
 
@@ -212,7 +212,7 @@ sub _merge_files {
     # arbitrarily named keys, store handles as values
     %oth = map {($o++ => $_)} @$fh;
 
-    # match handle key in %oth to next record of the handle    
+    # match handle key in %oth to next record of the handle
     %fh  = map {
         my $fh = $oth{$_};
         ($_ => scalar <$fh>);
@@ -411,7 +411,7 @@ sub _make_sort_sub {
 
         foreach my $k (@{$topts->{k}}) {
             my($opts, @fil) = ($topts);
-            
+
             # defaults for main sort sub components
             my($cmp, $ab_, $fab_, $aa, $bb) = qw(cmp $_ $fh{$_} $a $b);
 
@@ -445,7 +445,7 @@ sub _make_sort_sub {
 
                     # getting out of hand now
                     } else {
-                        @fil = "substr($tmp1, $opts->{ksc}, ". 
+                        @fil = "substr($tmp1, $opts->{ksc}, ".
                             ($opts->{kfc} - $opts->{ksc}) . ')';
                     }
 
@@ -591,7 +591,7 @@ sub usage {
     }
 
     $u =~ s/\n//;
-    
+
     die "Usage:$u";
 
 }
@@ -716,7 +716,7 @@ Reverse the sense of the comparisons.
 
 Ignore leading blank characters when determining the starting and ending
 positions of a restricted sort key.  If the B<b> option is specified
-before the first B<k> option, it is applied to all B<k> options. 
+before the first B<k> option, it is applied to all B<k> options.
 Otherwise, the B<b> option can be attached indepently to each
 field_start or field_end option argument (see below).
 
@@ -762,7 +762,7 @@ they have this effect if specified with field_start, field_end, or both.
 If any modifier is attached to a field_start or a field_end, no option
 applies to either.
 
-Occurrences of the B<k> option are significant in command line order. 
+Occurrences of the B<k> option are significant in command line order.
 If no B<k> option is specified, a default sort key of the entire line
 is used.  When there are multiple keys fields, later keys are compared
 only after all earlier keys compare equal.
@@ -959,7 +959,7 @@ Added usage() function.
 
 =item v0.60 Saturday, April 3, 1999
 
-Rewrote most of the sort sub stuff to be more efficient and in some 
+Rewrote most of the sort sub stuff to be more efficient and in some
 cases to just make it work right.
 
 Can now use multiple B<k> switches.  Need Getopt::Long 2.17 (comes with

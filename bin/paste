@@ -21,9 +21,9 @@ Merges the corresponding lines of files.
 EOF
 		exit;
 	};
-	/^-d$/ and do { 
+	/^-d$/ and do {
 		my $arg = shift;
-		@sep = split(//, eval qq{sprintf("$arg")}); 
+		@sep = split(//, eval qq{sprintf("$arg")});
 		next;
 	};
 	/^-s$/ and do { $dash_ess = 1; next; }
@@ -40,8 +40,8 @@ if ($dash_ess) {
 		$fh = $fh[$i];
 		my $current_sep = 0;
 		my $tline;
-		while(<$fh>) { 
-			chomp; 
+		while(<$fh>) {
+			chomp;
 			$tline .= $_ . $sep[$current_sep++];
 			$current_sep = 0 if $current_sep == scalar @sep;
 		}
@@ -89,7 +89,7 @@ paste [-s] [-d list] file...
 
 =head1 DESCRIPTION
 
-Paste combines the corresponding lines of multiple files. Each line of each 
+Paste combines the corresponding lines of multiple files. Each line of each
 file is printed seperated by tab (or by the characters listed in the -d
 option).
 
@@ -115,12 +115,12 @@ lines of the files.
 
 =head1 ENVIRONMENT
 
-The working of I<paste> is not influenced by any environment variables. 
+The working of I<paste> is not influenced by any environment variables.
 
 =head1 BUGS
 
 I<paste> has no known bugs, unless you count the use of eval EXPR. Getting
-it to work under 'strict refs' would be nice, too. 
+it to work under 'strict refs' would be nice, too.
 
 =head1 AUTHOR
 

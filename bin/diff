@@ -547,7 +547,7 @@ sub insert { return grep {$_->{"sign"} eq '+'} @{shift->{"changes"}}; }
 
 # Algorithm: See `Longest Common Subsequences', at
 # http://www.ics.uci.edu/~eppstein/161/960229.html
-# 
+#
 # The function `LCS_matrix' constructs the matrix described by this
 # reference; then `traverse sequences' traverses the graph implied by
 # this matrix and invokes callback functions on each traversed matrix
@@ -594,7 +594,7 @@ sub LCS_matrix {
   (ref $a eq 'ARRAY') or usage();
   (ref $b eq 'ARRAY') or usage();
   my $eq = shift;
-  
+
   my ($al, $bl);			# Lengths of sequences
   $al = @$a;
   $bl = @$b;
@@ -607,10 +607,10 @@ sub LCS_matrix {
     $r->[0] = 0;
     for ($j=1; $j<=$bl; $j++) {
       # If the first two items are the same...
-      if (defined $eq 
+      if (defined $eq
 	  ? $eq->($a->[-$i], $b->[-$j])
 	  : $a->[-$i] eq $b->[-$j]
-	 ) { 
+	 ) {
 	$r->[$j] = 1 + $x[$i-1][$j-1];
       } else {
 	my $pi = $x[$i][$j-1];
@@ -642,12 +642,12 @@ sub traverse_sequences {
     } elsif ($bp == 0) {
       $dispf = $dispatcher->{B_FINISHED} || $dispatcher->{DISCARD_A};
       $ap--;			# Where to put this?
-    } elsif (defined($equal) 
+    } elsif (defined($equal)
 	     ? $equal->($a->[$ai], $b->[$bi])
 	     : $a->[$ai] eq $b->[$bi]
 	    ) {
       $dispf = $dispatcher->{MATCH};
-      $ap--; 
+      $ap--;
       $bp--;
     } else {
       if ($x->[$ap][$bp] == $x->[$ap-1][$bp] + 1) {
@@ -667,7 +667,7 @@ sub LCS {
   my $lcs = [];
   my ($a, $b);
   my $functions = { MATCH => sub {push @$lcs, $a->[$_[0]]} };
-  
+
   traverse_sequences($functions, @_);
   wantarray ? @$lcs : $lcs;
 }
@@ -680,7 +680,7 @@ sub diff {
   my $functions =
     { DISCARD_A => sub {push @cur_diff, ['-', $_[0], $a->[$_[0]]]},
       DISCARD_B => sub {push @cur_diff, ['+', $_[1], $b->[$_[1]]]},
-      MATCH => sub { push @diffs, [@cur_diff] if @cur_diff; 
+      MATCH => sub { push @diffs, [@cur_diff] if @cur_diff;
 		     @cur_diff = ()
 		   },
     };
@@ -708,7 +708,7 @@ Algorithm::Diff - Compute `intelligent' differences between two files / lists
   @lcs = LCS(\@seq1, \@seq2, $comparison_function);
 
   @diffs = diff(\@seq1, \@seq2, $comparison_function);
-  
+
   traverse_sequences(\@seq1, \@seq2,
                      { MATCH => $callback,
                        DISCARD_A => $callback,
@@ -718,7 +718,7 @@ Algorithm::Diff - Compute `intelligent' differences between two files / lists
 
 =head1 AUTHOR
 
-Mark-Jason Dominus, mjd-perl-diff@plover.com.  
+Mark-Jason Dominus, mjd-perl-diff@plover.com.
 
 Visit my diff/LCS web page at http://www.plover.com/~mjd/perl/diff/.
 

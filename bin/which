@@ -173,9 +173,9 @@ Use I<which -- --> to find the path to I<-->.
 
 =head1 ENVIRONMENT
 
-The environment variable I<$PATH> (also I<DCL$PATH> under DCL; or 
-I<$Commands> under MPW) is used to find the list of directories 
-to check for commands.  The variable I<%PATHEXT%> is examined for 
+The environment variable I<$PATH> (also I<DCL$PATH> under DCL; or
+I<$Commands> under MPW) is used to find the list of directories
+to check for commands.  The variable I<%PATHEXT%> is examined for
 command extensions if it exists.
 
 =head1 BUGS
@@ -184,7 +184,7 @@ I<which> has no known bugs.
 
 =head1 COMPATABILITY
 
-Traditionally, I<which> also parses ones F<~/.cshrc> file to look for 
+Traditionally, I<which> also parses ones F<~/.cshrc> file to look for
 aliases, and reporting the alias when applicable. This version of
 I<which> does not do that, because there are more shells than I<csh>.
 

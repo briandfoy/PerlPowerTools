@@ -24,12 +24,12 @@ my(
 END {
     close STDOUT            || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;    # from die
-} 
+}
 
 $Tabstop  =  8;   # sane tab stops
 $Width    = 80;   # default screen size
 
-sub usage {    
+sub usage {
     warn "$0: @_\n" if @_;
     die <<USAGE
 $0 [-bs] [-w I<width> | -<width>] args
@@ -47,26 +47,26 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 
     next OPTION unless length;
 
-    if (s/^b//) { 
+    if (s/^b//) {
         warn "-b flag already set" if $Byte_Only++;
         redo OPTION;
     }
 
-    if (s/^s//) { 
+    if (s/^s//) {
         warn "-s flag already set" if $Space_Break++;
         redo OPTION;
     }
 
     # historical practice makes -72 and -w 72 the same
-    if (s/^(\d.*)// || s/^w(.*)//) { 
-        $Width = $1 || shift; 
+    if (s/^(\d.*)// || s/^w(.*)//) {
+        $Width = $1 || shift;
         next OPTION;
     }
 
     usage("unexpected option: -$_");
-} 
+}
 
-unless ($Width && $Width =~ /^\d+$/) { 
+unless ($Width && $Width =~ /^\d+$/) {
     usage("illegal width value `$Width'");
 }
 if ($Space_Break && $Width < $Tabstop) {
@@ -90,29 +90,29 @@ sub adj_col {
     die "XXX: called while byte count set" if $Byte_Only;
 
     # algorithm from BSD fold  --tchrist
-    if    ($char eq "\b") { $col-- if $col } 
-    elsif ($char eq "\r") { $col = 0; } 
-    elsif ($char eq "\t") { $col += $Tabstop - ($col % $Tabstop) } 
+    if    ($char eq "\b") { $col-- if $col }
+    elsif ($char eq "\r") { $col = 0; }
+    elsif ($char eq "\t") { $col += $Tabstop - ($col % $Tabstop) }
     else                  { $col++ }
 
     return $col;
 }
 
 # run fold on a given file
-sub fold_file { 
+sub fold_file {
     my($filename) = @_;
     my($column, $char, $output);
 
-    $column = 0; 
-    open(INPUT, $filename) || die "Cannot open $filename: $!\n"; 
+    $column = 0;
+    open(INPUT, $filename) || die "Cannot open $filename: $!\n";
 
-    # the following hack allows us to dispense with the 
+    # the following hack allows us to dispense with the
     # slow getc() and the hairy adj_col() code because we
     # don't care about \t and \b anymore. This small adjustment
     # provides a screaming 3,000% speedup, so seems worth it!
     #   --tchrist
 
-    if ($Byte_Only) { 
+    if ($Byte_Only) {
         my $soft  = "(.{0,$Width})(?=\b.)";   # XXX: \b != \s
         my $hard  = "(.{$Width})(?=.)";
         if ($Space_Break) {
@@ -129,7 +129,7 @@ sub fold_file {
 
 CHAR:   # bytewise processing.  The horror! The horror!
     while (defined($char = getc(INPUT))) {
-    
+
         if ($char eq "\n") {
             print $output, "\n";
             $output = "";
@@ -139,7 +139,7 @@ CHAR:   # bytewise processing.  The horror! The horror!
 
 ADJUST: {
         $column = adj_col($column, $char);
-        if ($column > $Width) {     
+        if ($column > $Width) {
             if ($Space_Break) {
                 for (my $i = length($output); $i >= 0; $i--) {
                     if (substr($output, $i, 1) =~ /\s/) {
@@ -149,10 +149,10 @@ ADJUST: {
                             $column = adj_col($column, substr($output, $i, 1));
                         }
                         redo ADJUST;
-                    } 
+                    }
                 }
                 print $output, "\n";
-                $output = "";  
+                $output = "";
                 $column = 0;
                 redo ADJUST;
             } else {
@@ -196,7 +196,7 @@ The B<-b> flag makes the program ignore embedded backspaces, tabs, and
 carriage returns when deciding where to split.  This makes it run about
 thirty times faster.  You might want to get used to using B<-b>.
 
-Current locale settings will be honored in determining what 
+Current locale settings will be honored in determining what
 is meant by "whitespace" and "word characters".
 
 =head1 BUGS

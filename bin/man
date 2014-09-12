@@ -1,12 +1,12 @@
 #!/usr/local/bin/perl
-# 
+#
 # man - perl rewrite of man system
 # tom christiansen <tchrist@perl.com>
 #
 # --------------------------------------------------------------------------
 # begin configuration section
 #
-# this should be adequate for CONVEX systems.  if you copy this script 
+# this should be adequate for CONVEX systems.  if you copy this script
 # to non-CONVEX systems, or have a particularly outre local setup, you may
 # wish to alter some of the defaults.
 # --------------------------------------------------------------------------
@@ -22,7 +22,7 @@ $PAGER = $ENV{'MANPAGER'} || $ENV{'PAGER'} || 'more';
 $is_less = $PAGER =~ /^\S*less(\s+-\S.*)?$/;
 $PAGER    .= $is_less ? ' -si' : ' -s';       # add -f if using "ul"
 
-# man roots to look in; you would really rather use a separate tree than 
+# man roots to look in; you would really rather use a separate tree than
 # manl and mann!  see %SECTIONS and $MANALT if you do.
 $MANPATH  = &config_path;
 
@@ -33,11 +33,11 @@ $MANSECT  = $ENV{'MANSECT'} || 'ln16823457po';
 # note that HP systems want this:
 #	$MANSECT  = $ENV{'MANSECT'} || '1:1m:6:8:2:3:4:5:7';
 
-# alternate architecture man pages in 
+# alternate architecture man pages in
 # ${MANALT}/${machine}/man(.+)/*.\11*
 $MANALT = $ENV{'MANALT'} || '/usr/local/man';
 
-# default program for -t command 
+# default program for -t command
 $TROFF    = $ENV{'TROFF'} || 'troff';
 
 $NROFF    = 'nroff';
@@ -52,9 +52,9 @@ $SED	  = 'sed';
 
 # define this if you don't have/want UL;
 # without ul, you probably need COL defined unless your PAGER is very smart
-# you also must use col instead of ul if you've any tbl'd man pages, such 
+# you also must use col instead of ul if you've any tbl'd man pages, such
 # as from the X man pages or the eqnchar.7 page.
-$COL	  = 'col';  
+$COL	  = 'col';
 $UL	  = '';		# set to '' if you haven't got ul
 die 'need either $UL or $COL' unless $UL || $COL;
 
@@ -79,7 +79,7 @@ $TYPESET  = "$TROFF -mandoc";
 
 # flags: GNU likes -i, BSD doesn't; both like -h, but BSD doesn't document it
 # if you don't put -i here, i'll make up for it later the hard way
-#$EGREP = '/usr/local/bin/egrep';	
+#$EGREP = '/usr/local/bin/egrep';
 #if (-x $EGREP) {
     #$EGREP .= ' -i -h';
 #} else {
@@ -89,18 +89,18 @@ $TYPESET  = "$TROFF -mandoc";
     } else {
 	$EGREP .= ' -h';
     }
-#} 
+#}
 
 # sections that have verbose aliases
 # if you change this, change the usage message
 #
-# if you put any of these in their own trees, comment them out and make 
+# if you put any of these in their own trees, comment them out and make
 # a link in $MANALT so people can still say 'man local foo'; for local,
 #	cd $MANALT; ln -s . local
 # for the other trees (new, old, public) put either them or links
 # to them in $MANALT
 #
-%SECTIONS = (				
+%SECTIONS = (
     'local',	'l',
     'new',	'n',
     'old',	'o',
@@ -112,7 +112,7 @@ $TYPESET  = "$TROFF -mandoc";
 # to it.  eg, if you call a man page 'gnugrep' but it's own NAME section
 # just calls it grep, then you need this.  usually a good idea.
 #
-$STUPID_SO	= 1;  
+$STUPID_SO	= 1;
 
 # --------------------------------------------------------------------------
 # end configuration section
@@ -154,7 +154,7 @@ if ($opt_u) {
     &version if $opt_v;
     &usage;
     # not reached
-} 
+}
 
 if ($opt_v) {
     &version;
@@ -172,7 +172,7 @@ if ($opt_T) {
     $opt_t = 1;
     $TYPESET =~ s/$TROFF/$opt_T/;
     $TROFF = $opt_T;
-} 
+}
 
 $MANPATH = "$MANALT/$opt_m"		# want different machine type (undoc)
 			if $machine = $opt_m;
@@ -183,7 +183,7 @@ $whatis = 1		if $opt_f;
 $apropos = 1		if $opt_k || $opt_K;
 $fromfile = 1		if $opt_l;
 $whereis = 1  		if $opt_w;
-$grepman = 1		if $opt_g;	
+$grepman = 1		if $opt_g;
 $| = $debug = 1		if $opt_d;
 $full_index = 1 	if $opt_i;
 $show_all = 1		if $opt_a;
@@ -199,8 +199,8 @@ if ($#ARGV > 0) {
     if (-d $machdir) {
 	$MANPATH = $machdir;
 	$machine = shift;
-    } 
-} 
+    }
+}
 
 @MANPATH = split(/:/,$MANPATH);
 
@@ -212,9 +212,9 @@ for (reverse split(/$delim/, $MANSECT)) {
     if ($_ eq '') {
 	warn "null section in $MANSECT\n";
 	next;
-    } 
+    }
     $MANSECT{$_} = ++$secidx;
-} 
+}
 
 
 if ($whatis) {
@@ -227,7 +227,7 @@ if ($whatis) {
     &grepman;
 } else {
     &man;
-} 
+}
 
 exit $status;
 
@@ -243,12 +243,12 @@ sub genwhatis {
 	    push(@whatis, $whatis);
 	} else {
 	    warn "$whatis: $!\n";# if $opt_M || $opt_P; # they asked for it
-	} 
-    } 
+	}
+    }
 
-    die "$program: No whatis databases found, please run makewhatis\n" 
+    die "$program: No whatis databases found, please run makewhatis\n"
 	if $#whatis < 0;
-} 
+}
 
 # --------------------------------------------------------------------------
 # run whatis (man -f)
@@ -258,19 +258,19 @@ sub whatis {
 
     &genwhatis;
 
-    for $target (@ARGV) { $seeking{$target} = 1; } 
+    for $target (@ARGV) { $seeking{$target} = 1; }
 
     if ($hard_way) {
 	&slow_whatis;
-    } else { 
+    } else {
 	&fast_whatis;
     }
 
     for $target (keys %seeking) {
 	print "$program: $target: not found.\n";
 	$status = 1;
-    } 
-} 
+    }
+}
 
 # --------------------------------------------------------------------------
 # do whatis lookup against dbm file(s)
@@ -280,7 +280,7 @@ sub fast_whatis {
 
     for $INDEX (@whatis) {
 	unless (-f "$INDEX.db" && dbmopen(%INDEX,"$INDEX.db",0444)) {
-	    warn "$program: No dbm file $INDEX.db: $!\n" if $debug; 
+	    warn "$program: No dbm file $INDEX.db: $!\n" if $debug;
 	    #$status = 1;
 	    if (-f $INDEX) {
 		local(@whatis) = ($INDEX);  # dynamic scoping obfuscation
@@ -289,7 +289,7 @@ sub fast_whatis {
 	    next;
 	} else {
 	    warn "$program: dbmopened $INDEX.db";
-	} 
+	}
        	for $target (@ARGV) {
 	    local($ext);
 	    @entries = &quick_fetch($target,'INDEX');
@@ -308,11 +308,11 @@ sub fast_whatis {
 		($ext) = $page =~ /\.([^.]*)$/;
 		printf("%-20s - %s\n", "$cmd ($ext)", $desc);
 	    }
-	} 
+	}
 	dbmclose(%INDEX);
-    } 
-    
-} 
+    }
+
+}
 
 # --------------------------------------------------------------------------
 # do whatis lookup the hard way
@@ -321,7 +321,7 @@ sub slow_whatis {
     local($query);
     local($WHATIS);
 
-    for (@ARGV) { s/([^\w])/\\$1/g; } 
+    for (@ARGV) { s/([^\w])/\\$1/g; }
 
     $query = '^[^-]*\b?(' . join('|',@ARGV) . ')\b[^-]* -';
 
@@ -335,34 +335,34 @@ sub slow_whatis {
 	    unless (open WHATIS) {
 		warn "can't open $WHATIS: $!\n";
 		next;
-	    } 
+	    }
 	    while (<WHATIS>) {
 		next unless /$query/i;
 		($target = $+) =~ y/A-Z/a-z/;
 		delete $seeking{$target};
 		print;
-	    } 
+	    }
 	    close WHATIS;
-	} 
-    } 
-} 
+	}
+    }
+}
 
 # --------------------------------------------------------------------------
 # run apropos (man -k)
 # --------------------------------------------------------------------------
 sub apropos {
     local($_, %seeking, $target, $query);
-    &genwhatis;  
+    &genwhatis;
 
     for (@ARGV) { s/(\W)/\\$1/g unless $opt_K; }
 
     if ($EGREP)  {
 
 	# fold case on apropos args
-	for (@ARGV) { 
-	    y/A-Z/a-z/; 
-	    $seeking{$_} = 1; 
-	} 
+	for (@ARGV) {
+	    y/A-Z/a-z/;
+	    $seeking{$_} = 1;
+	}
 	$query = join('|',@ARGV);
 
 	# need to fake a -i flag?
@@ -371,12 +371,12 @@ sub apropos {
 	    local(@pat) = split(//,$query);
 	    for (@pat) {
 		($C = $_) =~ y/a-z/A-Z/ && ($_ = '[' . $C . $_ . ']');
-	    } 
+	    }
 	    $query = join('',@pat);
-	} 
+	}
 	if (&run("$EGREP '$query' @whatis | $PAGER")) {
 	    %seeking = ();
-	} 
+	}
     } else {  # use perl
 	local($code) = <<'EOF';
 	if ($isatty) {
@@ -388,18 +388,18 @@ sub apropos {
 	    unless (open WHATIS) {
 		warn "can't open $WHATIS: $!\n";
 		next;
-	    } 
+	    }
 	    WHATIS: while (<WHATIS>) {
 EOF
 	    for (@ARGV) {
 		if ($opt_K && split(/\|/) > 1) { # speed hack
 		   $code .= "OPLOOP: {\n";
-		   for (@_) { $code .= "\tlast OPLOOP if /$_/i;\n"; } 
+		   for (@_) { $code .= "\tlast OPLOOP if /$_/i;\n"; }
 		   $code .= "next WHATIS; }\n";
 		} else {
 		    $code .= "    next WHATIS unless /$_/i;\n";
 		}
-	    } 
+	    }
 	    $code .= <<'EOF';
 		print;
 	    }
@@ -415,11 +415,11 @@ EOF
 		die "$0: $message\n";
 	    } else {
 		die $@;
-	    } 
+	    }
 	} elsif ($@) {
 	    die $@;
-	} 
-    } 
+	}
+    }
     close PAGER if $isatty;
 }
 
@@ -433,12 +433,12 @@ sub usage {
     } else {
 	open (PIPE, "| $PAGER");
 	print PIPE <<USAGE;  # in case he wants a page
-USAGE SUMMARY: 
+USAGE SUMMARY:
     man [-flags] [section] page[/index] ...
 	(section is [1-8lnop], or "new", "local", "public", "old")
 	(index is section or subsection header)
 
-    man [-flags] -f topic ...  
+    man [-flags] -f topic ...
 	(aka "whatis")
 
     man [-flags] -k keyword ...
@@ -457,7 +457,7 @@ FLAGS: (most only make sense when invoked as 'man')
     -i topic    show section and subsection index for use with topic/index
 
     -M path	use colon-delimited man path for searching (also as -P)
-    -S sects	define new section precedence 
+    -S sects	define new section precedence
 
     -t		troff the man page
     -T path	call alternate typesetter on the man page
@@ -469,7 +469,7 @@ FLAGS: (most only make sense when invoked as 'man')
     -D		strip backspaces from output
 
 ENVIRONMENT:
-    \$PAGER	pager to pipe terminal-destined output through 
+    \$PAGER	pager to pipe terminal-destined output through
     \$MANPATH	like -M path
     \$MANSECT	like -S sects
     \$MANALT	used for alternate hardware types (or obsolete -m flag)
@@ -483,11 +483,11 @@ CURRENT DEFAULTS:
     TROFF	$TROFF
 
 NOTES:  (\$manroot is each component in \$MANPATH)
-    * If \$manroot/whatis DBM files do not exist, a warning will be 
+    * If \$manroot/whatis DBM files do not exist, a warning will be
 	printed (if -d flag) and -h will be assumed for that \$manroot only.
-    * If \$manroot/tmac.an exists, it will be used for formatting 
+    * If \$manroot/tmac.an exists, it will be used for formatting
 	instead of the normal -man macros.
-    * Man pages may be compressed either in (for example) man1.gz/who.1 
+    * Man pages may be compressed either in (for example) man1.gz/who.1
         or man1/who.1.gz; cat pages will go into corresponding places.
     * If the man page contains .EQ or .TS directives, eqn and/or tbl
         will be invoked as needed at format time.
@@ -529,7 +529,7 @@ sub quick_fetch {
 	    push(@retlist, $_);
 	} else {
 	    ($name, $ext) = /(.+)\.([^.]+)/;
-	    push(@retlist, 
+	    push(@retlist,
 		grep(/[^\001]+\001[^\001]+\001${ext}\001/ || /[^\001]+${ext}\001/,
 			&quick_fetch($name, $array)))
 			                    unless $recursed{$name}++;
@@ -537,9 +537,9 @@ sub quick_fetch {
 	# explain and diction are near duplicate man pages referencing
 	# each other, requiring the $recursed check.  one should be removed
 	}
-    } 
+    }
     return @retlist;
-} 
+}
 
 # --------------------------------------------------------------------------
 # do a slow fetch for target using perl's globbing notation
@@ -555,11 +555,11 @@ sub slow_fetch {
 	    $stem = $want_section;
 	} else {
 	    $stem = substr($want_section,0,1);
-        } 
+        }
 	$glob = "man$stem*";
     } else {
 	$glob = 'man*';
-    } 
+    }
     $glob = "$root/$glob/$target.*";
     return <${glob}>;
 }
@@ -580,8 +580,8 @@ sub whereis {
 	    for (@files) { print &verify($_), " "; }
 	    print "\n";
 	}
-    } 
-} 
+    }
+}
 
 
 # --------------------------------------------------------------------------
@@ -605,19 +605,19 @@ sub find_files {
 	# generate dbm names
 	for $root (@MANPATH) {
 	    $dbm{$root} = $vars++; # magic incr
-	    unless (-f "$root/whatis.db" 
-		    && dbmopen(%$root,"$root/whatis.db",undef)) 
+	    unless (-f "$root/whatis.db"
+		    && dbmopen(%$root,"$root/whatis.db",undef))
 	    {
-		warn "No dbm file for $root/whatis: $!\n" 
+		warn "No dbm file for $root/whatis: $!\n"
 		    if $opt_M || $opt_P || $debug;
 		#$status = 1;
 		next;
 	    } else {
 		warn "opened $root/whatis.db" if $debug;
-	    } 
+	    }
 	    $dbmopened{$root} = 1;
 	}
-    } 
+    }
 
     for $root (@MANPATH) {
 	local($fullname);
@@ -651,9 +651,9 @@ sub find_files {
 #	local($hard_way) = 1;
 #	warn "recursing on find_files\n" if $debug;
 #	return &find_files($target);
-#    } 
+#    }
      return &trimdups(@retlist);
-} 
+}
 
 # --------------------------------------------------------------------------
 # run a normal man command
@@ -674,10 +674,10 @@ sub man {
 		$target = $1;
 	    }  else {
 		($target, $idx_topic) = ($1, $2);
-	    } 
+	    }
 	} else {
 	    undef $idx_topic;
-	} 
+	}
 
 	if ($show_all) {
 		no strict 'refs';
@@ -687,21 +687,21 @@ sub man {
 	    if (!@pages) {
 		&no_entry($target);
 		next;
-	    } 
+	    }
 	    while ($tpage = shift @pages) {
 		undef $idx_topic unless $was_defined;
 		do &{"$roff"}(&verify($tpage));
-		&prompt_RTN("to read $pages[0]") 
+		&prompt_RTN("to read $pages[0]")
 		    if $roff eq 'nroff' && @pages;
-	    } 
+	    }
 	} else {
 	    $target = &get_page($target) unless $fromfile;
 	    do &{"$roff"}($target) if $target;
 	}
-	&prompt_RTN("to read man page for $ARGV[0]") 
+	&prompt_RTN("to read man page for $ARGV[0]")
 	    if $roff eq 'nroff' && @ARGV;
-    } 
-} 
+    }
+}
 
 # --------------------------------------------------------------------------
 # find out if he wants a special section and save in $want_section
@@ -713,7 +713,7 @@ sub get_section {
     if ($section =~ /^(\S+)\((\S*)\),?\s*$/) {
 	shift @ARGV;
 	unshift(@ARGV, $section = $2, $1);
-    } 
+    }
 
     $section =~ tr/A-Z/a-z/;
 
@@ -721,15 +721,15 @@ sub get_section {
     if (defined $SECTIONS{$section}) {
 	$want_section = $SECTIONS{$section};
 	shift @ARGV;
-    }  elsif (defined($MANSECT{$section}) || $section =~ /^\d\S*$/i) { 
+    }  elsif (defined($MANSECT{$section}) || $section =~ /^\d\S*$/i) {
 	$want_section = shift @ARGV;
     } else {
 	return;
-    } 
+    }
 
     $want_section =~ tr/A-Z/a-z/;
 
-    die "But what do you want from section $want_section?\n" 
+    die "But what do you want from section $want_section?\n"
 	if $want_section && $#ARGV < 0;
 }
 
@@ -743,12 +743,12 @@ sub get_page {
     unless (@found = &find_files($target)) {
 	&no_entry($target);
 	return '';
-    } 
+    }
 
     if (!$want_section) {
 	@want = @found;
     } else {{
-	local($patsect); # in case it's section 3c++ 
+	local($patsect); # in case it's section 3c++
 	($patsect = $want_section) =~ s/(\W)/\\$1/g;
 
 	# try exact match first
@@ -772,11 +772,11 @@ sub get_page {
 
 	select(STDERR);
 
-	print "There are ", 0+@want, 
+	print "There are ", 0+@want,
 	    " manual entries available for $target:\n";
 	for ($i = 0; $i <= $#want; $i++) {
 	    printf "%3d\t%s\n", $i+1, $want[$i];
-	} 
+	}
 	{
 	    print "Which section would you like? (select 0 for all) ";
 	    ($ans = <STDIN>) ? chop($ans) : ($ans = "\004");
@@ -790,15 +790,15 @@ sub get_page {
 		local($show_all) = 1;
 		&man;
 		return '';
-	    } 
+	    }
 	    if (--$ans > $#want) {
 		print "But we only have ",1+$#want, " man pages!\n";
 		redo;
-	    } 
+	    }
 
 	    $found = $want[$ans];
 	}
-    } 
+    }
 
 
     select(STDOUT);
@@ -819,12 +819,12 @@ sub verify {
 	$path .= '.gz';
 	return $path if -f $path;
 	$path =~ s/.gz//;
-    } 
+    }
 
     if ($COMPRESS_DIR) {
 	$path =~ s-(/[^/]*)$-.gz$1-;
 	return $path if -f $path;
-    } 
+    }
 
     warn "$program: $orig has disappeared -- rerun makewhatis\n";
     $status = 1;
@@ -846,7 +846,7 @@ sub no_entry {
     }
     print STDERR ".\n";
     $status = 1;
-} 
+}
 
 # --------------------------------------------------------------------------
 # order by section.  if the complete extension has a section
@@ -867,7 +867,7 @@ sub bysection {
     $p2 = $MANSECT{$e2} || $MANSECT{substr($e2,0,1)};
 
     $p1 == $p2 ? $a cmp $b : $p2 <=> $p1;
-} 
+}
 
 # --------------------------------------------------------------------------
 # see whether they want to start at a subsection, then run the command
@@ -889,10 +889,10 @@ sub run_topic {
 	    &prompt_RTN("to return to the index");
 	    $command =~ s! '\+/.*$!!;
 	    redo;
-	} 
+	}
     }
-    
-} 
+
+}
 
 # --------------------------------------------------------------------------
 # run through the typesetter
@@ -905,16 +905,16 @@ sub troff {
 
     ($manroot) = $file =~ m,^(.*)/man([^\.]*)(\.gz)?/([^/]*),;
 
-    $command = ((($file =~ m:\.gz:) 
-			? $ZCAT 
-			: $CAT) 
+    $command = ((($file =~ m:\.gz:)
+			? $ZCAT
+			: $CAT)
 		. " < $file | $TYPESET");
 
     $command =~ s,-man,$manroot/tmac.an, if -e "$manroot/tmac.an";
 
     &insert_filters($command,$file);
     &run($command);
-} 
+}
 
 # --------------------------------------------------------------------------
 # just run a regular nroff, possibly showing the index first.
@@ -937,17 +937,17 @@ sub nroff {
     if ($full_index) {
 	&show_index($manpage);
 	return;
-    } 
+    }
     if ($fromfile) {
 	$command = (($manpage =~ m:\.gz/:) ? $ZCAT : $CAT)
 			. " < $manpage | $CATSET";
 	&insert_filters($command, $manpage);
     } else {
-	require 'stat.pl' unless defined &Stat;   
+	require 'stat.pl' unless defined &Stat;
 	# compiled version has this already
 
 
-	($catpage = $manpage) 
+	($catpage = $manpage)
 	    =~ s,^(.*)/man([^\.]*)(\.gz)?/([^/]*)$,$1/cat$2/$4,;
 
 	$manroot = $1;
@@ -961,7 +961,7 @@ sub nroff {
 	    } else {
 		# Nope, the cat file doesn't exist.
 	    	# Prefer the compressed cat directory if it exists.
-	    	$catpage = "$1/cat$2.gz/$4" 
+	    	$catpage = "$1/cat$2.gz/$4"
 		    if $catpage !~ /\.gz$/ && -d "$1/cat$2.gz";
 	    }
 	}
@@ -973,7 +973,7 @@ sub nroff {
 	    warn "$program: $manpage is length 0!\n";
 	    $status = 1;
 	    return;
-	} 
+	}
 
 	@st_cat = &Stat($catpage);
 
@@ -992,7 +992,7 @@ sub nroff {
 
 	    $tmppage = "$catpage.$$";
 
-	    unless (-d $catdir && -w _ 
+	    unless (-d $catdir && -w _
 		    && open(tmppage, ">$tmppage") # usually EROFS
 		    && close(tmppage) )
 	    {
@@ -1005,7 +1005,7 @@ sub nroff {
 	    $command .= "| $COMPRESS" if $catpage =~ /\.gz/;
 	    $command .= "> $tmppage";
 
-	    $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'HUP'} = $SIG{'TERM'}  
+	    $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'HUP'} = $SIG{'TERM'}
 		= 'tmp_cleanup';
 
 	    $SIG{'PIPE'} = 'PLUMBER';
@@ -1024,16 +1024,16 @@ REFORMAT:   { unless (&reformat($command)) {
 		    #$status = 1;
 		    return;
 		}
-	    }} 
+	    }}
 	    warn "done\n" if $isatty;
 
-	    $intmp || rename($tmppage,$catpage) || 
+	    $intmp || rename($tmppage,$catpage) ||
 		die "couldn't rename $tmppage to $catpage: $!\n";
-	    
+
 	    $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'HUP'} = $SIG{'TERM'} =
 		$SIG{'PIPE'} = 'DEFAULT';
 
-	} 
+	}
 	$command = (($catpage =~ m:\.gz:)
 			? $ZCAT
 			: $CAT)
@@ -1042,14 +1042,14 @@ REFORMAT:   { unless (&reformat($command)) {
     if (-z $catpage) {
 	unlink $catpage;
 	die "$program: $catpage was length 0; disk full?\n";
-    } 
+    }
     $command .= "| $UL" 		if $UL;
     $command .= "| $SED 's/.\b//g'" 	if $stripBS;
 
-    if ($isatty) {  
+    if ($isatty) {
         $command .= "| $PAGER";
         # If the pager is less, use the man page as the prompt, even if pipe
-        if ($is_less) { 
+        if ($is_less) {
             # Escape all periods because less interprets them.  We also
             # need to add an extra '\' to escape the shell intrepetation
             # of '\'.  We also need to make a copy of $manpage, because
@@ -1063,7 +1063,7 @@ REFORMAT:   { unless (&reformat($command)) {
 
     &run_topic;
     unlink($tmppage) if $intmp;
-} 
+}
 
 
 # --------------------------------------------------------------------------
@@ -1104,10 +1104,10 @@ sub pick_index {
      ($_ = <STDIN>) ? chop : ($_ = "\004");
      $_ = "\004" if 'quit' =~ /^$_/;
      return $_;
-} 
+}
 
 # --------------------------------------------------------------------------
-# strip arg of extraneous cats and redirects	
+# strip arg of extraneous cats and redirects
 # --------------------------------------------------------------------------
 sub unshell {
     $_[0] =~ s/^\s*cat\s*<?\s*([^\s|]+)\s*\|\s*([^|]+)/$2 < $1/;
@@ -1131,11 +1131,11 @@ sub run {
     warn "running: $command\n" if $debug;
     if (system $command) {
 	$status = 1;
-	printf STDERR "\"%s\" exited %d, sig %d\n", $command, 
+	printf STDERR "\"%s\" exited %d, sig %d\n", $command,
 	    ($? >> 8), ($? & 255) if $debug;
     }
     return ($? == 0);
-} 
+}
 
 # --------------------------------------------------------------------------
 # check if page needs tbl or eqn, modifying command if needed
@@ -1161,13 +1161,13 @@ sub insert_filters {
 	if (/^\.EQ/) {
 	    $_ = <PAGE>;
 	    $eqn = 1 unless /\.(if|nr)/;  # has eqn output not input
-	} 
+	}
 	if (/^\.TS/) {
 	    $_ = <PAGE>;
 	    $tbl = 1 unless /\.(if|nr)/;  # has tbl output not input
-	} 
+	}
 	last if $eqn && $tbl;
-    } 
+    }
     close PAGE;
 
     if ($roff eq 'troff') {
@@ -1186,12 +1186,12 @@ sub insert_filters {
 	    $_[0] =~ s/ - / - $prs/;
 	} else {
 	    $_[0] .= " $prs";
-	} 
+	}
     } else {
 	print "no PRS for $page in $prs\n" if $debug;
-    } 
+    }
     $_[0];
-} 
+}
 
 # --------------------------------------------------------------------------
 # due to aliasing the dbase sometimes has the same thing twice
@@ -1202,9 +1202,9 @@ sub trimdups {
 
     while ($file = shift) {
 	push(@retlist,$file) unless $seen{$file}++;
-    } 
+    }
     return @retlist;
-} 
+}
 
 # --------------------------------------------------------------------------
 # just print the version
@@ -1229,11 +1229,11 @@ sub show_index {
 	    close PAGER;
 	} else {
 	    &run("$PAGER $idx_file");
-	} 
+	}
     } else {
 	print STDOUT @ssindex;
     }
-} 
+}
 
 # --------------------------------------------------------------------------
 # find closest match on index selection in full index
@@ -1246,9 +1246,9 @@ sub find_index {
 
     $expr =~ s!^/+!!;
 
-    for (@ssindex) { 
-	s/^\s*\d+\s+//; 
-	s/\s+\d+\s*$//; 
+    for (@ssindex) {
+	s/^\s*\d+\s+//;
+	s/\s+\d+\s*$//;
     }
 
     if ($expr > 0) {
@@ -1262,8 +1262,8 @@ sub find_index {
 	} else {
 	    return '';
 	}
-    } 
-} 
+    }
+}
 
 # --------------------------------------------------------------------------
 # read in subsection index into @ssindex
@@ -1274,7 +1274,7 @@ sub load_index {
     &getidx($manpage) if $#saveidx < 0;
     @ssindex = @saveidx;
     die "should have have an index for $manpage" if $#saveidx < 0;
-} 
+}
 
 # --------------------------------------------------------------------------
 # create subsection index is out of date wrt source man page
@@ -1298,11 +1298,11 @@ sub getidx {
 	unless (open idx_file) {
 	    warn "$program: can't open $idx_file: $!\n";
 	    return ();
-	} 
+	}
 	@retlist = <idx_file>;
 	close idx_file;
 	return @saveidx = @retlist;
-    } 
+    }
 
     if (!open(manpage, $manpage =~ /\.gz/ ? "$ZCAT < $manpage|" : $manpage)) {
     	warn "$program: can't open $manpage: $!\n";
@@ -1329,14 +1329,14 @@ sub getidx {
 	    "Bu", "BUGS"
 	);
 	$mh_expr = join('|',keys %mh_sections);
-    } 
+    }
 
     while (<manpage>) {
 	if ($is_mh && /^\.($mh_expr)/) {
 	    $sname = $mh_sections{$+};
-	    $maxlen = length($sname) if $maxlen < length($sname); 
+	    $maxlen = length($sname) if $maxlen < length($sname);
 	    push(@snames,$sname);
-	} 
+	}
 	if (/^\.(?:s[sh]|ip)\s+(.*?)(\s*\d+)?$/i ) {
 	    $line = $_;
 	    $_ = $1;
@@ -1347,14 +1347,14 @@ sub getidx {
 	    s/\\\((ru|ul)/_/g;		# xlate to '_'
 	    s/\\\((mi|hy|em)/-/g;	# xlate to '-'
 	    s/\\\*\(..//g; 		# no troff strings
-	    s/\\//g;		   	# kill all remaining backslashes 
+	    s/\\//g;		   	# kill all remaining backslashes
 	    $sname = $_;
 	    $_ = $line;
-	    $maxlen = length($sname) if $maxlen < length($sname); 
+	    $maxlen = length($sname) if $maxlen < length($sname);
 	    push(@snames,$sname);
-	} 
+	}
 	$lines{$sname}++;
-    } 
+    }
 
     $mask = sprintf("%%2d   %%-%ds %%5d\n", $maxlen + 2);
 
@@ -1365,7 +1365,7 @@ sub getidx {
 
     for ($i = 1; $i <= $#snames; $i++)  {
 	push(@retlist, sprintf($mask, $i, $snames[$i], $lines{$snames[$i]}));
-    } 
+    }
     if (!$no_idx_file) {
 	warn "storing section index in $idx_file\n" if $debug;
 	print idx @retlist;
@@ -1381,7 +1381,7 @@ sub tmp_cleanup {
     warn "unlink $tmppage\n" if $debug;
     unlink $tmppage;
     die "Interrupted!\n";
-} 
+}
 
 #--------------------------------------------------------------------------
 # in case we die writing to the pipe
@@ -1390,11 +1390,11 @@ sub PLUMBER {
     warn "unlink $tmppage\n" if $debug;
     unlink $tmppage;
     die "Broken pipe while reformating $manpage\n" ;
-} 
+}
 
 
 # --------------------------------------------------------------------------
-# print line with C\bC style emboldening 
+# print line with C\bC style emboldening
 # --------------------------------------------------------------------------
 sub print {
     local($_) = @_;
@@ -1411,21 +1411,21 @@ sub print {
             }
             $last = $_;
 	}
-    } 
+    }
 }
 
 # --------------------------------------------------------------------------
 # reformat the page with nroff, fixing up bold escapes
 # --------------------------------------------------------------------------
-sub reformat { 
-    local($_) = @_; 
-    local($nroff, $col); 
+sub reformat {
+    local($_) = @_;
+    local($nroff, $col);
     local($inbold) = 0;
     local($status);
 
     if ($NROFF_CAN_BOLD) {
 	return &run($_);
-    } 
+    }
 
     &unshell($_);
     ($nroff, $col) = m!(.*)\|\s*($COL.*)!;
@@ -1450,15 +1450,15 @@ sub reformat {
 	    $inbold = !$inbold;
 	    $_ = $';
 	    redo;
-	}   
+	}
 	&print($_);
     }
 
     close NROFF;
-    if ($?) { 
+    if ($?) {
 	warn "$program: \"$nroff\" failed! status=$?" if $debug;
 	$status++;
-    } 
+    }
     close COL;
     if ($?) {
 	warn "$program: \"$col\" failed! status=$?" if $debug;
@@ -1466,7 +1466,7 @@ sub reformat {
     }
     select(STDOUT);
     $status == 0;
-} 
+}
 
 # --------------------------------------------------------------------------
 # prompt for <RET> if we're a tty and have a non-stopping pager
@@ -1497,77 +1497,77 @@ sub config_path {
 	    s![^/+]*$!man! && -d && !$seen{$_}++ && push(@manpath,$_);
 	}
 	$manpath = join(':', @manpath);
-    } 
+    }
     # $manpath;    # last expr is assign to this anyway
-} 
+}
 
 # --------------------------------------------------------------------------
 # grep through MANPATH for a pattern
 # --------------------------------------------------------------------------
 sub grepman {
     local($code, $_, $dir, $root, $FILE, $found);
-    
+
     $code = "while (<FILE>) {\n";
 
     for (@ARGV) {
 	s#/#\\/#g;
 	$code .= <<EOCODE;
-	    if (/$_/) { 
-		print "\$path: \$_"; 
+	    if (/$_/) {
+		print "\$path: \$_";
 		\$found++;
-		next; 
+		next;
 	    }
 EOCODE
-    } 
+    }
 
     $code .= "}\n";
 
     print "grep eval code: $code" if $debug;
 
-    
+
     foreach $root ( split(/:/, $MANPATH)) {
 	unless (chdir($root)) {
 	    warn "can't chdir to $root: $!";
 	    $status++;
 	    next;
-	} 
+	}
 	foreach $dir ( <man?*> ) {
 	    unless (chdir($dir)) {
 		warn "can't chdir to $root/$dir: $!" if $debug;
 		next;
-	    } 
+	    }
 	    unless (opendir(DIR, '.')) {
 		warn "can't opendir $root/$dir: $!" if $debug;
 		next;
-	    } 
+	    }
 	    foreach $FILE ( readdir(DIR) ) {
 		next if $FILE eq '.' || $FILE eq '..';
 		$path = "$root/$dir/$FILE";
 		if ($FILE !~ /\S\.\S/ || !-f $FILE) {
 		    print "skipping non-man file: $path\n" if $debug;
 		    next;
-		} 
+		}
 		if ($FILE =~ /\.gz$/ || $dir =~ /\.gz$/) {
 		    $FILE = "$ZCAT $FILE|";
-		} 
+		}
 		print STDERR "grepping $path\n" if $debug;
 		unless (open FILE) {
 		    warn "can't open $root/$dir/$FILE: $!";
 		    $status++;
 		    next;
-		} 
+		}
 		eval $code;
 		die $@ if $@;
-	    } 
+	    }
 	    unless (chdir ($root)) {
 		warn "can't return to $root: $!";
 		$status++;
 		last;
-	    } 
-	} 
-    } 
+	    }
+	}
+    }
     exit ($status || !$found);
-} 
+}
 
 =encoding utf8
 

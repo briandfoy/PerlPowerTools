@@ -27,7 +27,7 @@ sub pickone {		# Computer's card-picking routine.  Dumb or smart.
 			next;
 		}
 		push(@MY_PAST_GUESSES, $guess);
-		return($guess);	   
+		return($guess);
 	}
 	@HIS_PAST_GUESSES=@saveguess;
 	$guess=(keys %h)[rand scalar keys %h];  # degrade to blind guesses
@@ -37,7 +37,7 @@ sub pickone {		# Computer's card-picking routine.  Dumb or smart.
 }
 sub compguess {                # Return 0 if hit, nonzero (the card) if miss
 	my($guess, $stat);
-	
+
 	do {
 		print "\nI ask you for: ";
 		$guess=pickone(\@COMPUTERS_HAND);
@@ -45,11 +45,11 @@ sub compguess {                # Return 0 if hit, nonzero (the card) if miss
 	} while(! defined ($stat=askfor(\@COMPUTERS_HAND, \@PLAYERS_HAND, $guess)));
 
 	havebook(\@COMPUTERS_HAND);
-	return($stat?0:$guess);	
+	return($stat?0:$guess);
 }
-sub playguess {   
+sub playguess {
 	my($guess, $stat);
-	
+
 	do {
 		print "\nYou ask me for: ";
 		$guess=<STDIN>;  chomp($guess);
@@ -64,7 +64,7 @@ sub playguess {
 sub draw {
 	my($drawarr, $guess)=@_;
 	my($foo);
-	
+
 	$foo=pop @DECK;
 	die("No more cards: S.N.H.") if (!$foo);
 	if ($foo eq $guess) {
@@ -98,7 +98,7 @@ sub askfor {
 	if (! grep($card eq $_, (keys %so, 2..10) )) {
 		print "I don't understand!\n";
 		return;
-	}	
+	}
 	if (! grep($card eq $_, @$askarr)) {
 		print "$asker dont have any $card" . "s!\n";
 		return;
@@ -111,7 +111,7 @@ sub askfor {
 
 	my @GOOD=grep($card eq $_, @$vicarr);
 	@$vicarr=(grep($card ne $_, @$vicarr));
-	
+
 	print "$opponent have ", scalar(@GOOD), " $card", (scalar(@GOOD)>1)?"s":"", "\n";
 	print "$asker get another guess!\n";
 	push(@$askarr, @GOOD);
@@ -119,7 +119,7 @@ sub askfor {
 
 sub havebook {
 	my $array=shift;
-	
+
 	my(%hash,$flag);  $flag=0;
 	foreach(@$array){ $hash{$_}++;}
 	foreach my $value (keys %hash) {
@@ -145,8 +145,8 @@ sub fisher_yates_shuffle { # From The Perl Cookbook, recipe 4.17
 
 sub printhand {
 	unless ($_[2]) {
-		print "$_[1] hand is: " , join(' ', sort  
-			{ (($a=~/^\d+$/)?$a:$so{$a}) <=> (($b=~/^\d+$/)?$b:$so{$b}); } 
+		print "$_[1] hand is: " , join(' ', sort
+			{ (($a=~/^\d+$/)?$a:$so{$a}) <=> (($b=~/^\d+$/)?$b:$so{$b}); }
 			@{$_[0]});
 	}
 	my @bl=keys %{$BOOKS{$_[1]}};
@@ -186,7 +186,7 @@ $whoseturn=int(rand(2));  # True for player
 print $whoseturn?"You":"I", " get to start\n";
 
 while(1) {
-	print "\n";	
+	print "\n";
 	last if ( (!@PLAYERS_HAND) or (!@COMPUTERS_HAND) );
 
 	printhand(\@PLAYERS_HAND,"You");
@@ -243,7 +243,7 @@ fish [-p]
 
 I<fish> plays the children's game of Go Fish.  The computer plays against
 the player.  The object of the game is to collect more "books" of cards
-than your opponent by querying each other's hand.  
+than your opponent by querying each other's hand.
 
 This version implements the child-friendly rules outlined
 in I<Hoyle's Rules of Games>.
@@ -256,13 +256,13 @@ I<fish> accepts the following option:
 
 =item -p
 
-Puts I<fish> into "professional mode".  
+Puts I<fish> into "professional mode".
 
 =back
 
 =head1 BUGS
 
-Strategy employed by I<fish>'s "professional mode" could be 
+Strategy employed by I<fish>'s "professional mode" could be
 somewhat smarter.
 
 User interaction resembles BSD's implementation which is rather...spartan.

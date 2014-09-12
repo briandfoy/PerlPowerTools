@@ -22,7 +22,7 @@ As a Perl function:
 The B<glob> command/function implements globbing in perl, rather than
 forking a csh like Perl's built-in glob() call.  This is faster than
 the built-in glob() call, and more robust (on many platforms, csh
-chokes on C<echo *> if too many files are in the directory.) 
+chokes on C<echo *> if too many files are in the directory.)
 
 =head2 Pattern Matching Syntax for Filename Expansion
 
@@ -221,7 +221,7 @@ sub match_glob($) {
     return $_  unless /(?:^|[^\\])[*?\[\]{}]/;
 
     # Make the glob into a regexp
-    # escape + , and | 
+    # escape + , and |
     s/([+.|])/\\$1/g;
 
     # handle * and ?
@@ -263,7 +263,7 @@ sub recurseglob($ $ @) {
     my($re, $anyfound, @names);
 
     if ( @comps == 0 ) {
-        # bottom of recursion, just return the path 
+        # bottom of recursion, just return the path
         chop($dirname);  # always has gratuitous trailing slash
         @res = ($dirname);
     } else {
@@ -283,7 +283,7 @@ sub recurseglob($ $ @) {
         foreach (@names) {
             if ( m{$regex} ) {
                 if ( $_ ne "$curdir" and $_ ne "$parentdir") {
-                    unshift(@res, &recurseglob( "$dir$dirsep$_", 
+                    unshift(@res, &recurseglob( "$dir$dirsep$_",
                                                 "$dirname$_$dirsep",
                                                 @comps ));
                 }
@@ -308,7 +308,7 @@ my @escapes = ( '\\\\' => "\001",
 my %map_esc = @escapes;
 sub escape_glob($) {
     local $_ = shift;
-    s/( \\\\ | \\{ | \\} | \{\} )/$map_esc{$1}/gex; 
+    s/( \\\\ | \\{ | \\} | \{\} )/$map_esc{$1}/gex;
     $_;
 }
 my %unmap_esc = map { m/^\\(.*)$/ ? $1 : $_ } (reverse @escapes);
@@ -456,9 +456,9 @@ unless (caller) {
     }
     $\ = $opt_0 ? "\0" : "\n";
     print for (@globbed);
-    
+
     # Exit with status 0 if we matched any files; 1 if we didn't,
-    # and 2 if we had an internal error (bad ~user or directory) 
+    # and 2 if we had an internal error (bad ~user or directory)
     warn "No match.\n" unless (@globbed);
     @errmsgs  and  die join("\n", @errmsgs)."\n";
     exit(@globbed ? 0 : 1);

@@ -1175,7 +1175,7 @@ fuzz factor is 2.)   If  I<patch>  cannot  find  a  place  to
 install  that  hunk of the patch, it will put the hunk out
 to a reject file, which normally is the name of the output
 file  plus ".rej" [see L<"note 1">].  The format of the
-rejected hunk remains unchanged [see L<"note 5">]. 
+rejected hunk remains unchanged [see L<"note 5">].
 
 As  each  hunk  is completed, you will be told whether the
 hunk succeeded or failed, and which line (in the new file)

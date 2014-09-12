@@ -102,11 +102,11 @@ sub make_month_array {
 	}
 	for( $x = 0; $x < $firstweekday; $x++ ) { $month_array[$x] = '    '; }
 	if( !(($year == 1752) && ($month == 9)) ) {
-		for( $x = 1; $x <= $numdays; $x++, $y++ ) { 
+		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
 			$month_array[$x + $firstweekday - 1] = sprintf( "%4d", $y);
 		}
 	} else {
-		for( $x = 1; $x <= $numdays; $x++, $y++ ) { 
+		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
 			$month_array[$x + $firstweekday - 1] = sprintf( "%4d", $y);
 			if( $y == 2 ) {
 				$y = 13;
@@ -287,7 +287,7 @@ not 1999 AD.
 
 cal.pl generates calendars from 1 AD through 9999 AD, in the following format.
 
-S<         March 1999         
+S<         March 1999
   Su   M  Tu   W  Th   F  Sa
        1   2   3   4   5   6
    7   8   9  10  11  12  13
@@ -308,7 +308,7 @@ So, September 2, 1752 was followed by September 14, 1752 in the UK and all
 colonies,
 as shown below.
 
-S<       September 1752       
+S<       September 1752
   Su   M  Tu   W  Th   F  Sa
            1   2  14  15  16
   17  18  19  20  21  22  23

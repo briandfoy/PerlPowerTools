@@ -13,13 +13,13 @@ if (@ARGV > 2) {
 } elsif (@ARGV == 0) {
 	print while(<>);
 } elsif (@ARGV == 1) {
-	$startcol = (shift() - 1); 
+	$startcol = (shift() - 1);
 	while (<>) {
 		print substr $_, 0, $startcol;
 		print "\n";
 	}
 } elsif (@ARGV == 2) {
-	$startcol = (shift() - 1); 
+	$startcol = (shift() - 1);
 	$endcol = (shift() - 1);
 	while (<>) {
 		chomp;

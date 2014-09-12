@@ -26,7 +26,7 @@ while($i = shift) {
 
 $| = 1;
 
-$sock = new IO::Socket::INET(PeerAddr => $host, 
+$sock = new IO::Socket::INET(PeerAddr => $host,
                              PeerPort => 43,
 			     Proto => 'tcp');
 

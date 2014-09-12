@@ -37,10 +37,10 @@ $SIG{__DIE__}  = sub { print STDERR "test: $_[0]"; exit 2; };
 sub bad_arg(@) { warn "invalid argument @_\n"; }
 
 ## Make sure we have a numeric value
-sub number($) { 
+sub number($) {
     local $_ = shift;
     return $_ if (defined && /^[-+]?\d+$/);
-    bad_arg "'$_[0]' - expecting a number"; 
+    bad_arg "'$_[0]' - expecting a number";
     return undef;
 }
 

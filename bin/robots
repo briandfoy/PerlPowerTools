@@ -268,7 +268,7 @@ sub Init_Arena
 
   %Arena =
   (
-    'MIN_X' => 1, 
+    'MIN_X' => 1,
     'MAX_X' => $COLS - SIDEBAR_WIDTH - 2,
     'MIN_Y' => 1,
     'MAX_Y' => $LINES - 2,
@@ -357,7 +357,7 @@ sub Starting_Positions
       redo POSITION_ROBOT  if($seen{"$x:$y"});
       $seen{"$x:$y"} = 1;
     }
-    
+
     @{$robot}{'X', 'Y', 'STATUS'} = ($x, $y, ALIVE);
     $Arena{'ROBOT_AT'}{"$x:$y"} = 1;
   }
@@ -370,7 +370,7 @@ sub Starting_Positions
     redo POSITION_PLAYER  if($seen{"$x:$y"});
     @{$Arena{'PLAYER'}}{'X', 'Y'} = ($x, $y);
   }
-  
+
   $Arena{'PLAYER'}{'STATUS'} = ALIVE;
 }
 
@@ -380,7 +380,7 @@ sub Draw_Arena
 
   # Top border
   $Win->addstr(0, 0, $str);
-  
+
   # Bottom border
   $Win->addstr($Arena{'MAX_Y'} + 1, 0, $str);
 
@@ -448,7 +448,7 @@ EOF
   }
 
   # Re-print any prompts that are active
-  if($Ask_Quit)        { &Quit_Prompt()         }      
+  if($Ask_Quit)        { &Quit_Prompt()         }
   elsif($Another_Game) { &Another_Game_Prompt() }
 
   $Win->refresh();
@@ -534,7 +534,7 @@ sub Play
       elsif($chr eq $key_redraw)
       {
         &Redraw();
-        next EVENT; 
+        next EVENT;
       }
       else
       {
@@ -565,7 +565,7 @@ sub Play
          $Initial_Level >= ADVANCE_LEVEL)
       {
         $Arena{'PLAYER'}{'ADV_BONUS'} = ADVANCE_BONUS;
-        $Arena{'PLAYER'}{'SCORE'} += $Arena{'PLAYER'}{'ADV_BONUS'};    
+        $Arena{'PLAYER'}{'SCORE'} += $Arena{'PLAYER'}{'ADV_BONUS'};
       }
 
       $Arena{'LEVEL'}++;
@@ -631,7 +631,7 @@ sub Get_Command
 
       $Just_Suspended = 1;
 
-      alarm($Real_Time_Step) 
+      alarm($Real_Time_Step)
         if($Real_Time && $Arena{'PLAYER'}{'STATUS'} == ALIVE && !$Ask_Quit);
     }
     else
@@ -682,7 +682,7 @@ sub Move_Player
   }
   else
   {
-    # Is the move to a safe spot?  
+    # Is the move to a safe spot?
     foreach my $robot (@{$Arena{'ROBOTS'}})
     {
       next  unless($robot->{'STATUS'} == ALIVE);
@@ -736,7 +736,7 @@ sub Move_Robots
   my(%robot_at, $robot, $i);
 
   # Move robots
-  for($i = $#{$Arena{'ROBOTS'}}; $i >= 0; $i--) 
+  for($i = $#{$Arena{'ROBOTS'}}; $i >= 0; $i--)
   {
     $robot = $Arena{'ROBOTS'}[$i];
 
@@ -836,7 +836,7 @@ sub Teleport
     @{$Arena{'PLAYER'}}{'X', 'Y'} = ($x, $y);
   }
 
-  # Is the move to a safe spot?  
+  # Is the move to a safe spot?
   foreach my $robot (@{$Arena{'ROBOTS'}})
   {
     next  unless($robot->{'STATUS'} == ALIVE);
@@ -850,7 +850,7 @@ sub Teleport
     }
   }
 
-  # Draw teleported player  
+  # Draw teleported player
   $Win->addch(@{$Arena{'PLAYER'}}{'Y', 'X'}, PLAYER_CHR);
 
   &Move_Robots();
@@ -919,7 +919,7 @@ sub Another_Game
   return(0)  if($chr !~ /^y$/i);
 
   # Clear scores and bonuses
-  $Arena{'PLAYER'}{'BONUS'} = $Arena{'PLAYER'}{'ADV_BONUS'} = 
+  $Arena{'PLAYER'}{'BONUS'} = $Arena{'PLAYER'}{'ADV_BONUS'} =
     $Arena{'PLAYER'}{'SCORE'} = 0;
 
   &Clear_Arena();
@@ -1123,7 +1123,7 @@ sub Update_Bonus
     if($Arena{'PLAYER'}{'BONUS'});
 
   $Win->clrtoeol();
-  
+
   if($y < $Arena{'PROMPT_Y'} + 1)
   {
     $Win->move($y + 1, $x);
@@ -1149,7 +1149,7 @@ sub Wait
     foreach my $robot (@{$Arena{'ROBOTS'}})
     {
       next  unless($robot->{'STATUS'} == ALIVE);
- 
+
       if(abs($robot->{'X'} - $Arena{'PLAYER'}{'X'}) < 2 &&
          abs($robot->{'Y'} - $Arena{'PLAYER'}{'Y'}) < 2)
       {
@@ -1192,7 +1192,7 @@ sub Must_Teleport
       /$key_d_re/io && $y1++;
       /$key_l_re/io && $x1--;
       /$key_r_re/io && $x1++;
-      
+
       $pos_moves{"$x1:$y1"} = 1;
     }
   }
@@ -1204,7 +1204,7 @@ sub Must_Teleport
   MOVE_TO_X: foreach $x1 ($px - 1 .. $px + 1)
   {
     next  if($x1 < $Arena{'MIN_X'} || $x1 > $Arena{'MAX_X'});
-    
+
     MOVE_TO_Y: foreach $y1 ($py - 1 .. $py + 1)
     {
       next  if($y1 < $Arena{'MIN_Y'} || $y1 > $Arena{'MAX_Y'} ||

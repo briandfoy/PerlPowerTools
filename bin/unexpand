@@ -24,7 +24,7 @@ sub usage($;$)
 {
     print <<"EOF";
 Usage:
-unexpand [-h] [-a] [-tabstop] [-tab1, tab2, ...] [file ...]  
+unexpand [-h] [-a] [-tabstop] [-tab1, tab2, ...] [file ...]
 EOF
     print STDERR $_[1] if $_[1];
     exit $_[0];
@@ -153,7 +153,7 @@ more characters.
 
 =head1 AUTHOR
 
-=for html 
+=for html
 The Perl implementation was written by <A
 href="mailto:thbzcrt@worldnet.fr">Thierry B&eacute;zecourt</A> for the
 <A href="http://language.perl.com/ppt/">Perl Power Tools project</A>,

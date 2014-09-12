@@ -119,7 +119,7 @@ blocks.  Partial numbers of blocks are rounded up.
 
 B<-c>      Display the grand total after all the arguments have been processed.
 
-B<-l>      Count the size of all files, even if they have appeared already 
+B<-l>      Count the size of all files, even if they have appeared already
 in another hard link.
 
 B<-s>      Display only the grand total for the specified files.

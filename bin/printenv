@@ -10,7 +10,7 @@ if (@ARGV) {
         print <<EOF;
 Usage: $0 [name]
 
-Display the environment. If an argument is given, only the value 
+Display the environment. If an argument is given, only the value
 of that variable is displayed.
 
 EOF

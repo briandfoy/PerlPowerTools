@@ -7,7 +7,7 @@ use strict;
 
 while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 	my $arg = shift;
-	
+
 	if ( $arg eq '-i' ) {
 		delete $ENV{$_} for keys %ENV;
 	} elsif ( $arg =~ /^-u(.*)/ ) {

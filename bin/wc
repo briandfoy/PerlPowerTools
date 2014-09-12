@@ -38,15 +38,15 @@ if ( $MacPerl::Version && $MacPerl::Version =~ /App/) {
 else {
     # use regular switches under the MPW tool and everywhere else.
     while ($ARGV[0] =~ /^-/) {
-        $ARGV[0] =~ s/^-//; 
+        $ARGV[0] =~ s/^-//;
         for my $flag (split(//,$ARGV[0])) {
             usage() if '?' =~ /\Q$flag/;
             usage("unknown flag: `$flag'") unless 'aplwmc' =~ /\Q$flag/;
             warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
-        } 
+        }
         shift;
     }
-} 
+}
 
 if ((!($opt{'p'} && $opt{'l'} && $opt{'w'} && $opt{'c'})) || ($opt{'a'})) {
    $opt{'l'} = 1; $opt{'w'} = 1; $opt{'c'} = 1;
@@ -54,19 +54,19 @@ if ((!($opt{'p'} && $opt{'l'} && $opt{'w'} && $opt{'c'})) || ($opt{'a'})) {
 
 if ($opt{'a'}) { $opt{'p'} = 1; $opt{'m'} = 1; }
 
-my ($total_paras, $total_lines, $total_words, $total_chars, $total_bytes) = 
+my ($total_paras, $total_lines, $total_words, $total_chars, $total_bytes) =
  qw(0 0 0 0 0);
 
 my $out = "";
 my $par_flag = 0;
 
-# Refer to Ken Lunde's B<CJKV Information Processing> pp. 01021-1022 
+# Refer to Ken Lunde's B<CJKV Information Processing> pp. 01021-1022
 # for further discussion (c) O'Reilly & Associates 1999, ISBN 1-56592-224-7.
 
 # This encoding ought to have -m and -c yield the same counts
 # no matter what the input.
 # all single byte (ASCII+eight bit || ISO 8859-n || EBCDIC)
-my $single_byte = q{ [\x00-\xFF] }; 
+my $single_byte = q{ [\x00-\xFF] };
 
 # UTF-8
 my $utf_8 = q{
@@ -82,7 +82,7 @@ my $utf_8 = q{
   | \xFD[\x80-\xBF][\x80-\xBF][\x80-\xBF][\x80-\xBF][\x80-\xBF] # six byte
 };
 
-# This encoding ought to have -m yield -c/2 
+# This encoding ought to have -m yield -c/2
 # no matter what the input.
 # UCS-2
 my $ucs_2 = q{ [\x00-\xFF][\x00-\xFF] };
@@ -117,7 +117,7 @@ my $gbk = q{
   | [\x81-\xFE][\x40-\x7E\x80-\xFE]  # two byte (GBK or Big Five plus)
 };
 
-# EUC-TW 
+# EUC-TW
 my $euc_tw = q{
     [\x00-\x7F]                            # code set 0 (CNS-Roman)
   | [\xA1-\xFE][\xA1-\xFE]                 # code set 1 (plane 1)
@@ -131,7 +131,7 @@ my $shift_jis = q{
   | [\xA0-\xDF]                               # half width katakana
 };
 
-# EUC-JP 
+# EUC-JP
 my $euc_jp = q{
     [\x00-\x7F]                 # code set 0 (ASCII/JIS-Roman)
   | [\xA1-\xFE][\xA1-\xFE]      # code set 1 (JIS X 0208:1997)
@@ -169,20 +169,20 @@ foreach my $filename (@ARGV) {
     # without the following binmode() byte counts on dosish machines will
     # come out the same as on unix and macs since CR's will not
     # be read in.  Unfortunately the byte count would be lower than
-    # what other dosish system utilities report for file size 
+    # what other dosish system utilities report for file size
     # hence it is left in:
     binmode(FH);
     while (<FH>) {
         $lines++;
         if ($opt{'p'}) {
-            if (/^\s*$/) { 
+            if (/^\s*$/) {
                 if ($par_flag) {
                     $paras++;
-                    $par_flag = 0; 
+                    $par_flag = 0;
                 }
             }
             else {
-                if ($paras == 0) { $paras++; } 
+                if ($paras == 0) { $paras++; }
                 $par_flag = 1;
             }
         }
@@ -203,8 +203,8 @@ foreach my $filename (@ARGV) {
  #   if ($words > 0) { $words--; }
     if ($words > 1) { $words--; }
     $total_paras += $paras;
-    $total_lines += $lines; $total_words += $words; 
-    $total_chars += $chars; $total_bytes += $bytes; 
+    $total_lines += $lines; $total_words += $words;
+    $total_chars += $chars; $total_bytes += $bytes;
     $out = sprintf(" %s\n",basename($filename));
     $out = sprintf(" %9u%s",$bytes,$out) if ($opt{'c'});
     $out = sprintf(" %9u%s",$chars,$out) if ($opt{'m'});
@@ -238,11 +238,11 @@ wc [-a | [-p] [-l] [-w] [-m] [-c] ] file [file1 [file2...]]
 
 =head1 DESCRIPTION
 
-I<wc> reads one or more input text files and, by default, writes the number of 
+I<wc> reads one or more input text files and, by default, writes the number of
 lines, words, and bytes contained in each input file to the standard output.
-An optional count of paragraphs or characters is also possible in this 
-implementation.  If more than one text file is specified, a line of total 
-count(s) for all named files is output on a separate line following the 
+An optional count of paragraphs or characters is also possible in this
+implementation.  If more than one text file is specified, a line of total
+count(s) for all named files is output on a separate line following the
 last file count.
 
 By default, the standard output contains a line for each input file of
@@ -263,7 +263,7 @@ I<wc> uses Perl's C<use locale> pragma.
 
 =item none
 
-No options to I<wc> is equivalent to specifying I<-l> I<-w> 
+No options to I<wc> is equivalent to specifying I<-l> I<-w>
 and I<-c>.
 
 =item B<-a>
@@ -272,8 +272,8 @@ Is equivalent to specifying I<-p> I<-l> I<-w> I<-m> and I<-c>.
 
 =item B<-p>
 
-Tells I<wc> to count paragraphs in the input file(s). 
-The algorithm employed counts lumped groups of lines that 
+Tells I<wc> to count paragraphs in the input file(s).
+The algorithm employed counts lumped groups of lines that
 do not contain only zero or more space characters (C</^\s*$/>).
 This regular expression is sensitive to locale settings.
 
@@ -283,19 +283,19 @@ Tells I<wc> to count lines in the input file(s).
 
 =item B<-w>
 
-Tells I<wc> to count words in the input file(s) as 
+Tells I<wc> to count words in the input file(s) as
 determined by perl's C</\w+/> regular expression which
-is locale sensitive. 
+is locale sensitive.
 
 =item B<-m>
 
 Tells I<wc> to count characters in the input file(s).
 This is implemented with a multi-byte character counting
-regular expression C<m/$encoding/gox>.  The C<$encoding> 
-defaults to one sensitive to well formed UTF-8 encodings 
-(one to six byte characters) though this may be altered 
+regular expression C<m/$encoding/gox>.  The C<$encoding>
+defaults to one sensitive to well formed UTF-8 encodings
+(one to six byte characters) though this may be altered
 to other encodings by alteration of the program code.
-Note that some 8 bit single byte characters will be 
+Note that some 8 bit single byte characters will be
 missed by the UTF-8 character counter since such characters
 fall outside the UTF-8 encoding.
 
@@ -309,7 +309,7 @@ built in function.
 
 =head1 ENVIRONMENT
 
-The working of I<wc> may be influenced by your locale since it 
+The working of I<wc> may be influenced by your locale since it
 uses the I<locale> pragma and this could have an effect on I<-w>
 (word) and I<-p> (paragraph) counts.  I<wc> may also be influenced by
 C<PERLLIB> or C<PERL5LIB> since it uses L<File::Basename>, L<locale>,

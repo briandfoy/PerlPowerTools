@@ -49,7 +49,7 @@ sub sum1 {
 			$crc = (($crc>>1)+ord(substr $buf, $i, 1)) & 0xffff; # keep to 16-bit
 		}
 	}
-	
+
 	return $num,$crc,($len+1023)/1024; # round # of blocks up ...
 }
 
@@ -63,7 +63,7 @@ sub sum2 {
 		$len += $num;
 		$crc += unpack("%32C*", $buf);
 	}
-	
+
 	# crc = s (total of bytes)
 	$crc = ($crc & 0xffff) + ($crc & 0xffffffff) / 0x10000; # r
 	$crc = ($crc & 0xffff) + ($crc / 0x10000); # cksum
@@ -140,7 +140,7 @@ sub crc32 {
 					& 0xffffffff;
 		}
 	}
-	
+
 	my($rlen) = $len; # for reporting ...
 	for(;$len!=0;$len>>=8) { # MSB first
 		$crc = (($crc << 8) ^ $crctable[($crc >> 24) ^ ($len&0xff)])

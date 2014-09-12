@@ -93,7 +93,7 @@ sub gettz {
 	}
 } # determine time zone
 sub lpop { ${$_[0]} =~ s/(^.)(.*)/$2/; return $1 } # pop a letter off
-sub zpad { 
+sub zpad {
 	my $num = shift || 0;
 	$num =~ /^\d{2}/ ? return $num : return "0$num";
 } # pad number to two digits w/ spaces

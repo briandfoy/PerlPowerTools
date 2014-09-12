@@ -82,11 +82,11 @@ while ($len = read(FH,$data,16)) {
 	defined $opt_x && do { &hex; printf("%s$strfmt\n", $ml, @arr);
 			       $ml = '         ' };
    }
-   
+
     else {
 	print "*\n";
     }
-    
+
     $offset1 += $len;
     $lastline = $data . '|';
 }
