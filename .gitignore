@@ -3,3 +3,4 @@ Makefile
 blib
 pm_to_blib
 *.bak
+PerlPowerTools-*
