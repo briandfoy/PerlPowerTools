@@ -1,5 +1,12 @@
 0.14    2004-07-XX
 
+1.01 - Fri Sep 12 11:13:46 2014
+	* Let's update Perl Power Tools and make it easier to find
+	* I'm not sure all of the programs even ran, but at least they
+	compile now
+	* I've probably broken some things, but now I want to see what's
+	unauthorized.
+
   - 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
   - New col and words, Ronald J Kimball
   - Website now includes version number, Casey West
