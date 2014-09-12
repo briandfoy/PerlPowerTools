@@ -6,7 +6,7 @@ strings - extract strings
 
 =head1 SYNOPSIS
 
-C<strings [-afo] [-n length] [-t {d|o|x}] [file ...]>
+	strings [-afo] [-n length] [-t {d|o|x}] [file ...]
 
 =head1 DESCRIPTION
 
