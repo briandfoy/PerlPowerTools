@@ -30,7 +30,7 @@ pmake - a perl 'make' replacement
 
 =head1 SYNOPSIS
 
-	pmake [-n] [-g] [-p] [-C directory] targets
+	make [-n] [-g] [-p] [-C directory] targets
 
 =head1 DESCRIPTION
 
