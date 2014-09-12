@@ -249,7 +249,8 @@ END {
 
 
 
-package Patch;
+package
+	Patch; # hide from PAUSE
 
 use vars qw/$ERROR/;
 
@@ -313,7 +314,7 @@ sub bless {
     # 'options' and 'garbage'  are probably better off as class
     # data.  Why didn't I do that before?  But it's not broken
     # so I'm not fixing it.
-    $self->{options} = $options;    # @options 
+    $self->{options} = $options;    # @options
     $self->{garbage} = [];          # garbage lines
     $self->{i_pos}   = 0;           # current position in 'in' file
     $self->{o_pos}   = 0;           # just for symmetry
@@ -798,7 +799,8 @@ sub index {
 
 
 
-package Patch::Context;
+package
+	Patch::Context; # hide from PAUSE
 
 BEGIN { Patch->import }
 
@@ -851,7 +853,8 @@ sub rummage {
 
 
 
-package Patch::Ed;
+package
+	Patch::Ed; # hide from PAUSE
 
 BEGIN { Patch->import }
 
@@ -1016,7 +1019,8 @@ sub end {
 
 
 
-package Patch::Normal;
+package
+	Patch::Normal; # hide from PAUSE
 
 BEGIN { Patch->import }
 
@@ -1036,7 +1040,8 @@ sub apply {
 
 
 
-package Patch::Unified;
+package
+	Patch::Unified; # hide from PAUSE
 
 BEGIN { Patch->import }
 
@@ -1058,7 +1063,8 @@ sub rummage {
 
 
 
-package Pushback;
+package
+	Pushback; # hide from PAUSE
 
 # Create filehandles that can unread or push lines back into queue.
 
@@ -1087,7 +1093,8 @@ sub CLOSE {
 
 
 
-package Dev::Null;
+package
+	Dev::Null; # hide from PAUSE
 
 # Create filehandles that go nowhere.
 

@@ -168,7 +168,8 @@ sub bag {
 # context surrounding each block. (So if we're not using context, every
 # hunk will contain one block.)
 {
-package Hunk;
+package
+	Hunk; # hide from PAUSE
 
 sub new {
 # Arg1 is output from &LCS::diff (which corresponds to one Block)
@@ -477,7 +478,9 @@ sub unified_range {
 # change adds or deletes a single item.
 # (Change could be a separate class, but it didn't seem worth it)
 {
-package Block;
+package
+	Block; # hide from PAUSE
+
 sub new {
 # Input is a chunk from &Algorithm::LCS::diff
 # Fields in a block:
@@ -557,7 +560,9 @@ sub insert { return grep {$_->{"sign"} eq '+'} @{shift->{"changes"}}; }
 # Id: LCS.pm,v 1.7 1998/08/13 00:39:53 mjd Exp mjd ;
 #
 
-package Algorithm::Diff;
+package
+	Algorithm::Diff; # Hide from PAUSE
+
 use strict;
 BEGIN {
   $Algorithm::Diff::VERSION = '0.57';

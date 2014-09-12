@@ -38,7 +38,8 @@ END {
     $? = 1 if $? == 255;  # from die
 }
 
-package IO::Tac;
+package
+	IO::Tac; # hide from PAUSE
 
 use strict;
 use Carp;

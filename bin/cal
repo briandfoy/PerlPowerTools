@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl -w
 
-package cal;
+package
+	cal; # hide from PAUSE
 use strict;
 
 $cal::num_args = scalar( @ARGV );

@@ -1,5 +1,5 @@
-package FastGlob;
-use 5.005;
+package
+	FastGlob; # Hide from PAUSE
 use strict;
 
 =head1 NAME
