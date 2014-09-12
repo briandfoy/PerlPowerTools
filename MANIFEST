@@ -1,4 +1,3 @@
-.travis.yml
 bin/addbib
 bin/apply
 bin/ar
@@ -1309,7 +1308,6 @@ src/yacc/pre-yacc.mjd
 src/yes/yes.abigail
 src/yes/yes.neuron
 t/compile.t
-util/create_tool_list
 util/lib/PPT/Util.pm
 util/mkbin
 util/mkmanifest
