@@ -279,7 +279,7 @@ sub fast_whatis {
     local($entry, $cmd, $page, $section, $desc, @entries);
 
     for $INDEX (@whatis) {
-	unless (-f "$INDEX.db" && dbmopen(INDEX,"$INDEX.db",0444)) {
+	unless (-f "$INDEX.db" && dbmopen(%INDEX,"$INDEX.db",0444)) {
 	    warn "$program: No dbm file $INDEX.db: $!\n" if $debug; 
 	    #$status = 1;
 	    if (-f $INDEX) {
@@ -309,7 +309,7 @@ sub fast_whatis {
 		printf("%-20s - %s\n", "$cmd ($ext)", $desc);
 	    }
 	} 
-	dbmclose(INDEX);
+	dbmclose(%INDEX);
     } 
     
 } 
