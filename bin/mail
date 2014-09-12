@@ -24,14 +24,15 @@ sub AUTOLOAD {
 }
 sub DESTROY { }
 1;
-package mailer;
-@ISA=('mailprog');
+package
+	mailer; # hide from PAUSE
+@ISA=qw(PerlPowerTools::mailprog);
 
 use IO::Socket;
 use Sys::Hostname;   # Claims to be standard?
 
-%mailer::fields=( 
-	  user => undef, 
+%mailer::fields=(
+	  user => undef,
 	  "hostname" => undef,
 	  relayhost => undef,
 	  replyaddr => undef,
@@ -172,8 +173,9 @@ sub DESTROY {
 	}
 }
 1;
-package message;
-@ISA=('mailprog');
+package
+	message; # hide from PAUSE
+@ISA=qw(PerlPowerTools::mailprog);
 
 %message::fields=( subject => undef,
 	  from => undef,
@@ -347,8 +349,9 @@ sub whole {
 #
 # Class to hold info about the mailbox.
 #
-package mailbox;
-@ISA=('mailprog');
+package
+	mailbox; # hide from PAUSE
+@ISA=qw(PerlPowerTools::mailprog);
 use vars qw($AUTOLOAD %fields);
 
 %mailbox::fields=( size => undef, file => undef, append => undef);
@@ -486,8 +489,9 @@ sub nextmsg {              # Returns sequence number of next (not deleted) messa
 	return($current);
 }
 1;
-package editor;
-@ISA=('mailprog');
+package
+	editor; # hide from PAUSE
+@ISA=qw(PerlPowerTools::mailprog);
 
 %editor::fields=(message => undef, mesgno => undef);
 sub new {

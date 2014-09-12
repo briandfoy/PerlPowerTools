@@ -2,7 +2,7 @@
 use Getopt::Std;
 
 
-{package MyME::Parser;
+{package PerlPowerTools::MIME::Parser;
  use base 'MIME::Parser';
 
 sub new_body_for
@@ -25,7 +25,7 @@ my %opt = ( 'd' => '.' );
 
 getopts('d:',\%opt);
 
-my $parser = new MyME::Parser;
+my $parser = PerlPowerTools::MIME::Parser->new;
 $parser->output_dir($opt{'d'});
 
 if (@ARGV)

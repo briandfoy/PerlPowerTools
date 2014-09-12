@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-package PPT::test;
+package PerlPowerTools::test;
 
 use strict;
 #use diagnostics;
