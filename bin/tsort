@@ -42,11 +42,11 @@ warn "cycle detected\n" if grep {$npred{$_}} keys %npred;
 
 =head1 NAME
 
-tcsort - topological sort
+tsort - topological sort
 
 =head1 SYNOPSIS
 
-  tcsort [filename]
+  tsort [filename]
 
 =head1 DESCRIPTION
 
