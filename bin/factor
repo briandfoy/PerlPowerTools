@@ -7,7 +7,7 @@ my @primes = (2, 3, 5, 7, 11);          # None have been tested
 my @next_primes = ();                   # Avoid redoing work
 
 
-my $VERSION = '1.001';
+my $VERSION = '1.002';
 
 =pod
 
