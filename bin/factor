@@ -155,6 +155,8 @@ I<factor> has no known bugs.  This documentation corrects a bug in the
 BSD implementation of I<factor>, which incorrectly states that
 I<factor> will accept negative integers.
 
+Dana Jacobson provided a fix for numbers close to perfect squares.
+
 =head1 AUTHOR
 
 The Perl implementation of I<factor> was originally written by Jonathan
