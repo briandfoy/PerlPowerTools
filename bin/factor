@@ -1,8 +1,6 @@
 #!/usr/bin/perl -w
-# factor - factor a number
-# Written for the PPT initiative by Jonathan Feinberg.
-# The algorithm was slightly modified by Benjamin Tilly.
-# See docs for license.
+package PerlPowerTools::factor;
+
 use strict;
 $|++;
 my @primes = (2, 3, 5, 7, 11);          # None have been tested
@@ -11,24 +9,44 @@ my @next_primes = ();                   # Avoid redoing work
 
 my $VERSION = '1.001';
 
+=pod info
+
+Name: factor
+Description: factor a number
+Author: Jonathan Feinberg
+Author: Benjamin Tilly
+
+=cut
+
 END {
-  close STDOUT || die "$0: can't close stdout: $!\n";
-  $? = 1 if $? == 255;  # from die
-}
+	close STDOUT || die "$0: can't close stdout: $!\n";
+	$? = 1 if $? == 255;  # from die
+	}
 
-if (@ARGV) {
-  for (@ARGV) { factor($_) }
-}
-else {
-  while (<>) {
-    chomp;
-    if (/^\s*(\S+)/) {
-      factor($1);
-    }
-  }
-}
+__PACKAGE__->run( \*STDOUT, @ARGV ) unless caller(); # modulino
 
-exit 0;
+sub run {
+	my( $self, $fh, @numbers ) = @_;
+	$fh = *STDOUT unless defined $fh;
+
+	my $old = select $fh;
+
+	if( @numbers ) {
+		foreach ( @numbers ) { factor($_) }
+		}
+	else {
+		while (<>) {
+			chomp;
+			if (/^\s*(\S+)/) {
+				factor($1);
+				}
+			}
+		}
+
+	select $old;
+
+	exit 0;
+	}
 
 sub factor {
   my $n = shift;
