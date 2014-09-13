@@ -69,7 +69,7 @@ sub factor {
     }
   }
   while ($primes[-1] * $primes[-1] < $n) {
-    &more_primes(int($n**0.5)+1);
+    &more_primes(int($n**0.5)+1); # the doubles might come in slightly under, so add 1
     last unless scalar @next_primes;    # Avoid the chance of an endless loop
     foreach my $prime (@next_primes) {
       while ($n % $prime == 0) {
