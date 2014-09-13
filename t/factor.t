@@ -18,7 +18,6 @@ subtest with_filehandle => sub {
 	open my $fh, '>', \ my $string;
 	my @numbers = qw( 137 138 );
 	$class->run( $fh, @numbers );
-	diag( "@numbers:\n$string" );
 	like( $string, qr/137: 137/, 'Factors 137 correctly' );
 	like( $string, qr/138: 2 3 23/, 'Factors 138 correctly' );
 	};
@@ -28,11 +27,7 @@ subtest 'factor 899 (RT #98849)' => sub {
 	open my $fh, '>', \ my $string;
 	my @numbers = qw( 899 );
 	$class->run( $fh, @numbers );
-	diag( "@numbers:\n$string" );
-	TODO: {
-		local $TODO = '899 does not work!';
-		like( $string, qr/899: 29 31/, 'Factors 899 correctly' );
-		}
+	like( $string, qr/899: 29 31/, 'Factors 899 correctly' );
 	};
 
 subtest 'first 1000 primes' => sub {
@@ -74,7 +69,6 @@ foreach my $row ( @tests ) {
 	subtest "factor $number" => sub {
 		open my $fh, '>', \ my $string;
 		$class->run( $fh, $number );
-		diag( "$number:\n$string" );
 		like( $string, $regex, "Factors $number correctly" );
 		};
 	}
