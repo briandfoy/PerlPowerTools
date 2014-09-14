@@ -122,3 +122,4 @@ MANIFEST.SKIP
 META.yml
 README
 t/compile.t
+t/factor.t
