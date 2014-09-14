@@ -7,7 +7,8 @@ my $main_file = 'lib/PerlPowerTools.pm';
 WriteMakefile(
 	'NAME'          => 'PerlPowerTools',
 	'ABSTRACT_FROM' => $main_file,
-	'VERSION_FROM'  => $main_file,
+#	'VERSION_FROM'  => $main_file,
+	'VERSION'       => '1.002_01',
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
 
