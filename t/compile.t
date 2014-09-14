@@ -1,6 +1,10 @@
 use Test::More 0.94;
 use Config;
 
+diag(
+	join "\n\t", "Parent \@INC:", @INC, ''
+	);
+
 my $perl = $Config{perlpath};
 
 foreach my $program ( glob( "bin/*" ) ) {
