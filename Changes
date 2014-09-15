@@ -1,5 +1,10 @@
 0.14    2004-07-XX
 
+1.002_03 - Mon Sep 15 05:58:33 2014
+	* Add tests for true and false (that's easy!)
+	* Start the TODO file with what needs to happen
+	* Fix some programs for v5.21 and disappearing syntax
+
 1.002_02 - Mon Sep 15 03:54:34 2014
 	* Fix syntax deprecations enforced in v5.22
 
