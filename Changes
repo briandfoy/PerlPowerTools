@@ -1,5 +1,8 @@
 0.14    2004-07-XX
 
+1.002_02 - Mon Sep 15 03:54:34 2014
+	* Fix syntax deprecations enforced in v5.22
+
 1.02_01 - Sun Sep 14 10:10:30 2014
 	* Let's try a different way of running the command to compile
 	the programs
