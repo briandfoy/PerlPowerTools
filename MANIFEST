@@ -123,3 +123,6 @@ META.yml
 README
 t/compile.t
 t/factor.t
+t/false.t
+t/true.t
+TODO
