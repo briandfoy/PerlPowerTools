@@ -2,7 +2,7 @@
 
 use strict;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
 my $STATUS = 1;
 
