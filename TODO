@@ -1,0 +1,36 @@
+=== find
+shells out to find2perl, which might be removed from perl.
+
+
+=== Things that use system() and need special attention
+addbib:          or die "system '$1 $database' failed: $?";
+addbib:         system("$1 $database") == 0
+
+apply:        system $new_command;   # Reinterpreted by the shell!
+apply:            system $command, splice @ARGV, 0, $argc;
+apply:            system $command;
+
+
+awk:system 'a2p', @nargs;
+
+dc:     system $line  if $1 eq "!";
+
+
+find:system 'find2perl', @ARGV;
+
+install:        if (system "strip", $path) {
+install:            if (system "cmp", "-s", $file, $targ) {
+
+man:    if (system $command) {
+
+mail:                   /\!/ && do { system($arg); last SWITCH; };
+mail:                           system("$ENV{VISUAL} /tmp/ppt_mail$$");
+mail:   system("/bin/sh");   # For now.  :-)
+mail:           system("$ENV{VISUAL} /tmp/ppt_mail$$");
+mail:                           system("$1");
+
+unshar:     system '.r' if $ans =~ /^y/i;
+
+time:$rc = system(@ARGV);
+
+xargs:    system(@run) == 0 or exit($? >> 8);
