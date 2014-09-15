@@ -4,7 +4,7 @@ use strict;
 
 my ($VERSION) = '1.2';
 
-my $STATUS = $0 =~ /true$/ ? 0 : 1;
+my $STATUS = 1;
 
 if (@ARGV) {
     if ($ARGV [0] eq '--version') {
