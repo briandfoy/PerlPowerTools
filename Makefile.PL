@@ -8,7 +8,7 @@ WriteMakefile(
 	'NAME'          => 'PerlPowerTools',
 	'ABSTRACT_FROM' => $main_file,
 #	'VERSION_FROM'  => $main_file,
-	'VERSION'       => '1.002_02',
+	'VERSION'       => '1.002_03',
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
 
