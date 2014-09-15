@@ -71,18 +71,6 @@ environment variables.
 
 I<true> and I<false> have no known bugs.
 
-=head1 REVISION HISTORY
-
-    $Log: false,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:05  cwest
-    initial import
-
-    Revision 1.1  1999/02/25 04:16:05  abigail
-    Initial revision
-
 =head1 AUTHOR
 
 The Perl implementation of I<true> and I<false>
