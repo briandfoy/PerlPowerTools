@@ -8,7 +8,7 @@ WriteMakefile(
 	'NAME'          => 'PerlPowerTools',
 	'ABSTRACT_FROM' => $main_file,
 #	'VERSION_FROM'  => $main_file,
-	'VERSION'       => '1.002_01',
+	'VERSION'       => '1.002_02',
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
 
@@ -21,6 +21,7 @@ WriteMakefile(
 		'Make'         => '0',
 		'MIME::Parser' => '0',
 		'Curses'       => '0',
+		'DB_File'      => '0',
 		},
 
 	'META_MERGE' => {

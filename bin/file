@@ -457,7 +457,7 @@ sub readMagicEntry {
 	    $$MF[1] = $line;
 	    return length($thisDepth);
 	}
-	elsif (defined(@$entry)) {
+	elsif (@$entry) {
 	    # already have an entry.  this is not a continuation.
 	    # save this line for the next call and exit.
 	    $$MF[1] = $line;
