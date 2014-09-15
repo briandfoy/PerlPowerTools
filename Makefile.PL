@@ -21,6 +21,7 @@ WriteMakefile(
 		'Make'         => '0',
 		'MIME::Parser' => '0',
 		'Curses'       => '0',
+		'DB_File'      => '0',
 		},
 
 	'META_MERGE' => {
