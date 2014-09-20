@@ -1,6 +1,8 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
+use warnings;
 use strict;
+use File::Basename;
 
 my ($VERSION) = '1.2';
 
@@ -14,15 +16,16 @@ END {
 # Print a usuage message on a unknown option.
 # Requires my patch to Getopt::Std of 25 Feb 1999.
 $SIG {__WARN__} = sub {
+
     if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
     $0 = File::Basename::basename ($0);
     $warnings = 1;
     warn "$0: @_";
+
 };
 
 $SIG {__DIE__} = sub {
-    require File::Basename;
+
     $0 = File::Basename::basename ($0);
     if (substr ($_ [0], 0,  5) eq "Usage") {
         die <<EOF;
@@ -31,6 +34,7 @@ $0 [files ...]
 EOF
     }
     die "$0: @_";
+
 };
 
 if (@ARGV && $ARGV [0] =~ /^-(?=.)/ && ! -f $ARGV [0]) {
