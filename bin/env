@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # Perl version of the env command.
 # Matthew Bafford
 # 2/28/1999

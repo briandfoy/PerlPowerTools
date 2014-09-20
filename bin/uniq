@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # uniq - report or filter out repeated lines in a file
 
 use strict;

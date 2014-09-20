@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # primes - generate primes
 # Written for the PPT initiative by Jonathan Feinberg.
 # The algorithm was substantially modified by Benjamin Tilly.

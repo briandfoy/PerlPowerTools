@@ -1,4 +1,4 @@
-#!/usr/local/bin/new/perl -w
+#!/usr/local/bin/new/perl
 use 5.004;
 # use strict;
 use Getopt::Std;

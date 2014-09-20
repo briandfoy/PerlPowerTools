@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # pig - eformatray inputway asway Igpay Atinlay
 use strict;
 $|++;

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 $ARGV[0] ? sleep $ARGV[0] : do { print "arg count"; exit 1; };
 
 use strict;

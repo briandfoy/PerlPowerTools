@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #
 # A Perl implementation of expand(1) and unexpand(1) for the Perl Power

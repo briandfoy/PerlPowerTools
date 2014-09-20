@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # find - actually a pass through front end for find2perl
 
 use strict;

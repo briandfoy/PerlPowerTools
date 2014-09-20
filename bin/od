@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 use strict;
 use Getopt::Std;
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_h $opt_i $opt_l $opt_o

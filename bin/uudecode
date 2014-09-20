@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # uudecode -- original once by Nick Ing-Simmons
 # but since irrecognizably hacked on by Tom Christiansen
 

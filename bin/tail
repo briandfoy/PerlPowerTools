@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #
 # A Perl implementation of tail for the Perl Power Tools project by

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # The standard fold(1), implemented in Perl
 #   copyright 1999, Clinton A. Pierce
