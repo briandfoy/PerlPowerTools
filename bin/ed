@@ -1,5 +1,5 @@
-#! /usr/bin/perl
-#
+#!/usr/bin/perl
+
 # What: A perl version of Unix ed editor.
 #
 #    Based on the v7 documentation using GNU ed version 0.2 as a reference.

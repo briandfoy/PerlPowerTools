@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #  dc.pl - an arbitrary precision RPN calculator, using only string ops
 #
 #  Created for the Perl Power Tools project Mar 1999 by running my original

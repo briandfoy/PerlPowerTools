@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #
 # man - perl rewrite of man system
 # tom christiansen <tchrist@perl.com>

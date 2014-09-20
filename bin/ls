@@ -1,12 +1,9 @@
 #!/usr/bin/perl
-#!//c/perl/5.00502/bin/MSWin32-x86-object/perl.exe -w
-#E:/perl/5.00502/bin/MSWin32-x86/perl.exe -w
+
 # Perl Power Tool - ls(1)
 
-# ------ use/require pragmas
 use File::stat;
 use Getopt::Std;
-#use strict;
 
 # ------ partial inline of Stat::lsMode v0.50 code
 # (see http://www.plover.com/~mjd/perl/lsMode/

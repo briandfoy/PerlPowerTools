@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use strict;
 
 my ($arg, $format, $time, $hr_diff, $let, $date_str);

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 # implementation of tty in perl
 use POSIX ();
 use strict;

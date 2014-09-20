@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 use 5.005;  # Need look-behind assertions
 
 use Getopt::Std;

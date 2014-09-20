@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 
 #
 # An implementation of the 'cksum' utility in Perl.  Written for the Perl
