@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 package
 	FastGlob; # Hide from PAUSE
 use strict;
