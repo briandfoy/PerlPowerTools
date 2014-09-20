@@ -1,7 +1,8 @@
-#!/usr/local/bin/perl -w
-
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
+use File::Basename;
 
 my ($VERSION) = '1.2';
 
@@ -11,14 +12,12 @@ my $warnings = 0;
 # Requires my patch to Getopt::Std of 25 Feb 1999.
 $SIG {__WARN__} = sub {
     if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
     $0 = File::Basename::basename ($0);
     $warnings = 1;
     warn "$0: @_";
 };
 
 $SIG {__DIE__} = sub {
-    require File::Basename;
     $0 = File::Basename::basename ($0);
     if (substr ($_ [0], 0,  5) eq "Usage") {
         die <<EOF;
@@ -50,8 +49,11 @@ while (@ARGV && $ARGV [0] =~ /^-/) {
 die "Usage" unless @ARGV > 1;
 
 my $group = shift;
+my $gid;
 
-defined (my $gid = getgrnam $group) or die "$group is an invalid group\n";
+unless ( $gid = getgrnam $group ) {
+	die "$group is an invalid group\n";
+}
 
 my %ARGV;
 %ARGV = map {$_ => 1} @ARGV if $options {H};

@@ -1,11 +1,13 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
-use Term::Cap;
 use strict;
+use warnings;
+use Term::Cap;
+use POSIX;
 
 my $OSPEED = 9600;
+
 eval {
-	require POSIX;
 	my $termios = POSIX::Termios->new();
 	$termios->getattr;
 	$OSPEED = $termios->getospeed;
@@ -13,13 +15,13 @@ eval {
 
 my $terminal = Term::Cap->Tgetent({OSPEED=>$OSPEED});
 my $cl = "";
+
 eval {
 	$terminal->Trequire("cl");
 	$cl = $terminal->Tputs('cl', 1);
 };
 
 print $cl;
-
 
 =head1 NAME
 

@@ -8,8 +8,8 @@
 #   Perl Power Tools -- http://language.perl.com/ppt/
 #
 
-$^W = 1;    # -w
 use strict;
+use warnings;
 use Getopt::Std;
 use File::Basename;
 
@@ -21,41 +21,43 @@ getopts ('b:c:d:f:ns', \my %opt);
 
 # There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
-$opt{b} = $opt{c} if defined $opt{c};
+$opt{b} = $opt{c} if $opt{c};
 
 ## Byte operations
-if (defined ($opt{b})) {
+if ( ($opt{b}) ) {
 
     my @list = split (/,/, $opt{b});
 
     while (<>) {
-	chomp;
+		
+		chomp;
 
-	foreach my $item (@list) {
-	    my ($start,$end) = split (/-/, $item);
-	    die "$me: invalid byte list\nType '$me' alone for usage.\n"
-		if ($start and $end and $start > $end);  # parameters overlap?
+		for my $item ( @list ) {
 
-	    # change cut's list parameters to substr's parameters
-	    $start--;			   # cut counts from 1, not 0
-	    $start = 0 if $start < 0;
-	    $end = $start + 1 unless $item =~ /-/;
-	    $start = length if $start > length;
+		    my ($start,$end) = split (/-/, $item);
+		    die "$me: invalid byte list\nType '$me' alone for usage.\n"
+			if ($start and $end and $start > $end);  # parameters overlap?
+	
+		    # change cut's list parameters to substr's parameters
+		    $start--;			   # cut counts from 1, not 0
+		    $start = 0 if $start < 0;
+		    $end = $start + 1 unless $item =~ /-/;
+		    $start = length if $start > length;
 
-	    if ($end) {
-		$end = length if $end > length;
-		printf ("%s", substr ($_, $start, $end - $start));
-	    } else {
-		printf ("%s", substr ($_, $start));
-	    }
-	}
-	print "\n";
+		    if ($end) {
+				$end = length if $end > length;
+				printf ("%s", substr ($_, $start, $end - $start));
+		    } else {
+				printf ("%s", substr ($_, $start));
+		    }
+		}
+
+		print "\n";
     }
-    exit 0;
-}
+    
+	exit 0;
 
-## Field operations
-elsif (defined ($opt{f})) {
+} elsif ( ($opt{f}) ) {
 
     my @list = split (/,/, $opt{f});
 
@@ -63,43 +65,49 @@ elsif (defined ($opt{f})) {
     $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
 
     while (<>) {
-	chomp;
+		
+		chomp;
 
-	# Only waste time on lines with delimiters
-	if (/$delim/) {
-	    foreach my $item (@list) {
-		my ($start,$end) = split (/-/, $item);
-		die "$me: invalid byte list\nType '$me' alone for usage.\n"
-		    if ($start and $end and $start > $end);   # parameters overlap?
+		# Only waste time on lines with delimiters
+		if ( /$delim/ ) {
+		    
+			for my $item (@list) {
 
-		# change cut's list parameters to substr's parameters
-		$start--;			   # cut counts from 1, not 0
-		$start = 0 if $start < 0;
-		$end = $start + 1 unless $item =~ /-/;
+				my ($start,$end) = split (/-/, $item);
+				die "$me: invalid byte list\nType '$me' alone for usage.\n"
+			    if ($start and $end and $start > $end);   # parameters overlap?
 
-		my @hunk = split (/$delim/, $_);
+				# change cut's list parameters to substr's parameters
+				$start--;			   # cut counts from 1, not 0
+				$start = 0 if $start < 0;
+				$end = $start + 1 unless $item =~ /-/;
 
-		# don't let parameters exceed number of fields
-		$end = @hunk if (! $end or $end > @hunk);
-		$start = @hunk if $start > @hunk;
+				my @hunk = split (/$delim/, $_);
 
-		# If start of field is bigger than number of items, cut(1)
-		# still outputs a newline -- but we won't enter the for()
-		print "\n" if ($start == $end and $item eq $list[$#list]);
+				# don't let parameters exceed number of fields
+				$end = @hunk if (! $end or $end > @hunk);
+				$start = @hunk if $start > @hunk;
 
-		for (my $i = $start; $i < $end; $i++) {
-		    print $hunk[$i];
-		    if ($item eq $list[$#list] and $i == $end - 1) {  # if done
-			print "\n";
-		    } else {
-			print $delim;
+				# If start of field is bigger than number of items, cut(1)
+				# still outputs a newline -- but we won't enter the for()
+				print "\n" if ($start == $end and $item eq $list[$#list]);
+
+				for (my $i = $start; $i < $end; $i++) {
+				    
+					print $hunk[$i];
+				    
+					if ($item eq $list[$#list] and $i == $end - 1) {  # if done
+						print "\n";
+				    } else {
+						print $delim;
+			    	}
+				}
 		    }
+
+		} else {  # no delimiter in line
+		    print "$_\n" unless $opt{"s"};
 		}
-	    }
-	} else {  # no delimiter in line
-	    print "$_\n" unless $opt{"s"};
 	}
-    }
 
     exit 0;
 }
