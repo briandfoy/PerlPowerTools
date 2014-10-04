@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: pom
+Description: display the phase of the moon
+Author: Rocco Caputo, troc@netrus.net
+License: perl
+
+=cut
+
 use strict;
 
 { my $vt100_compatible = 0;

@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: morse
+Description: read morse and translate it to text
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use File::Basename ();
 
@@ -88,21 +98,21 @@ __END__
 
 =head1 NAME
 
-demorse - read morse and translate it to text
+morse - read morse and translate it to text
 
 =head1 SYNOPSIS
 
-demorse [files ...]
+morse [files ...]
 
 =head1 DESCRIPTION
 
-I<demorse> reads morse from files, (or from standard input if no files
+I<morse> reads morse from files, (or from standard input if no files
 are given), and translates it back to text. Morse can be given in either
 short (-- --- .-. ... .) or long form (daw daw, daw daw daw, dit daw dit,
 dit dit dit). In the short form, letters are separated by spaces, and
 words by 2 spaces (or the morse symbol for space). In the long form,
 letters are separated by 2 spaces, and words by 3. As a special features,
-I<demorse> parses the output of I<morse(6)>, which writes each letter
+I<morse> parses the output of I<morse(6)>, which writes each letter
 on a comma terminated line.
 
 Short and long form can be mixed, as well as I<morse(6)> format and
@@ -123,7 +133,7 @@ form, even if the input was given in dits and daws.
 
 =head1 AUTHOR
 
-The Perl implementation of I<demorse> was written by Abigail,
+The Perl implementation of I<morse> was written by Abigail,
 I<abigail@fnx.com>.
 
 =head1 COPYRIGHT and LICENSE

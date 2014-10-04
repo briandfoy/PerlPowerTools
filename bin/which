@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: which
+Description: report full paths of commands
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 
 my ($VERSION) = '1.2';

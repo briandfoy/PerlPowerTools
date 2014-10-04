@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: join
+Description: relational database operator
+Author: Jonathan Feinberg, jdf@pobox.com
+License: perl
+
+=cut
+
 # join - relational database operator
 
 use strict;

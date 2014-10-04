@@ -1,4 +1,15 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: awk
+Description: pattern-directed scanning and processing language
+Author: Tom Christiansen, tchrist@perl.com
+Author: Larry Wall, larry@wall.org
+License: perl
+
+=cut
+
 # awk - front end for a2p
 
 use strict;

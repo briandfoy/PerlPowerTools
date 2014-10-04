@@ -1,11 +1,17 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: patch
+Description: apply a diff file to an original
+Author: Tim Gim Yee, tim.gim.yee@gmail.com
+License: perl
+
+=cut
+
 #
 # patch - apply a diff file to an original
 #
-# mail tgy@chocobo.org < bug_reports
-#
-# Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
-# You may play with this software in accordance with the Perl Artistic License.
 
 use strict;
 
@@ -1588,13 +1594,16 @@ There are currently no debugging flags to go along with B<-x>.
 
 =head1 AUTHOR
 
-Tim Gim Yee | tgy@chocobo.org | I want a moogle stuffy!
+The Perl implementation of I<patch> was written by Tim Gim Yee,
+I<tim.gim.yee@gmail.com>.
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT and LICENSE
 
-Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
+This program is copyright (c) Tim Gim Yee 1999.
 
-You may play with this software in accordance with the Perl Artistic License.
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.
 
 You may use this documentation under the auspices of the GNU General Public
 License.

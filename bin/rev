@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: rev
+Description: reverse lines of a file
+Author: Andy Murren, andy@murren.org
+License: GNU GPL
+
+=cut
+
 # packages used in this program
 use FileHandle;
 use strict;

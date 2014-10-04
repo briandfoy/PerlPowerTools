@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: dc
+Description: an arbitrary precision calculator
+Author: Greg Ubben, gsu@romulus.ncsc.mil
+License: 
+
+=cut
+
 #  dc.pl - an arbitrary precision RPN calculator, using only string ops
 #
 #  Created for the Perl Power Tools project Mar 1999 by running my original

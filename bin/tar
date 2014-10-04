@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: tar
+Description: manipulate tape archives
+Author: 
+License: 
+
+=cut
+
 use 5.004;
 # use strict;
 use Getopt::Std;

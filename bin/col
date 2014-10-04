@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: col
+Description: filter reverse line feeds from input
+Author: Ronald J Kimball, rjk-perl@tamias.net
+License: perl
+
+=cut
+
 use strict;
 
 use Getopt::Std;

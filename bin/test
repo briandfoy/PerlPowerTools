@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: test
+Description: condition evaluation utility
+Author: Brad Appleton
+License: perl
+
+=cut
+
 ###########################################################################
 # test -- Perl script to emulate BSD Unix test(1) functionality
 #         (with slightly more informative error messages).

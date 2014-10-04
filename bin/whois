@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: whois
+Description: internet domain name and network number directory service
+Author: Yiorgos Adamopoulos, adamo@ieee.org
+License: 
+
+=cut
+
 # Sample whois(1) client for PPT.
 #
 # Yiorgos Adamopoulos, adamo@ieee.org, Mon Mar 22 15:28:05 EET 1999

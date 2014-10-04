@@ -1,4 +1,15 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: primes
+Description: generate primes
+Author: Jonathan Feinberg, jdf@pobox.com
+Author: Benjamin Tilly, ben.tilly@alumni.dartmouth.org
+License: perl
+
+=cut
+
 # primes - generate primes
 # Written for the PPT initiative by Jonathan Feinberg.
 # The algorithm was substantially modified by Benjamin Tilly.

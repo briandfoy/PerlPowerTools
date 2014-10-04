@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: paste
+Description: merge corresponding or subsequent lines of files
+Author: Randy Yarger, randy.yarger@nextel.com
+License: perl
+
+=cut
+
 use strict;
 no strict 'refs';
 

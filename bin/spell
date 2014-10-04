@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: spell
+Description: scan a file for misspelled words
+Author: Greg Snow, snow@biostat.washington.edu
+License: perl
+
+=cut
+
 use strict;
 
 my $dict_file = "/usr/dict/words";      # Filename (path) for standard dict

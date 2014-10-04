@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: mimedecode
+Description: extract MIME attachments in uudecode-like manner
+Author: Nick Ing-Simmons, nick@ni-s.u-net.com
+License: 
+
+=cut
+
 use Getopt::Std;
 
 

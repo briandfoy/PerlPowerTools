@@ -1,3 +1,14 @@
+#!/usr/bin/perl
+
+=for info
+
+Name: bc
+Description: an arbitrary precision calculator language
+Author: Philip A. Nelson, phil@cs.wwu.edu
+License: GNU GPL
+
+=cut
+
 $yysccsid = "@(#)yaccpar 1.8 (Berkeley) 01/20/91 (Perl 2.0 12/31/92)";
 #define YYBYACC 1
 #line 49 "bc.y"

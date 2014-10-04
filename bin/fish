@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: fish
+Description: plays the children's game of Go Fish
+Author: Clinton Pierce, clintp@geeksalad.org
+License: perl
+
+=cut
+
 use strict;
 use Getopt::Std;
 

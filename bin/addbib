@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: addbib
+Description: create or extend a bibliographic database
+Author: Jeffrey S. Haemer
+License: 
+
+=cut
+
 use strict;
 use Getopt::Std;
 use vars qw($opt_a $opt_p);

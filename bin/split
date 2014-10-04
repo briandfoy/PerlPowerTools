@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: split
+Description: split a file into pieces
+Author: Rich Lafferty, rich@alcor.concordia.ca
+License: perl
+
+=cut
+
 #
 #  split -- split a file into pieces
 #

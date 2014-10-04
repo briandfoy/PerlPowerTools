@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: cmp
+Description: compare two files
+Author: D Roland Walker, walker@pobox.com
+License: perl
+
+=cut
+
 # cmp - compare two files
 # VERSION 1.0
 #

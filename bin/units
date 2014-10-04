@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: units
+Description: conversion program
+Author: Mark-Jason Dominus, mjd-perl-units@plover.com
+License: GNU GPL
+
+=cut
+
 #     units: convert units of measurement
 #     Copyright (C) 1996,1999 M-J. Dominus (mjd-perl-units@plover.com)
 #

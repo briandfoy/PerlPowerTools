@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: banner
+Description: print large banner on printer
+Author: Jonathan Feinberg, jdf@pobox.com
+License: BSD
+
+=cut
+
 # * banner - prints large signs
 # * banner [-w#] [-d] [-t] message ...
 

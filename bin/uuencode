@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: uuencode
+Description: encode a binary file
+Author: Tom Christiansen, tchrist@perl.com
+License: 
+
+=cut
+
 # uuencode -- by Tom Christiansen
 
 use strict;
@@ -82,5 +92,5 @@ sub encode($$) {
 
 =head1 NAME
 
-uudecode, uuencode - encode/decode a binary file
+uuencode - encode a binary file
 

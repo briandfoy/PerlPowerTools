@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: maze
+Description: generate a maze problem
+Author: Rocco Caputo, troc@netrus.net
+License: perl
+
+=cut
+
 use strict;
 
 sub R { 1 }

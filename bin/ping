@@ -1,10 +1,14 @@
-<<<<<<< HEAD
 #!/usr/bin/perl
-=======
-#!/usr/local/bin/perl
 
-use warnings;
->>>>>>> 608e5824f03942b4dfc16df0dca5653f71caa05e
+=for info
+
+Name: ping
+Description: probe for network hosts
+Author: Nick Ing-Simmons, nick@ni-s.u-net.com
+License: perl
+
+=cut
+
 use strict;
 use Getopt::Std;
 use Socket;

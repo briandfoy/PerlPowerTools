@@ -1,12 +1,21 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: glob
+Description: find pathnames matching a pattern
+Author: Marc Mengel, mengel@fnal.gov
+License: perl
+
+=cut
+
 package
 	FastGlob; # Hide from PAUSE
 use strict;
 
 =head1 NAME
 
-glob - 100% Perl implementation of (t)csh "globbing"
+glob - find pathnames matching a pattern
 
 =head1 SYNOPSIS
 

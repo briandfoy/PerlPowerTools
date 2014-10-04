@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: tail
+Description: display the last part of a file
+Author: Thierry Bezecourt, thbzcrt@worldnet.fr
+License: perl
+
+=cut
+
 #
 # A Perl implementation of tail for the Perl Power Tools project by
 # Thierry Bezecourt <thbzcrt@worldnet.fr>. Includes an implementation

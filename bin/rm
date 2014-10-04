@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: rm
+Description: remove directory entries
+Author: Steve Kemp, skx@tardis.ed.ac.uk
+License: GNU GPL
+
+=cut
+
 #############################################################################
 #  A simple compatible version of rm( 1 ) written in Perl.
 #############################################################################

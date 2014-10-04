@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: date
+Description: display or set date and time
+Author: Joshua Gross
+License: 
+
+=cut
+
 use strict;
 
 my ($arg, $format, $time, $hr_diff, $let, $date_str);

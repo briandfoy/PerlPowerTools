@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: lock
+Description: reserves a terminal
+Author: Aron Atkins, atkins@gweep.net
+License: perl
+
+=cut
+
 use strict;
 use POSIX qw(:termios_h);
 

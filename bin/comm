@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: comm
+Description: select or reject lines common to two files
+Author: Mark-Jason Dominus, mjd-perl-comm@plover.comm
+License: public domain
+
+=cut
+
 #
 # comm
 #

@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: ching
+Description: the Book of Changes
+Author: Albert Dvornik, bert@genscan.com
+License: BSD
+
+=cut
+
 #
 # Perl code is Copyright (c) 1995, 1999 Albert Dvornik <bert@mit.edu>
 #

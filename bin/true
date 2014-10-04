@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: true
+Description: exit succesfully
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 
 my ($VERSION) = '1.3';
