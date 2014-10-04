@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: tsort
+Description: topological sort
+Author: Jeffrey S. Haemer
+License: 
+
+=cut
+
 use strict;
 
 use vars qw($opt_b $opt_d);

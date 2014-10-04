@@ -1,4 +1,16 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: find
+Description: search directory tree for files matching a pattern
+Author: Greg Snow, snow@biostat.washington.edu
+Author: Tom Christiansen, tchrist@perl.com
+Author: Larry Wall, larry@wall.org
+License: perl
+
+=cut
+
 # find - actually a pass through front end for find2perl
 
 use strict;

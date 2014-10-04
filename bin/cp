@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: cp
+Description: copy files and/or directories
+Author: Ken Schumack, schumacks@att.net
+License: perl
+
+=cut
+
 require 5;
 use strict;
 use Cwd;

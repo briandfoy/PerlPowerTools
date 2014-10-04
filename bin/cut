@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: cut
+Description: select portions of each line of a file
+Author: Rich Lafferty, rich@alcor.concordia.ca
+License: perl
+
+=cut
+
 #
 # cut -- remove sections from each line of files
 #

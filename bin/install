@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: install
+Description: install files and directories
+Author: Greg Bacon, gbacon@itsc.uah.edu
+License: perl
+
+=cut
+
 use strict;
 
 my ($VERSION) = '1.2';

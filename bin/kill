@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: kill
+Description: send signals to a process
+Author: Theo Van Dinter, felicity@kluge.net
+License: 
+
+=cut
+
 #
 # An implementation of the 'kill' utility in Perl.  Written for the Perl
 # Power Tools (PPT) project by Theo Van Dinter (felicity@kluge.net).

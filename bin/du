@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: du
+Description: display disk usage statistics
+Author: Greg Hewgill, greg@hewgill.com
+License: perl
+
+=cut
+
 #
 # Perl Power Tools - du
 # Greg Hewgill <greg@hewgill.com> 1999-03-07

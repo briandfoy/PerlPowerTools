@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: clear
+Description: clear the screen
+Author: Jeffrey S. Haemer
+License: 
+
+=cut
+
 use Term::Cap;
 use strict;
 

@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: pig
+Description: reformat input as Pig Latin
+Author: Jonathan Feinberg, jdf@pobox.com
+License: perl
+
+=cut
+
 # pig - eformatray inputway asway Igpay Atinlay
 use strict;
 $|++;

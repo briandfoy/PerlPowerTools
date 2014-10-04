@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: from
+Description: print names of those who have sent mail
+Author: Johan Vromans, jvromans@squirrel.nl
+License: public domain
+
+=cut
+
 # This program requires perl version 3.0, patchlevel 4 or higher
 
 # Show messages from a Unix mailbox. With -n: shown message numbers also.

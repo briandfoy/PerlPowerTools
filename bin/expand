@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: expand
+Description: convert tabs to spaces
+Author: Thierry Bezecourt, thbzcrt@worldnet.fr
+License: perl
+
+=cut
+
 #
 # A Perl implementation of expand(1) and unexpand(1) for the Perl Power
 # Tools project by Thierry Bezecourt <thbzcrt@worldnet.fr>.
@@ -107,7 +116,7 @@ __END__
 
 =head1 NAME
 
-expand, unexpand - expand tabs to spaces, and vice versa
+expand - convert tabs to spaces
 
 =head1 SYNOPSIS
 

@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: ed
+Description: text editor
+Author: George M Jones, gmj@infinet.com
+License: GNU GPL
+
+=cut
+
 # What: A perl version of Unix ed editor.
 #
 #    Based on the v7 documentation using GNU ed version 0.2 as a reference.

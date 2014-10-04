@@ -1,15 +1,4 @@
 #!/usr/bin/perl
-package PerlPowerTools::factor;
-
-use strict;
-$|++;
-my @primes = (2, 3, 5, 7, 11);          # None have been tested
-my @next_primes = ();                   # Avoid redoing work
-
-
-my $VERSION = '1.002';
-
-=pod
 
 =for info
 
@@ -21,6 +10,16 @@ Author: brian d foy, bdfoy@cpan.org
 License: perl
 
 =cut
+
+package PerlPowerTools::factor;
+
+use strict;
+$|++;
+my @primes = (2, 3, 5, 7, 11);          # None have been tested
+my @next_primes = ();                   # Avoid redoing work
+
+
+my $VERSION = '1.002';
 
 END {
 	close STDOUT || die "$0: can't close stdout: $!\n";

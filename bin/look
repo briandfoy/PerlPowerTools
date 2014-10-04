@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: look
+Description: find lines in a sorted list
+Author: Tom Christiansen, tchrist@perl.com
+License: perl
+
+=cut
+
 # look - display lines beginning with a given search
 
 use strict;

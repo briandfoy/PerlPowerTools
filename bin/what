@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: what
+Description: extract version information from a file
+Author: Ken Schumack, schumacks@att.net
+License: perl
+
+=cut
+
 use strict;
 
 sub printWhat($$$);

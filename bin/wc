@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: wc
+Description: paragraph, line, word, character, and byte counter
+Author: Peter Prymmer, pvhp@best.com
+License: perl
+
+=cut
+
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die

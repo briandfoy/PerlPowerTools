@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: make
+Description: maintain related programs and files
+Author: Nick Ing-Simmons, nick@ni-s.u-net.com
+License: 
+
+=cut
+
 use 5.005;  # Need look-behind assertions
 
 use Getopt::Std;
@@ -26,7 +36,7 @@ else
 
 =head1 NAME
 
-pmake - a perl 'make' replacement
+make - maintain related programs and files
 
 =head1 SYNOPSIS
 

@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: shar
+Description: create a shell archive of files
+Author: Rich Salz, salzr@certo.com, rsalz@osf.org, rsalz@bbn.com
+License: public domain
+
+=cut
+
 # public domain code by salzr@certo.com
 # (formerly rsalz@osf.org, rsalz@bbn.com, mirror!rs)
 

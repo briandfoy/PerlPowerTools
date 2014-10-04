@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: chgrp
+Description: change group ownership of files
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 
 use strict;
 

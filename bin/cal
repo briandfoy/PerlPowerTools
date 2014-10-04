@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: cal
+Description: displays a calendar and the date of Easter
+Author: Michael E. Schechter, mschechter@earthlink.net
+License: GNU GPL
+
+=cut
+
 package
 	cal; # hide from PAUSE
 use strict;

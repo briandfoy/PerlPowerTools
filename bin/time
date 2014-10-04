@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: time
+Description: times the execution of a command
+Author: dkulp
+License: perl
+
+=cut
+
 #
 # time - report the time running a sub-process
 

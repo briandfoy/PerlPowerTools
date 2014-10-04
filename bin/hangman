@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: hangman
+Description: the game hangman
+Author: Michael E. Schechter, mschechter@earthlink.net
+License: GNU GPL
+
+=cut
+
 use strict;
 
 srand();

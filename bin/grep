@@ -1,5 +1,16 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: grep
+Description: search for regular expressions and print
+Author: Tom Christiansen, tchrist@perl.com
+Author: Greg Bacon, gbacon@itsc.uah.edu
+Author: Paul Grassie
+License: perl
+
+=cut
+
 ###
 ### DON'T FORGET TO UPDATE THE POD IF YOU ADD TO THE HISTORY!!!
 ###

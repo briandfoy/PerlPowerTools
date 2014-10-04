@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: apply
+Description: run a command many times with different arguments
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 
 my ($VERSION) = '1.2';

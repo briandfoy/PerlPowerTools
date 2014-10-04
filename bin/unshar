@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: unshar
+Description: extract files from a shell archive
+Author: Larry Wall, larry@wall.org
+License: perl
+
+=cut
+
 #
 # unshar - extract files from a shell archive
 #

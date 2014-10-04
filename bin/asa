@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: asa
+Description: interpret ASA/FORTRAN carriage-controls
+Author: Jeffrey S. Haemer
+License: 
+
+=cut
+
 use strict;
 
 exit 1 if grep {!-r} @ARGV;		# traditional

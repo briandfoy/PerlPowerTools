@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: env
+Description: run a program in a modified environment
+Author: Matthew Bafford, dragons@scescape.net
+License: perl
+
+=cut
+
 # Perl version of the env command.
 # Matthew Bafford
 # 2/28/1999

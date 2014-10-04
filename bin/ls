@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: ls
+Description: list file/directory information
+Author: Mark Leighton Fisher, fisherm@tce.com
+License: perl
+
+=cut
+
 # Perl Power Tool - ls(1)
 
 use File::stat;

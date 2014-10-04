@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: uname
+Description: print system information
+Author: Jeffrey S. Haemer
+License: 
+
+=cut
+
 use POSIX "uname";
 use strict;
 use Getopt::Std;

@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: touch
+Description: change access and modification times of files
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use Getopt::Std;
 

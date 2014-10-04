@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: fortune
+Description: print a random, hopefully interesting, adage
+Author: Andy Murren, andy@murren.org
+License: GNU GPL
+
+=cut
+
 use strict;
 use FindBin qw($Bin);
 use File::Basename;
