@@ -19,12 +19,10 @@ my (@fh, $i);
 my @sep = ( "\t" );
 my $dash_ess = 0;
 
-exit if not @ARGV;
-
 while ($ARGV[0] =~ /^-.+$/) {
 	$_ = shift @ARGV;
 	/^-\?$/ and do { print <<EOF;
-Usage: $0 [-s] [-d list] file...
+Usage: $0 [-s] [-d list] [file...]
 
 Merges the corresponding lines of files.
 EOF
@@ -38,9 +36,13 @@ EOF
 	/^-s$/ and do { $dash_ess = 1; next; }
 }
 
-for $i (0..$#ARGV) {
-	$fh[$i] = "F$i";
-	open($fh[$i], $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
+if (@ARGV) {
+	for $i (0..$#ARGV) {
+		$fh[$i] = "F$i";
+		open($fh[$i], $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
+	}
+} else {
+	$fh[0] = \*STDIN;
 }
 
 if ($dash_ess) {
@@ -94,13 +96,13 @@ paste - merge corresponding or subsequent lines of files
 
 =head1 SYNOPSIS
 
-paste [-s] [-d list] file...
+paste [-s] [-d list] [file...]
 
 =head1 DESCRIPTION
 
 Paste combines the corresponding lines of multiple files. Each line of each
 file is printed seperated by tab (or by the characters listed in the -d
-option).
+option).  If no files are specified, stdin is read.
 
 =head2 OPTIONS
 
