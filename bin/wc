@@ -55,7 +55,7 @@ else {
     }
 }
 
-if ((!($opt{'p'} && $opt{'l'} && $opt{'w'} && $opt{'c'})) || ($opt{'a'})) {
+if ((!($opt{'p'} || $opt{'l'} || $opt{'w'} || $opt{'c'})) || ($opt{'a'})) {
    $opt{'l'} = 1; $opt{'w'} = 1; $opt{'c'} = 1;
 }
 
