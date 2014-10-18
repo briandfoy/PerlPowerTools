@@ -215,7 +215,7 @@ sub wc_fh {
         if (defined($filename)) {
             sprintf(" %s\n",basename($filename))
         } else {
-            ''
+            "\n"
         }
     };
     $out = sprintf(" %9u%s",$bytes,$out) if ($opt{'c'});
