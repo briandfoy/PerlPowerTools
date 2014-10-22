@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: deroff
+Description: strip troff, eqn and tbl sequences from text
+Author: Nathan Scott Thompson, quimby at city-net dot com
+License: GNU GPL
+
+=cut
+
 # Copyright 1999 Nathan Scott Thompson ( quimby at city-net dot com )
 # You may use this according to the GNU Public License: see http://www.gnu.org
 # Documentation at bottom.

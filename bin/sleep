@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: sleep
+Description: suspend execution for a number of seconds
+Author: Randy Yarger, randy.yarger@nextel.com
+License: perl
+
+=cut
+
 $ARGV[0] ? sleep $ARGV[0] : do { print "arg count"; exit 1; };
 
 use strict;

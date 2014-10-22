@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: xargs
+Description: construct argument list(s) and execute utility
+Author: Gurusamy Sarathy, gsar@umich.edu
+License: 
+
+=cut
+
 #
 # An xargs clone.
 #

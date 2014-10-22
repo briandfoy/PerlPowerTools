@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: pr
+Description: convert text files for printing
+Author: Clinton Pierce, clintp@geeksalad.org
+License: perl
+
+=cut
+
 #
 # pr -- print formatter
 #

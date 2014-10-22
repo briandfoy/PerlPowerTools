@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: words
+Description: find words which can be made from a string of letters
+Author: Ronald J Kimball, rjk-perl@tamias.net
+License: perl
+
+=cut
+
 use strict;
 
 use File::Basename;

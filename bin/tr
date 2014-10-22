@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: tr
+Description: translate or delete characters
+Author: Tom Christiansen, tchrist@perl.com
+License: perl
+
+=cut
+
 # tr - translate or delete characters
 
 use strict;

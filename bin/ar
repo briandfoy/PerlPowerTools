@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: ar
+Description: create and maintain library archives
+Author: dkulp
+License: perl
+
+=cut
+
 use POSIX qw(strftime);
 use File::Basename;
 use FileHandle;

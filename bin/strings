@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: strings
+Description: extract strings
+Author: Nathan Scott Thompson, quimby at city-net dot com
+License: 
+
+=cut
+
 # Copyright 1999 Nathan Scott Thompson <quimby at city-net dot com>
 
 =head1 NAME

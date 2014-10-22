@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: basename
+Description: print the basename of a file
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use File::Basename;
 

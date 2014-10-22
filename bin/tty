@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: tty
+Description: return user's terminal name
+Author: 
+License: 
+
+=cut
+
 # implementation of tty in perl
 use POSIX ();
 use strict;

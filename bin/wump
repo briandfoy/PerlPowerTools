@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: wump
+Description: play a game of "Hunt the Wumpus"
+Author: Amir Karger, karger@post.harvard.edu
+License: perl
+
+=cut
+
 # HUNT THE WUMPUS
 
 # Perl port by Amir Karger (karger@post.harvard.edu), March 1999.
@@ -337,7 +347,7 @@ __DATA__
 
 =head1 NAME
 
-wump - Perl port of the "Hunt the Wumpus" game
+wump - play a game of "Hunt the Wumpus"
 
 =head1 SYNOPSIS
 

@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: dirname
+Description: print the directory name of a path
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use File::Basename;
 

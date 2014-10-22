@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: rmdir
+Description: remove directories
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use Getopt::Std;
 

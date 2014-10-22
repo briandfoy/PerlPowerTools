@@ -1,11 +1,17 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: par
+Description: create a Perl archive of files
+Author: Tim Gim Yee, tim.gim.yee@gmail.com
+License: perl
+
+=cut
+
 #
 # par - create a Perl archive of files
 #
-# mail tgy@chocobo.org < bug_reports
-#
-# Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
-# You may play with this software in accordance with the Perl Artistic License.
 
 my $VERSION = '0.08';
 
@@ -352,12 +358,16 @@ B<shar>, B<unpar>, B<uuencode>
 
 =head1 AUTHOR
 
-Tim Gim Yee | tgy@chocobo.org | I want a moogle stuffy!
+This implementation of I<par> was written by Tim Gim Yee,
+I<tim.gim.yee@gmail.com>.
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT and LICENSE
 
-Copyright (c) 1999 Moogle Stuffy Software.  All rights reserved.
+This program is copyright (c) Tim Gim Yee 1999.
 
-You may play with this software in accordance with the Perl Artistic License.
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.
 
 =cut
+

@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: wc
+Description: paragraph, line, word, character, and byte counter
+Author: Peter Prymmer, pvhp@best.com
+License: perl
+
+=cut
+
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
@@ -7,11 +16,9 @@ END {
 
 sub usage {
     warn "$0: @_\n" if @_;
-    print "usage: $0 [-a | [-p] [-l] [-w] [-m] [-c] ] file [file1 [file2...]]\n";
+    print "usage: $0 [-a | [-p] [-l] [-w] [-m] [-c] ] [file1 [file2...]]\n";
     exit 0;
 }
-
-if ($#ARGV < 0) { usage(); }
 
 use strict;
 use locale;
@@ -48,7 +55,7 @@ else {
     }
 }
 
-if ((!($opt{'p'} && $opt{'l'} && $opt{'w'} && $opt{'c'})) || ($opt{'a'})) {
+if ((!($opt{'p'} || $opt{'l'} || $opt{'w'} || $opt{'c'})) || ($opt{'a'})) {
    $opt{'l'} = 1; $opt{'w'} = 1; $opt{'c'} = 1;
 }
 
@@ -157,7 +164,8 @@ my $uhc = q{
 
 my $encoding = $utf_8;
 
-foreach my $filename (@ARGV) {
+sub wc_fh {
+    my ($fh, $filename) = @_;
     my $paras = 0;
     my $lines = 0;
     my $words = 0;
@@ -165,14 +173,13 @@ foreach my $filename (@ARGV) {
     my @chars = ();
     my $chars = 0;
     my $bytes = 0;
-    open(FH, "< $filename") or die "cannot open $filename: $!\n";
     # without the following binmode() byte counts on dosish machines will
     # come out the same as on unix and macs since CR's will not
     # be read in.  Unfortunately the byte count would be lower than
     # what other dosish system utilities report for file size
     # hence it is left in:
-    binmode(FH);
-    while (<FH>) {
+    binmode($fh);
+    while (<$fh>) {
         $lines++;
         if ($opt{'p'}) {
             if (/^\s*$/) {
@@ -198,20 +205,35 @@ foreach my $filename (@ARGV) {
             $bytes += length($_);
         }
     }
-    close(FH);
     if ($paras > 1) { $paras--; }
  #   if ($words > 0) { $words--; }
     if ($words > 1) { $words--; }
     $total_paras += $paras;
     $total_lines += $lines; $total_words += $words;
     $total_chars += $chars; $total_bytes += $bytes;
-    $out = sprintf(" %s\n",basename($filename));
+    $out = do {
+        if (defined($filename)) {
+            sprintf(" %s\n",basename($filename))
+        } else {
+            "\n"
+        }
+    };
     $out = sprintf(" %9u%s",$bytes,$out) if ($opt{'c'});
     $out = sprintf(" %9u%s",$chars,$out) if ($opt{'m'});
     $out = sprintf(" %9u%s",$words,$out) if ($opt{'w'});
     $out = sprintf(" %9u%s",$lines,$out) if ($opt{'l'});
     $out = sprintf(" %9u%s",$paras,$out) if ($opt{'p'});
     print "$out";
+}
+
+if (@ARGV) {
+    foreach my $filename (@ARGV) {
+        open(FH, "< $filename") or die "cannot open $filename: $!\n";
+        wc_fh(\*FH, $filename);
+        close(FH);
+    }
+} else {
+    wc_fh(\*STDIN);
 }
 
 if ($#ARGV >= 1) {
@@ -234,7 +256,7 @@ wc - paragraph, line, word, character, and byte counter
 
 =head1 SYNOPSIS
 
-wc [-a | [-p] [-l] [-w] [-m] [-c] ] file [file1 [file2...]]
+wc [-a | [-p] [-l] [-w] [-m] [-c] ] [file1 [file2...]]
 
 =head1 DESCRIPTION
 
@@ -243,7 +265,7 @@ lines, words, and bytes contained in each input file to the standard output.
 An optional count of paragraphs or characters is also possible in this
 implementation.  If more than one text file is specified, a line of total
 count(s) for all named files is output on a separate line following the
-last file count.
+last file count.  If no input files are specified, standard input is read.
 
 By default, the standard output contains a line for each input file of
 the form:

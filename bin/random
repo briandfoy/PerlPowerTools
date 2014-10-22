@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: random
+Description: display lines at random, or exit with a random value
+Author: Abigail, abigail@fnx.com
+License: perl
+
+=cut
+
 use strict;
 use Getopt::Std;
 

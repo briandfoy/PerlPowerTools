@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: robots
+Description: fight off villainous robots
+Author: John C. Siracusa, siracusa@mindspring.com
+License: perl
+
+=cut
+
 ##
 ## robots - fight off villainous robots
 ##

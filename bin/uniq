@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: uniq
+Description: report or filter out repeated lines in a file
+Author: Jonathan Feinberg, jdf@pobox.com
+License: perl
+
+=cut
+
 # uniq - report or filter out repeated lines in a file
 
 use strict;

@@ -1,4 +1,14 @@
 #!/usr/bin/perl
+
+=for info
+
+Name: tee
+Description: pipe fitting
+Author: Tom Christiansen, tchrist@perl.com
+License: 
+
+=cut
+
 #
 # tee clone that groks process tees (should work even with old perls)
 # Tom Christiansen <tchrist@convex.com>

@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+=for info
+
+Name: file
+Description: determine file type
+Author: dkulp
+License: BSD
+
+=cut
+
 #
 # file -- report the type of a file
 #
