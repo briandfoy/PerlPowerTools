@@ -1,4 +1,4 @@
-0.14    2004-07-XX
+# Changes for PerlPowerTools
 
 1.002_03 - Mon Sep 15 05:58:33 2014
 	* Add tests for true and false (that's easy!)
@@ -22,12 +22,12 @@
 	* I've probably broken some things, but now I want to see what's
 	unauthorized.
 
+0.14    2004-08-04
   - 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
   - New col and words, Ronald J Kimball
   - Website now includes version number, Casey West
 
 0.13    2004-07-23
-
   - Casey West takes over management.
   - grep/tcgrep - New revision by Paul Johnson
   - sort/sort.pudge - New revision by Chris Nandor
