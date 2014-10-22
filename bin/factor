@@ -17,7 +17,8 @@ Name: factor
 Description: factor a number
 Author: Jonathan Feinberg, jdf@pobox.com
 Author: Benjamin Tilly, ben.tilly@alumni.dartmouth.org
-Author: brian d foy, bdfoy@cpan.org
+Contributor: brian d foy, bdfoy@cpan.org
+Contributor: Dana Jacobson, danaj@cpan.org
 License: perl
 
 =cut
@@ -130,7 +131,7 @@ factor - factor a number
 
 =head1 SYNOPSIS
 
-B<factor> [I<number ...>]
+	% factor [I<number ...>]
 
 =head1 DESCRIPTION
 
