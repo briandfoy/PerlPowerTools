@@ -720,7 +720,7 @@ Algorithm::Diff - Compute `intelligent' differences between two files / lists
 
 =head1 SYNOPSIS
 
-  use Algorithm::Diff qw(diff LCS trverse_sequences);
+  use Algorithm::Diff qw(diff LCS traverse_sequences);
 
   @lcs = LCS(\@seq1, \@seq2, $comparison_function);
 
