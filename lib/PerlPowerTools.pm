@@ -263,18 +263,18 @@ Unix Reconstruction Project
 
 This source is in Github:
 
-	https://github.com/briandfoy/ppt
+	https://github.com/briandfoy/PerlPowerTools
 
 =head1 AUTHOR
 
 brian d foy, C<< <bdfoy@cpan.org> >> is the current maintainer, even
-though he write none of the utilities.
-
+though he wrote none of the utilities.
 
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2004-2014 brian d foy.  All rights reserved.
+Copyright (c) 2004-2014 by various authors.  See each program for
+specific information.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
