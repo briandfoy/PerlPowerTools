@@ -13,6 +13,7 @@ License: perl
 
 use File::stat;
 use Getopt::Std;
+use File::Spec;
 
 # ------ partial inline of Stat::lsMode v0.50 code
 # (see http://www.plover.com/~mjd/perl/lsMode/
@@ -68,9 +69,6 @@ my $First = 1;		# first directory entry on command line
 my $Maxlen = 1;		# longest string we've seen
 my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
-my $PathSep = "/";	# path separator
-			# (someone might want to patch this via
-			# File::Spec...)
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
 my $VERSION = '0.70';	# because we're V7-compatible :)
@@ -118,7 +116,7 @@ sub DirEntries {
 		next if (!exists($Options->{'a'}) &&
 		 $Name =~ m/^\./o);
 		push(@Entries, $Name);
-		$Attributes{$Name} = stat("$_[0]$PathSep$Name");
+		$Attributes{$Name} = stat( File::Spec->catfile( $_[0], $Name ) );
 	}
 	closedir(DH);
 
@@ -362,10 +360,7 @@ sub List {
 			next if ($Entry eq "." || $Entry eq "..");
 			if (defined($Attributes->{$Entry}) &&
 			 $Attributes->{$Entry}->mode & 0040000) {
-				$Path = "$Name:  $PathSep$Entry";
-				if ($Name =~ m#$PathSep$#) {
-					$Path = "$Name:  $Entry";
-				}
+				$Path = File::Spec->canonpath(File::Spec->catdir($Name,$Entry));
 				@Dirs = DirEntries(\%Options, $Path);
 				List($Path, \%Options, 0, @Dirs);
 			}
