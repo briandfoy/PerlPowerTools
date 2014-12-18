@@ -25,6 +25,7 @@ my(
 );
 
 END {
+	no warnings qw(uninitialized);
     unlink $tmpin, $tmpout; # XXX: don't check failure
     close STDOUT 	    || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;    # from die
