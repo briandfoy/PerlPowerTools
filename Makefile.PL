@@ -1,14 +1,12 @@
 use ExtUtils::MakeMaker 6.64;
 
-
 my @exe_files = glob "bin/*";
 my $main_file = 'lib/PerlPowerTools.pm';
 
 WriteMakefile(
 	'NAME'          => 'PerlPowerTools',
 	'ABSTRACT_FROM' => $main_file,
-#	'VERSION_FROM'  => $main_file,
-	'VERSION'       => '1.002_03',
+	'VERSION_FROM'  => $main_file,
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
 
