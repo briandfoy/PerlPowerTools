@@ -29,8 +29,8 @@ WriteMakefile(
 		resources => {
 			repository => {
 				type => 'git',
-				url => 'git://github.com/briandfoy/ppt.git',
-				web => 'https://github.com/briandfoy/ppt',
+				url  => 'git://github.com/briandfoy/PerlPowerTools.git',
+				web  => 'https://github.com/briandfoy/PerlPowerTools',
 				},
 
 			bugtracker => {
