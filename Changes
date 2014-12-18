@@ -1,5 +1,13 @@
 # Changes for PerlPowerTools
 
+1.003 - Thu Dec 18 21:04:41 2014
+	* Fix all the issues in the old ppt bugs list (https://rt.cpan.org/Dist/Display.html?Queue=ppt)
+	* All programs have embedded metadata (Tim Gim Yee)
+	* Fixes to wc, paste (Dmitri Tikhonov)
+	* The repo is now PerlPowerTools, not the old ppt
+	* factor now works correctly (Dana Jacobsen)
+	* A typo fix in diff (Sergey Romanov)
+
 1.002_03 - Mon Sep 15 05:58:33 2014
 	* Add tests for true and false (that's easy!)
 	* Start the TODO file with what needs to happen
