@@ -60,3 +60,5 @@
 .travis.yml
 util/create_tool_list
 .releaserc
+CNAME
+data

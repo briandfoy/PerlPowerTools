@@ -116,6 +116,7 @@ bin/xargs
 bin/yes
 Changes
 lib/PerlPowerTools.pm
+lib/ppt.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
