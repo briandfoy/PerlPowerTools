@@ -1,0 +1,2653 @@
+<Command addbib.1>
+    Class command
+    <Contrib>
+        Name    addbib.jsh
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-03-01
+    </Contrib>
+</Command>
+
+<Command addftinfo.1>
+    Class command
+</Command>
+
+<Command adventure.6>
+    Class game
+</Command>
+
+<Command afmtodit.1>
+    Class command
+</Command>
+
+<Command afslog.1>
+    Class command
+</Command>
+
+<Command apply.1>
+    Class command
+    <Contrib>
+        Name    apply.roland
+        Author  D Roland Walker
+        Email   walker@pobox.com
+        Date    1999-02-28
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    apply.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-27
+    </Contrib>
+</Command>
+
+<Command apropos.1>
+    Class command
+</Command>
+
+<Command ar.1>
+    Class command
+    <Contrib>
+        Name    ar.kulp
+        Author  David Kulp
+        Email
+        Date    1999-03-09
+        Support readme.kulp
+    </Contrib>
+</Command>
+
+<Command arch.1>
+    Class command
+    <Contrib>
+        Name    arch.theo
+        Author  Theo Van Dinter
+        Email   felicity@kluge.net
+        Date    1999-03-08
+    </Contrib>
+</Command>
+
+<Command arithmetic.6>
+    Class game
+    <Contrib>
+        Name    arithmetic.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-14
+    </Contrib>
+</Command>
+
+<Command as.1>
+    Class command
+</Command>
+
+<Command asa.1>
+    Class command
+    <Contrib>
+        Name    asa
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-02-28
+        <Test>
+            Name     Casey West
+            Result   yes
+            Info
+        </Test>
+    </Contrib>
+</Command>
+
+<Command at.1>
+    Class command
+</Command>
+
+<Command atc.6>
+    Class game
+</Command>
+
+<Command aucat.1>
+    Class command
+</Command>
+
+<Command audioctl.1>
+    Class command
+</Command>
+
+<Command awk.1>
+    Class command
+    <Contrib>
+        Name    awk.tchrist
+        Author  Tom Christiansen
+        Email   tchrist@perl.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command backgammon.6>
+    Class game
+</Command>
+
+<Command banner.6>
+    Class game
+    <Contrib>
+        Name    banner
+        Author  Jonathan Feinberg
+        Email   tchrist@perl.com
+        Date    1999-02-27
+    </Contrib>
+</Command>
+
+<Command basename.1>
+    Class command
+    <Contrib>
+        Name    basename.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-27
+    </Contrib>
+</Command>
+
+<Command battlestar.6>
+    Class game
+</Command>
+
+<Command bc.1>
+    Class command
+    <Contrib>
+        Name    bc.plx
+        Author  Thierry Bezecourt
+        Email   thbzcrt@worldnet.fr
+        Date    1999-03-26
+        Support bc.pod bc.y readme.thierry
+    </Contrib>
+</Command>
+
+<Command bcd.6>
+    Class game
+</Command>
+
+<Command bdes.1>
+    Class command
+</Command>
+
+<Command biff.1>
+    Class command
+</Command>
+
+<Command bj.6>
+    Class game
+</Command>
+
+<Command boggle.6>
+    Class game
+</Command>
+
+<Command bs.6>
+    Class game
+</Command>
+
+<Command caesar.6>
+    Class game
+</Command>
+
+<Command cal.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    cal.schechter
+        Author  Michael E. Schechter
+        Email   mschechter@earthlink.net
+        Date    1999-03-03
+        Support readme.schechter
+    </Contrib>
+    <Contrib>
+        Name    cal.hudson
+        Author  Tramm Hudson
+        Email   hudson@swcp.com
+        Date    1999-03-01
+        Support readme.hudson
+    </Contrib>
+    <Contrib>
+        Name    cal.hewgill
+        Author  Greg Hewgill
+        Email   greg@hewgill.com
+        Date    1999-03-01
+        Support readme.hewgill
+    </Contrib>
+    <Contrib>
+        Name    cal.allwine
+        Author  Tim Allwine
+        Email   tallwine@ixlabs.co
+        Date    1999-03-06
+    </Contrib>
+</Command>
+
+<Command calendar.1>
+    Class command
+</Command>
+
+<Command canfield.6>
+    Class game
+</Command>
+
+<Command cap_mkdb.1>
+    Class command
+</Command>
+
+<Command captoinfo.1>
+    Class command
+</Command>
+
+<Command cat.1>
+    Class command
+    <Contrib>
+        Name    cat.simple
+        Author  Tom Christiansen
+        Email   
+        Date    1999-02-25
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    cat.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command cccp.1>
+    Class command
+</Command>
+
+<Command cd.1>
+    Class command
+</Command>
+
+<Command cdio.1>
+    Class command
+</Command>
+
+<Command cfscores.6>
+    Class game
+</Command>
+
+<Command checkers.6>
+    Class game
+</Command>
+
+<Command checknr.1>
+    Class command
+</Command>
+
+<Command chess.6>
+    Class game
+</Command>
+
+<Command chflags.1>
+    Class command
+</Command>
+
+<Command chgrp.1>
+    Class command
+    <Contrib>
+        Name    chgrp.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command chio.1>
+    Class command
+</Command>
+
+<Command ching.6>
+    Class game
+    <Contrib>
+        Name    ching.dvornik
+        Author  Albert Dvornik
+        Email   bert@mit.edu
+        Date    1999-03-16
+        Support readme.dvornik
+    </Contrib>
+</Command>
+
+<Command chmod.1>
+    Class command
+    <Contrib>
+        Name    chmod.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-09
+        Support SymbolicMode.pm
+    </Contrib>
+</Command>
+
+<Command chown.1>
+    Class command
+    <Contrib>
+        Name    chown.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command chpass.1>
+    Class command
+</Command>
+
+<Command ci.1>
+    Class command
+</Command>
+
+<Command cksum.1>
+    Class command
+</Command>
+
+<Command clear.1>
+    Class command
+    <Contrib>
+        Name    clear.jsh
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command cmp.1>
+    Class command
+    <Contrib>
+        Name    cmp.roland
+        Author  D Roland Walker
+        Email   walker@pobox.com
+        Date    1999-03-04
+        Support readme.roland
+    </Contrib>
+</Command>
+
+<Command co.1>
+    Class command
+</Command>
+
+<Command col.1>
+    Class command
+    <Contrib>
+        Name    col.rjk
+        Author  Ronald J Kimball
+        Email   rjk-perl@tamias.net
+        Date    2004-07-24
+    </Contrib>
+</Command>
+
+<Command colcrt.1>
+    Class command
+</Command>
+
+<Command colrm.1>
+    Class command
+    <Contrib>
+        Name    colrm.jsh
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-03-03
+    </Contrib>
+</Command>
+
+<Command column.1>
+    Class command
+</Command>
+
+<Command comm.1>
+    Class command
+    <Contrib>
+        Name    comm.mjd
+        Author  M-J. Dominus
+        Email   mjd-perl-comm@plover.com
+        Date    1999-02-25
+    </Contrib>
+</Command>
+
+<Command compile_et.1>
+    Class command
+</Command>
+
+<Command compress.1>
+    Class command
+</Command>
+
+<Command cp.1>
+    Class command
+    <Contrib>
+        Name    cp.schumacks
+        Author  Ken Schumack
+        Email   schumacks@att.net
+        Date    1999-03-27
+    </Contrib>
+</Command>
+
+<Command cpio.1>
+    Class command
+</Command>
+
+<Command cribbage.6>
+    Class game
+</Command>
+
+<Command crontab.1>
+    Class command
+</Command>
+
+<Command csh.1>
+    Class command
+</Command>
+
+<Command ctags.1>
+    Class command
+</Command>
+
+<Command ctm.1>
+    Class command
+</Command>
+
+<Command ctm_smail.1>
+    Class command
+</Command>
+
+<Command cu.1>
+    Class command
+</Command>
+
+<Command cursor.1>
+    Class command
+</Command>
+
+<Command cut.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    cut.lafferty
+        Author  Rich Lafferty
+        Email   rich@alcor.concordia.ca
+        Date    1999-03-04
+    </Contrib>
+    <Contrib>
+        Name    cut.hewgill
+        Author  Greg Hewgill
+        Email   greg@hewgill.com
+        Date    1999-03-03
+    </Contrib>
+</Command>
+
+# not only does hfs + cvs hate this,
+#   but who will really do it?
+#     If you will, send it on and I'll make it work.
+# -- Casey
+#<Command cvs.1>
+#    Class command
+#</Command>
+
+#<Command cvsbug.1>
+#    Class command
+#</Command>
+
+<Command date.1>
+    Class command
+    <Contrib>
+        Name    date.jgross
+        Author  Joshua Gross
+        Email   greg@hewgill.com
+        Date    1999-03-09
+    </Contrib>
+</Command>
+
+<Command dc.1>
+    Class command
+    <Contrib>
+        Name    dc.drew
+        Author  Drew Eckhardt
+        Email
+        Date    1999-03-06
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    dc.gsu
+        Author  Greg Ubben
+        Email   gsu@romulus.ncsc.mil
+        Date    1999-03-06
+    </Contrib>
+</Command>
+
+<Command dd.1>
+    Class command
+</Command>
+
+<Command deroff.1>
+    Class command
+    <Contrib>
+        Name    deroff
+        Author  Nathan Scott Thompson
+        Email   quimby at city-net dot com
+        Date    1999-05-30
+    </Contrib>
+</Command>
+
+<Command df.1>
+    Class command
+</Command>
+
+<Command diff.1>
+    Class command
+    <Contrib>
+        Name    diff.mjd
+        Author  M-J. Dominus
+        Email   mjd-perl-diff@plover.com
+        Date    1999-03-04
+        Support readme.mjd
+    </Contrib>
+</Command>
+
+<Command diff3.1>
+    Class command
+</Command>
+
+<Command dig.1>
+    Class command
+</Command>
+
+<Command dirname.1>
+    Class command
+    <Contrib>
+        Name    dirname.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-27
+    </Contrib>
+</Command>
+
+<Command dnsquery.1>
+    Class command
+</Command>
+
+<Command domainname.1>
+    Class command
+</Command>
+
+<Command du.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    du.hewgill
+        Author  Greg Hewgill
+        Email   greg@hewgill.com
+        Date    1999-03-07
+    </Contrib>
+    <Contrib>
+        Name    dutree-old
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-07
+    </Contrib>
+    <Contrib>
+        Name    dutree-new
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command echo.1>
+    Class command
+    <Contrib>
+        Name    echo.randy
+        Author  Randy Yarger
+        Email   randy.yarger@nextel.com
+        Date    1999-02-06
+    </Contrib>
+</Command>
+
+<Command ed.1>
+    Class command
+    <Contrib>
+        Name    ed.gmj
+        Author  George Jones
+        Email   gmj@infinet.com
+        Url     http://www.infinet.com/~gmj
+        Date    1999-06-20
+        Support ed.gmj.readme
+    </Contrib>
+</Command>
+
+<Command elf2olf.1>
+    Class command
+</Command>
+
+<Command encrypt.1>
+    Class command
+</Command>
+
+<Command env.1>
+    Class command
+    <Contrib>
+        Name    env.dragons
+        Author  Matthew Bafford
+        Email   dragons@scescape.net
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command eqn.1>
+    Class command
+</Command>
+
+<Command error.1>
+    Class command
+</Command>
+
+<Command ex.1>
+    Class command
+</Command>
+
+<Command expand.1>
+    Class command
+    <Contrib>
+        Name    expand.thierry
+        Author  Thierry Bezecourt
+        Email   thbzcrt@worldnet.fr
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command expr.1>
+    Class command
+    <Contrib>
+        Name    expr.robinson
+        Author  Michael Robinson
+        Email   smrf@sans.vuw.ac.nz
+        Date    1999-03-03
+    </Contrib>
+</Command>
+
+<Command factor.6>
+    Class game
+    <Contrib>
+        Name    factor.feinberg.orig
+        Author  Jonathan Feinberg
+        Email   jdf@pobox.com
+        Date    1999-03-02
+        Support gen_primes readme.feinberg
+    </Contrib>
+    <Contrib>
+        Name    factor.tilly
+        Author  Ben Tilly
+        Email   ben.tilly@alumni.dartmouth.org
+        Date    1999-03-08
+        Support readme.tilly
+    </Contrib>
+    <Contrib>
+        Name    factor.tchrist
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-06
+    </Contrib>
+    <Contrib>
+        Name    factor.hewgill
+        Author  Greg Hewgill
+        Email   greg@hewgill.com
+        Date    1998-03-01
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    factor.feinberg
+        Author  Jonathan Feinberg w/Ben Tilly
+        Email
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command false.1>
+    Class command
+    <Contrib>
+        Name    false.simple
+        Author  Tom Christiansen
+        Email
+        Date    1999-02-26
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    false.fancy
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-25
+    </Contrib>
+</Command>
+
+<Command fdformat.1>
+    Class command
+</Command>
+
+<Command fed.1>
+    Class command
+</Command>
+
+<Command file.1>
+    Class command
+    <Contrib>
+        Name    file.slay
+        Author  Barrie Slaymaker
+        Email
+        Date    1999-06-21
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    file.kulp
+        Author  David Kulp
+        Email
+        Date    1999-03-22
+    </Contrib>
+</Command>
+
+<Command file2c.1>
+    Class command
+</Command>
+
+<Command find.1>
+    Class command
+    <Contrib>
+        Name    find.snow
+        Author  Greg Snow w/Larry Wall
+        Email   snow@biostat.washington.edu
+        Date    1999-06-01
+    </Contrib>
+</Command>
+
+<Command finger.1>
+    Class command
+</Command>
+
+<Command fish.6>
+    Class game
+    <Contrib>
+        Name    fish.clintp
+        Author  Clinton Pierce
+        Email   clintp@geeksalad.org
+        Date    1999-06-01
+    </Contrib>
+</Command>
+
+<Command flex.1>
+    Class command
+</Command>
+
+<Command fmt.1>
+    Class command
+</Command>
+
+<Command fold.1>
+    Class command
+    <Contrib>
+        Name    fold.plx
+        Author  Clinton Pierce
+        Email   clintp@geeksalad.org
+        Date    1999-06-01
+    </Contrib>
+</Command>
+
+<Command fontedit.1>
+    Class command
+</Command>
+
+<Command fortune.6>
+    Class game
+    <Contrib>
+        Name    fortune.andy
+        Author  Andy Murren
+        Email   andy@murren.org
+        Date    1999-06-07
+        Support readme.andy
+    </Contrib>
+</Command>
+
+<Command from.1>
+    Class command
+    <Contrib>
+        Name    from.jv
+        Author  Johan Vromans
+        Email   jvromans@squirrel.nl
+        Date    1999-03-29
+    </Contrib>
+</Command>
+
+<Command fsplit.1>
+    Class command
+</Command>
+
+<Command fstat.1>
+    Class command
+</Command>
+
+<Command ftp.1>
+    Class command
+</Command>
+
+<Command g++.1>
+    Class command
+</Command>
+
+<Command g77.1>
+    Class command
+</Command>
+
+<Command gcc.1>
+    Class command
+</Command>
+
+<Command gdb.1>
+    Class command
+</Command>
+
+<Command gencat.1>
+    Class command
+</Command>
+
+<Command getconf.1>
+    Class command
+</Command>
+
+<Command getopt.1>
+    Class command
+</Command>
+
+<Command glob.1>
+    Class command
+    <Contrib>
+        Name    glob.bradapp
+        Author  Brad Appleton
+        Email   bradapp@enteract.com
+        Date    1999-03-28
+        Support readme.bradapp
+    </Contrib>
+</Command>
+
+<Command gomoku.6>
+    Class game
+</Command>
+
+<Command gperf.1>
+    Class command
+</Command>
+
+<Command gprof.1>
+    Class command
+</Command>
+
+<Command grdc.6>
+    Class command
+</Command>
+
+<Command grep.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    tcgrep
+        Author  Tom Christiansen et al
+        Email
+        Date    2004-07-22
+        <Test>
+            Name   Casey West
+            Result yes
+        </Test>
+    </Contrib>
+    <Contrib>
+        Name    dos-grep.nick
+        Author  Nick Ing-Simmons
+        Email
+        Date    1999-03-06
+        Support dos-grep.bat
+    </Contrib>
+</Command>
+
+<Command grodvi.1>
+    Class command
+</Command>
+
+<Command groff.1>
+    Class command
+</Command>
+
+<Command grog.1>
+    Class command
+</Command>
+
+<Command grolj4.1>
+    Class command
+</Command>
+
+<Command grops.1>
+    Class command
+</Command>
+
+<Command grotty.1>
+    Class command
+</Command>
+
+<Command groups.1>
+    Class command
+</Command>
+
+<Command gzexe.1>
+    Class command
+</Command>
+
+<Command gzip.1>
+    Class command
+</Command>
+
+<Command hack.6>
+    Class game
+</Command>
+
+<Command hangman.6>
+    Class game
+    <Contrib>
+        Name    hangman.schechter
+        Author  Michael E. Schechter
+        Email   mschechter@earthlink.net
+        Date    1999-03-07
+        Support wordlist.txt readme.schechter
+    </Contrib>
+</Command>
+
+<Command head.1>
+    Class command
+    <Contrib>
+        Name    head.fancy
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command hexdump.1>
+    Class command
+</Command>
+
+<Command host.1>
+    Class command
+</Command>
+
+<Command hostname.1>
+    Class command
+</Command>
+
+<Command hpftodit.1>
+    Class command
+</Command>
+
+<Command hunt.6>
+    Class game
+</Command>
+
+<Command huntd.6>
+    Class game
+</Command>
+
+<Command id.1>
+    Class command
+    <Contrib>
+        Name    id.theo
+        Author  Theo Van Dinter
+        Email   felicity@kluge.net
+        Date    1999-03-03
+        Support readme.theo
+    </Contrib>
+</Command>
+
+<Command ident.1>
+    Class command
+</Command>
+
+<Command indent.1>
+    Class command
+</Command>
+
+<Command indxbib.1>
+    Class command
+</Command>
+
+<Command info_mkdb.1>
+    Class command
+</Command>
+
+<Command install.1>
+    Class command
+    <Contrib>
+        Name    install.gbacon
+        Author  Greg Bacon
+        Email   gbacon@itsc.uah.edu
+        Date    1999-07-29
+    </Contrib>
+</Command>
+
+<Command intro.1>
+    Class command
+</Command>
+
+<Command ipcrm.1>
+    Class command
+</Command>
+
+<Command ipcs.1>
+    Class command
+</Command>
+
+<Command ipf.1>
+    Class command
+</Command>
+
+<Command ipftest.1>
+    Class command
+</Command>
+
+<Command ipnat.1>
+    Class command
+</Command>
+
+<Command ipresend.1>
+    Class command
+</Command>
+
+<Command ipsecadm.1>
+    Class command
+</Command>
+
+<Command ipsend.1>
+    Class command
+</Command>
+
+<Command iptest.1>
+    Class command
+</Command>
+
+<Command ispcvt.1>
+    Class command
+</Command>
+
+<Command join.1>
+    Class command
+    <Contrib>
+        Name    join.feinberg
+        Author  Jonathan Feinberg
+        Email   jdf@pobox.com
+        Date    1999-03-08
+        Support join-test.tgz
+        <Test>
+            Name   Tom Christiansen
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command jot.1>
+    Class command
+</Command>
+
+<Command kauth.1>
+    Class command
+</Command>
+
+<Command kcon.1>
+    Class command
+</Command>
+
+<Command kdestroy.1>
+    Class command
+</Command>
+
+<Command kdump.1>
+    Class command
+</Command>
+
+<Command kerberos.1>
+    Class command
+</Command>
+
+<Command kill.1>
+    Class command
+    <Contrib>
+        Name    kill.theo
+        Author  Theo Van Dinter
+        Email   felicity@kluge.net
+        Date    1999-03-06
+    </Contrib>
+</Command>
+
+<Command kinit.1>
+    Class command
+</Command>
+
+<Command klist.1>
+    Class command
+</Command>
+
+<Command ksh.1>
+    Class command
+</Command>
+
+<Command ksrvtgt.1>
+    Class command
+</Command>
+
+<Command ktrace.1>
+    Class command
+</Command>
+
+<Command lam.1>
+    Class command
+</Command>
+
+<Command larn.6>
+    Class game
+</Command>
+
+<Command last.1>
+    Class command
+</Command>
+
+<Command lastcomm.1>
+    Class command
+</Command>
+
+<Command ld.1>
+    Class command
+</Command>
+
+<Command ld.so.1>
+    Class command
+</Command>
+
+<Command ldd.1>
+    Class command
+</Command>
+
+<Command leave.1>
+    Class command
+</Command>
+
+<Command less.1>
+    Class command
+</Command>
+
+<Command lesskey.1>
+    Class command
+</Command>
+
+<Command lint.1>
+    Class command
+</Command>
+
+<Command lkbib.1>
+    Class command
+</Command>
+
+<Command ln.1>
+    Class command
+    <Contrib>
+        Name    ln.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-14
+    </Contrib>
+</Command>
+
+<Command lndir.1>
+    Class command
+</Command>
+
+<Command loadfont.1>
+    Class command
+</Command>
+
+<Command locate.1>
+    Class command
+</Command>
+
+<Command lock.1>
+    Class command
+    <Contrib>
+        Name    lock.atkins
+        Author  Aron Atkins
+        Email   atkins@gweep.net
+        Date    1999-08-07
+    </Contrib>
+</Command>
+
+<Command lockspool.1>
+    Class command
+</Command>
+
+<Command logger.1>
+    Class command
+</Command>
+
+<Command login.1>
+    Class command
+</Command>
+
+<Command logname.1>
+    Class command
+</Command>
+
+<Command look.1>
+    Class command
+    <Contrib>
+        Name    look.tchrist
+        Author  Tom Christiansen
+        Email   tchrist@perl.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command lookbib.1>
+    Class command
+</Command>
+
+<Command lorder.1>
+    Class command
+</Command>
+
+<Command lpq.1>
+    Class command
+</Command>
+
+<Command lpr.1>
+    Class command
+</Command>
+
+<Command lprm.1>
+    Class command
+</Command>
+
+<Command lptest.1>
+    Class command
+</Command>
+
+<Command ls.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    ls.fisherm
+        Author  Mark Leighton Fisher
+        Email   fisherm@tce.com
+        Date    1999-03-12
+        Support readme.fisherm
+    </Contrib>
+    <Contrib>
+        Name    lst
+        Author  Tom Christiansen
+        Email
+        Date    1996-02-01
+    </Contrib>
+    <Contrib>
+        Name    ls.mjd
+        Author  M-J. Dominus
+        Email   mjd-perl-ppt@plover.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command lynx.1>
+    Class command
+</Command>
+
+<Command m4.1>
+    Class command
+</Command>
+
+<Command machine.1>
+    Class command
+</Command>
+
+<Command mail.1>
+    Class command
+    <Contrib>
+        Name    mail.clintp
+        Author  Clinton Pierce
+        Email   clintp@geeksalad.org
+        Date    1999-03-05
+    </Contrib>
+</Command>
+
+<Command mailq.1>
+    Class command
+</Command>
+
+<Command mailstats.1>
+    Class command
+</Command>
+
+<Command make.1>
+    Class command
+    <Contrib>
+        Name    pmake
+        Author  Nick Ing-Simmons
+        Email
+        Date    1998-03-10
+        Support Make-0.03.tar.gz
+    </Contrib>
+</Command>
+
+<Command man.1>
+    Class command
+    <Contrib>
+        Name    man
+        Author  Tom Christiansen
+        Email
+        Date    1990-02-20
+        Support tchrist-man.tar.gz
+    </Contrib>
+</Command>
+
+<Command maze.6>
+    Class game
+    <Contrib>
+        Name    maze.caputo
+        Author  Rocco Caputo
+        Email   troc@netrus.net
+        Date    1999-06-21
+    </Contrib>
+</Command>
+
+<Command mcon.1>
+    Class command
+</Command>
+
+<Command md5.1>
+    Class command
+</Command>
+
+<Command merge.1>
+    Class command
+</Command>
+
+<Command mesg.1>
+    Class command
+</Command>
+
+<Command midiplay.1>
+    Class command
+</Command>
+
+<Command mille.6>
+    Class game
+</Command>
+
+<Command mimedecode.1>
+    Class command
+    <Contrib>
+        Name    mimedecode
+        Author  Nick Ing-Simmons
+        Email   nick@ni-s.u-net.com
+        Date    1999-03-10
+    </Contrib>
+</Command>
+
+<Command mixerctl.1>
+    Class command
+</Command>
+
+<Command mkdep.1>
+    Class command
+</Command>
+
+<Command mkdir.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    mkdir.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-09
+    </Contrib>
+    <Contrib>
+        Name    mkdir.jwjr
+        Author  James Wetterau, Jr.
+        Email   jwjr@panix.com
+        Date    1999-03-06
+    </Contrib>
+    <Contrib>
+        Name    mkdir.kemp
+        Author  Steve Kemp
+        Email   skx@tardis.ed.ac.uk
+        Date    1999-03-05
+    </Contrib>
+</Command>
+
+<Command mkfifo.1>
+    Class command
+    <Contrib>
+        Name    mkfifo.jsh
+        Author  Jeffrey S. Haemer, Louis Krupp
+        Email
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command mkstr.1>
+    Class command
+</Command>
+
+<Command mktemp.1>
+    Class command
+</Command>
+
+<Command monop.6>
+    Class game
+</Command>
+
+<Command moo.6>
+    Class game
+    <Contrib>
+        Name    moo.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command mopa.out.1> # XXX
+    Class command
+</Command>
+
+<Command mopchk.1>
+    Class command
+</Command>
+
+<Command mopprobe.1>
+    Class command
+</Command>
+
+<Command moptrace.1>
+    Class command
+</Command>
+
+<Command morse.6>
+    Class game
+    <Contrib>
+        Dist    yes
+        Name    demorse.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-03-06
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    morse.dragons
+        Author  Matthew Bafford
+        Email   dragons@scescape.net
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command mset.1>
+    Class command
+</Command>
+
+<Command msgs.1>
+    Class command
+</Command>
+
+<Command mt.1>
+    Class command
+</Command>
+
+<Command mv.1>
+    Class command
+</Command>
+
+<Command nc.1>
+    Class command
+</Command>
+
+<Command netstat.1>
+    Class command
+</Command>
+
+<Command newaliases.1>
+    Class command
+</Command>
+
+<Command newfs_msdos.1>
+    Class command
+</Command>
+
+<Command nfsstat.1>
+    Class command
+</Command>
+
+<Command nice.1>
+    Class command
+</Command>
+
+<Command nm.1>
+    Class command
+</Command>
+
+<Command nohup.1>
+    Class command
+</Command>
+
+<Command nroff.1>
+    Class command
+</Command>
+
+<Command number.6>
+    Class game
+</Command>
+
+<Command od.1>
+    Class command
+    <Contrib>
+        Name    od.kahn
+        Author  Mark Kahn
+        Email   mkahn@vbe.com
+        Date    1999-03-06
+    </Contrib>
+</Command>
+
+<Command pagesize.1>
+    Class command
+</Command>
+
+<Command par.1>
+    Class command
+    <Contrib>
+        Name    par
+        Author  Tim Gim Yee
+        Email   tgy@chocobo.org
+        Date    1999-04-12
+        Support par-tests.tgz
+        <Test>
+            Name   Tom Christiansen
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command passwd.1>
+    Class command
+</Command>
+
+<Command paste.1>
+    Class command
+    <Contrib>
+        Name    paste.randy
+        Author  Randy Yarger
+        Email   randy.yarger@nextel.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command patch.1>
+    Class command
+    <Contrib>
+        Name    patch.fuzzy
+        Author  Tim Gim Yee
+        Email   tgy@chocobo.org
+        Date    1999-04-01
+        Support patch-tests.tgz
+        <Test>
+            Name   Tom Christiansen
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command pax.1>
+    Class command
+</Command>
+
+<Command pctr.1>
+    Class command
+</Command>
+
+<Command pfbtops.1>
+    Class command
+</Command>
+
+<Command phantasia.6>
+    Class game
+</Command>
+
+<Command pic.1>
+    Class command
+</Command>
+
+<Command pig.6>
+    Class game
+    <Contrib>
+        Name    pig.simple
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-02
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    pig.feinberg
+        Author  Jonathan Feinberg
+        Email   jdf@pobox.com
+        Url     http://pobox.com/~jdf
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command ping.1>
+    Class command
+    <Contrib>
+        Name    ping.nick
+        Author  Nick Ing-Simmons
+        Email   nick@ni-s.u-net.com
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command pkg_add.1>
+    Class command
+</Command>
+
+<Command pkg_create.1>
+    Class command
+</Command>
+
+<Command pkg_delete.1>
+    Class command
+</Command>
+
+<Command pkg_info.1>
+    Class command
+</Command>
+
+<Command pom.6>
+    Class game
+    <Contrib>
+        Name    pom.caputo
+        Author  Rocco Caputo
+        Email   troc@netrus.net
+        Date    1999-06-07
+    </Contrib>
+</Command>
+
+<Command ppt.6>
+    Class game
+    <Contrib>
+        Name    ppt.mjd
+        Author  M-J. Dominus
+        Email   mjd@plover.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command pr.1>
+    Class command
+    <Contrib>
+        Name    pr.clintp
+        Author  Clinton Pierce
+        Email   clintp@geeksalad.org
+        Date    1999-03-16
+    </Contrib>
+</Command>
+
+<Command praliases.1>
+    Class command
+</Command>
+
+<Command primes.6>
+    Class game
+    <Contrib>
+        Name    primes
+        Author  Jonathan Feinberg, Ben Tilly
+        Email
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command printenv.1>
+    Class command
+    <Contrib>
+        Name    printenv.fancy
+        Author  Randy Yarger
+        Email   randy.yarger@nextel.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command printf.1>
+    Class command
+    <Contrib>
+        Name    printf.tchrist
+        Author  Tom Christiansen
+        Email   tchrist@perl.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command ps.1>
+    Class command
+</Command>
+
+<Command psbb.1>
+    Class command
+</Command>
+
+<Command pwd.1>
+    Class command
+    <Contrib>
+        Name    pwd.meltzek
+        Author  Kevin Meltzer
+        Email   perlguy@perlguy.com
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command quiz.6>
+    Class game
+</Command>
+
+<Command quota.1>
+    Class command
+</Command>
+
+<Command rain.6>
+    Class game
+    <Contrib>
+        Name    rain
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command random.6>
+    Class game
+    <Contrib>
+        Name    random.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command ranlib.1>
+    Class command
+</Command>
+
+<Command rcp.1>
+    Class command
+</Command>
+
+<Command rcs.1>
+    Class command
+</Command>
+
+<Command rcsclean.1>
+    Class command
+</Command>
+
+<Command rcsdiff.1>
+    Class command
+</Command>
+
+<Command rcsfreeze.1>
+    Class command
+</Command>
+
+<Command rcsintro.1>
+    Class command
+</Command>
+
+<Command rcsmerge.1>
+    Class command
+</Command>
+
+<Command rdist.1>
+    Class command
+</Command>
+
+<Command readlink.1>
+    Class command
+</Command>
+
+<Command refer.1>
+    Class command
+</Command>
+
+<Command rev.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    rev.murren
+        Author  Andy Murren
+        Email   andy@murren.org
+        Date    1999-03-03
+    </Contrib>
+    <Contrib>
+        Name    rev.roland
+        Author  D Roland Walker
+        Email   walker@pobox.com
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command reversi.6>
+    Class game
+</Command>
+
+<Command rlog.1>
+    Class command
+</Command>
+
+<Command rlogin.1>
+    Class command
+</Command>
+
+<Command rm.1>
+    Class command
+    <Contrib>
+        Name    rm.kemp
+        Author  Steve Kemp
+        Email   skx@tardis.ed.ac.uk
+        Date    1999-03-02
+        Support readme.kemp
+    </Contrib>
+</Command>
+
+<Command rmd160.1>
+    Class command
+</Command>
+
+<Command rmdir.1>
+    Class command
+    <Contrib>
+        Name    rmdir.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command robots.6>
+    Class game
+    <Contrib>
+        Name    robots
+        Author  John C Siracusa
+        Email   siracusa@mindspring.com
+        Date    1999-07-07
+        Support 775.1.txt
+    </Contrib>
+</Command>
+
+<Command rogue.6>
+    Class game
+</Command>
+
+<Command rpcgen.1>
+    Class command
+</Command>
+
+<Command rs.1>
+    Class command
+</Command>
+
+<Command rsh.1>
+    Class command
+</Command>
+
+<Command rup.1>
+    Class command
+</Command>
+
+<Command ruptime.1>
+    Class command
+</Command>
+
+<Command rusers.1>
+    Class command
+</Command>
+
+<Command rwall.1>
+    Class command
+</Command>
+
+<Command rwho.1>
+    Class command
+</Command>
+
+<Command sail.6>
+    Class game
+</Command>
+
+<Command scon.1>
+    Class command
+</Command>
+
+<Command script.1>
+    Class command
+</Command>
+
+<Command sdiff.1>
+    Class command
+</Command>
+
+<Command sed.1>
+    Class command
+</Command>
+
+<Command sendbug.1>
+    Class command
+</Command>
+
+<Command sh.1>
+    Class command
+</Command>
+
+<Command sha1.1>
+    Class command
+</Command>
+
+<Command shar.1>
+    Class command
+    <Contrib>
+        Name    shar
+        Author  Rich Salz
+        Email   salzr@certo.com
+        Date    1999-03-03
+        Support shar.msg
+    </Contrib>
+</Command>
+
+<Command size.1>
+    Class command
+</Command>
+
+<Command skeyaudit.1>
+    Class command
+</Command>
+
+<Command skeyinfo.1>
+    Class command
+</Command>
+
+<Command skeyinit.1>
+    Class command
+</Command>
+
+<Command sleep.1>
+    Class command
+    <Contrib>
+        Name    sleep.randy
+        Author  Randy Yarger
+        Email   randy.yarger@nextel.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command snake.6>
+    Class game
+</Command>
+
+<Command snscore.6>
+    Class game
+</Command>
+
+<Command soelim.1>
+    Class command
+</Command>
+
+<Command sort.1>
+    Class command
+    <Contrib>
+        Name    sort.dvornik
+        Author  Albert Dvornik
+        Email   bert@mit.edu
+        Date    1999-03-12
+        Support readme.dvornik
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    sort.pudge
+        Author  Chris Nandor
+        Email   pudge@pobox.com
+        Url     http://pudge.net/
+        Date    2002-01-22
+    </Contrib>
+</Command>
+
+<Command spell.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    spell.snow
+        Author  Gregory L. Snow
+        Email   now@biostat.washington.edu
+        Date    1999-06-01
+    </Contrib>
+    <Contrib>
+        Name    spell-beta.tar.gz
+        Author  Nathan Thompson
+        Email   quimby@city-net.com
+        Date    1999-06-13
+        Support spell.readme.quimby
+    </Contrib>
+</Command>
+
+<Command split.1>
+    Class command
+    <Contrib>
+        Name    split.lafferty
+        Author  Rich Lafferty
+        Email   rich@alcor.concordia.ca
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command startkey.1>
+    Class command
+</Command>
+
+<Command strings.1>
+    Class command
+    <Contrib>
+        Name    strings.mjd
+        Author  M-J. Dominus
+        Email   mjd-perl-strings@plover.com
+        Date    1999-03-05
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    strings.quimby
+        Author  Nathan Scott Thompson
+        Email   quimby at city-net dot com
+        Date    1999-04-30
+    </Contrib>
+</Command>
+
+<Command strip.1>
+    Class command
+</Command>
+
+<Command stty.1>
+    Class command
+</Command>
+
+<Command su.1>
+    Class command
+</Command>
+
+<Command sum.1>
+    Class command
+    <Contrib>
+        Name    sum.theo
+        Author  Theo Van Dinter
+        Email   felicity@kluge.net
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command sup.1>
+    Class command
+</Command>
+
+<Command systat.1>
+    Class command
+</Command>
+
+<Command tac.1>
+    Class command
+    <Contrib>
+        Name    tac.fuzzy
+        Author  Tim Gim Yee
+        Email   tgy@chocobo.org
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command tail.1>
+    Class command
+    <Contrib>
+        Name    tail.thierry
+        Author  Thierry Bezecourt
+        Email   thbzcrt@worldnet.fr
+        Date    1999-03-07
+        Support readme.thierry mktest.thierry
+        <Test>
+          Name   Casey West
+          Result no
+          Info   Ignores ^C in -f mode.
+        </Test>
+    </Contrib>
+</Command>
+
+<Command talk.1>
+    Class command
+</Command>
+
+<Command tar.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    ptar.nick
+        Author  Nick Ing-Simmons
+        Email
+        Date    1999-03-06
+        Support ptar.bat
+    </Contrib>
+    <Contrib>
+        Name    tar.nick
+        Author  Nick Ing-Simmons
+        Email
+        Date    1999-03-06
+        Support tar.bat
+    </Contrib>
+</Command>
+
+<Command tbl.1>
+    Class command
+</Command>
+
+<Command tcopy.1>
+    Class command
+</Command>
+
+<Command tee.1>
+    Class command
+    <Contrib>
+        Name    tctee
+        Author  Tom Christiansen
+        Email
+        Date    1991-06-06
+        <Test>
+            Name   Casey West
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command telnet.1>
+    Class command
+</Command>
+
+<Command test.1>
+    Class command
+    <Contrib>
+        Name    test.brad
+        Author  Brad Appleton
+        Email
+        Date    1999-03-04
+        Support test.readme
+    </Contrib>
+</Command>
+
+<Command tetris.6>
+    Class game
+</Command>
+
+<Command tfmtodit.1>
+    Class command
+</Command>
+
+<Command tftp.1>
+    Class command
+</Command>
+
+<Command tic.1>
+    Class command
+</Command>
+
+<Command time.1>
+    Class command
+    <Contrib>
+        Name    time.kulp
+        Author  David Kulp
+        Email
+        Date    1999-03-29
+    </Contrib>
+</Command>
+
+<Command tip.1>
+    Class command
+</Command>
+
+<Command tn3270.1>
+    Class command
+</Command>
+
+<Command top.1>
+    Class command
+</Command>
+
+<Command touch.1>
+    Class command
+    <Contrib>
+        Name    touch.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command tput.1>
+    Class command
+</Command>
+
+<Command tr.1>
+    Class command
+    <Contrib>
+        Name    tr.tchrist
+        Author  Tom Christiansen
+        Email   tchrist@perl.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command trek.6>
+    Class game
+</Command>
+
+<Command troff.1>
+    Class command
+</Command>
+
+<Command true.1>
+    Class command
+    <Contrib>
+        Name    true.simple
+        Author  Tom Christiansen
+        Email
+        Date    1999-02-25
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    true.fancy
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-25
+    </Contrib>
+</Command>
+
+<Command tset.1>
+    Class command
+</Command>
+
+<Command tsort.1>
+    Class command
+    <Contrib>
+        Name    tcsort
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command ttt.6>
+    Class game
+</Command>
+
+<Command tty.1>
+    Class command
+    <Contrib>
+        Name    tty.posix
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-04
+    </Contrib>
+</Command>
+
+<Command ul.1>
+    Class command
+</Command>
+
+<Command uname.1>
+    Class command
+    <Contrib>
+        Name    uname.jsh
+        Author  Jeffrey S. Haemer
+        Email
+        Date    1999-03-02
+    </Contrib>
+</Command>
+
+<Command unexpand.1>
+    Class command
+    <Contrib>
+        Name    unexpand.thierry
+        Author  Thierry Bezecourt
+        Email   thbzcrt@worldnet.fr
+        Date    1999-03-10
+    </Contrib>
+</Command>
+
+<Command unifdef.1>
+    Class command
+</Command>
+
+<Command uniq.1>
+    Class command
+    <Contrib>
+        Name    uniq.josh
+        Author  Josh Purinton
+        Email   silmaril@best.com
+        Date    1999-02-27
+        Support uniq.t uniq.t.dot
+    </Contrib>
+    <Contrib>
+        Dist    yes
+        Name    uniq.jonathan
+        Author  Jonathan Feinberg
+        Email   jdf@pobox.com
+        Date    1999-02-28
+    </Contrib>
+</Command>
+
+<Command units.1>
+    Class command
+    <Contrib>
+        Name    units
+        Author  M-J. Dominus
+        Email   mjd-perl-units@plover.com
+        Date    1999-02-26
+        Support unittab
+    </Contrib>
+</Command>
+
+<Command unpar.1>
+    Class command
+    <Contrib>
+        Name    unpar
+        Author  Tim Gim Yee
+        Email   mkahn@vbe.com
+        Date    1999-04-12
+        <Test>
+            Name   Tom Christiansen
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command unshar.1>
+    Class command
+    <Contrib>
+        Name    unshar.lwall
+        Author  Larry Wall w/Tim Gim Yee
+        Email
+        Date    1990-08-12
+    </Contrib>
+</Command>
+
+<Command unvis.1>
+    Class command
+</Command>
+
+<Command uptime.1>
+    Class command
+</Command>
+
+<Command users.1>
+    Class command
+</Command>
+
+<Command uucp.1>
+    Class command
+</Command>
+
+<Command uudecode.1>
+    Class command
+    <Contrib>
+        Name    uudecode.nick
+        Author  Nick Ing-Simmons w/Tom Christiansen
+        Email
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command uuencode.1>
+    Class command
+    <Contrib>
+        Name    uuencode.tchrist
+        Author  Tom Christiansen
+        Email
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command uustat.1>
+    Class command
+</Command>
+
+<Command uux.1>
+    Class command
+</Command>
+
+<Command vacation.1>
+    Class command
+</Command>
+
+<Command vgrind.1>
+    Class command
+</Command>
+
+<Command vis.1>
+    Class command
+</Command>
+
+<Command vt220.1>
+    Class command
+</Command>
+
+<Command vttest.1>
+    Class command
+</Command>
+
+<Command w.1>
+    Class command
+</Command>
+
+<Command wait.1>
+    Class command
+</Command>
+
+<Command wall.1>
+    Class command
+</Command>
+
+<Command wc.1>
+    Class command
+    <Contrib>
+        Name    wc.pvhp
+        Author  Peter Prymmer
+        Email   pvhp@best.com
+        Date    1999-03-07
+    </Contrib>
+</Command>
+
+<Command what.1>
+    Class command
+    <Contrib>
+        Name    what.schumacks
+        Author  Ken Schumack
+        Email   schumacks@att.net
+        Date    1999-03-28
+        Support readme.schumacks
+    </Contrib>
+</Command>
+
+<Command whatis.1>
+    Class command
+</Command>
+
+<Command whereis.1>
+    Class command
+</Command>
+
+<Command which.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    which.abigail
+        Author  Abigail w/Peter Prymmer
+        Email
+        Date    1999-03-07
+    </Contrib>
+    <Contrib>
+        Name    pgrep
+        Author  Tom Christiansen
+        Email
+        Date    1999-02-25
+    </Contrib>
+    <Contrib>
+        Name    dos-which.nick
+        Author  Nick Ing-Simmons
+        Email
+        Date    1999-03-06
+        Support dos-which.bat
+    </Contrib>
+</Command>
+
+<Command who.1>
+    Class command
+</Command>
+
+<Command whoami.1>
+    Class command
+</Command>
+
+<Command whois.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    whois.plx
+        Author  Yiorgos Adamopoulos
+        Email   adamo@ieee.org
+        Date    1999-03-22
+    </Contrib>
+    <Contrib>
+        Name    whois.tweton
+        Author  Casey Tweton
+        Email   crt@highvision.com
+        Date    1999-06-24
+        <Test>
+            Name     Casey West
+            Result   no
+            Info     / / should probably be written as " " at src/whois/whois.tweton line 48.
+        </Test>
+    </Contrib>
+</Command>
+
+<Command window.1>
+    Class command
+</Command>
+
+<Command words.6>
+    Class game
+    <Contrib>
+        Name    words.rjk
+        Author  Ronald J Kimball
+        Email   rjk-perl@tamias.net
+        Date    2004-07-24
+    </Contrib>
+</Command>
+
+<Command worm.6>
+    Class game
+</Command>
+
+<Command worms.6>
+    Class game
+</Command>
+
+<Command write.1>
+    Class command
+</Command>
+
+<Command wump.6>
+    Class game
+    <Contrib>
+        Name    wump
+        Author  Amir Karger
+        Email   karger@post.harvard.edu
+        Date    1999-03-05
+        <Test>
+            Name   Casey West
+            Result yes
+        </Test>
+    </Contrib>
+</Command>
+
+<Command xargs.1>
+    Class command
+    <Contrib>
+        Name    xargs.sarathy
+        Author  Gurusamy Sarathy
+        Email   gsar@umich.edu
+        Date    1999-02-27
+    </Contrib>
+</Command>
+
+<Command xstr.1>
+    Class command
+</Command>
+
+<Command yacc.1>
+    Class command
+    <Contrib>
+        Dist    no
+        Name    pre-yacc.mjd
+        Author  M-J. Dominus
+        Url     http://www.plover.com/~mjd/perl/py/
+        Date    1999-03-05
+        Support pre-readme.mjd
+    </Contrib>
+</Command>
+
+<Command yes.1>
+    Class command
+    <Contrib>
+        Dist    yes
+        Name    yes.abigail
+        Author  Abigail
+        Email   abigail@fnx.com
+        Date    1999-02-25
+    </Contrib>
+    <Contrib>
+        Name    yes.neuron
+        Author  Mark Imbriaco
+        Email   mark.imbriaco@pobox.com
+        Date    1999-02-26
+    </Contrib>
+</Command>
+
+<Command ypcat.1>
+    Class command
+</Command>
+
+<Command ypmatch.1>
+    Class command
+</Command>
+
+<Command ypwhich.1>
+    Class command
+</Command>
+
+<Command zforce.1>
+    Class command
+</Command>
+
+<Command zgrep.1>
+    Class command
+</Command>
+
+<Command zmore.1>
+    Class command
+</Command>
+
+<Command znew.1>
+    Class command
+</Command>
+
