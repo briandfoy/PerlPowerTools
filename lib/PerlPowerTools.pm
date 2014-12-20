@@ -1,6 +1,6 @@
 package PerlPowerTools;
 
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 
 1;
 
@@ -269,7 +269,6 @@ This source is in Github:
 
 brian d foy, C<< <bdfoy@cpan.org> >> is the current maintainer, even
 though he wrote none of the utilities.
-
 
 =head1 COPYRIGHT AND LICENSE
 
