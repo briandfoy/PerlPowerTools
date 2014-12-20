@@ -1,0 +1,2795 @@
+{
+"addbib.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "addbib.jsh",
+		"author": "Jeffrey S. Haemer",
+		"email": "",
+		"date": "1999-03-01"
+		}
+		]
+	},
+
+"addftinfo.1": {
+	"class": "command"
+	},
+
+"adventure.6": {
+	"class": "game"
+	},
+
+"afmtodit.1": {
+	"class": "command"
+	},
+
+"afslog.1": {
+	"class": "command"
+	},
+
+"apply.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "apply.roland",
+		"author": "D Roland Walker",
+		"email": "walker@pobox.com",
+		"date": "1999-02-28"
+		},
+		{
+		"name": "apply.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-27"
+		}
+		]
+	},
+
+"apropos.1": {
+	"class": "command"
+	},
+
+"ar.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ar.kulp",
+		"author": "David Kulp",
+		"email": "",
+		"date": "1999-03-09",
+		"support": "readme.kulp"
+		}
+		]
+	},
+
+"arch.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "arch.theo",
+		"author": "Theo Van Dinter",
+		"email": "felicity@kluge.net",
+		"date": "1999-03-08"
+		}
+		]
+	},
+
+"arithmetic.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "arithmetic.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-14"
+		}
+		]
+	},
+
+"as.1": {
+	"class": "command"
+	},
+
+"asa.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "asa",
+		"author": "Jeffrey S. Haemer",
+		"email": "",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"at.1": {
+	"class": "command"
+	},
+
+"atc.6": {
+	"class": "game"
+	},
+
+"aucat.1": {
+	"class": "command"
+	},
+
+"audioctl.1": {
+	"class": "command"
+	},
+
+"awk.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "awk.tchrist",
+		"author": "Tom Christiansen",
+		"email": "tchrist@perl.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"backgammon.6": {
+	"class": "game"
+	},
+
+"banner.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "banner",
+		"author": "Jonathan Feinberg",
+		"email": "tchrist@perl.com",
+		"date": "1999-02-27"
+		}
+		]
+	},
+
+"basename.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "basename.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-27"
+		}
+		]
+	},
+
+"battlestar.6": {
+	"class": "game"
+	},
+
+"bc.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "bc.plx",
+		"author": "Thierry Bezecourt",
+		"email": "thbzcrt@worldnet.fr",
+		"date": "1999-03-26",
+		"support": "bc.pod bc.y readme.thierry"
+		}
+		]
+	},
+
+"bcd.6": {
+	"class": "game"
+	},
+
+"bdes.1": {
+	"class": "command"
+	},
+
+"biff.1": {
+	"class": "command"
+	},
+
+"bj.6": {
+	"class": "game"
+	},
+
+"boggle.6": {
+	"class": "game"
+	},
+
+"bs.6": {
+	"class": "game"
+	},
+
+"caesar.6": {
+	"class": "game"
+	},
+
+"cal.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "cal.schechter",
+		"author": "Michael E. Schechter",
+		"email": "mschechter@earthlink.net",
+		"date": "1999-03-03",
+		"support": "readme.schechter"
+		},
+		{
+		"name": "cal.hudson",
+		"author": "Tramm Hudson",
+		"email": "hudson@swcp.com",
+		"date": "1999-03-01",
+		"support": "readme.hudson"
+		},
+		{
+		"name": "cal.hewgill",
+		"author": "Greg Hewgill",
+		"email": "greg@hewgill.com",
+		"date": "1999-03-01",
+		"support": "readme.hewgill"
+		},
+		{
+		"name": "cal.allwine",
+		"author": "Tim Allwine",
+		"email": "tallwine@ixlabs.co",
+		"date": "1999-03-06"
+		}
+		]
+	},
+
+"calendar.1": {
+	"class": "command"
+	},
+
+"canfield.6": {
+	"class": "game"
+	},
+
+"cap_mkdb.1": {
+	"class": "command"
+	},
+
+"captoinfo.1": {
+	"class": "command"
+	},
+
+"cat.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "cat.simple",
+		"author": "Tom Christiansen",
+		"email": "",
+		"date": "1999-02-25"
+		},
+		{
+		"name": "cat.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"cccp.1": {
+	"class": "command"
+	},
+
+"cd.1": {
+	"class": "command"
+	},
+
+"cdio.1": {
+	"class": "command"
+	},
+
+"cfscores.6": {
+	"class": "game"
+	},
+
+"checkers.6": {
+	"class": "game"
+	},
+
+"checknr.1": {
+	"class": "command"
+	},
+
+"chess.6": {
+	"class": "game"
+	},
+
+"chflags.1": {
+	"class": "command"
+	},
+
+"chgrp.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "chgrp.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"chio.1": {
+	"class": "command"
+	},
+
+"ching.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "ching.dvornik",
+		"author": "Albert Dvornik",
+		"email": "bert@mit.edu",
+		"date": "1999-03-16",
+		"support": "readme.dvornik"
+		}
+		]
+	},
+
+"chmod.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "chmod.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-09",
+		"support": "SymbolicMode.pm"
+		}
+		]
+	},
+
+"chown.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "chown.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"chpass.1": {
+	"class": "command"
+	},
+
+"ci.1": {
+	"class": "command"
+	},
+
+"cksum.1": {
+	"class": "command"
+	},
+
+"clear.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "clear.jsh",
+		"author": "Jeffrey S. Haemer",
+		"email": "",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"cmp.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "cmp.roland",
+		"author": "D Roland Walker",
+		"email": "walker@pobox.com",
+		"date": "1999-03-04",
+		"support": "readme.roland"
+		}
+		]
+	},
+
+"co.1": {
+	"class": "command"
+	},
+
+"col.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "col.rjk",
+		"author": "Ronald J Kimball",
+		"email": "rjk-perl@tamias.net",
+		"date": "2004-07-24"
+		}
+		]
+	},
+
+"colcrt.1": {
+	"class": "command"
+	},
+
+"colrm.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "colrm.jsh",
+		"author": "Jeffrey S. Haemer",
+		"email": "",
+		"date": "1999-03-03"
+		}
+		]
+	},
+
+"column.1": {
+	"class": "command"
+	},
+
+"comm.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "comm.mjd",
+		"author": "M-J. Dominus",
+		"email": "mjd-perl-comm@plover.com",
+		"date": "1999-02-25"
+		}
+		]
+	},
+
+"compile_et.1": {
+	"class": "command"
+	},
+
+"compress.1": {
+	"class": "command"
+	},
+
+"cp.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "cp.schumacks",
+		"author": "Ken Schumack",
+		"email": "schumacks@att.net",
+		"date": "1999-03-27"
+		}
+		]
+	},
+
+"cpio.1": {
+	"class": "command"
+	},
+
+"cribbage.6": {
+	"class": "game"
+	},
+
+"crontab.1": {
+	"class": "command"
+	},
+
+"csh.1": {
+	"class": "command"
+	},
+
+"ctags.1": {
+	"class": "command"
+	},
+
+"ctm.1": {
+	"class": "command"
+	},
+
+"ctm_smail.1": {
+	"class": "command"
+	},
+
+"cu.1": {
+	"class": "command"
+	},
+
+"cursor.1": {
+	"class": "command"
+	},
+
+"cut.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "cut.lafferty",
+		"author": "Rich Lafferty",
+		"email": "rich@alcor.concordia.ca",
+		"date": "1999-03-04"
+		},
+		{
+		"name": "cut.hewgill",
+		"author": "Greg Hewgill",
+		"email": "greg@hewgill.com",
+		"date": "1999-03-03"
+		}
+		]
+	},
+
+"cvs.1": {
+	"class": "command"
+	},
+
+"cvsbug.1": {
+	"class": "command"
+	},
+
+"date.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "date.jgross",
+		"author": "Joshua Gross",
+		"email": "greg@hewgill.com",
+		"date": "1999-03-09"
+		}
+		]
+	},
+
+"dc.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "dc.drew",
+		"author": "Drew Eckhardt",
+		"email": "",
+		"date": "1999-03-06"
+		},
+		{
+		"name": "dc.gsu",
+		"author": "Greg Ubben",
+		"email": "gsu@romulus.ncsc.mil",
+		"date": "1999-03-06"
+		}
+		]
+	},
+
+"dd.1": {
+	"class": "command"
+	},
+
+"deroff.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "deroff",
+		"author": "Nathan Scott Thompson",
+		"email": "quimby at city-net dot com",
+		"date": "1999-05-30"
+		}
+		]
+	},
+
+"df.1": {
+	"class": "command"
+	},
+
+"diff.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "diff.mjd",
+		"author": "M-J. Dominus",
+		"email": "mjd-perl-diff@plover.com",
+		"date": "1999-03-04",
+		"support": "readme.mjd"
+		}
+		]
+	},
+
+"diff3.1": {
+	"class": "command"
+	},
+
+"dig.1": {
+	"class": "command"
+	},
+
+"dirname.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "dirname.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-27"
+		}
+		]
+	},
+
+"dnsquery.1": {
+	"class": "command"
+	},
+
+"domainname.1": {
+	"class": "command"
+	},
+
+"du.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "du.hewgill",
+		"author": "Greg Hewgill",
+		"email": "greg@hewgill.com",
+		"date": "1999-03-07"
+		},
+		{
+		"name": "dutree-old",
+		"author": "Tom Christiansen",
+		"date": "1999-03-07"
+		},
+		{
+		"name": "dutree-new",
+		"author": "Tom Christiansen",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"echo.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "echo.randy",
+		"author": "Randy Yarger",
+		"email": "randy.yarger@nextel.com",
+		"date": "1999-02-06"
+		}
+		]
+	},
+
+"ed.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ed.gmj",
+		"author": "George Jones",
+		"email": "gmj@infinet.com",
+		"url":	   "http://www.infinet.com/~gmj",
+		"date": "1999-06-20",
+		"support": "ed.gmj.readme"
+		}
+		]
+	},
+
+"elf2olf.1": {
+	"class": "command"
+	},
+
+"encrypt.1": {
+	"class": "command"
+	},
+
+"env.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "env.dragons",
+		"author": "Matthew Bafford",
+		"email": "dragons@scescape.net",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"eqn.1": {
+	"class": "command"
+	},
+
+"error.1": {
+	"class": "command"
+	},
+
+"ex.1": {
+	"class": "command"
+	},
+
+"expand.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "expand.thierry",
+		"author": "Thierry Bezecourt",
+		"email": "thbzcrt@worldnet.fr",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"expr.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "expr.robinson",
+		"author": "Michael Robinson",
+		"email": "smrf@sans.vuw.ac.nz",
+		"date": "1999-03-03"
+		}
+		]
+	},
+
+"factor.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "factor.feinberg.orig",
+		"author": "Jonathan Feinberg",
+		"email": "jdf@pobox.com",
+		"date": "1999-03-02",
+		"support": "gen_primes readme.feinberg"
+		},
+		{
+		"name": "factor.tilly",
+		"author": "Ben Tilly",
+		"email": "ben.tilly@alumni.dartmouth.org",
+		"date": "1999-03-08",
+		"support": "readme.tilly"
+		},
+		{
+		"name": "factor.tchrist",
+		"author": "Tom Christiansen",
+		"date": "1999-03-06"
+		},
+		{
+		"name": "factor.hewgill",
+		"author": "Greg Hewgill",
+		"email": "greg@hewgill.com",
+		"date": "1998-03-01"
+		},
+		{
+		"name": "factor.feinberg",
+		"author": "Jonathan Feinberg w/Ben Tilly",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"false.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "false.simple",
+		"author": "Tom Christiansen",
+		"date": "1999-02-26"
+		},
+		{
+		"name": "false.fancy",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-25"
+		}
+		]
+	},
+
+"fdformat.1": {
+	"class": "command"
+	},
+
+"fed.1": {
+	"class": "command"
+	},
+
+"file.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "file.slay",
+		"author": "Barrie Slaymaker",
+		"email": "",
+		"date": "1999-06-21"
+		},
+		{
+		"name": "file.kulp",
+		"author": "David Kulp",
+		"date": "1999-03-22"
+		}
+		]
+	},
+
+"file2c.1": {
+	"class": "command"
+	},
+
+"find.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "find.snow",
+		"author": "Greg Snow w/Larry Wall",
+		"email": "snow@biostat.washington.edu",
+		"date": "1999-06-01"
+		}
+		]
+	},
+
+"finger.1": {
+	"class": "command"
+	},
+
+"fish.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "fish.clintp",
+		"author": "Clinton Pierce",
+		"email": "clintp@geeksalad.org",
+		"date": "1999-06-01"
+		}
+		]
+	},
+
+"flex.1": {
+	"class": "command"
+	},
+
+"fmt.1": {
+	"class": "command"
+	},
+
+"fold.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "fold.plx",
+		"author": "Clinton Pierce",
+		"email": "clintp@geeksalad.org",
+		"date": "1999-06-01"
+		}
+		]
+	},
+
+"fontedit.1": {
+	"class": "command"
+	},
+
+"fortune.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "fortune.andy",
+		"author": "Andy Murren",
+		"email": "andy@murren.org",
+		"date": "1999-06-07",
+		"support": "readme.andy"
+		}
+		]
+	},
+
+"from.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "from.jv",
+		"author": "Johan Vromans",
+		"email": "jvromans@squirrel.nl",
+		"date": "1999-03-29"
+		}
+		]
+	},
+
+"fsplit.1": {
+	"class": "command"
+	},
+
+"fstat.1": {
+	"class": "command"
+	},
+
+"ftp.1": {
+	"class": "command"
+	},
+
+"g++.1": {
+	"class": "command"
+	},
+
+"g77.1": {
+	"class": "command"
+	},
+
+"gcc.1": {
+	"class": "command"
+	},
+
+"gdb.1": {
+	"class": "command"
+	},
+
+"gencat.1": {
+	"class": "command"
+	},
+
+"getconf.1": {
+	"class": "command"
+	},
+
+"getopt.1": {
+	"class": "command"
+	},
+
+"glob.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "glob.bradapp",
+		"author": "Brad Appleton",
+		"email": "bradapp@enteract.com",
+		"date": "1999-03-28",
+		"support": "readme.bradapp"
+		}
+		]
+	},
+
+"gomoku.6": {
+	"class": "game"
+	},
+
+"gperf.1": {
+	"class": "command"
+	},
+
+"gprof.1": {
+	"class": "command"
+	},
+
+"grdc.6": {
+	"class": "command"
+	},
+
+"grep.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tcgrep",
+		"author": "Tom Christiansen et al",
+		"email": "",
+		"date": "2004-07-22"
+		},
+		{
+		"name": "dos-grep.nick",
+		"author": "Nick Ing-Simmons",
+		"email": "",
+		"date": "1999-03-06",
+		"support": "dos-grep.bat"
+		}
+		]
+	},
+
+"grodvi.1": {
+	"class": "command"
+	},
+
+"groff.1": {
+	"class": "command"
+	},
+
+"grog.1": {
+	"class": "command"
+	},
+
+"grolj4.1": {
+	"class": "command"
+	},
+
+"grops.1": {
+	"class": "command"
+	},
+
+"grotty.1": {
+	"class": "command"
+	},
+
+"groups.1": {
+	"class": "command"
+	},
+
+"gzexe.1": {
+	"class": "command"
+	},
+
+"gzip.1": {
+	"class": "command"
+	},
+
+"hack.6": {
+	"class": "game"
+	},
+
+"hangman.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "hangman.schechter",
+		"author": "Michael E. Schechter",
+		"email": "mschechter@earthlink.net",
+		"date": "1999-03-07",
+		"support": "wordlist.txt readme.schechter"
+		}
+		]
+	},
+
+"head.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "head.fancy",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"hexdump.1": {
+	"class": "command"
+	},
+
+"host.1": {
+	"class": "command"
+	},
+
+"hostname.1": {
+	"class": "command"
+	},
+
+"hpftodit.1": {
+	"class": "command"
+	},
+
+"hunt.6": {
+	"class": "game"
+	},
+
+"huntd.6": {
+	"class": "game"
+	},
+
+"id.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "id.theo",
+		"author": "Theo Van Dinter",
+		"email": "felicity@kluge.net",
+		"date": "1999-03-03",
+		"support": "readme.theo"
+		}
+		]
+	},
+
+"ident.1": {
+	"class": "command"
+	},
+
+"indent.1": {
+	"class": "command"
+	},
+
+"indxbib.1": {
+	"class": "command"
+	},
+
+"info_mkdb.1": {
+	"class": "command"
+	},
+
+"install.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "install.gbacon",
+		"author": "Greg Bacon",
+		"email": "gbacon@itsc.uah.edu",
+		"date": "1999-07-29"
+		}
+		]
+	},
+
+"intro.1": {
+	"class": "command"
+	},
+
+"ipcrm.1": {
+	"class": "command"
+	},
+
+"ipcs.1": {
+	"class": "command"
+	},
+
+"ipf.1": {
+	"class": "command"
+	},
+
+"ipftest.1": {
+	"class": "command"
+	},
+
+"ipnat.1": {
+	"class": "command"
+	},
+
+"ipresend.1": {
+	"class": "command"
+	},
+
+"ipsecadm.1": {
+	"class": "command"
+	},
+
+"ipsend.1": {
+	"class": "command"
+	},
+
+"iptest.1": {
+	"class": "command"
+	},
+
+"ispcvt.1": {
+	"class": "command"
+	},
+
+"join.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "join.feinberg",
+		"author": "Jonathan Feinberg",
+		"email": "jdf@pobox.com",
+		"date": "1999-03-08",
+		"support": "join-test.tgz"
+		}
+		]
+	},
+
+"jot.1": {
+	"class": "command"
+	},
+
+"kauth.1": {
+	"class": "command"
+	},
+
+"kcon.1": {
+	"class": "command"
+	},
+
+"kdestroy.1": {
+	"class": "command"
+	},
+
+"kdump.1": {
+	"class": "command"
+	},
+
+"kerberos.1": {
+	"class": "command"
+	},
+
+"kill.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "kill.theo",
+		"author": "Theo Van Dinter",
+		"email": "felicity@kluge.net",
+		"date": "1999-03-06"
+		}
+		]
+	},
+
+"kinit.1": {
+	"class": "command"
+	},
+
+"klist.1": {
+	"class": "command"
+	},
+
+"ksh.1": {
+	"class": "command"
+	},
+
+"ksrvtgt.1": {
+	"class": "command"
+	},
+
+"ktrace.1": {
+	"class": "command"
+	},
+
+"lam.1": {
+	"class": "command"
+	},
+
+"larn.6": {
+	"class": "game"
+	},
+
+"last.1": {
+	"class": "command"
+	},
+
+"lastcomm.1": {
+	"class": "command"
+	},
+
+"ld.1": {
+	"class": "command"
+	},
+
+"ld.so.1": {
+	"class": "command"
+	},
+
+"ldd.1": {
+	"class": "command"
+	},
+
+"leave.1": {
+	"class": "command"
+	},
+
+"less.1": {
+	"class": "command"
+	},
+
+"lesskey.1": {
+	"class": "command"
+	},
+
+"lint.1": {
+	"class": "command"
+	},
+
+"lkbib.1": {
+	"class": "command"
+	},
+
+"ln.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ln.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-14"
+		}
+		]
+	},
+
+"lndir.1": {
+	"class": "command"
+	},
+
+"loadfont.1": {
+	"class": "command"
+	},
+
+"locate.1": {
+	"class": "command"
+	},
+
+"lock.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "lock.atkins",
+		"author": "Aron Atkins",
+		"email": "atkins@gweep.net",
+		"date": "1999-08-07"
+		}
+		]
+	},
+
+"lockspool.1": {
+	"class": "command"
+	},
+
+"logger.1": {
+	"class": "command"
+	},
+
+"login.1": {
+	"class": "command"
+	},
+
+"logname.1": {
+	"class": "command"
+	},
+
+"look.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "look.tchrist",
+		"author": "Tom Christiansen",
+		"email": "tchrist@perl.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"lookbib.1": {
+	"class": "command"
+	},
+
+"lorder.1": {
+	"class": "command"
+	},
+
+"lpq.1": {
+	"class": "command"
+	},
+
+"lpr.1": {
+	"class": "command"
+	},
+
+"lprm.1": {
+	"class": "command"
+	},
+
+"lptest.1": {
+	"class": "command"
+	},
+
+"ls.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ls.fisherm",
+		"author": "Mark Leighton Fisher",
+		"email": "fisherm@tce.com",
+		"date": "1999-03-12",
+		"support": "readme.fisherm"
+		},
+		{
+		"name": "lst",
+		"author": "Tom Christiansen",
+		"date": "1996-02-01"
+		},
+		{
+		"name": "ls.mjd",
+		"author": "M-J. Dominus",
+		"email": "mjd-perl-ppt@plover.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"lynx.1": {
+	"class": "command"
+	},
+
+"m4.1": {
+	"class": "command"
+	},
+
+"machine.1": {
+	"class": "command"
+	},
+
+"mail.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "mail.clintp",
+		"author": "Clinton Pierce",
+		"email": "clintp@geeksalad.org",
+		"date": "1999-03-05"
+		}
+		]
+	},
+
+"mailq.1": {
+	"class": "command"
+	},
+
+"mailstats.1": {
+	"class": "command"
+	},
+
+"make.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "pmake",
+		"author": "Nick Ing-Simmons",
+		"email": "",
+		"date": "1998-03-10",
+		"support": "Make-0.03.tar.gz"
+		}
+		]
+	},
+
+"man.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "man",
+		"author": "Tom Christiansen",
+		"email": "",
+		"date": "1990-02-20",
+		"support": "tchrist-man.tar.gz"
+		}
+		]
+	},
+
+"maze.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "maze.caputo",
+		"author": "Rocco Caputo",
+		"email": "troc@netrus.net",
+		"date": "1999-06-21"
+		}
+		]
+	},
+
+"mcon.1": {
+	"class": "command"
+	},
+
+"md5.1": {
+	"class": "command"
+	},
+
+"merge.1": {
+	"class": "command"
+	},
+
+"mesg.1": {
+	"class": "command"
+	},
+
+"midiplay.1": {
+	"class": "command"
+	},
+
+"mille.6": {
+	"class": "game"
+	},
+
+"mimedecode.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "mimedecode",
+		"author": "Nick Ing-Simmons",
+		"email": "nick@ni-s.u-net.com",
+		"date": "1999-03-10"
+		}
+		]
+	},
+
+"mixerctl.1": {
+	"class": "command"
+	},
+
+"mkdep.1": {
+	"class": "command"
+	},
+
+"mkdir.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "mkdir.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-09"
+		},
+		{
+		"name": "mkdir.jwjr",
+		"author": "James Wetterau, Jr.",
+		"email": "jwjr@panix.com",
+		"date": "1999-03-06"
+		},
+		{
+		"name": "mkdir.kemp",
+		"author": "Steve Kemp",
+		"email": "skx@tardis.ed.ac.uk",
+		"date": "1999-03-05"
+		}
+		]
+	},
+
+"mkfifo.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "mkfifo.jsh",
+		"author": "Jeffrey S. Haemer, Louis Krupp",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"mkstr.1": {
+	"class": "command"
+	},
+
+"mktemp.1": {
+	"class": "command"
+	},
+
+"monop.6": {
+	"class": "game"
+	},
+
+"moo.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "moo.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"mopa.out.1": {
+	"class": "command"
+	},
+
+"mopchk.1": {
+	"class": "command"
+	},
+
+"mopprobe.1": {
+	"class": "command"
+	},
+
+"moptrace.1": {
+	"class": "command"
+	},
+
+"morse.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "demorse.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-03-06"
+		},
+		{
+		"name": "morse.dragons",
+		"author": "Matthew Bafford",
+		"email": "dragons@scescape.net",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"mset.1": {
+	"class": "command"
+	},
+
+"msgs.1": {
+	"class": "command"
+	},
+
+"mt.1": {
+	"class": "command"
+	},
+
+"mv.1": {
+	"class": "command"
+	},
+
+"nc.1": {
+	"class": "command"
+	},
+
+"netstat.1": {
+	"class": "command"
+	},
+
+"newaliases.1": {
+	"class": "command"
+	},
+
+"newfs_msdos.1": {
+	"class": "command"
+	},
+
+"nfsstat.1": {
+	"class": "command"
+	},
+
+"nice.1": {
+	"class": "command"
+	},
+
+"nm.1": {
+	"class": "command"
+	},
+
+"nohup.1": {
+	"class": "command"
+	},
+
+"nroff.1": {
+	"class": "command"
+	},
+
+"number.6": {
+	"class": "game"
+	},
+
+"od.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "od.kahn",
+		"author": "Mark Kahn",
+		"email": "mkahn@vbe.com",
+		"date": "1999-03-06"
+		}
+		]
+	},
+
+"pagesize.1": {
+	"class": "command"
+	},
+
+"par.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "par",
+		"author": "Tim Gim Yee",
+		"email": "tgy@chocobo.org",
+		"date": "1999-04-12",
+		"support": "par-tests.tgz"
+		}
+		]
+	},
+
+"passwd.1": {
+	"class": "command"
+	},
+
+"paste.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "paste.randy",
+		"author": "Randy Yarger",
+		"email": "randy.yarger@nextel.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"patch.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "patch.fuzzy",
+		"author": "Tim Gim Yee",
+		"email": "tgy@chocobo.org",
+		"date": "1999-04-01",
+		"support": "patch-tests.tgz"
+		}
+		]
+	},
+
+"pax.1": {
+	"class": "command"
+	},
+
+"pctr.1": {
+	"class": "command"
+	},
+
+"pfbtops.1": {
+	"class": "command"
+	},
+
+"phantasia.6": {
+	"class": "game"
+	},
+
+"pic.1": {
+	"class": "command"
+	},
+
+"pig.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "pig.simple",
+		"author": "Tom Christiansen",
+		"date": "1999-03-02"
+		},
+		{
+		"name": "pig.feinberg",
+		"author": "Jonathan Feinberg",
+		"email": "jdf@pobox.com",
+		"url":	   "http://pobox.com/~jdf",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"ping.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ping.nick",
+		"author": "Nick Ing-Simmons",
+		"email": "nick@ni-s.u-net.com",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"pkg_add.1": {
+	"class": "command"
+	},
+
+"pkg_create.1": {
+	"class": "command"
+	},
+
+"pkg_delete.1": {
+	"class": "command"
+	},
+
+"pkg_info.1": {
+	"class": "command"
+	},
+
+"pom.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "pom.caputo",
+		"author": "Rocco Caputo",
+		"email": "troc@netrus.net",
+		"date": "1999-06-07"
+		}
+		]
+	},
+
+"ppt.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "ppt.mjd",
+		"author": "M-J. Dominus",
+		"email": "mjd@plover.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"pr.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "pr.clintp",
+		"author": "Clinton Pierce",
+		"email": "clintp@geeksalad.org",
+		"date": "1999-03-16"
+		}
+		]
+	},
+
+"praliases.1": {
+	"class": "command"
+	},
+
+"primes.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "primes",
+		"author": "Jonathan Feinberg, Ben Tilly",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"printenv.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "printenv.fancy",
+		"author": "Randy Yarger",
+		"email": "randy.yarger@nextel.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"printf.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "printf.tchrist",
+		"author": "Tom Christiansen",
+		"email": "tchrist@perl.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"ps.1": {
+	"class": "command"
+	},
+
+"psbb.1": {
+	"class": "command"
+	},
+
+"pwd.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "pwd.meltzek",
+		"author": "Kevin Meltzer",
+		"email": "perlguy@perlguy.com",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"quiz.6": {
+	"class": "game"
+	},
+
+"quota.1": {
+	"class": "command"
+	},
+
+"rain.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "rain",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"random.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "random.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"ranlib.1": {
+	"class": "command"
+	},
+
+"rcp.1": {
+	"class": "command"
+	},
+
+"rcs.1": {
+	"class": "command"
+	},
+
+"rcsclean.1": {
+	"class": "command"
+	},
+
+"rcsdiff.1": {
+	"class": "command"
+	},
+
+"rcsfreeze.1": {
+	"class": "command"
+	},
+
+"rcsintro.1": {
+	"class": "command"
+	},
+
+"rcsmerge.1": {
+	"class": "command"
+	},
+
+"rdist.1": {
+	"class": "command"
+	},
+
+"readlink.1": {
+	"class": "command"
+	},
+
+"refer.1": {
+	"class": "command"
+	},
+
+"rev.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "rev.murren",
+		"author": "Andy Murren",
+		"email": "andy@murren.org",
+		"date": "1999-03-03"
+		},
+		{
+		"name": "rev.roland",
+		"author": "D Roland Walker",
+		"email": "walker@pobox.com",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"reversi.6": {
+	"class": "game"
+	},
+
+"rlog.1": {
+	"class": "command"
+	},
+
+"rlogin.1": {
+	"class": "command"
+	},
+
+"rm.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "rm.kemp",
+		"author": "Steve Kemp",
+		"email": "skx@tardis.ed.ac.uk",
+		"date": "1999-03-02",
+		"support": "readme.kemp"
+		}
+		]
+	},
+
+"rmd160.1": {
+	"class": "command"
+	},
+
+"rmdir.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "rmdir.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"robots.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "robots",
+		"author": "John C Siracusa",
+		"email": "siracusa@mindspring.com",
+		"date": "1999-07-07",
+		"support": "775.1.txt"
+		}
+		]
+	},
+
+"rogue.6": {
+	"class": "game"
+	},
+
+"rpcgen.1": {
+	"class": "command"
+	},
+
+"rs.1": {
+	"class": "command"
+	},
+
+"rsh.1": {
+	"class": "command"
+	},
+
+"rup.1": {
+	"class": "command"
+	},
+
+"ruptime.1": {
+	"class": "command"
+	},
+
+"rusers.1": {
+	"class": "command"
+	},
+
+"rwall.1": {
+	"class": "command"
+	},
+
+"rwho.1": {
+	"class": "command"
+	},
+
+"sail.6": {
+	"class": "game"
+	},
+
+"scon.1": {
+	"class": "command"
+	},
+
+"script.1": {
+	"class": "command"
+	},
+
+"sdiff.1": {
+	"class": "command"
+	},
+
+"sed.1": {
+	"class": "command"
+	},
+
+"sendbug.1": {
+	"class": "command"
+	},
+
+"sh.1": {
+	"class": "command"
+	},
+
+"sha1.1": {
+	"class": "command"
+	},
+
+"shar.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "shar",
+		"author": "Rich Salz",
+		"email": "salzr@certo.com",
+		"date": "1999-03-03",
+		"support": "shar.msg"
+		}
+		]
+	},
+
+"size.1": {
+	"class": "command"
+	},
+
+"skeyaudit.1": {
+	"class": "command"
+	},
+
+"skeyinfo.1": {
+	"class": "command"
+	},
+
+"skeyinit.1": {
+	"class": "command"
+	},
+
+"sleep.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "sleep.randy",
+		"author": "Randy Yarger",
+		"email": "randy.yarger@nextel.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"snake.6": {
+	"class": "game"
+	},
+
+"snscore.6": {
+	"class": "game"
+	},
+
+"soelim.1": {
+	"class": "command"
+	},
+
+"sort.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "sort.dvornik",
+		"author": "Albert Dvornik",
+		"email": "bert@mit.edu",
+		"date": "1999-03-12",
+		"support": "readme.dvornik"
+		},
+		{
+		"name": "sort.pudge",
+		"author": "Chris Nandor",
+		"email": "pudge@pobox.com",
+		"url":	   "http://pudge.net/",
+		"date": "2002-01-22"
+		}
+		]
+	},
+
+"spell.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "spell.snow",
+		"author": "Gregory L. Snow",
+		"email": "now@biostat.washington.edu",
+		"date": "1999-06-01"
+		},
+		{
+		"name": "spell-beta.tar.gz",
+		"author": "Nathan Thompson",
+		"email": "quimby@city-net.com",
+		"date": "1999-06-13",
+		"support": "spell.readme.quimby"
+		}
+		]
+	},
+
+"split.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "split.lafferty",
+		"author": "Rich Lafferty",
+		"email": "rich@alcor.concordia.ca",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"startkey.1": {
+	"class": "command"
+	},
+
+"strings.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "strings.mjd",
+		"author": "M-J. Dominus",
+		"email": "mjd-perl-strings@plover.com",
+		"date": "1999-03-05"
+		},
+		{
+		"name": "strings.quimby",
+		"author": "Nathan Scott Thompson",
+		"email": "quimby at city-net dot com",
+		"date": "1999-04-30"
+		}
+		]
+	},
+
+"strip.1": {
+	"class": "command"
+	},
+
+"stty.1": {
+	"class": "command"
+	},
+
+"su.1": {
+	"class": "command"
+	},
+
+"sum.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "sum.theo",
+		"author": "Theo Van Dinter",
+		"email": "felicity@kluge.net",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"sup.1": {
+	"class": "command"
+	},
+
+"systat.1": {
+	"class": "command"
+	},
+
+"tac.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tac.fuzzy",
+		"author": "Tim Gim Yee",
+		"email": "tgy@chocobo.org",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"tail.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tail.thierry",
+		"author": "Thierry Bezecourt",
+		"email": "thbzcrt@worldnet.fr",
+		"date": "1999-03-07",
+		"support": "readme.thierry mktest.thierry"
+		}
+		]
+	},
+
+"talk.1": {
+	"class": "command"
+	},
+
+"tar.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "ptar.nick",
+		"author": "Nick Ing-Simmons",
+		"email": "",
+		"date": "1999-03-06",
+		"support": "ptar.bat"
+		},
+		{
+		"name": "tar.nick",
+		"author": "Nick Ing-Simmons",
+		"email": "",
+		"date": "1999-03-06",
+		"support": "tar.bat"
+		}
+		]
+	},
+
+"tbl.1": {
+	"class": "command"
+	},
+
+"tcopy.1": {
+	"class": "command"
+	},
+
+"tee.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tctee",
+		"author": "Tom Christiansen",
+		"email": "",
+		"date": "1991-06-06"
+		}
+		]
+	},
+
+"telnet.1": {
+	"class": "command"
+	},
+
+"test.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "test.brad",
+		"author": "Brad Appleton",
+		"email": "",
+		"date": "1999-03-04",
+		"support": "test.readme"
+		}
+		]
+	},
+
+"tetris.6": {
+	"class": "game"
+	},
+
+"tfmtodit.1": {
+	"class": "command"
+	},
+
+"tftp.1": {
+	"class": "command"
+	},
+
+"tic.1": {
+	"class": "command"
+	},
+
+"time.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "time.kulp",
+		"author": "David Kulp",
+		"date": "1999-03-29"
+		}
+		]
+	},
+
+"tip.1": {
+	"class": "command"
+	},
+
+"tn3270.1": {
+	"class": "command"
+	},
+
+"top.1": {
+	"class": "command"
+	},
+
+"touch.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "touch.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"tput.1": {
+	"class": "command"
+	},
+
+"tr.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tr.tchrist",
+		"author": "Tom Christiansen",
+		"email": "tchrist@perl.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"trek.6": {
+	"class": "game"
+	},
+
+"troff.1": {
+	"class": "command"
+	},
+
+"true.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "true.simple",
+		"author": "Tom Christiansen",
+		"date": "1999-02-25"
+		},
+		{
+		"name": "true.fancy",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-25"
+		}
+		]
+	},
+
+"tset.1": {
+	"class": "command"
+	},
+
+"tsort.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tcsort",
+		"author": "Jeffrey S. Haemer",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"ttt.6": {
+	"class": "game"
+	},
+
+"tty.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "tty.posix",
+		"author": "Tom Christiansen",
+		"date": "1999-03-04"
+		}
+		]
+	},
+
+"ul.1": {
+	"class": "command"
+	},
+
+"uname.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "uname.jsh",
+		"author": "Jeffrey S. Haemer",
+		"date": "1999-03-02"
+		}
+		]
+	},
+
+"unexpand.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "unexpand.thierry",
+		"author": "Thierry Bezecourt",
+		"email": "thbzcrt@worldnet.fr",
+		"date": "1999-03-10"
+		}
+		]
+	},
+
+"unifdef.1": {
+	"class": "command"
+	},
+
+"uniq.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "uniq.josh",
+		"author": "Josh Purinton",
+		"email": "silmaril@best.com",
+		"date": "1999-02-27",
+		"support": "uniq.t uniq.t.dot"
+		},
+		{
+		"name": "uniq.jonathan",
+		"author": "Jonathan Feinberg",
+		"email": "jdf@pobox.com",
+		"date": "1999-02-28"
+		}
+		]
+	},
+
+"units.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "units",
+		"author": "M-J. Dominus",
+		"email": "mjd-perl-units@plover.com",
+		"date": "1999-02-26",
+		"support": "unittab"
+		}
+		]
+	},
+
+"unpar.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "unpar",
+		"author": "Tim Gim Yee",
+		"email": "mkahn@vbe.com",
+		"date": "1999-04-12"
+		}
+		]
+	},
+
+"unshar.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "unshar.lwall",
+		"author": "Larry Wall w/Tim Gim Yee",
+		"date": "1990-08-12"
+		}
+		]
+	},
+
+"unvis.1": {
+	"class": "command"
+	},
+
+"uptime.1": {
+	"class": "command"
+	},
+
+"users.1": {
+	"class": "command"
+	},
+
+"uucp.1": {
+	"class": "command"
+	},
+
+"uudecode.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "uudecode.nick",
+		"author": "Nick Ing-Simmons w/Tom Christiansen",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"uuencode.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "uuencode.tchrist",
+		"author": "Tom Christiansen",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"uustat.1": {
+	"class": "command"
+	},
+
+"uux.1": {
+	"class": "command"
+	},
+
+"vacation.1": {
+	"class": "command"
+	},
+
+"vgrind.1": {
+	"class": "command"
+	},
+
+"vis.1": {
+	"class": "command"
+	},
+
+"vt220.1": {
+	"class": "command"
+	},
+
+"vttest.1": {
+	"class": "command"
+	},
+
+"w.1": {
+	"class": "command"
+	},
+
+"wait.1": {
+	"class": "command"
+	},
+
+"wall.1": {
+	"class": "command"
+	},
+
+"wc.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "wc.pvhp",
+		"author": "Peter Prymmer",
+		"email": "pvhp@best.com",
+		"date": "1999-03-07"
+		}
+		]
+	},
+
+"what.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "what.schumacks",
+		"author": "Ken Schumack",
+		"email": "schumacks@att.net",
+		"date": "1999-03-28",
+		"support": "readme.schumacks"
+		}
+		]
+	},
+
+"whatis.1": {
+	"class": "command"
+	},
+
+"whereis.1": {
+	"class": "command"
+	},
+
+"which.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "which.abigail",
+		"author": "Abigail w/Peter Prymmer",
+		"date": "1999-03-07"
+		},
+		{
+		"name": "pgrep",
+		"author": "Tom Christiansen",
+		"date": "1999-02-25"
+		},
+		{
+		"name": "dos-which.nick",
+		"author": "Nick Ing-Simmons",
+		"email": "",
+		"date": "1999-03-06",
+		"support": "dos-which.bat"
+		}
+		]
+	},
+
+"who.1": {
+	"class": "command"
+	},
+
+"whoami.1": {
+	"class": "command"
+	},
+
+"whois.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "whois.plx",
+		"author": "Yiorgos Adamopoulos",
+		"email": "adamo@ieee.org",
+		"date": "1999-03-22"
+		},
+		{
+		"name": "whois.tweton",
+		"author": "Casey Tweton",
+		"email": "crt@highvision.com",
+		"date": "1999-06-24"
+		}
+		]
+	},
+
+"window.1": {
+	"class": "command"
+	},
+
+"words.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "words.rjk",
+		"author": "Ronald J Kimball",
+		"email": "rjk-perl@tamias.net",
+		"date": "2004-07-24"
+		}
+		]
+	},
+
+"worm.6": {
+	"class": "game"
+	},
+
+"worms.6": {
+	"class": "game"
+	},
+
+"write.1": {
+	"class": "command"
+	},
+
+"wump.6": {
+	"class": "game",
+	"contrib": [
+		{
+		"name": "wump",
+		"author": "Amir Karger",
+		"email": "karger@post.harvard.edu",
+		"date": "1999-03-05"
+		}
+		]
+	},
+
+"xargs.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "xargs.sarathy",
+		"author": "Gurusamy Sarathy",
+		"email": "gsar@umich.edu",
+		"date": "1999-02-27"
+		}
+		]
+	},
+
+"xstr.1": {
+	"class": "command"
+	},
+
+"yacc.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "pre-yacc.mjd",
+		"author": "M-J. Dominus",
+		"url":	   "http://www.plover.com/~mjd/perl/py/",
+		"date": "1999-03-05",
+		"support": "pre-readme.mjd"
+		}
+		]
+	},
+
+"yes.1": {
+	"class": "command",
+	"contrib": [
+		{
+		"name": "yes.abigail",
+		"author": "Abigail",
+		"email": "abigail@fnx.com",
+		"date": "1999-02-25"
+		},
+		{
+		"name": "yes.neuron",
+		"author": "Mark Imbriaco",
+		"email": "mark.imbriaco@pobox.com",
+		"date": "1999-02-26"
+		}
+		]
+	},
+
+"ypcat.1": {
+	"class": "command"
+	},
+
+"ypmatch.1": {
+	"class": "command"
+	},
+
+"ypwhich.1": {
+	"class": "command"
+	},
+
+"zforce.1": {
+	"class": "command"
+	},
+
+"zgrep.1": {
+	"class": "command"
+	},
+
+"zmore.1": {
+	"class": "command"
+	},
+
+"znew.1": {
+	"class": "command"
+	}
+}
