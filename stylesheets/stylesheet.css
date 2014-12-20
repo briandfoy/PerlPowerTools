@@ -417,14 +417,19 @@ Full-Width Styles
   background: #212121;
 }
 
-
 div.alert {
-	background: #f22;
-	padding: 10px;
+	background: #f33;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 20px;
+	padding-right: 20px;
+	margin-top: 2em;
 	box-shadow: 10px 10px 5px #888888
-    border: 2px solid;
-    border-radius: 25px;
+	border: 2px solid;
+	border-radius: 25px;
+	font-style: italic;
 	}
+
 
 /*******************************************************************************
 Small Device Styles
