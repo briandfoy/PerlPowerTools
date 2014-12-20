@@ -1,0 +1,20 @@
+0. Fork on GitHub
+
+1. Create a new directory for the translated HTML files
+
+Use the language code as you would find it in the locale.
+
+Most of the the links shouldn't have a problem resolving so they
+find the images and stylesheets.
+
+2. Translate stuff
+
+Don't wait until you have everything translated. You do a little 
+and someone else does a little.
+
+3. Send a pull request
+
+*. Get free flag icons from: http://www.freeflagicons.com
+
+You don't have to mess with the flags though. Focus on the 
+translation first.
