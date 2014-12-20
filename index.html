@@ -4,9 +4,10 @@
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Perlpowertools : Perl Power Tools">
+    <meta name="description" content="Perl Power Tools : Perl Power Tools">
 
     <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/stylesheet.css">
+
     <title>Perl Power Tools</title>
   </head>
 
@@ -25,13 +26,6 @@
               <div id="download-tar"><a class="tar_download_link" href="https://github.com/briandfoy/PerlPowerTools/tarball/master">Download this project as a tar.gz file</a></div>
               <div id="download-cpan"><a class="cpan_download_link" href="http://www.metacpan.org/module/PerlPowerTools">Download from CPAN</a></div>
             </section>
-
-            <section id="languages">
-              <div id="english"><a class="translation" href="/">USA</a></div>
-              <div id="uk"><a class="translation" href="/uk">UK</a></div>
-              <div id="Русский"><a class="translation" href="/ru">Русский</a></div>
-            </section>
-
         </header>
     </div>
 
@@ -48,7 +42,7 @@ the same name.
 </p>
 
 <p id="tools-list">
-<strong>The tools</strong> addbib apply ar arch arithmetic asa awk banner basename bc cal cat
+<b>The tools</b> addbib apply ar arch arithmetic asa awk banner basename bc cal cat
 chgrp ching chmod chown clear cmp col colrm comm cp cut date dc deroff
 diff dirname du echo ed env expand expr factor false file find fish
 fold fortune from glob grep hangman head id install join kill ln lock
@@ -64,10 +58,46 @@ yes
         <a name="history" class="anchor" href="#history"><span class="octicon octicon-link"></span></a>History</h3>
 
 <p>
-In February 1999, Tom Christiansen announced the <a href="http://markmail.org/message/pjspjifdcttbsgqb">Perl
-Power Tools</a> project to provide a unified BSD toolbox. Perl is the same (mostly) everywhere you go and the
-same programs could run the same everywhere instead of being reimplemented for each platform. The Perl versions
-would have the same switches and features.
+In February 1999, Tom Christiansen announced the <a
+href="http://markmail.org/message/pjspjifdcttbsgqb">Perl Power
+Tools</a> project to provide a unified BSD toolbox. Perl is the same
+(mostly) everywhere you go and the same programs could run the same
+everywhere instead of being reimplemented for each platform. The Perl
+versions would have the same switches and features.
+</p>
+
+<p>
+After that, the tools were lost in a minor Dark Ages, after which <a
+href="http://www.nntp.perl.org/group/perl.ppt/2001/05/msg1.html">
+Casey West and Sean Dague resurrected the project in 2001</a>. They made it onto CPAN
+as <A href="http://www.metacpan.org/module/ppt">"ppt"</a>, was <A
+href="http://sourceforge.net/projects/ppt/">hosted at SourceForge</a>,
+had a mailing list at <a href="http://www.nntp.perl.org/group/perl.ppt">perl.ppt</a>,
+and a website at <i>ppt.perl.org</i> (now dead, but the source is in the old
+repo).
+</p>
+
+<p>
+However, the project languished once again in an environment without easy
+forking and pull requests.
+</p>
+
+<p>
+In 2014, brian d foy revitalized the project, changing the name to 
+<A href="http://www.metacpan.org/module/PerlPowerTools">PerlPowerTools</a> to make it much easier to 
+search and discover. He moved it to GitHub and created its website 
+<A href="http://www.perlpowertools.com">www.perlpowertools.com</a> with 
+<a href="http://pages.github.com">GitHub Pages</a>.
+</p>
+
+        <h3>
+        <a name="future" class="anchor" href="#future"><span class="octicon octicon-link"></span></a>Future</h3>
+
+<p>
+Now it's time to bring Perl Power Tools up to current standards, including
+tests. With a test suite, not only can we ensure correct behavior but we
+can provide a reference implementation should someone want to to the same
+in some other language.
 </p>
 
       </section>
