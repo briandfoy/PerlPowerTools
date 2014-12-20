@@ -277,7 +277,7 @@ Full-Width Styles
   z-index: 10;
   padding: 10px 50px 10px 10px;
   color: #fff;
-  background: url('../images/blacktocat.png') #0090ff no-repeat 95% 50%;
+  background: url('/images/blacktocat.png') #0090ff no-repeat 95% 50%;
   font-weight: 700;
   box-shadow: 0 0 10px rgba(0,0,0,.5);
   border-bottom-left-radius: 2px;
@@ -320,7 +320,7 @@ Full-Width Styles
   bottom: -40px;
   right: 0;
   height: 70px;
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/icon_download.png) no-repeat 0% 90%;
+  background: url(/images/icon_download.png) no-repeat 0% 90%;
 }
 
 .zip_download_link {
@@ -330,7 +330,7 @@ Full-Width Styles
   height:70px;
   text-indent: -5000px;
   overflow: hidden;
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/zip-folders.png) no-repeat bottom;
+  background: url(/images/zip-folders.png) no-repeat bottom;
 }
 
 .tar_download_link {
@@ -340,7 +340,7 @@ Full-Width Styles
   height:70px;
   text-indent: -5000px;
   overflow: hidden;
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/tar-folders.png) no-repeat bottom;
+  background: url(/images/tar-folders.png) no-repeat bottom;
 }
 
 .cpan_download_link {
@@ -350,19 +350,19 @@ Full-Width Styles
   height:70px;
   text-indent: -5000px;
   overflow: hidden;
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/cpan-folders.png) no-repeat bottom;
+  background: url(/images/cpan-folders.png) no-repeat bottom;
 }
 
 .zip_download_link:hover {
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/zip-folders.png) no-repeat top;
+  background: url(/images/zip-folders.png) no-repeat top;
 }
 
 .tar_download_link:hover {
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/tar-folders.png) no-repeat top;
+  background: url(/images/tar-folders.png) no-repeat top;
 }
 
 .cpan_download_link:hover {
-  background: url(http://briandfoy.github.io/PerlPowerTools/images/cpan-folders.png) no-repeat top;
+  background: url(/images/cpan-folders.png) no-repeat top;
 }
 
 #main_content_wrap {
