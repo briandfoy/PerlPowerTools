@@ -318,7 +318,7 @@ Full-Width Styles
   width: 380px;
   z-index: 10;
   bottom: -40px;
-  left: 0;
+  right: 500;
   height: 70px;
 }
 
