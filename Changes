@@ -1,5 +1,9 @@
 # Changes for PerlPowerTools
 
+1.004 - Sat Dec 20 18:37:13 2014
+	* Try to get first come permissions on ppt so I can close those 
+	tickets (and release something to replace ppt)
+
 1.003 - Thu Dec 18 21:04:41 2014
 	* Fix all the issues in the old ppt bugs list (https://rt.cpan.org/Dist/Display.html?Queue=ppt)
 	* All programs have embedded metadata (Tim Gim Yee)
