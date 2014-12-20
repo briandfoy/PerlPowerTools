@@ -417,8 +417,13 @@ Full-Width Styles
   background: #212121;
 }
 
-p.alert {
+
+div.alert {
 	background: #f22;
+	padding: 10px;
+	box-shadow: 10px 10px 5px #888888
+    border: 2px solid;
+    border-radius: 25px;
 	}
 
 /*******************************************************************************
