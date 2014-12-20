@@ -316,7 +316,7 @@ Full-Width Styles
 #languages {
   position: absolute;
   width: 380px;
-  z-index: 1;
+  z-index: 11;
   bottom: -40px;
   left: -380px;
   height: 70px;
