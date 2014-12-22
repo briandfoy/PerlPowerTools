@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+
+=for info
+
+Name: fmt
+Description: reformat paragraphs
+Author: Dmitri Tiknonov dmitri@cpan.org
+License: perl
+
+=cut
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my $MAX_WIDTH = 75;
+
+# Take care of special case, bare -width option:
+@ARGV = grep {
+    if (/^-(\d+)$/) {
+        $MAX_WIDTH = $1;
+        0;
+    } else {
+        1;
+    }
+} @ARGV;
+
+GetOptions(
+    "width=i"   => \$MAX_WIDTH,
+    "help"      => sub { &print_usage; exit; },
+);
+
+my $fmt_line = '<' x $MAX_WIDTH;
+
+my $line;
+
+eval <<"FORMAT";
+format =
+^$fmt_line~~
+\$line
+.
+FORMAT
+
+while (<>) {
+    chomp;
+    if (length) {
+        if (length $line) {
+            my $last_char = substr $line, -1, 1;
+            if ('.' eq $last_char) {
+                $line .= "  ";
+            } elsif (' ' ne $last_char and "\t" ne $last_char) {
+                $line .= " ";
+            }
+        }
+        $line .= $_;
+    } else {
+        do write while length $line;
+        print "\n";
+    }
+}
+
+if (length $line) {
+    do write while length $line;
+}
+
+exit;
+
+sub print_usage {
+    (my $prog = $0) =~ s~.*[/\\]~~;
+    print <<"USAGE";
+Usage: $0 [-w WIDTH] [file...]
+
+USAGE
+}
+
+__END__
+
+=head1 NAME
+
+fmt - simple text formatter
+
+=head1 SYNOPSIS
+
+B<fmt> [-WIDTH] [OPTION]... [FILE]...
+
+=head1 DESCRIPTION
+
+Reformat each paragraph in FILE(s), writing to standard output.  The
+option -WIDTH is an abbreviated form of -w DIGITS.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -w DIGITS
+
+Maximum line width.  This option can be specified in shortened version,
+-DIGITS.  The default is 75.
+
+=item -h
+
+Print help screen and exit.
+
+=over
+
+=BUGS
+
+Only ASCII text is handled correctly.
+
+=head1 AUTHORS
+
+Dmitri Tikhonov
+
+This code is freely modifiable and freely redistributable under Perl's
+Artistic License.
