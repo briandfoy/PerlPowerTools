@@ -23,3 +23,9 @@ _build/
 cover_db/
 inc/
 nytprof.out
+MYMETA*
+Makefile
+blib
+pm_to_blib
+*.bak
+PerlPowerTools-*
