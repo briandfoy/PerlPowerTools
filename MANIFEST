@@ -37,6 +37,7 @@ bin/false
 bin/file
 bin/find
 bin/fish
+bin/fmt
 bin/fold
 bin/fortune
 bin/from
