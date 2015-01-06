@@ -1,4 +1,4 @@
-# Changes for PerlPowerTools
+Revision history for Perl module PerlPowerTools
 
 1.004 - Sat Dec 20 18:37:13 2014
 	* Try to get first come permissions on ppt so I can close those 
@@ -35,14 +35,14 @@
 	unauthorized.
 
 0.14    2004-08-04
-  - 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
-  - New col and words, Ronald J Kimball
-  - Website now includes version number, Casey West
+	* 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
+	* New col and words, Ronald J Kimball
+	* Website now includes version number, Casey West
 
 0.13    2004-07-23
-  - Casey West takes over management.
-  - grep/tcgrep - New revision by Paul Johnson
-  - sort/sort.pudge - New revision by Chris Nandor
-  - html/poem.html - Added, found in LWN archives, Casey West
-  - Tom's ambition was found in his mkidx script, exposed by Casey West
-  - Most recent known original ppt dist included, Casey West
+	* Casey West takes over management.
+	* grep/tcgrep - New revision by Paul Johnson
+	* sort/sort.pudge - New revision by Chris Nandor
+	* html/poem.html - Added, found in LWN archives, Casey West
+	* Tom's ambition was found in his mkidx script, exposed by Casey West
+	* Most recent known original ppt dist included, Casey West
