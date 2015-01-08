@@ -3,16 +3,21 @@ use strict;
 use warnings;
 
 my @exe_files = glob "bin/*";
-my $main_file = 'lib/PerlPowerTools.pm';
 
-my $github    = 'https://github.com/briandfoy/';
+use File::Spec::Functions qw(catfile);
+
+my $module    = 'PerlPowerTools';
+my $github    = 'https://github.com/briandfoy/PerlPowerTools';
+my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
 my %WriteMakefile = (
-	'NAME'          => 'PerlPowerTools',
+	'NAME'          => $module,
 	'ABSTRACT_FROM' => $main_file,
 	'VERSION_FROM'  => $main_file,
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
+
+	'EXE_FILES'     => \@exe_files,
 
 	'CONFIGURE_REQUIRES' => {
 		'ExtUtils::MakeMaker' => '6.64',
@@ -47,9 +52,8 @@ my %WriteMakefile = (
 			homepage => $github,
 			},
 		},
-	'clean'         => { FILES => 'PerlPowerTools-*' },
 
-	'EXE_FILES'     => \@exe_files,
+	'clean'         => { FILES => 'PerlPowerTools-*' },
 	);
 
 
