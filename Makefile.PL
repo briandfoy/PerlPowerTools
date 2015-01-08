@@ -1,4 +1,6 @@
 use 5.008;
+
+package PerlPowerTools;
 use strict;
 use warnings;
 
@@ -6,7 +8,7 @@ my @exe_files = glob "bin/*";
 
 use File::Spec::Functions qw(catfile);
 
-my $module    = 'PerlPowerTools';
+my $module    = __PACKAGE__;
 my $github    = 'https://github.com/briandfoy/PerlPowerTools';
 my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
@@ -20,7 +22,8 @@ my %WriteMakefile = (
 	'EXE_FILES'     => \@exe_files,
 
 	'CONFIGURE_REQUIRES' => {
-		'ExtUtils::MakeMaker' => '6.64',
+		'ExtUtils::MakeMaker'   => '6.64',
+		'File::Spec::Functions' => '0',
 		},
 
 	'BUILD_REQUIRES' => {
