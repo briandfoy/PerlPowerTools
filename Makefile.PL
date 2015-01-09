@@ -66,7 +66,7 @@ sub do_it {
 	my $MM ='ExtUtils::MakeMaker';
 	my $MM_version =
 		eval{ "$MM " . $WriteMakefile{'CONFIGURE_REQUIRES'}{'ExtUtils::MakeMaker'} }
-			//
+			||
 		"$MM 6.64";
 	eval "use $MM_version; 1" or die "Could not load $MM_version: $@";
 	eval "use Test::Manifest 1.21" 
