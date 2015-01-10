@@ -56,7 +56,7 @@ my %WriteMakefile = (
 			},
 		},
 
-	'clean'         => { FILES => 'PerlPowerTools-*' },
+	clean => { FILES => "$dist-*" },
 	);
 
 
