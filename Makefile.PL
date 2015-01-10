@@ -7,6 +7,8 @@ my @exe_files = glob "bin/*";
 use File::Spec::Functions qw(catfile);
 
 my $module    = 'PerlPowerTools';
+( my $dist = $module ) =~ s/::/-/g;
+
 my $github    = 'https://github.com/briandfoy/PerlPowerTools';
 my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
