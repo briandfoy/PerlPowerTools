@@ -1,4 +1,6 @@
 use 5.008;
+
+package PerlPowerTools;
 use strict;
 use warnings;
 
@@ -6,7 +8,7 @@ my @exe_files = glob "bin/*";
 
 use File::Spec::Functions qw(catfile);
 
-my $module    = 'PerlPowerTools';
+my $module    = __PACKAGE__;
 ( my $dist = $module ) =~ s/::/-/g;
 
 my $github    = 'https://github.com/briandfoy/PerlPowerTools';
