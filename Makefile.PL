@@ -15,6 +15,8 @@ my $github    = 'https://github.com/briandfoy/PerlPowerTools';
 my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
 my %WriteMakefile = (
+	'MIN_PERL_VERSION' => '5.008',
+
 	'NAME'          => $module,
 	'ABSTRACT_FROM' => $main_file,
 	'VERSION_FROM'  => $main_file,
