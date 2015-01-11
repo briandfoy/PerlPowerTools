@@ -11,6 +11,7 @@ License: perl
 
 use strict;
 use Getopt::Std;
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
 
 my( @DECK, @PLAYERS_HAND, @COMPUTERS_HAND, @BOOKS, %BOOKS);
 my(@HIS_PAST_GUESSES, @MY_PAST_GUESSES);
