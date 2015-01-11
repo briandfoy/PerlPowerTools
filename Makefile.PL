@@ -1,5 +1,3 @@
-use 5.008;
-
 package PerlPowerTools;
 use strict;
 use warnings;
@@ -77,7 +75,12 @@ sub do_it {
 	eval "use $MM_version; 1" or die "Could not load $MM_version: $@";
 	eval "use Test::Manifest 1.21" 
 		if -e File::Spec->catfile( qw(t test_manifest) );
-	WriteMakefile( %WriteMakefile );
+	
+	my $arguments = arguments();
+	my $minimum_perl = $arguments->{MIN_PERL_VERSION} || '5.008';
+	eval "require $minimum_perl;" or die $@;
+
+	WriteMakefile( %$arguments );
 	}
 
 
