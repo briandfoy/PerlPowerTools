@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: time
 Description: times the execution of a command
 Author: dkulp
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # time - report the time running a sub-process

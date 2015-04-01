@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: comm
 Description: select or reject lines common to two files
 Author: Mark-Jason Dominus, mjd-perl-comm@plover.comm
 License: public domain
 
+=end metadata
+
 =cut
+
 
 #
 # comm

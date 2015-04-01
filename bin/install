@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: install
 Description: install files and directories
 Author: Greg Bacon, gbacon@itsc.uah.edu
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 

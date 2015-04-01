@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: basename
 Description: print the basename of a file
 Author: Abigail, abigail@fnx.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use File::Basename;

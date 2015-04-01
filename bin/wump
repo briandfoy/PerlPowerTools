@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: wump
 Description: play a game of "Hunt the Wumpus"
 Author: Amir Karger, karger@post.harvard.edu
 License: perl
+
+=end metadata
 
 =cut
 

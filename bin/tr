@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: tr
 Description: translate or delete characters
 Author: Tom Christiansen, tchrist@perl.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # tr - translate or delete characters
 

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: join
 Description: relational database operator
 Author: Jonathan Feinberg, jdf@pobox.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # join - relational database operator
 

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: make
 Description: maintain related programs and files
 Author: Nick Ing-Simmons, nick@ni-s.u-net.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use 5.005;  # Need look-behind assertions
 

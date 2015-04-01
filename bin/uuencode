@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: uuencode
 Description: encode a binary file
 Author: Tom Christiansen, tchrist@perl.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 # uuencode -- by Tom Christiansen
 

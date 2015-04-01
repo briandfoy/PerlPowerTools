@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: words
 Description: find words which can be made from a string of letters
 Author: Ronald J Kimball, rjk-perl@tamias.net
 License: perl
+
+=end metadata
 
 =cut
 

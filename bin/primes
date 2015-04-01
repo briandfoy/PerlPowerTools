@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: primes
 Description: generate primes
@@ -8,7 +8,10 @@ Author: Jonathan Feinberg, jdf@pobox.com
 Author: Benjamin Tilly, ben.tilly@alumni.dartmouth.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 # primes - generate primes
 # Written for the PPT initiative by Jonathan Feinberg.

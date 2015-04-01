@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: tsort
 Description: topological sort
 Author: Jeffrey S. Haemer
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use strict;
 

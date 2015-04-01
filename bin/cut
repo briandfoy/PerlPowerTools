@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: cut
 Description: select portions of each line of a file
 Author: Rich Lafferty, rich@alcor.concordia.ca
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # cut -- remove sections from each line of files

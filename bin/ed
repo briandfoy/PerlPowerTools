@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: ed
 Description: text editor
 Author: George M Jones, gmj@infinet.com
 License: GNU GPL
 
+=end metadata
+
 =cut
+
 
 # What: A perl version of Unix ed editor.
 #

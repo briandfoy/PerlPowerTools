@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: lock
 Description: reserves a terminal
 Author: Aron Atkins, atkins@gweep.net
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use POSIX qw(:termios_h);

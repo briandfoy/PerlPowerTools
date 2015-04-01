@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: fold
 Description: wrap each input line to fit specified width
@@ -8,7 +8,10 @@ Author: Clinton Pierce, clintp@geeksalad.org
 Author: Tom Christiansen, tchrist@perl.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # The standard fold(1), implemented in Perl
 #   copyright 1999, Clinton A. Pierce

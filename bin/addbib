@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: addbib
 Description: create or extend a bibliographic database
 Author: Jeffrey S. Haemer
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use strict;
 use Getopt::Std;

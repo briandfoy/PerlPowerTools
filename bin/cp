@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: cp
 Description: copy files and/or directories
 Author: Ken Schumack, schumacks@att.net
 License: perl
 
+=end metadata
+
 =cut
+
 
 require 5;
 use strict;

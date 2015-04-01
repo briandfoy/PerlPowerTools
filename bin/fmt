@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: fmt
 Description: reformat paragraphs
 Author: Dmitri Tiknonov dmitri@cpan.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use warnings;

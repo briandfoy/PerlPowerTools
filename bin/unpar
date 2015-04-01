@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: unpar
 Description: extract files from a Perl archive
 Author: Tim Gim Yee, tim.gim.yee@gmail.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # unpar - extract files from a Perl archive

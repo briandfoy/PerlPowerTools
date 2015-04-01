@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: find
 Description: search directory tree for files matching a pattern
@@ -9,7 +9,10 @@ Author: Tom Christiansen, tchrist@perl.com
 Author: Larry Wall, larry@wall.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 # find - actually a pass through front end for find2perl
 

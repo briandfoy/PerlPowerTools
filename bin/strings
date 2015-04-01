@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: strings
 Description: extract strings
 Author: Nathan Scott Thompson, quimby at city-net dot com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 # Copyright 1999 Nathan Scott Thompson <quimby at city-net dot com>
 

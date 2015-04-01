@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: fortune
 Description: print a random, hopefully interesting, adage
 Author: Andy Murren, andy@murren.org
 License: GNU GPL
 
+=end metadata
+
 =cut
+
 
 use strict;
 use FindBin qw($Bin);

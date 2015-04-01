@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: tail
 Description: display the last part of a file
 Author: Thierry Bezecourt, thbzcrt@worldnet.fr
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # A Perl implementation of tail for the Perl Power Tools project by

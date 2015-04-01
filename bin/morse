@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: morse
 Description: read morse and translate it to text
 Author: Abigail, abigail@fnx.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use File::Basename ();

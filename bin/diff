@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: diff
 Description: compute 'intelligent' differences between two files
@@ -9,7 +9,10 @@ Author: Christian Murphy, cpm@muc.de
 Author: Amir D. Karger, karger@bead.aecom.yu.edu
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # `Diff' program in Perl

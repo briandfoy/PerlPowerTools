@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: file
 Description: determine file type
 Author: dkulp
 License: BSD
 
+=end metadata
+
 =cut
+
 
 #
 # file -- report the type of a file

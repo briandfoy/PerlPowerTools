@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: hangman
 Description: the game hangman
 Author: Michael E. Schechter, mschechter@earthlink.net
 License: GNU GPL
 
+=end metadata
+
 =cut
+
 
 use strict;
 

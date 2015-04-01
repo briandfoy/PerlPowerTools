@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: arithmetic
 Description: improve your arithmetic skills
 Author: Abigail, abigail@fnx.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use integer;

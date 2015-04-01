@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: glob
 Description: find pathnames matching a pattern
 Author: Marc Mengel, mengel@fnal.gov
 License: perl
 
+=end metadata
+
 =cut
+
 
 package
 	FastGlob; # Hide from PAUSE

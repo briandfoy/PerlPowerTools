@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: false
 Description: exit unsuccesfully
 Author: Abigail, abigail@fnx.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 

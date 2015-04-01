@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: grep
 Description: search for regular expressions and print
@@ -9,7 +9,10 @@ Author: Greg Bacon, gbacon@itsc.uah.edu
 Author: Paul Grassie
 License: perl
 
+=end metadata
+
 =cut
+
 
 ###
 ### DON'T FORGET TO UPDATE THE POD IF YOU ADD TO THE HISTORY!!!

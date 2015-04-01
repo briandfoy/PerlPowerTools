@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: dc
 Description: an arbitrary precision calculator
 Author: Greg Ubben, gsu@romulus.ncsc.mil
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 #  dc.pl - an arbitrary precision RPN calculator, using only string ops
 #

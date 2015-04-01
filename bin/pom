@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: pom
 Description: display the phase of the moon
 Author: Rocco Caputo, troc@netrus.net
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 

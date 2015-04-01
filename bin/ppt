@@ -1,13 +1,16 @@
 #!/usr/bin/perl -0777
 
-=for info
+=begin metadata
 
 Name: ppt
 Description: reformat input as paper tape
 Author: Mark-Jason Dominus, mjd@plover.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 # ppt - reformat input as paper tape
 # mjd@plover.com

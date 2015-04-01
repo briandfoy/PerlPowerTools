@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: mail
 Description: send and receive mail
 Author: Clinton Pierce, clintp@geeksalad.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # Class that holds a couple of things for all of the

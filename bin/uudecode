@@ -1,14 +1,17 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: uudecode
 Description: decode a binary file
 Author: Nick Ing-Simmons, nick@ni-s.u-net.com
 Author: Tom Christiansen, tchrist@perl.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 # uudecode -- original once by Nick Ing-Simmons
 # but since irrecognizably hacked on by Tom Christiansen

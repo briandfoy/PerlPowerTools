@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: par
 Description: create a Perl archive of files
 Author: Tim Gim Yee, tim.gim.yee@gmail.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # par - create a Perl archive of files

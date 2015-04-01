@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: banner
 Description: print large banner on printer
 Author: Jonathan Feinberg, jdf@pobox.com
 License: BSD
 
+=end metadata
+
 =cut
+
 
 # * banner - prints large signs
 # * banner [-w#] [-d] [-t] message ...

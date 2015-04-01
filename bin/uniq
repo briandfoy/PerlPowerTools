@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: uniq
 Description: report or filter out repeated lines in a file
 Author: Jonathan Feinberg, jdf@pobox.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # uniq - report or filter out repeated lines in a file
 

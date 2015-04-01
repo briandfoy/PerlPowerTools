@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: tar
 Description: manipulate tape archives
-Author: 
-License: 
+Author:
+License:
+
+=end metadata
 
 =cut
+
 
 use 5.004;
 # use strict;

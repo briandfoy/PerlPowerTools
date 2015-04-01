@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: spell
 Description: scan a file for misspelled words
 Author: Greg Snow, snow@biostat.washington.edu
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 

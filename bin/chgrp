@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: chgrp
 Description: change group ownership of files
 Author: Abigail, abigail@fnx.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 
 use strict;

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: cal
 Description: displays a calendar and the date of Easter
 Author: Michael E. Schechter, mschechter@earthlink.net
 License: GNU GPL
 
+=end metadata
+
 =cut
+
 
 package
 	cal; # hide from PAUSE
@@ -283,7 +286,7 @@ flag is included in any flag combination, it overrides all other flags.
 
 =head2 MONTH/YEAR
 
-If only one number is supplied, this number will be used as the year. 
+If only one number is supplied, this number will be used as the year.
 If two numbers are supplied, the first will be the month, and the
 second will be the year. Valid months are 1 through 12, and valid
 years are 1 through 9999.

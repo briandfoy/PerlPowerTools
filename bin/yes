@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: yes
 Description: print out a string till doomsday
 Author: Abigail, abigail@fnx.com
 License: perl
+
+=end metadata
 
 =cut
 

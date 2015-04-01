@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: ping
 Description: probe for network hosts
 Author: Nick Ing-Simmons, nick@ni-s.u-net.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use Getopt::Std;
@@ -23,7 +26,7 @@ my $timeout = (@ARGV) ? shift : 20;
 my $a = gethostbyname($host);
 
 if ( $a ) {
-	
+
 	if ( $opt{'n'} ) {
 
 		my $name = inet_ntoa($a);
@@ -34,11 +37,11 @@ if ( $a ) {
 	   my $name = gethostbyaddr($a,PF_INET);
        $host = $name if ($name);
    }
-  
+
    my $handle = Net::Ping->new($> ? 'udp' : 'icmp', $timeout);
 
    if ( $handle->ping($host) ) {
-	   
+
 	   warn "$host is alive\n";
 
    } else {

@@ -1,14 +1,17 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: mkfifo
 Description: make named pipes
 Author: Jeffrey S. Haemer
 Author: Louis Krupp
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use strict;
 use POSIX "mkfifo";

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: uname
 Description: print system information
 Author: Jeffrey S. Haemer
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use POSIX "uname";
 use strict;

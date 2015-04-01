@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: unshar
 Description: extract files from a shell archive
 Author: Larry Wall, larry@wall.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # unshar - extract files from a shell archive

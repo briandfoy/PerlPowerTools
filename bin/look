@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: look
 Description: find lines in a sorted list
 Author: Tom Christiansen, tchrist@perl.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # look - display lines beginning with a given search
 

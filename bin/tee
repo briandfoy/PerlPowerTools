@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: tee
 Description: pipe fitting
 Author: Tom Christiansen, tchrist@perl.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 #
 # tee clone that groks process tees (should work even with old perls)

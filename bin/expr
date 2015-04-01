@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: expr
 Description: evaluate expression
 Author: Michael Robinson, smrf@sans.vuw.ac.nz
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 #
 # perl implementation of expr(1)

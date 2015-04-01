@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: xargs
 Description: construct argument list(s) and execute utility
 Author: Gurusamy Sarathy, gsar@umich.edu
-License: 
+License:
+
+=end metadata
 
 =cut
 

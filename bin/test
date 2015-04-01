@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: test
 Description: condition evaluation utility
 Author: Brad Appleton
 License: perl
 
+=end metadata
+
 =cut
+
 
 ###########################################################################
 # test -- Perl script to emulate BSD Unix test(1) functionality

@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: from
 Description: print names of those who have sent mail
 Author: Johan Vromans, jvromans@squirrel.nl
 License: public domain
 
+=end metadata
+
 =cut
+
 
 # This program requires perl version 3.0, patchlevel 4 or higher
 

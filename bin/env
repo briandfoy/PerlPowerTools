@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: env
 Description: run a program in a modified environment
 Author: Matthew Bafford, dragons@scescape.net
 License: perl
 
+=end metadata
+
 =cut
+
 
 # Perl version of the env command.
 # Matthew Bafford

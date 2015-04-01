@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: wc
 Description: paragraph, line, word, character, and byte counter
 Author: Peter Prymmer, pvhp@best.com
 License: perl
+
+=end metadata
 
 =cut
 

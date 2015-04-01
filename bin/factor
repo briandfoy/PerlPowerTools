@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: factor
 Description: factor a number
@@ -10,7 +10,10 @@ Contributor: brian d foy, bdfoy@cpan.org
 Contributor: Dana Jacobson, danaj@cpan.org
 License: perl
 
+=end metadata
+
 =cut
+
 
 package PerlPowerTools::factor;
 

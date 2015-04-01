@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: rev
 Description: reverse lines of a file
 Author: Andy Murren, andy@murren.org
 License: GNU GPL
 
+=end metadata
+
 =cut
+
 
 # packages used in this program
 use FileHandle;

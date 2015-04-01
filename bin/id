@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: id
 Description: show user information
 Author: Theo Van Dinter, felicity@kluge.net
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 #
 # An implementation of the 'id' utility in Perl.  Written for the Perl Power

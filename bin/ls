@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: ls
 Description: list file/directory information
 Author: Mark Leighton Fisher, fisherm@tce.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # Perl Power Tool - ls(1)
 

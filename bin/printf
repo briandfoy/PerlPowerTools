@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: printf
 Description: format and print data
 Author: Tom Christiansen, tchrist@perl.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # printf - format and print data
 

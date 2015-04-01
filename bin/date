@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: date
 Description: display or set date and time
 Author: Joshua Gross
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 use strict;
 

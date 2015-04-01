@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: pig
 Description: reformat input as Pig Latin
 Author: Jonathan Feinberg, jdf@pobox.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 # pig - eformatray inputway asway Igpay Atinlay
 use strict;

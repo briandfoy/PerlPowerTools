@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: col
 Description: filter reverse line feeds from input
 Author: Ronald J Kimball, rjk-perl@tamias.net
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 

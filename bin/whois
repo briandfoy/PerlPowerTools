@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: whois
 Description: internet domain name and network number directory service
 Author: Yiorgos Adamopoulos, adamo@ieee.org
-License: 
+License:
+
+=end metadata
 
 =cut
 

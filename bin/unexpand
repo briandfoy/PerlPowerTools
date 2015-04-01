@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: unexpand
 Description: convert spaces to tabs
 Author: Thierry Bezecourt, thbzcrt@worldnet.fr
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # A Perl implementation of expand(1) and unexpand(1) for the Perl Power

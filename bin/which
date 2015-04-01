@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: which
 Description: report full paths of commands
 Author: Abigail, abigail@fnx.com
 License: perl
+
+=end metadata
 
 =cut
 

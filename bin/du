@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: du
 Description: display disk usage statistics
 Author: Greg Hewgill, greg@hewgill.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 # Perl Power Tools - du

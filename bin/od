@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: od
 Description: dump files in octal and other formats
 Author: Mark Kahn, mkahn@vbe.com
 License: perl
 
+=end metadata
+
 =cut
+
 
 use strict;
 use Getopt::Std;

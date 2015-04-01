@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: split
 Description: split a file into pieces
 Author: Rich Lafferty, rich@alcor.concordia.ca
 License: perl
 
+=end metadata
+
 =cut
+
 
 #
 #  split -- split a file into pieces

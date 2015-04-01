@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
-=for info
+=begin metadata
 
 Name: man
 Description: format and display the on-line manual page
 Author: Tom Christiansen, tchrist@perl.com
-License: 
+License:
+
+=end metadata
 
 =cut
+
 
 #
 # man - perl rewrite of man system
