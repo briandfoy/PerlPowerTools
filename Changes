@@ -1,7 +1,5 @@
 Revision history for Perl module PerlPowerTools
 
-1.004 2015-04-05T12:18:50Z
-
 1.004 - 2014-12-20
 	* Try to get first come permissions on ppt so I can close those 
 	tickets (and release something to replace ppt)
@@ -36,12 +34,12 @@ Revision history for Perl module PerlPowerTools
 	* I've probably broken some things, but now I want to see what's
 	unauthorized.
 
-0.14    2004-08-04
+0.14 - 2004-08-04
 	* 'make manifest' skips legit tarballs, fixed with new utillity, Casey West
 	* New col and words, Ronald J Kimball
 	* Website now includes version number, Casey West
 
-0.13    2004-07-23
+0.13 - 2004-07-23
 	* Casey West takes over management.
 	* grep/tcgrep - New revision by Paul Johnson
 	* sort/sort.pudge - New revision by Chris Nandor
