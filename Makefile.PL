@@ -6,7 +6,7 @@ use warnings;
 
 =head1 The build file for PerlPowerTools
 
-This build file is a moduino; it works as both a build script and
+This build file is a modulino; it works as both a build script and
 a module.
 
 To build the distribution, run this file normally:
