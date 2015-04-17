@@ -1,7 +1,7 @@
 Revision history for Perl module PerlPowerTools
 
 1.004 - 2014-12-20
-	* Try to get first come permissions on ppt so I can close those 
+	* Try to get first come permissions on ppt so I can close those
 	tickets (and release something to replace ppt)
 
 1.003 - 2014-12-18
