@@ -36,7 +36,7 @@ Perl.
 =cut
 
 
-unless( grep { /^INSTALL_BASE/ } @ARGV ) {
+unless( grep { /\AINSTALL_BASE/ } @ARGV ) {
 	my $path = '~/perlpowertools';
 	print <<"HERE";
 ----------------------------------------------------------------------
