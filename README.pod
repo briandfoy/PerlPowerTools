@@ -4,15 +4,18 @@
 
 =head1 The PerlPowerTools module
 
-This is the I<README> for the L<PerlPowerTools> Perl module. You're probably 
-looking at this because you don't know where else to find what you're
-looking for. Read this once and you might never have to read one again 
-for any Perl module.
+This is the I<README> for the L<PerlPowerTools> Perl module. This
+distribution provides pure-Perl implementations of popular Unix tools
+aimed at the less fortunate systems that don't come with them.
+
+You're probably looking at this because you don't know where else to
+find what you're looking for. Read this once and you might never have
+to read one again for any Perl module.
 
 =head2 Documentation
 
-To read about L<PerlPowerTools>, look at the embedded documentation 
-in the module itself. Inside the distribution, you can format it 
+To read about L<PerlPowerTools>, look at the embedded documentation
+in the module itself. Inside the distribution, you can format it
 with L<perldoc|http://perldoc.perl.org/perldoc.html>:
 
 	% perldoc lib/PerlPowerTools.pm
@@ -22,8 +25,8 @@ name instead of the file location:
 
 	% perldoc PerlPowerTools
 
-You can read the documentation and inspect the meta data on one of the 
-CPAN web interfaces, such as L<CPAN Search|http://search.cpan.org/dist/PerlPowerTools> or 
+You can read the documentation and inspect the meta data on one of the
+CPAN web interfaces, such as L<CPAN Search|http://search.cpan.org/dist/PerlPowerTools> or
 L<MetaCPAN|http://www.metacpan.org/module/PerlPowerTools>:
 
 =over 4
@@ -59,11 +62,11 @@ You could install just this module manually:
 	% make test
 	% make install
 
-You probably don't want to do that unless you're fiddling with the 
+You probably don't want to do that unless you're fiddling with the
 module and only want to run the tests without installing anything.
 
 =head2 Source location
-	
+
 The meta data, such as the source repository and bug tracker, is in
 I<Makefile.PL> or the I<META.*> files it creates. You can find that on
 those CPAN web interfaces, but you can also look at files directly in
@@ -75,7 +78,7 @@ the source repository:
 
 =back
 
-If you find a problem, file a ticket in the L<issue 
+If you find a problem, file a ticket in the L<issue
 tracker|https://github.com/briandfoy/PerlPowerTools/issues>:
 
 =over 4
@@ -94,20 +97,20 @@ L<Perlmonks|http://www.perlmonks.org> or
 L<Stackoverflow|http://www.stackoverflow.com>, both of which have many
 competent Perlers who can answer your question, almost in real time.
 They might not know the particulars of this module, but they can help
-you diagnose your problem. 
+you diagnose your problem.
 
-You might like to read L<brian's Guide to Solving Any Perl 
+You might like to read L<brian's Guide to Solving Any Perl
 Problem|http://archive.oreilly.com/pub/a/perl/excerpts/9780596527242/brians-guide.html>.
 
 =head2 Copyright and License
 
 You should have received a I<LICENSE> file, but the license is also noted
 in the module files. About the only thing you can't do is pretend that
-you wrote code that you didn't. 
+you wrote code that you didn't.
 
 =head2 Good luck!
 
-Enjoy, 
+Enjoy,
 
 brian d foy, bdfoy@cpan.org
 
