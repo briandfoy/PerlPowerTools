@@ -1,5 +1,10 @@
 Revision history for Perl module PerlPowerTools
 
+1.005 2015-04-17T01:20:12Z
+	* Don't install at the same location as perl. Make the
+	user think about where to install them so these tools 
+	don't interfere with the real tools of the same name.
+
 1.004 - 2014-12-20
 	* Try to get first come permissions on ppt so I can close those
 	tickets (and release something to replace ppt)
