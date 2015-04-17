@@ -35,6 +35,31 @@ Perl.
 
 =cut
 
+
+unless( grep { /^INSTALL_BASE/ } @ARGV ) {
+	my $path = '~/perlpowertools';
+	print <<"HERE";
+----------------------------------------------------------------------
+Welcome to Perl Power Tools (http://www.perlpowertools.com).
+
+You didn't specify INSTALL_BASE, so I chose $path.
+You'll need to add this to PATH to be able to use them.
+
+If you want to install them somewhere else, run Makefile.PL again
+with your installation location:
+
+    perl Makefile.PL INSTALL_BASE=/where/you/want/them/to/go
+
+Most Perl distributions don't do this for you, but I'm doing this
+because some of these tools installed in the wrong places can hide
+the real tools, which might cause problems. I'm being careful for
+you!
+----------------------------------------------------------------------
+HERE
+
+	push @ARGV, "INSTALL_BASE=$path";
+	}
+
 my @exe_files = glob "bin/*";
 
 use File::Spec::Functions qw(catfile);
