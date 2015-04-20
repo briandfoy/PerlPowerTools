@@ -64,7 +64,7 @@ You could install just this module manually:
 	% make install
 
 You didn't specify INSTALL_BASE, the modules go into your home directory
-under F<perlpowertools>. You'll need to add this to PATH to be able 
+under F<perlpowertools>. You'll need to add this to PATH to be able
 to use them.
 
 If you want to install them somewhere else, run the Makefile.PL
