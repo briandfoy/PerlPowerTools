@@ -719,29 +719,29 @@ sub usage {
 
 =head1 NAME
 
-Algorithm::Diff - Compute `intelligent' differences between two files / lists
+diff - Perl Power Tools to compute `intelligent' differences between two files / lists
 
 =head1 SYNOPSIS
 
-  use Algorithm::Diff qw(diff LCS traverse_sequences);
+Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
 
-  @lcs = LCS(\@seq1, \@seq2, $comparison_function);
+    -c do a context diff with 3 lines of context
+    -C do a context diff with 'lines' lines of context (implies -c)
+    -e create a script for the ed editor to change oldfile to newfile
+    -f like -e but in reverse order
+    -u do a unified diff with 3 lines of context
+    -U do a unified diff with 'lines' lines of context (implies -u)
+    -q report only whether or not the files differ
 
-  @diffs = diff(\@seq1, \@seq2, $comparison_function);
-
-  traverse_sequences(\@seq1, \@seq2,
-                     { MATCH => $callback,
-                       DISCARD_A => $callback,
-                       DISCARD_B => $callback,
-                     },
-                     $comparison_function);
+By default it will do an "old-style" diff, with output like UNIX diff
 
 =head1 AUTHOR
 
-Mark-Jason Dominus, mjd-perl-diff@plover.com.
+Mark-Jason Dominus, C<< <mjd-perl-diff@plover.com> >>.
 
-Visit my diff/LCS web page at http://www.plover.com/~mjd/perl/diff/.
+Visit my diff/LCS web page at L<http://www.plover.com/~mjd/perl/diff/>.
 
+=cut
 
 
 
