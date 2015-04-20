@@ -17,8 +17,10 @@ BSD utilities.
 
 =head1 DESCRIPTION
 
-
-Unix Reconstruction Project
+The Unix Reconstruction Project. By default, these install into the
+F<~/perlpowertools> directory. You'll probably need to add that directory
+to C<PATH> to use them. You can install them anywhere you like by
+setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =head2 Utilities
 
@@ -234,7 +236,7 @@ Unix Reconstruction Project
 
 =item unpar - extract files from a Perl archive
 
-=item unshar - extract files from a shell archive 
+=item unshar - extract files from a shell archive
 
 =item uudecode, uuencode - encode/decode a binary file
 

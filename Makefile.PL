@@ -13,9 +13,18 @@ To build the distribution, run this file normally:
 
 	% perl Makefile.PL
 
-But, it's more interesting than that. You can load it with C<require>
-and call C<arguments> to get the data structure it passes to
-C<WriteMakefile>:
+You didn't specify C<INSTALL_BASE>, the modules go into your home directory
+under F<perlpowertools>. You'll need to add this to PATH to be able
+to use them.
+
+If you want to install them somewhere else, run the F<Makefile.PL>
+with your installation location:
+
+    perl Makefile.PL INSTALL_BASE=/where/you/want/them/to/go
+
+But, this F<Makefile.PL> is more interesting than that. You can load
+it with C<require> and call C<arguments> to get the data structure it
+passes to C<WriteMakefile>:
 
 	my $package = require '/path/to/Makefile.PL';
 	my $arguments = $package->arguments;
