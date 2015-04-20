@@ -6,7 +6,8 @@
 
 This is the I<README> for the L<PerlPowerTools> Perl module. This
 distribution provides pure-Perl implementations of popular Unix tools
-aimed at the less fortunate systems that don't come with them.
+aimed at the less fortunate systems that don't come with them. By default,
+these install into F<~/perlpowertools>.
 
 You're probably looking at this because you don't know where else to
 find what you're looking for. Read this once and you might never have
@@ -62,8 +63,14 @@ You could install just this module manually:
 	% make test
 	% make install
 
-You probably don't want to do that unless you're fiddling with the
-module and only want to run the tests without installing anything.
+You didn't specify INSTALL_BASE, the modules go into your home directory
+under F<perlpowertools>. You'll need to add this to PATH to be able 
+to use them.
+
+If you want to install them somewhere else, run the Makefile.PL
+with your installation location:
+
+    perl Makefile.PL INSTALL_BASE=/where/you/want/them/to/go
 
 =head2 Source location
 
