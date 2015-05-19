@@ -376,12 +376,16 @@ B<-B> and B<-S> are peculiar to this implementation of B<tac>.
 
 Regular expressions are as in Perl with some caveats:
 
-=item /foo(bar)/
+=item 3
+
+/foo(bar)/
 
 Do not use capturing parenthesis.  They will conflict with B<tac>'s internal use
 of them.
 
-=item /foo|bar/
+=item 4
+
+/foo|bar/
 
 Alternation may match out of sequence, because matches are made against chunks
 of files rather than whole files.  Set B<-S> to a suitably large number to avoid

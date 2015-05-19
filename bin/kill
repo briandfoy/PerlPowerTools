@@ -95,6 +95,8 @@ received signal may vary.
 
 =head1 OPTIONS AND ARGUMENTS
 
+=over 4
+
 =item I<-s>	This parameter takes a single argument of a signal name (see -l)
 to be sent to the specified PIDs.
 
@@ -106,6 +108,8 @@ should be sent to the specified PID listing.
 =item I<-l>	Display a listing of all available signals on the current system.
 
 =item I<-h>	Display the usage help message.
+
+=back
 
 =head1 NOTES
 
