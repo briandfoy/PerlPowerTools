@@ -27,7 +27,17 @@ License: perl
 
 use strict;
 
-use Curses;
+BEGIN {
+	my $has_curses = eval "require Curses; 1";
+	
+	unless( $has_curses ) {
+		die <<"HERE";
+$0 requires the Perl Curses module!
+HERE
+		}
+	}
+
+
 use Getopt::Long;
 use Fcntl qw(:flock);
 
