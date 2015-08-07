@@ -13,9 +13,9 @@ To build the distribution, run this file normally:
 
 	% perl Makefile.PL
 
-You didn't specify C<INSTALL_BASE>, the modules go into your home directory
-under F<perlpowertools>. You'll need to add this to PATH to be able
-to use them.
+If you didn't specify C<INSTALL_BASE>, the modules go into your home
+directory under F<perlpowertools>. You'll need to add this to PATH to
+be able to use them.
 
 If you want to install them somewhere else, run the F<Makefile.PL>
 with your installation location:

@@ -53,11 +53,15 @@ For details see L<Make> for the underlying perl module.
 
 =head1 BUGS
 
+=over 4
+
 =item *
 
 No B<-k> flag
 
 I strongly suspect there are lots more.
+
+=back
 
 =head1 SEE ALSO
 

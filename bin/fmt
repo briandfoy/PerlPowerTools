@@ -105,9 +105,9 @@ Maximum line width.  This option can be specified in shortened version,
 
 Print help screen and exit.
 
-=over
+=back
 
-=BUGS
+=head1 BUGS
 
 Only ASCII text is handled correctly.
 

@@ -116,6 +116,8 @@ Print a short help message, then exits.
 
 Prints out its version number, then exits.
 
+=back
+
 =head1 BUGS
 
 I<rev> has no known bugs.

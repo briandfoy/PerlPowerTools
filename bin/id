@@ -186,6 +186,8 @@ is displayed instead of the information from the calling process.
 
 =head1 OPTIONS AND ARGUMENTS
 
+=over 4
+
 =item I<-G>
 Display all of the group IDs (effective, real, etc) separated by a space.
 The IDs are not in a given order.
@@ -222,6 +224,8 @@ with the real user/group IDs instead of the effective ID information.
 
 =item I<-u>
 Display the effective user ID.
+
+=back
 
 =head1 NOTES
 

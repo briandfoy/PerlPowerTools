@@ -198,6 +198,8 @@ stdin is used and no file name will displayed in the output.
 
 =head1 OPTIONS AND ARGUMENTS
 
+=over 4
+
 =item I<-h>	Display the usage help message.
 
 =item I<-o>	Specify the output type for file CRC and size.
@@ -207,6 +209,8 @@ using BSD Historic Algorithm 1 (16-bit checksum with right rotation
 between byte addition).  Output size is number of 1024 byte blocks.
 C<2>--CRC is computed using SYSV Historic Algorithm 2 (32-bit checksum).
 Output size is number of 512 byte blocks.
+
+=back
 
 =head1 NOTES
 
