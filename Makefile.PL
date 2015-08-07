@@ -36,7 +36,7 @@ the file. As such, I recommend you always require the full path to the
 file.
 
 The return value of the C<require> is a package name (in this case,
-the name of the main module. Use that to call the C<arguments> method.
+the name of the main module). Use that to call the C<arguments> method.
 
 Even if this distribution needs a higher version of Perl, this bit
 only needs v5.8. You can play with the data structure with a primitive
