@@ -58,7 +58,7 @@ unless( $has_install_base ) {
 Welcome to Perl Power Tools (http://www.perlpowertools.com).
 
 You didn't specify INSTALL_BASE, so I chose $path.
-You'll need to add this to PATH to be able to use them.
+You'll need to add this to PATH to be able to use the Perl Power Tools.
 
 If you want to install them somewhere else, run Makefile.PL again
 with your installation location:
