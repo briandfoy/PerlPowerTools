@@ -1,2 +1,6 @@
 README\.pod
 README.*
+
+# things that might be in local directories after fooling
+# around with them
+.DS_Store
