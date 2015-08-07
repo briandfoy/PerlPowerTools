@@ -116,6 +116,7 @@ bin/wump
 bin/xargs
 bin/yes
 Changes
+INSTALL.SKIP
 lib/PerlPowerTools.pm
 lib/ppt.pm
 LICENSE
@@ -127,6 +128,7 @@ README.pod
 t/compile.t
 t/factor.t
 t/false.t
+t/pod.t
 t/true.t
 TODO
 xt/changes.t
