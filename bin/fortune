@@ -19,20 +19,36 @@ use Getopt::Std;
 
 $|++;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '2.1';
 
-my $home = "$Bin/fortunes";
+my $home = $Bin;
+$home =~ s|/[^/]*/?$||;
+# remove final directory from bin path to find fortunes path
 
-my ($t0, $t1, $main, $find, @seen_file, $found, $wait, @mrtn);
-my (@dir_list, @text, $text, $dir, %hash, $f, %args, $size);
-$wait = $size = $found = 0;
+# TODO: Search for (or compile in) the location of the fortunes
+#       Support -n option for changing SHORT_LENGTH
 
+my @FORTDIRS = ( "$home/fortunes" ); # must be correct
+my @OFFDIRS = ( "$home/fortunes/off" ); # can be omitted
+
+# Length of the header table in a datfile (6 longs)
+my $HEADER_LENGTH = 4 * 6;
+
+# Constants used in datfile flags:
+my $STR_RANDOM = 0x1;
+my $STR_ORDERED = 0x2;
+my $STR_ROTATED = 0x4;
+
+# Globals
 my (%opts);
-getopts('adefhilosvwm:', \%opts);
 
-my $debug = $opts{'d'};
+getopts('adefhilosvwm:n:', \%opts);
 
-if ($opts{'v'}) {
+my $debug = $opts{d};
+
+my $SHORT_LENGTH = $opts{n} || 160;
+
+if ($opts{v}) {
 	print "\n\n$0 $VERSION\n\n";
 	exit 1;
 }
@@ -44,73 +60,56 @@ if ($debug) {
 	}
 }
 
-if ($opts{'h'}) { &print_help; }
-
-if ($opts{'m'}) {
-	$find = '(?i)' if $opts{'i'};
-	$opts{'m'} =~ s%(\W)%\\$1%g;
-	$find .= $opts{'m'};
-	warn "\$find ==> $find" if $debug;
-	study $find;
-}
-
-if (@ARGV) {
-
-	if ($debug) {
-		warn "\n\@ARGV:\n";
-		foreach (@ARGV) {
-			warn "$_\n";
-		}
-		warn "\n\n";
-	}
-
-	my ($ky, $val, $f);
-	$ky = $val = $f = 0;
-	foreach (@ARGV) {
-		if (/^all$/) {
-			$opts{a} = 1;
-			undef @ARGV;
-			last;
-		} elsif (/\d+\%/) {
-			s/(\d+)\%/$1/;
-			$val = $_;
-			$f++;
-		} else {
-			if (($val) && ($f)){
-				$args{$_} = $val;
-			}
-
-			$ky = $val = $f = 0;
-		}
-	}
-}
+my %Top_item = ( name => 'Top level file/directory list',
+		 num_choices => 100,
+		 files => [ {
+				name => 'Percent specified',
+				files => [],
+				percent => 0
+			}, {
+				name => 'Percent unspecified',
+				files => [],
+				percent => 100
+			} ]
+		);
 
 # this is the main routine of the program
 
-if ($opts{f}) {
-	&build_file_list;
-	&print_file_list;
-}else {
-	&build_file_list;
-	my $pfile = &pick_file;
-	my $pick = &pick_fortune($pfile);
-	&print_fortune($pick);
+if ($opts{h}) { print_help(); }
+
+build_file_list( list_files( \%Top_item ) );
+
+if ($opts{m}) {
+	# I'm not sure if any regexp munging is necessary.
+	# - MikeC Jan 2005
+	# Here's what Andy was trying:
+	# $opts{m} =~ s%(\W)%\\$1%g;
+
+	foreach ( list_files( \%Top_item ) ) {
+		print_matching_fortunes( $_, $opts{m} );
+	}
+
+} elsif ($opts{f}) {
+	foreach (list_files( \%Top_item ) ) {
+		print_file_list( $_, num_chances( $_ ) );
+	}
+
+} else {
+	my $pfile = pick_file( \%Top_item ) or die "fortune: no files to choose from!\n";
+	my $pick = pick_fortune($pfile);
+	print_fortune($pfile, $pick);
 }
 
-exit 1;
+# exit 0;
+
 
 #
 #  Sub Routines
 #
 
-sub find_fortune
-{
-	&new_file_list;
-	my $pfile = &pick_file;
-	my $pick = &pick_fortune($pfile);
-}
-
-# build list the available files
+# build_file_list
+#
+# build list of the available files
 #
 # if -a all files including `obscene' ones are valid
 # if -o only `offensive' files are valid
@@ -121,330 +120,839 @@ sub find_fortune
 
 sub build_file_list
 {
-	my $rtn;
+	my ($specified, $unspecified) = @_;
 
-	@dir_list = ();
-	if (@ARGV) {  $rtn = &build_w_args; }
-	else { $rtn = &build_wo_args; }
+	warn "Building file list. Containers are $specified->{name} and $unspecified->{name}\n" if ($debug);
 
-	return $rtn;
+	return build_w_args( $specified, $unspecified ) if @ARGV;
+
+	# if no files specified:
+	return add_all( $unspecified );
 }
 
-# used if files or directories were given on the cmd line
+# build_w_args
+#
+# build the file list based on files or directories given on the cmd line
 
 sub build_w_args
 {
+	my ($specified, $unspecified) = @_;
 
-if (%args) {
-
-	    while (my ($key,$value) = each %args) {
-
-			if ($debug) { warn "key = $key, value = $value\n"; }
-
-			my (@temp, $t, $i);
-		    if ($value =~ /^\d+\$/) {
-				$t += $value;
-				$i = $value;
-			}
-			while ($i) {
-				push @temp, "$home/$key";
-				$i--;
-			}
-
-			foreach (@temp) { print "$_\n"; }
-			my $dir_c = @temp;
-			my $rand = int (rand $dir_c);
-			my $tmp = $temp[$rand];
-			if ($debug) { warn "$tmp\n"; }
-			return $tmp;
-		}
-    }
-}
-
-# if no files were specified on the cmd line use this.
-# gets the list of files and their sizes
-
-sub build_wo_args
-{
-
-	opendir D, "$home" or die "could not open $home: $!\n";
-
-	my @allfiles = readdir D;
-
-	foreach (@allfiles) {
-		next if /^\./;
-		next if /\..*$/;
-		if ($opts{o})       { next unless  /-o$/ || /limerick$/; }
-		elsif (! $opts{a})  { next     if  /-o$/ || /limerick$/; }
-		next unless -f "$home/$_";
-		push @dir_list, "$home/$_";
-	}
 	if ($debug) {
-		warn "\n\@dir_list in build_wo_args\n";
-		foreach (@dir_list) { warn "$_\n"; }
-		warn "\n";
+		warn "\n\@ARGV (".scalar @ARGV." arguments):\n";
+		foreach (@ARGV) {
+			warn "$_\n";
+		}
+		warn "\n\n";
+	}
+
+	my $percent;
+	foreach (@ARGV) {
+		if (/^(\d+)\%$/) {
+			$percent = $1;
+
+		} else {
+			if (defined $percent) {
+			    add_item( $specified, $_, $percent );
+			    $specified->{percent} += $percent;
+			    $unspecified->{percent} -= $percent;
+			    undef $percent;
+
+			} else {
+			    add_item( $unspecified, $_ );
+			}
+		}
+	}
+	die "fortune: percentages must precede files" if defined $percent;
+
+	if ( $specified->{percent} > 100 ) {
+		die "fortune: probabilities sum to $specified->{percent}\%!";
 	}
 }
+
+# add_all
+#
+# add all the default fortunes to the specified $file_list container
+# If $percent is specified, set the probability of choosing a
+# default fortune to $percent.
+
+sub add_all
+{
+	my ($file_list, $percent) = @_;
+
+	if (defined $percent) {
+		my $all_item = { name => 'all',
+				 percent => $percent,
+				 files => [] };
+		add_to_list( $file_list, $all_item );
+		$file_list = $all_item;
+	}
+	foreach ( fortune_dirs() ) {
+		add_dir( $file_list, $_ );
+	}
+}
+
+# add_item
+#
+# Add a file or directory to $file_list
+#
+# Assumes that find_path will die if $name doesn't specify
+# a real fortune file or directory
+
+sub add_item
+{
+	my ($file_list, $name, $percent) = @_;
+
+	my $container_name = $file_list->{name} || $file_list->{path};
+	warn "trying to add item $name to $container_name\n" if $debug;
+
+	return add_all( $file_list, $percent ) if ( $name eq 'all' );
+
+	my $path = find_path($name);
+	warn "path = $path\n" if $debug;
+
+	if ( -d $path ) {
+		    return add_dir($file_list, $path, $percent);
+	    }
+	    if ( is_fortune_file( $path ) ) {
+		    return add_file($file_list, $name, $path, $percent);
+	    }
+
+	    # We should never get here.
+	    die "fortune: VERY BAD ERROR in function add_item";
+}
+
+# find_path
+#
+# return the file path of fortune file/dir $name
+#
+# die if it can't find a match
+
+sub find_path
+{
+    my $name = shift;
+
+    return $name if -d $name || is_fortune_file( $name );
+
+    foreach ( fortune_dirs() ) {
+	    return "$_/$name" if is_fortune_file( "$_/$name" );
+    }
+
+    die "fortune: $name not a fortune file or directory\n";
+}
+
+# fortune_dirs
+#
+# return a list of default fortune directories
+# depending of the -o (offensive only) and -a (all fortunes) options
+
+sub fortune_dirs
+{
+    my @searchdirs;
+    push @searchdirs, @FORTDIRS unless $opts{o};
+    push @searchdirs, @OFFDIRS if ( $opts{o} || $opts{a} );
+    return @searchdirs;
+}
+
+# is_fortune_file
+#
+# return true if $path is a real fortune file
+# and the file matches the current -o and -a options
+# (i.e. whether offensive and inoffensive fortunes are allowed)
+
+my %checked_fortune_files;
+# I wanted to make this a static variable, but I can't remember how to do that
+# MikeC 2004
+
+sub is_fortune_file
+{
+    my $path = shift;
+
+    my $msg = "is_fortune_file($path) returns";
+    if ( $checked_fortune_files{$path} ) {
+	    warn "$msg TRUE (already checked)\n" if $debug;
+	    return 1;
+    }
+    unless ( -f $path && -r _ ) {
+	    warn "$msg FALSE (can't read file)\n" if $debug;
+	    return 0;
+    }
+    my @illegal_suffixes = qw(dat pos c h p i f pas ftn ins.c ins,pas
+			      ins.ftn sml);
+    foreach (@illegal_suffixes) {
+	if ( $path =~ /\.$_$/ ) {
+		    warn "$msg FALSE (file has suffix $_)\n" if $debug;
+		    return 0;
+	    }
+    }
+    my $datfile = "$path.dat";
+    unless ( -f $datfile && -r _ ) {
+	    warn "$msg FALSE (no \".dat\" file)\n" if $debug;
+	    return 0;
+    }
+    if ( $opts{o} and not offensive( $path ) ) {
+	    warn "$msg FALSE (inoffensive files not allowed)\n" if $debug;
+	    return 0;
+    }
+    if ( is_offensive( $path ) and not ( $opts{a} or $opts{o} ) ) {
+	    warn "$msg FALSE (offensive files not allowed)\n" if $debug;
+	    return 0;
+    }
+    $checked_fortune_files{$path}++;
+    warn "$msg TRUE\n" if $debug;
+    return 1;
+}
+
+# is_offensive
+#
+# returns true if fortune file $path is believed to be offensive
+#
+# Attempts to support both the newer offensive dir style
+# and the older .o offensive file extension
+
+sub is_offensive
+{
+	my $path = shift;
+
+	return 1 if $path =~ /-o$|limerick$/;
+	foreach (@OFFDIRS) {
+		my $offmatch = quotemeta $_;
+		return 1 if $path =~ /^$offmatch/;
+	}
+	return 0;
+}
+
+# is_dir
+#
+# returns true if $item is a container
+#
+# This is different from is_fortune_file, which should be used to check
+# a file before it's added.
+#
+# is_dir should be used to check if an already added item is a directory.
+
+sub is_dir
+{
+	my $item = shift;
+
+	return exists $item->{files};
+}
+
+# list_files
+#
+# return the items contained directly by $dir
+#
+# It should be ok to call this on an item,
+# even if it's not a directory.
+#
+# Use is_dir to check if an item is a directory
+
+sub list_files
+{
+	my $dir = shift;
+
+	return @{$dir->{files}} if defined @{$dir->{files}};
+	return ();
+}
+
+# add_dir
+#
+# recursively add directory $path to container $file_list.
+# if $percent is specified, set its probability to $percent.
+
+sub add_dir
+{
+	my ($file_list, $path, $percent) = @_;
+
+	my $dir = { path => $path,
+		    percent => $percent,
+		    files => [] };
+	add_to_list( $file_list, $dir);
+
+	opendir D, "$path" or die "could not open $path: $!\n";
+	foreach (readdir D) {
+		next if /^\./;
+		next unless is_fortune_file( "$path/$_" );
+		add_file( $dir, $_, "$path/$_" );
+	}
+	if (!list_files( $dir ) ) {
+		die "No acceptable fortune files in directory $path" if $percent;
+		warn "add_dir: no acceptable files in directory $path\n" if $debug;
+		return;
+	}
+}
+
+# add_file
+#
+# add fortune file at $path to container $file_list.
+# Set its display name to $name
+# Set its probability to $percent if specified.
+
+sub add_file
+{
+	my ($file_list, $name, $path, $percent) = @_;
+
+	add_to_list( $file_list, { name => $name,
+				  path => $path,
+				  percent => $percent } );
+	my $container_name = $file_list->{name} || $file_list->{path};
+	warn "Added file $path to $container_name\n" if $debug;
+}
+
+# add_to_list
+#
+# add $item to container $file_list
+
+sub add_to_list
+{
+	my ($file_list, $item) = @_;
+
+	push @{$file_list->{files}}, $item;
+}
+
+# print_matching_fortunes
+#
+# Recursively search all files and directories.
+# List all fortunes that match the regex in $match.
+#
+# The fortunes are listed in the order they appear in a file,
+# even if the indexes are shuffled.
+#
+# The filename appears before the fortunes it contains.
+
+sub print_matching_fortunes
+{
+	my ($file, $match) = @_;
+
+	warn "Searching for matches in $file->{name}...\n" if $debug;
+
+	if ( is_dir( $file ) ) {
+		foreach ( list_files( $file ) ) {
+			print_matching_fortunes( $_, $match );
+		}
+		return;
+	}
+
+	read_table( $file );
+
+	# skip files that have no fortunes within length limits
+	return unless num_choices( $file );
+
+	my @matches;
+	open FORTUNE, "<$file->{path}" or die "Can't open $file->{path}:$!";
+	until ( eof( FORTUNE ) ) {
+		my $fortune = read_next_fortune( $file, \*FORTUNE );
+		next if is_wrong_length( length( $fortune ) );
+
+		if ( fortune_match( $fortune, $match ) ) {
+			chomp $fortune;
+			push @matches, "$fortune\n%\n";
+		}
+	}
+	if (@matches) {
+		print "$file->{name}\n%\n";
+		print join '', @matches;
+	}
+}
+
+# print_file_list
+#
+# Lists all files with their probability of being chosen
+# (output of the -f option)
+
+sub print_file_list
+{
+	my ( $item, $percent, $depth ) = @_;
+	$percent = 100.0 unless defined $percent;
+	$depth ||= 0;
+
+	my $num_choices = num_choices( $item );
+	foreach( list_files( $item ) ) {
+		my $prob = $num_choices ?
+			   $percent * num_chances( $_ ) / $num_choices :
+			   0; # Avoid division by zero
+		print "    " x $depth;
+		printf ( "%5.2f%%", $prob );
+		print " " . ( $_->{name} || $_->{path} ) . "\n";
+		print_file_list( $_, $prob, $depth + 1 );
+	}
+}
+
+# pick_file
+#
+# pick a fortune file at random from the top container $item,
+# based on the probability rules in effect
+#
+# return the file item chosen
 
 sub pick_file
 {
-	die "\nCould find no files to open!\n" unless @dir_list;
+	my $item = shift;
 
-	if ($opts{e}) {
-		my $dir_c = @dir_list;
-		my $rand = int (rand $dir_c);
-		my $tmp = $dir_list[$rand];
-		return $tmp;
-	} else {
-		my (@temp, $t);
-		@temp = ();
-		my $sz = 0;
-		%hash = ();
-
-		foreach (@dir_list) {
-			$sz = (-s "$_");
-			$size += $sz;
-			$hash{$_} = $sz;
-		}
-
-		for $t(keys %hash) {
-			my $r = $hash{$t};
-			my $i = int (100 * (($r/$size) + .005));
-			if ($i < 1) { $i = 1; }
-			while ($i) {
-				push @temp, "$t";
-				$i--;
-			}
-
-		}
-
-		if ($debug) {
-			warn "\n\@temp in pick_file\n";
-			foreach (@temp) {
-				warn "$_\n";
-			}
-		}
-
-		my $dir_c = @temp;
-		my $rand = int (rand $dir_c);
-		my $tmp = $temp[$rand];
-
-		warn "\ntmp = $tmp\n" if $debug;
-		return $tmp;
+	# Check if it's actually a single file
+	unless ( is_dir( $item ) ) {
+		warn "Picking file $item->{path}\n" if $debug;
+		return $item;
 	}
 
+	my $num_choices = num_choices( $item ) || return undef;
+
+	my $choice = int( rand( $num_choices ) );
+	foreach ( list_files( $item ) ) {
+		return pick_file( $_ ) if num_chances( $_ ) > $choice;
+		$choice -= num_chances( $_ );
+	}
 }
 
-sub new_file_list
+# num_chances and num_choices
+#
+# num_chances is the number of chances an item has of being chosen.
+# num_choices is the number of choices within an item.
+#
+# The probability of an item being chosen,
+# given that its container was chosen
+# is:
+# the num_chances of the item / the num_choices of its container
+#
+# These two functions work together recursively;
+# Each one can call the other.
+
+# num_chances
+#
+# return the number of chances $item has of being chosen.
+# This number is either the percent probability specified on the command line,
+# or the total number of choices it contains.
+
+sub num_chances
 {
-	my $t;
-	my %seen = ();
-	my @new_dir_list = ();
+	my $item = shift;
 
-	if ($debug) {
-		warn "\n ++dir_list\n";
-		foreach (@dir_list) {
-			my $n = basename($_);
-			warn " $n\n";
-		}
-		warn "\n";
-	}
-
-	foreach $t (@seen_file) { $seen{$t} = 1; }
-
-	foreach $t (@dir_list) {
-		unless ($seen{$t}) { push (@new_dir_list, $t); }
-	 }
-
-	exit unless @new_dir_list;
-
-	if ($debug) {
-		warn "\n ++new_dir_list\n";
-		foreach (@new_dir_list) {
-			my $n = basename($_);
-			warn " $n\n";
-		}
-		warn "\n";
-	}
-
-	@dir_list = ();
-	@dir_list = @new_dir_list;
-
-	if ($debug) {
-		warn "\n ++dir_list\n";
-		foreach (@dir_list) {
-			my $n = basename($_);
-			warn " $n\n";
-		}
-		warn "\n";
-	}
-
+	return $item->{percent} if defined $item->{percent};
+	return num_choices( $item );
 }
 
+# num_choices
+#
+# return the number of choices $item contains.
+# This is the sum of the num_chances of all the items it contains
+#
+# If the item is a fortune file, not a container,
+# then its num_choices is the number of fortunes it contains
+# or zero, if it contains no fortunes of appropriate length
+# or one, if the -e option is in effect to weigh all files equally
+
+sub num_choices
+{
+	my $item = shift;
+
+	return $item->{num_choices} if defined $item->{num_choices};
+	return $item->{num_choices} = calculate_num_choices( $item );
+}
+
+# calculate_num_choices
+#
+# used if num_choices has not cached the choices for $item.
+
+sub calculate_num_choices
+{
+	my $item = shift;
+
+	if ( is_dir( $item ) ) {
+		my $num_choices = 0;
+		foreach ( list_files( $item ) ) {
+			$num_choices += num_chances( $_ );
+		}
+		return $num_choices;
+	}
+
+	# it's a file
+	return 1 if ($opts{e});
+
+	read_table( $item );
+
+	if ( is_too_long( $item->{shortest} ) ) {
+		warn "There are no strings short enough in $item->{name}\n" if $debug;
+		return 0;
+	}
+	if ( is_too_short( $item->{longest} ) ) {
+		warn "There are no strings long enough in $item->{name}\n" if $debug;
+		return 0;
+	}
+	return $item->{num_strings};
+}
+
+# is_wrong_length
+#
+# returns true if integer $length is too long or too short,
+# based on command line options -s, -l, and -n.
+
+sub is_wrong_length
+{
+	my $length = shift;
+
+	warn "is_wrong_length: fortune is $length characters\n" if $debug;
+	return is_too_short( $length ) || is_too_long( $length );
+}
+
+# is_too_long
+#
+# returns true if integer $length is too long,
+# based on command line options -s and -n.
+
+sub is_too_long
+{
+	my $length = shift;
+
+	return $opts{s} && $length > $SHORT_LENGTH;
+}
+
+# is_too_short
+#
+# returns true if integer $length is too short,
+# based on command line options -l and -n.
+
+sub is_too_short
+{
+	my $length = shift;
+
+	return $opts{l} && $length <= $SHORT_LENGTH;
+}
+
+# pick_fortune
+#
 # put all of the fortunes into an array then pick one
 # that fits the criteria.
 
 sub pick_fortune
 {
-	$/ = "\%\n";
 	my $file = shift;
-	my $line;
-	my $picked = 0;
-	if ($debug) { warn "\nthe file is $file\n\n"; }
-	my $regex;
-		open F, "< $file" or die "could not open file $file: $!";
-		while (defined ($line = <F>)) {
-			$line =~ s|\%+\n||g;
-			push @text, $line;
-		}
-		$text = @text;
 
-	warn "\n\nthe length of \@text is $text\n\n" if $debug;
+	read_table( $file );
+	my @choices = ( 0..$file->{num_strings} - 1 );
+	my $choice;
+	do {
+		die "BAD ERROR: no choices left in file $file->{path}" unless @choices;
+		$choice = splice @choices, int( rand( @choices ) ), 1;
+		warn "picking fortune $choice\n" if $debug;
+	} while ( is_wrong_length( fortune_length( $file, $choice ) ) );
 
-	my $num = int (rand $text);
-
-	warn "\n\$num at the beginning of pick_fortune is $num\n" if $debug;
-
-	my @rtn;
-	my $not_done = 1;
-	my $wrap = 0;
-	my $hold_num = $num;
-
-	while ($not_done) {
-
-		if ($opts{'s'} || $opts{'l'}) {
-			@rtn = &short_long ($num, $not_done);
-			$num = $rtn[0];
-			$not_done = $rtn[1];
-		} else {
-			$not_done = 0;
-			$found = 1;
-		}
-
-		if ($find) {
-			$found = 0;
-			@mrtn = &match($num, $not_done, $text, $wrap, $picked, \$found);
-			$num = $mrtn[0];
-			$not_done = $mrtn[1];
-
-			if ($wrap && ($num >= $text)) {
-				&new_file ($file, \$picked);
-				$picked = 1;
-				last;
-			}
-		} else {
-			$not_done = 0;
-			$found = 1;
-		}
-	}
-	warn "\n\$num at the end of pick_fortune to be returned is $num\n" if $debug;
-	return $num;
+	return $choice;
 }
 
-sub match
+# fortune_match
+#
+# return true if string $fortune matches regexp $match
+#
+# The -i option on command line selects case-insensitive matching.
+#
+# This SHOULD be safe, but I can't be sure.
+# You should definitely not use the re 'eval' pragma.
+# -MikeC Jan 2005
+
+sub fortune_match
 {
-	my $num = shift;
-	my $not_done = shift;
-	my $len = shift;
-	my $wrap = shift;
-	my $picked = shift;
-	my $found = shift;
+	my ($fortune, $match) = @_;
 
-	if ($text[$num] !~ m|$find|smo) {
-		$num++;
-		$not_done = 1;
-
-		if ($num > $len) {
-			$num = 0;
-			$wrap++;
-		}
+	if ( $opts{i} ) {
+		return $fortune =~ /$match/i;
 
 	} else {
-		$picked = 0;
-		$not_done = 0;
-		$$found = 1;
-	}
-
-	if ($debug) {
-		warn "match \$find == $find\t\$found == $$found\n";
-		warn "the text matched is\n\t$text[$num]\n \$num = $num" if $$found;
-	}
-	return $num, $not_done;
-}
-
-sub new_file
-{
-	warn "\n^^ran out of fortunes in that file, trying another one\n\n" if $debug;
-	my $file = shift;
-	my $picked = shift;
-	push @seen_file, $file;
-	foreach (@seen_file) { warn "seen file => $_\n" if $debug; }
-	$$picked = 1;
-	&find_fortune;
-
-}
-
-sub short_long
-{
-	my $num = shift;
-	my $not_done = shift;
-
-	warn "in short_long\n" if $debug;
-
-	while ($not_done) {
-
-	if ($opts{'s'}) {
-		if (length ($text[$num]) > 200) {
-			$num++;
-			next;
-		} else {
-			$not_done = 0;
-		}
-
-	} elsif ($opts{'l'}) {  # that's an ell
-		if ((length ($text[$num]) <= 200)) {
-			$num++;
-			next;
-		} else {
-			$not_done = 0;
-		}
-	} else {
-		;       # this will let us keep looking
+		return $fortune =~ /$match/;
 	}
 }
-	return $num, $not_done;
 
-}
+# print_fortune
+#
+# used for output with normal options
+# i.e. neither -f nor -m is used on the command line
+#
+# the -w option causes a delay following output
 
 sub print_fortune
 {
+	my ($file, $index) = @_;
 
-	if ($found) {
-		my $num = shift;
-		warn "\n\$num in print_fortune is $num\n" if $debug;
+	my $wait = 0;
 
-		if ($opts{w}) {
-			my $tmp = length $text[$num];
-			$wait = int ($tmp/75);
-		}
-
-		print "\n\n$text[$num]\n\n";
-		sleep $wait;
-	} else {
-		print "\nSorry, did not find a match\n\n";
+	if ($opts{w}) {
+		my $tmp = fortune_length( $file, $index );
+		$wait = int ($tmp/75);
 	}
+
+	print read_fortune( $file, $index );
+	sleep $wait;
 }
 
-sub print_file_list
+# fortune_length
+#
+# Returns the length of fortune number $index in $file.
+#
+# Assumes we've already read the table from the datfile
+# Assumes that calling read_fortune will clear any cached fortune data,
+# read the offsets, store the fortune and store its length.
+
+sub fortune_length
 {
-	my $file_name;
-	print "\n";
-	foreach (@dir_list) {
-		$file_name = basename($_);
-		print "\t$file_name\n";
+	my ($file, $index) = @_;
+
+	if ( defined $file->{index} && $file->{index} == $index ) {
+		return $file->{fortune_length};
 	}
 
-	print "\n";
+	warn "fortune_length: not cached\n" if $debug;
+
+	if ( is_unordered( $file ) && $index < $file->{num_strings} - 1 ) {
+		# The length of the fortune is the difference between
+		# the indexed offset and the next one
+		# minus the length of the delimeter line.
+		# We can't count on that for the last fortune
+		# because it might not have a delimiter after it.
+
+		my @offsets = read_offsets( $file, $index );
+		return $offsets[1] - $offsets[0] - 2;
+	}
+
+	if ( !is_unordered( $file ) ) {
+		warn "fortune_length: file has scrambled offsets - reading fortune\n" if $debug;
+
+	} else {
+		warn "fortune_length: last fortune - reading fortune\n" if $debug;
+	}
+	# we have to actually look at the fortune to find its length;
+	read_fortune( $file, $index );
+	return $file->{fortune_length};
+}
+
+# is_rotated
+#
+# returns true if the fortune file has been encoded with ROT13.
+#
+# Assumes the table has already been read from the datfile.
+
+sub is_rotated
+{
+	my ($file) = shift;
+
+	return $file->{flags} & $STR_ROTATED;
+}
+
+# is_unordered
+#
+# Return true if the datfile's offsets are unordered
+# i.e. in the same order as the fortune file
+#
+# (the ordered flag means the offsets are sorted alphabetically,
+#  the random flag means they are scrambled randomly)
+#
+# Assumes that the datfile has already been read.
+
+sub is_unordered
+{
+	my $file = shift;
+
+	return !( $file->{flags} & ( $STR_RANDOM | $STR_ORDERED ) );
+}
+
+# read_table
+#
+# read the header table from the dat file for $file
+#
+# Table data are:
+#
+# fortune version
+# number of fortunes in file
+# length of longest fortune in file
+# length of shortest fortune in file
+# flags (ordered, random, and ROT13 encoded)
+# delimeter character (usually %)
+
+sub read_table
+{
+	my $file = shift;
+
+	return if defined $file->{num_strings}; # already read the table
+
+	my $datfile = "$file->{path}.dat";
+	open(DAT,"<$datfile") || die "Can't Open $datfile:$!";
+	binmode DAT; # we're reading binary data, right?
+	my $header;
+	read (DAT, $header, $HEADER_LENGTH) or die "failed to read $datfile\n";
+	@{$file}{qw(version num_strings longest shortest flags delim)} =
+	    unpack ("NNNNNaxxx", $header);
+}
+
+# read_next_fortune
+#
+# reads the next fortune from $fh, storing it in $file
+# Reads sequentially, ignoring offsets in dat file.
+# (used with the -m option by print_matching_fortunes)
+#
+# returns the fortune if successful
+# returns undef if EOF
+#
+# Assumes the table has already been read.
+
+sub read_next_fortune
+{
+	my ($file, $fh)  = @_;
+
+	clear_fortune( $file );
+
+	return if eof( $fh );
+
+	load_fortune( $file, $fh );
+
+	return $file->{fortune};
+}
+
+# read_fortune
+#
+# Read fortune number $index for $file and store it.
+#
+# used with the default options, i.e. print_fortune
+# pick_fortune can also cause this to be called if fortune_length
+# is unable to calculate the length from offsets.
+# In that case, the values stored during this call will be cached
+# for use by print_fortune later.
+#
+# Assumes that read_table has already been called for this file
+# Assumes that only calling read_offsets can change $file->{index}
+# Assumes that calling read_offsets will clear any old fortune string.
+
+sub read_fortune
+{
+	my ($file, $index) = @_;
+
+	warn "read_fortune: index is $index. file's index is $file->{index}\n" if $debug;
+	if ( defined $file->{index} && $file->{index} == $index ) {
+		return $file->{fortune} if defined $file->{fortune};
+	}
+	my ($offset) = read_offsets( $file, $index );
+	warn "read_fortune: offset is $offset\n" if $debug;
+
+	open FORTUNE, "<$file->{path}" or die "Can't open $file->{path}:$!";
+	seek( FORTUNE, $offset, 0 );
+	load_fortune( $file, \*FORTUNE );
+	close FORTUNE;
+
+	return $file->{fortune};
+}
+
+# clear_fortune
+#
+# Clears fortune-specific values used for caching by other functions
+
+sub clear_fortune
+{
+	my ($file) = @_;
+
+	undef $file->{fortune};
+	undef $file->{index};
+	undef $file->{offsets};
+}
+
+# load_fortune
+#
+# read the fortune at the seek point in $fh and store it in $file.
+#
+# If the file is encoded with ROT13, decode it.
+# Store the fortune's length.
+
+sub load_fortune
+{
+	my ($file, $fh) = @_;
+
+	$file->{fortune} = '';
+
+	while( <$fh> ) {
+		last if /^$file->{delim}$/;
+		# warn "load_fortune: reading line $_\n" if $debug;
+		$file->{fortune} .= $_;
+	}
+
+	if ( is_rotated( $file ) ) {
+		$file->{fortune} =~ tr/N-ZA-Mn-za-m/A-Za-z/;
+	}
+
+	$file->{fortune_length} = length( $file->{fortune} );
+}
+
+# read_offsets
+#
+# returns the start and end offset for fortune number $index in $file
+# (there is no guarantee that the end offset is correct -
+#  it is simply the next offset in the list - but it SHOULD
+#  be correct if the offsets are not scrambled and this is not
+#  the last fortune in the file)
+#
+# SIDE EFFECTS:
+#
+# Calls clear_fortune
+# Sets $file->{index}
+#
+# called directly by read_fortune
+# and indirectly by fortune_length
+
+sub read_offsets
+{
+	my ($file, $index) = @_;
+
+	if ( defined $file->{index} && $file->{index} == $index ) {
+		return @{ $file->{offsets} };
+	}
+
+	clear_fortune( $file );
+	$file->{index} = $index;
+
+	my $offset_length = offset_length( $file );
+
+	my $datfile = "$file->{path}.dat";
+	open DAT, "<$datfile" || die "Can't open $datfile:$!";
+	binmode DAT; # we're reading binary data, right?
+	seek( DAT, $HEADER_LENGTH + $offset_length * $index, 0 );
+	my @offsets;
+	for my $i (0..1) {
+		my $bytes;
+		read( DAT, $bytes, $offset_length );
+		foreach ( unpack "C$offset_length", $bytes ) {
+			warn "read_offsets: byte=$_\n" if $debug;
+			$offsets[$i] = ( $offsets[$i] << 8 ) + $_;
+		}
+		warn "read_offsets: offset=$offsets[$i]\n" if $debug;
+	}
+	close DAT;
+	return @{ $file->{offsets} } = @offsets;
+}
+
+# offset_length
+#
+# In fink, at least, offsets are of type off_t, which is 64 bits.
+# That's different from the regular 32 bit offsets of most fortune
+# versions. Let's calculate the size of the offsets from the size
+# of the dat file.
+#
+# Assumes that the datfile header table has already been read.
+
+sub offset_length
+{
+	my $file = shift;
+
+	return $file->{offset_length} if defined $file->{offset_length};
+
+	my $datfile = "$file->{path}.dat";
+	my $offsets_size = ( -s $datfile ) - $HEADER_LENGTH;
+	my $num_offsets = $file->{num_strings} + 1;
+	warn "offset_length: offsets_size=$offsets_size num_offsets=$num_offsets\n" if $debug;
+
+	my $offset_length = int( $offsets_size / $num_offsets );
+	if ($offset_length * $num_offsets != $offsets_size ) {
+		die "$datfile doesn't have the right number of offsets! (file has $offsets_size bytes for $num_offsets offsets)";
+	}
+	# If this doesn't work, try $num_offsets - 1
+	# as if there's no final offset
+
+	warn "offset_length: offset_length for $file->{path} is $offset_length\n" if $debug;
+	return $file->{offset_length} = $offset_length;
 }
 
 sub print_help
@@ -461,6 +969,7 @@ Usage: $0 [-adefhilosw] [-m pattern] [[N%] file/dir/all]
      -f Print out the list of files which would be searched.
      -l Long dictums only.
      -m Print out all fortunes which match the regular expression pattern.
+     -n Set the limit for long or short fortunes (default 160 chars)
      -o Choose only from potentially offensive aphorisms.
      -s Short apothegms only.
      -i Ignore case for -m patterns.
@@ -490,7 +999,7 @@ fortune - print a random, hopefully interesting, adage
 
 =head1 SYNOPSIS
 
-fortune [-adefgilosw] [-m pattern] [[N%] file/dir/all]
+fortune [-adefilosw] [-n length] [-m pattern] [[N%] file/dir/all]
 
 =head1 DESCRIPTION
 
@@ -508,10 +1017,18 @@ not.  The options are as follows:
      -f    Print out the list of files which would be searched, but do not
            print a fortune.
 
-     -l    Long dictums only.  Long is defined as 200 or more charaters.
+     -l    Long dictums only.  See -n on how "long" is defined in this sense.
 
-     -m    Print out all fortunes which match the regular expression pattern.
-           See regex(3) for a description of patterns.
+     -m I<pattern>
+	   Print out all fortunes which match the regular expression pattern.
+           See L<perlre(1)> for a description of patterns.
+
+     -n I<length>
+	   Set the longest fortune length (in characters) considered to be
+	   ``short'' (the default is 160). All fortunes longer than this
+	   are considered ``long''. If you set the length too short and
+	   ask for short fortunes, or too long and ask for long ones,
+	   you will get an error.
 
      -o    Choose only from potentially offensive aphorisms.  Please, please,
            please request a potentially offensive fortune if and only if you
@@ -525,7 +1042,8 @@ not.  The options are as follows:
                  whole human race, if needs be.  Needs be.
                              --H. Allen Smith, "Rude Jokes"
 
-     -s    Short apothegms only.  Short is defined as less than 200 charaters.
+     -s    Short apothegms only.  See -n on which fortunes are considered
+           "short".
 
      -i    Ignore case for -m patterns.
 
@@ -579,14 +1097,29 @@ readme
 
 =head1 BUGS
 
-The matching is only working 50% of the time using single quotes around strings
-with white space and not at all for double quotes.
-
-Command line input of files does not work.
+Currently there is no installer and the fortunes listed above are not
+included.  Because of this, fortune might not find any files unless you
+specify them on the command line.
 
 =head1 TO DO
 
-Get the command line args of files and percentages to work.
+Bundle files and possibly make an installer.
+
+=head1 REVISION HISTORY
+
+	Revision 2.1 2006/01/16 mike ciul
+	Enabled a lot of options
+	Fixed known bugs
+	Added -n option
+
+	Revision 1.0.1 1999/06/07 andy murren
+	Small fixes and code clean up
+	FindBin now helps locate the directory of fortunes
+	Will search multiple files for a match
+	Dumped the -g option I tried in the original
+
+	Revision 1.0 1999/04/01 andy murren
+	Inital Revision
 
 =head1 AUTHOR
 
@@ -595,6 +1128,6 @@ This Perl implmentation of I<fortune> was written by Andy Murren, I<andy@murren.
 =head1 COPYRIGHT and LICENSE
 
 This program is covered by the GNU Public License (GPL).
-See I<http://www.gnu.org/copyleft/gpl.html> for complete detail of the license.
+See L<http://www.gnu.org/copyleft/gpl.html> for complete detail of the license.
 
 =cut
