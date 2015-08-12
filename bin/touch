@@ -158,7 +158,7 @@ succesfully.
 
 =head2 OPTIONS
 
-I<head> accepts the following options:
+I<touch> accepts the following options:
 
 =over 4
 
@@ -211,7 +211,7 @@ seconds
 
 =head1 STANDARDS
 
-This I<head> implementation is compatible with the B<OpenBSD> implementation,
+This I<touch> implementation is compatible with the B<OpenBSD> implementation,
 except for the I<-f> option.
 
 =head1 AUTHOR
