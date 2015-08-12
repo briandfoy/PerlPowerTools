@@ -4,7 +4,7 @@
 
 Name: arithmetic
 Description: improve your arithmetic skills
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -231,7 +231,7 @@ character.
 =head1 AUTHOR
 
 The Perl implementation of B<arithmetic> was written by Abigail,
-I<abigail@fnx.com>.
+I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

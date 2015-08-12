@@ -4,7 +4,7 @@
 
 Name: rain
 Description: let it rain
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -57,7 +57,7 @@ I<rain> does not have any known bugs.
 =head1 AUTHOR
 
 The Perl implementation of I<rain>
-was written by Abigail, I<abigail@fnx.com>.
+was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

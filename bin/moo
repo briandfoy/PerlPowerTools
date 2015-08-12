@@ -4,7 +4,7 @@
 
 Name: moo
 Description: play a game of MOO
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -147,7 +147,7 @@ I<moo> does not have any known bugs.
 
 =head1 AUTHOR
 
-The Perl implementation of I<moo> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<moo> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

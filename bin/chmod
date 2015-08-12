@@ -4,7 +4,7 @@
 
 Name: chmod
 Description: change permissions of files
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -423,7 +423,7 @@ It does not make sense to talk about standards in a chmod manual page.
 
 =head1 AUTHOR
 
-The Perl implementation of B<chmod> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of B<chmod> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

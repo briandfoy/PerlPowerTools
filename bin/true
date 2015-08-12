@@ -4,7 +4,7 @@
 
 Name: true
 Description: exit succesfully
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -86,7 +86,7 @@ I<true> and I<false> have no known bugs.
 =head1 AUTHOR
 
 The Perl implementation of I<true> and I<false>
-was written by Abigail, I<abigail@fnx.com>.
+was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

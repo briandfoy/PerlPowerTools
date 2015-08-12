@@ -4,7 +4,7 @@
 
 Name: touch
 Description: change access and modification times of files
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -216,7 +216,7 @@ except for the I<-f> option.
 
 =head1 AUTHOR
 
-The Perl implementation of I<touch> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<touch> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

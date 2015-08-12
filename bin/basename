@@ -4,7 +4,7 @@
 
 Name: basename
 Description: print the basename of a file
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -77,7 +77,7 @@ The I</pattern/> is specific for this Perl implementation.
 =head1 AUTHOR
 
 The Perl implementation of I<basename> was written by Abigail,
-I<abigail@fnx.com>.
+I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 
