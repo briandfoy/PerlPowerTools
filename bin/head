@@ -4,7 +4,7 @@
 
 Name: head
 Description: print the first lines of a file
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -114,7 +114,7 @@ This I<head> implementation is compatible with the B<OpenBSD> implementation.
 
 =head1 AUTHOR
 
-The Perl implementation of I<head> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<head> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

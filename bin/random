@@ -4,7 +4,7 @@
 
 Name: random
 Description: display lines at random, or exit with a random value
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -111,7 +111,7 @@ There are no known bugs in I<random>.
 
 =head1 AUTHOR
 
-The Perl implementation of I<random> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<random> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

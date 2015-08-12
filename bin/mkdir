@@ -4,7 +4,7 @@
 
 Name: mkdir
 Description: create directories
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -196,7 +196,7 @@ B<IEEE Std1003.2> aka B<POSIX.2> implementation.
 
 =head1 AUTHOR
 
-The Perl implementation of B<mkdir> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of B<mkdir> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

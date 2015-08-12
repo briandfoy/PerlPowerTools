@@ -4,7 +4,7 @@
 
 Name: ln
 Description: create links
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -162,7 +162,7 @@ There are no known bugs in this implementation of B<ln>.
 
 =head1 AUTHOR
 
-The Perl implementation of B<ln> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of B<ln> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

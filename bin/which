@@ -4,7 +4,7 @@
 
 Name: which
 Description: report full paths of commands
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -205,7 +205,7 @@ I<which> will examine aliases under MPW (Mac) and symbols under DCL
 
 =head1 AUTHOR
 
-The Perl implementation of I<which> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<which> was written by Abigail, I<perlpowertools@abigail.be>.
 Portability enhancements by Peter Prymmer.
 
 =head1 COPYRIGHT and LICENSE
