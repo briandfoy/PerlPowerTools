@@ -21,7 +21,7 @@ my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
-# Print a usuage message on a unknown option.
+# Print a usage message on a unknown option.
 # Requires my patch to Getopt::Std of 25 Feb 1999.
 $SIG {__WARN__} = sub {
     require File::Basename;
