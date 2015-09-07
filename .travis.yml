@@ -1,23 +1,23 @@
 language: perl
 perl:
-	- "5.8"
-	- "5.10"
-	- "5.12"
-	- "5.14"
-	- "5.16"
-	- "5.18"
-	- "5.20"
+    - "5.8"
+    - "5.10"
+    - "5.12"
+    - "5.14"
+    - "5.16"
+    - "5.18"
+    - "5.20"
 
 before_install:
-	- git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
-	- source ~/travis-perl-helpers/init --auto
+    - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
+    - source ~/travis-perl-helpers/init --auto
 
 install:
-	- cpanm --quiet --installdeps --notest . 
-	- cpanm --quiet --notest Devel::Cover::Report::Coveralls
+    - cpanm --quiet --installdeps --notest . 
+    - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
-	- cover -delete && cover -test
+    - cover -delete && cover -test
 
 after_success:
-	- cover -report coveralls
+    - cover -report coveralls
