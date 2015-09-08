@@ -4,7 +4,7 @@
 
 Name: chgrp
 Description: change group ownership of files
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -187,7 +187,7 @@ I<chgrp> uses C<File::Find> to recurse.
 
 =head1 AUTHOR
 
-The Perl implementation of I<chgrp> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<chgrp> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

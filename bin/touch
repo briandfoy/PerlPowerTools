@@ -4,7 +4,7 @@
 
 Name: touch
 Description: change access and modification times of files
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -21,7 +21,7 @@ my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
-# Print a usuage message on a unknown option.
+# Print a usage message on a unknown option.
 # Requires my patch to Getopt::Std of 25 Feb 1999.
 $SIG {__WARN__} = sub {
     require File::Basename;
@@ -158,7 +158,7 @@ succesfully.
 
 =head2 OPTIONS
 
-I<head> accepts the following options:
+I<touch> accepts the following options:
 
 =over 4
 
@@ -211,12 +211,12 @@ seconds
 
 =head1 STANDARDS
 
-This I<head> implementation is compatible with the B<OpenBSD> implementation,
+This I<touch> implementation is compatible with the B<OpenBSD> implementation,
 except for the I<-f> option.
 
 =head1 AUTHOR
 
-The Perl implementation of I<touch> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<touch> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

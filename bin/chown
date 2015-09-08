@@ -4,7 +4,7 @@
 
 Name: chown
 Description: change ownership of files
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -197,7 +197,7 @@ I<chown> uses C<File::Find> to recurse.
 
 =head1 AUTHOR
 
-The Perl implementation of I<chown> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<chown> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

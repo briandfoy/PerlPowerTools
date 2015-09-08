@@ -4,7 +4,7 @@
 
 Name: apply
 Description: run a command many times with different arguments
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -150,7 +150,7 @@ I<apply> does not honor the users C<$SHELL> environment variable.
 
 =head1 AUTHOR
 
-The Perl implementation of I<apply> was written by Abigail, I<abigail@fnx.com>.
+The Perl implementation of I<apply> was written by Abigail, I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 

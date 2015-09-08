@@ -4,7 +4,7 @@
 
 Name: dirname
 Description: print the directory name of a path
-Author: Abigail, abigail@fnx.com
+Author: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -81,7 +81,7 @@ B<OpenBSD> implementation.
 =head1 AUTHOR
 
 The Perl implementation of I<dirname> was written by Abigail,
-I<abigail@fnx.com>.
+I<perlpowertools@abigail.be>.
 
 =head1 COPYRIGHT and LICENSE
 
