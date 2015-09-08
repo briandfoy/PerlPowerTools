@@ -1,3 +1,7 @@
+sudo: false
+
+sudo: false
+
 language: perl
 perl:
     - "5.8"
@@ -7,6 +11,7 @@ perl:
     - "5.16"
     - "5.18"
     - "5.20"
+    - "5.22"
 
 before_install:
     - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
