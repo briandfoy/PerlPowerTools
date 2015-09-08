@@ -1,7 +1,5 @@
 sudo: false
 
-sudo: false
-
 language: perl
 perl:
     - "5.8"
@@ -18,7 +16,7 @@ before_install:
     - source ~/travis-perl-helpers/init --auto
 
 install:
-    - cpanm --quiet --installdeps --notest . 
+    - cpanm --quiet --installdeps --notest .
     - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
