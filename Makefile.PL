@@ -51,8 +51,9 @@ my $install_base_in_perl_mm_opt = $ENV{PERL_MM_OPT} =~ /\bINSTALL_BASE\b/;
 my $has_install_base =
 	$install_base_in_argv || $install_base_in_perl_mm_opt || 0;
 
+my $home = home();
 unless( $has_install_base ) {
-	my $path = '~/perlpowertools';
+	my $path = "$home/perlpowertools";
 	print <<"HERE";
 ----------------------------------------------------------------------
 Welcome to Perl Power Tools (http://www.perlpowertools.com).
@@ -155,6 +156,28 @@ sub do_it {
 	WriteMakefile( %$arguments );
 	}
 
+
+sub home {
+	if ($^O eq 'MSWin32') {
+		#stolen from File::HomeDir::Windows
+		if ( exists $ENV{HOME} and $ENV{HOME} ) {
+			return $ENV{HOME};
+		}
+
+		if ( exists $ENV{USERPROFILE} and $ENV{USERPROFILE} ) {
+			return $ENV{USERPROFILE};
+		}
+
+		if ( exists $ENV{HOMEDRIVE} and exists $ENV{HOMEPATH} and $ENV{HOMEDRIVE} and $ENV{HOMEPATH} ) {
+			return File::Spec->catpath(
+				$ENV{HOMEDRIVE}, $ENV{HOMEPATH}, '',
+			);
+		}
+	} else {
+
+		return '~';
+	}
+}
 
 no warnings;
 __PACKAGE__;
