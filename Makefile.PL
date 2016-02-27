@@ -51,9 +51,10 @@ my $install_base_in_perl_mm_opt = $ENV{PERL_MM_OPT} =~ /\bINSTALL_BASE\b/;
 my $has_install_base =
 	$install_base_in_argv || $install_base_in_perl_mm_opt || 0;
 
+use File::Spec::Functions qw(catfile);
 my $home = home();
 unless( $has_install_base ) {
-	my $path = "$home/perlpowertools";
+	my $path = catfile($home, 'perlpowertools');
 	print <<"HERE";
 ----------------------------------------------------------------------
 Welcome to Perl Power Tools (http://www.perlpowertools.com).
@@ -78,7 +79,6 @@ HERE
 
 my @exe_files = glob "bin/*";
 
-use File::Spec::Functions qw(catfile);
 
 my $module    = __PACKAGE__;
 ( my $dist = $module ) =~ s/::/-/g;
@@ -169,9 +169,7 @@ sub home {
 		}
 
 		if ( exists $ENV{HOMEDRIVE} and exists $ENV{HOMEPATH} and $ENV{HOMEDRIVE} and $ENV{HOMEPATH} ) {
-			return File::Spec->catpath(
-				$ENV{HOMEDRIVE}, $ENV{HOMEPATH}, '',
-			);
+			return catpath( $ENV{HOMEDRIVE}, $ENV{HOMEPATH}, '' )
 		}
 	} else {
 
