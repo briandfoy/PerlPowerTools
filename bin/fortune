@@ -351,7 +351,7 @@ sub list_files
 {
 	my $dir = shift;
 
-	return @{$dir->{files}} if defined @{$dir->{files}};
+	return @{$dir->{files}} if @{$dir->{files}};
 	return ();
 }
 
