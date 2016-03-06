@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.007 2016-03-06T18:24:26Z
+	* Make it easier to install on Windows (Kevin Phair)
+	GitHub issue #32/33
+
 1.006 2015-04-20T23:49:58Z
 	* Add docs about the default install location to the
 	README and module docs.
