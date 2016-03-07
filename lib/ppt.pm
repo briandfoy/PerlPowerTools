@@ -2,7 +2,7 @@ package ppt;
 
 # a test to get first come permissions
 
-our $VERSION = '1.007';
+our $VERSION = '1.007_01';
 
 =encoding utf8
 
