@@ -6,12 +6,15 @@ my $file = File::Spec->catfile( qw(blib script false) );
 
 subtest 'check file' => sub {
 	ok( -e $file, "$file exists" );
-	ok( -x $file, "$file is executable" );
+	SKIP: {
+		skip "This test isn't for Windows", 1 if $^O eq 'MSWin32';
+		ok( -x $file, "$file is executable" );
+		}
 	};
 
 subtest 'exit value' => sub {
 	my $rc = system( $file );
-	is( !! $rc, 1, 'false returns a unix false' ); 
+	is( !! $rc, 1, 'false returns a unix false' );
 	};
 
 done_testing();
