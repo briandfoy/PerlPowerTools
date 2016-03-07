@@ -29,12 +29,13 @@ use strict;
 
 BEGIN {
 	my $has_curses = eval "require Curses; 1";
-	
+
 	unless( $has_curses ) {
-		die <<"HERE";
+		warn <<"HERE";
 $0 requires the Perl Curses module!
 HERE
 		}
+	exit;
 	}
 
 
