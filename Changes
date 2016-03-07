@@ -1,5 +1,11 @@
 Revision history for Perl module PerlPowerTools
 
+1.007_01 2016-03-07T19:05:46Z
+	* Exit gracefully in robots if Curses isn't installed
+	since a die in a BEGIN is a compilation error when 
+	triggered
+	* Skip -x tests on Windows.
+
 1.007 2016-03-06T18:24:26Z
 	* Make it easier to install on Windows (Kevin Phair)
 	GitHub issue #32/33
