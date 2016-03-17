@@ -608,7 +608,7 @@ sub backup {
             $ext = $extension;
             $name =~ s/.// or die "Couldn't create a good backup filename.\n";
         }
-        $file = $name . $ext;
+        $file = "$name.$ext";
     }
     $file;
 }
