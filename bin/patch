@@ -261,10 +261,18 @@ END {
 package
 	Patch; # hide from PAUSE
 
-use vars qw/$ERROR/;
+# with strawberry perl under windows 7 (and likely elsewhere)
+# the default tends to be to use Term::ReadLine::Perl, which
+# doesn't work well on windows. Force it to T::RL::Stub instead
+BEGIN {
+    $ENV{'PERL_RL'} ||= 'stub' if $^O eq 'MSWin32';
+}
+
 
 use Term::UI;
 use Term::ReadLine;
+
+use vars qw/$ERROR/;
 
 # Class data.
 BEGIN {
