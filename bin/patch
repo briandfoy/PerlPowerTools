@@ -87,7 +87,7 @@ tie *PATCH, Pushback => $patchfile or die "Can't open '$patchfile': $!";
 # the PATCH filehandle:  'print PATCH'
 PATCH:
 while (<PATCH>) {
-    if (/^(\s*)(\@\@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? \@\@\n)/) {
+    if (/^(\s*)(\@\@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? \@\@(.*)\n)/) {
         # UNIFIED DIFF
         my ($space, $range, $i_start, $i_lines, $o_start, $o_lines) =
            ($1,     $2,     $3,       $4 || 1,  $5,       $6 || 1);
