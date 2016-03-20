@@ -11,18 +11,23 @@ License: perl
 
 =cut
 
+package PerlPowerTools::echo;
 
 use strict;
 
 my ($VERSION) = '1.2';
 
-exit if not @ARGV;
+__PACKAGE__->run( @ARGV ) unless caller();
 
-my ($N) = 1;
+sub run {
+    my ( $self, @args ) = @_;
 
-if ($ARGV [0] eq '-?') {
-  $0 =~ s{.*/}{};
-  print <<EOF;
+    unless (@args) {
+        exit 0;
+    }
+
+    if ($args[0] eq '-?') {
+    print <<EOF;
 Usage: echo [-n] [arguments]
 
 Displays the command line arguments, seperated by spaces.
@@ -31,15 +36,23 @@ Options:
        -n:     Do not print a newline after the arguments.
        -?:     Display usage information.
 EOF
-  exit;
+        exit 0;
+    }
+
+    my $N = 1;
+    if ($args[0] eq '-n') {
+        $N = 0;
+        shift @args;
+    }
+
+    print join ' ', @args;
+    print "\n" if $N == 1;
+
+    exit 0;
+
 }
 
-do { $N = 0; shift; } if $ARGV[0] eq '-n';
-
-print join ' ', @ARGV;
-print "\n" if $N;
-
-exit;
+1;
 
 __END__
 
@@ -96,5 +109,3 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others to do the same.
 
 =cut
-
-
