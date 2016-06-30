@@ -178,7 +178,7 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item pwd - working directory name
 
-=item rain -- Let it rain.
+=item rain - Let it rain.
 
 =item random - display lines at random, or exit with a random value
 
@@ -274,7 +274,7 @@ though he wrote none of the utilities.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2004-2014 by various authors.  See each program for
+Copyright (c) 2004-2016 by various authors. See each program for
 specific information.
 
 This program is free software; you can redistribute it and/or modify
