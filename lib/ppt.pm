@@ -1,8 +1,8 @@
 package ppt;
-
+use PerlPowerTools;
 # a test to get first come permissions
 
-our $VERSION = '1.007_01';
+our $VERSION = $PerlPowerTools::VERSION;
 
 =encoding utf8
 
@@ -12,8 +12,10 @@ ppt - old name for the Perl Power Tools
 
 =head1 SYNOPSIS
 
-See the documentation for PerlPowerTools, the new umbrella
-module for this.
+See the documentation for PerlPowerTools, the new umbrella module for
+this. We keep the ppt name here because it was the first name of the
+project. Unfortunately, searching "ppt" is more likely to find
+PowerPoint resources.
 
 =cut
 
