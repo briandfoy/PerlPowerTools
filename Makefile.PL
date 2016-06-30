@@ -128,7 +128,7 @@ my %WriteMakefile = (
 			bugtracker => {
 				web    => "$github/issues",
 				},
-			homepage => $github,
+			homepage => "https://www.perlpowertools.com/",
 			},
 		},
 
