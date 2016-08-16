@@ -47,7 +47,7 @@ Perl.
 # You can specify INSTALL_BASE on the command line or in an environment
 # variable a tool sets. We should respect either of them.
 my $install_base_in_argv        = grep { /\AINSTALL_BASE\b/ } @ARGV;
-my $install_base_in_perl_mm_opt = $ENV{PERL_MM_OPT} =~ /\bINSTALL_BASE\b/;
+my $install_base_in_perl_mm_opt = ($ENV{PERL_MM_OPT}//"") =~ /\bINSTALL_BASE\b/;
 my $has_install_base =
 	$install_base_in_argv || $install_base_in_perl_mm_opt || 0;
 
@@ -107,7 +107,7 @@ my %WriteMakefile = (
 
 	'TEST_REQUIRES' => {
 		'Test::More' => '0.94',
-		'Test::Trap' => 'v.0.3.2',
+		'Test::Trap' => 'v0.3.2',
 		},
 
 	'PREREQ_PM'     => {
