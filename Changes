@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.009 2016-08-30T08:16:23Z
+	* Fix some Makefile.PL issues (pauloscustodio)
+
 1.007_01 2016-03-07T19:05:46Z
 	* Exit gracefully in robots if Curses isn't installed
 	since a die in a BEGIN is a compilation error when 
