@@ -126,6 +126,7 @@ MANIFEST.SKIP
 META.yml
 README.pod
 t/compile.t
+t/echo.t
 t/factor.t
 t/false.t
 t/pod.t
