@@ -261,17 +261,6 @@ END {
 package
 	Patch; # hide from PAUSE
 
-# with strawberry perl under windows 7 (and likely elsewhere)
-# the default tends to be to use Term::ReadLine::Perl, which
-# doesn't work well on windows. Force it to T::RL::Stub instead
-BEGIN {
-    $ENV{'PERL_RL'} ||= 'stub' if $^O eq 'MSWin32';
-}
-
-
-use Term::UI;
-use Term::ReadLine;
-
 use vars qw/$ERROR/;
 
 # Class data.
@@ -290,6 +279,14 @@ sub throw {
     $@ = join '', @_;
     $@ .= sprintf " at %s line %d\n", (caller)[1..2] unless $@ =~ /\n\z/;
     goto CATCH;
+}
+
+# Prints a prompt message and returns response.
+sub prompt {
+    print @_;
+    local $_ = <STDIN>;
+    chomp;
+    $_;
 }
 
 # Constructs a Patch object.
@@ -357,8 +354,6 @@ sub bless {
     # Get original file to patch...
     my $orig = $self->{origfile};                   # ...from -o
 
-    my $term = Term::ReadLine->new('patch');
-
     unless (defined $orig) {
         $orig = $self->rummage($garbage);           # ...from leading garbage
         if (defined $orig) {
@@ -370,10 +365,7 @@ sub bless {
             );
         } else {
             $self->skip if $self->{force} || $self->{batch};
-            $orig = $term->get_reply(
-                prompt => 'File to patch:',
-                allow  => sub { -f },
-            );
+            $orig = prompt ('File to patch: ');     # ...from user
         }
     }
 
@@ -382,13 +374,11 @@ sub bless {
         -e $orig or $self->skip;
     } else {
         until (-e $orig) {
-            $self->skip if $term->ask_yn(
-                prompt  => 'No file found--skip this patch?',
-                default => 'n',
-            );
-            $orig = $term->get_reply(
-                prompt => 'File to patch:',
-                allow  => sub { -f },
+            $self->skip unless prompt (
+                'No file found--skip this patch? [n] '
+            ) =~ /^[yY]/;
+            $orig = prompt (
+                'File to patch: '
             );
         }
     }
@@ -403,11 +393,9 @@ sub bless {
         $self->note("Patching file $orig using Plan B...\n");
         local $_ = $self->{output};
         $self->skip if -e && not rename $_, $self->backup($_) and
-            $self->{force} || $self->{batch} ||
-            $term->ask_yn (
-                prompt  => 'Failed to backup output file--skip this patch?',
-                default => 'n',
-            );
+            $self->{force} || $self->{batch} || prompt (
+                'Failed to backup output file--skip this patch? [n] '
+            ) =~ /^[yY]/;
         ($in, $out) = ($orig, $self->{output});
     } else {
         $self->note("Patching file $orig using Plan A...\n");
@@ -415,11 +403,9 @@ sub bless {
         if (rename $orig, $back) {
             ($in, $out) = ($back, $orig);
         } else {
-            $self->skip unless $self->{force} || $self->{batch} or 
-            !($term->ask_yn(
-                prompt  => 'Failed to backup original file--skip this patch?',
-                default => 'n',
-            ));
+            $self->skip unless $self->{force} || $self->{batch} or prompt (
+                'Failed to backup original file--skip this patch? [n] '
+            ) !~ /^[yY]/;
             ($in, $out) = ($orig, $orig);
         }
     }
@@ -461,11 +447,9 @@ sub bless {
                 $found++, last if /$prereq/;
             }
             seek IN, 0, 0 or $self->skip("Couldn't seek INFILE: $!\n");
-            $self->skip if not $found and $self->{batch} || 
-            $term->ask_yn(
-                prompt  => 'File does not match "Prereq: $1"--skip this patch?',
-                default => 'n',
-           );
+            $self->skip if not $found and $self->{batch} || prompt (
+                'File does not match "Prereq: $1"--skip this patch? [n] '
+            ) =~ /^[yY]/;
         }
     }
 
@@ -655,7 +639,6 @@ sub apply {
     my @context = map /^[ -](.*)/s, @hunk;
     my $position;
     my $fuzz = 0;
-    my $term = Term::ReadLine->new('patch');
 
     if (@context) {
         # Find a place to apply hunk where context matches.
@@ -686,17 +669,15 @@ sub apply {
                 $self->{reverse_check} = 0;
                 if ($position) {
                     unless ($self->{batch}) {
-                        my $reply = $term->ask_yn(
-                            prompt  => 'Reversed (or previously applied) patch detected! Assume -R?',
-                            default => 'y',
+                        local $_ = prompt (
+                            'Reversed (or previously applied) patch detected!',
+                            '  Assume -R? [y] '
                         );
-                        if (!$reply) {
+                        if (/^[nN]/) {
                             $self->{reverse} = 0;
                             $position = 0;
-                            $term->ask_yn(
-                                prompt => 'Apply anyway?',
-                                default => 'n',
-                            ) or throw 'SKIP...ignore this patch';
+                            prompt ('Apply anyway? [n] ') =~ /^[yY]/
+                                or throw 'SKIP...ignore this patch';
                         }
                     }
                 } else {
@@ -1631,4 +1612,3 @@ You may use this documentation under the auspices of the GNU General Public
 License.
 
 =cut
-
