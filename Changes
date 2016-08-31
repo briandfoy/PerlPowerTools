@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.011_03 2016-08-31T17:32:53Z
+	* Fix Makefile to work with v5.8
+	* Fix some programs to work with v5.26 (escape { in regexes)
+
 1.011_02 2016-08-31T15:12:44Z
 	* A Makefile.PL fix for v5.8
 
