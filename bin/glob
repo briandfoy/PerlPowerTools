@@ -322,7 +322,7 @@ my @escapes = ( '\\\\' => "\001",
 my %map_esc = @escapes;
 sub escape_glob($) {
     local $_ = shift;
-    s/( \\\\ | \\{ | \\} | \{\} )/$map_esc{$1}/gex;
+    s/( \\\\ | \\\{ | \\\} | \{\} )/$map_esc{$1}/gex;
     $_;
 }
 my %unmap_esc = map { m/^\\(.*)$/ ? $1 : $_ } (reverse @escapes);
