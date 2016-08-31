@@ -224,8 +224,8 @@ X^*dZkdXK-1+ktsc0kdSb-[Lbdlb*lc+tdSbO*-lb0!=aldx]dsaxLbsb]sad1!>a[[.]POX
 	s/(\|\?[^]]*)\[([^]]*)]/$1|{$2|}/;
     } while /\|\?\[/;
     s/(.*\|\?)\|\{(.*)\|}/$2~${1}[/s;
-    s/\|{/[/g;
-    s/\|}/]/g;
+    s/\|\{/[/g;
+    s/\|\}/]/g;
     next;
 
   Binop:
