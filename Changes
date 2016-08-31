@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.011_02 2016-08-31T15:12:44Z
+	* A Makefile.PL fix for v5.8
+
 1.011_01 2016-08-31T14:25:21Z
 	* Escape { in regexes in dc and glob. Perl v5.26 will demand this.
 
