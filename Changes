@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.011_01 2016-08-31T14:25:21Z
+	* Escape { in regexes in dc and glob. Perl v5.26 will demand this.
+
 1.011 2016-08-30T16:52:26Z
 	* Back out the Term::UI stuff in bin/patch since that module
 	isn't core.
