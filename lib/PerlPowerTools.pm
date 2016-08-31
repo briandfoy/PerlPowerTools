@@ -1,6 +1,6 @@
 package PerlPowerTools;
 
-our $VERSION = '1.011_02';
+our $VERSION = '1.011_03';
 
 1;
 
