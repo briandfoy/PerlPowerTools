@@ -117,13 +117,91 @@ while (1) {
 
 close DATABASE or die "can't close $database: $!";
 
+__END__
+
 =head1 NAME
 
 addbib - create or extend a bibliographic database
 
 =head1 SYNOPSIS
 
-addbib [ -a ] [ -p promptfile ] database
+    addbib [ -a ] [ -p promptfile ] database
+
+=head1 DESCRIPTION
+
+When the program starts, you will be prompted for instructions.  Answering
+C<n> or simply hitting enter will continue without showing the instructions.
+Answering C<y> will display directions for using the program.  C<addbib>
+then prompts for various bibliographic fields, accepting input from the
+console and eventually saving records in a C<database> file.  At each
+prompt, if one enters a null response (i.e. simply hits the return/enter
+key), then this field is skipped.  Entering a minus sign (C<->) means to
+return to the previous field.  Using a trailing backslash allows a field to
+be continued to the next line.  Once all fields have been entered, the user
+is presented with the C<Continue? (y)> prompt in order to continue adding
+items to the database.  Entering C<y> or simply hitting return will start
+entering a new item into the database.  Entering C<n> or C<q> exits the
+program and saves the C<database> file to the filesystem.
+
+The C<-a> option suppresses prompting the user for an abstract; entering an
+abstract is the default behaviour.  To finish entering an abstract, enter
+C<Ctrl-d>.
+
+The C<-p> option allows for the definition of new prompt sequences.  The
+prompt file uses the following format: C<prompt text> followed by a C<tab
+character> and finally the C<field symbol> for writing into the C<database>
+file.  For instance, to define a set of prompts specifically for the
+addition of books, use something like this:
+
+    Author name	%A
+    Title	%T
+    Publisher	%I
+    Date	%D
+    Other	%O
+    Keywords	%K
+
+Note that the author name field can occur more than once to allow for
+multiple authors.
+
+The most common field symbols are (adapted from the FreeBSD manual for
+C<addbib>):
+
+    %A	 Author's name
+    %B	 Book containing article referenced
+    %C	 City (place of publication)
+    %D	 Date of publication
+    %E	 Editor of book containing article referenced
+    %F	 Footnote number or label (supplied by refer)
+    %G	 Government order number
+    %H	 Header commentary, printed before reference
+    %I	 Issuer (publisher)
+    %J	 Journal containing article
+    %K	 Keywords to use in locating reference
+    %L	 Label field used by -k option of refer
+    %M	 Bell Labs Memorandum (undefined)
+    %N	 Number within volume
+    %O	 Other commentary, printed at end of reference
+    %P	 Page number(s)
+    %Q	 Corporate or Foreign Author (unreversed)
+    %R	 Report, paper, or thesis (unpublished)
+    %S	 Series title
+    %T	 Title of article or book
+    %V	 Volume number
+    %X	 Abstract
+
+An example C<database> file output is:
+
+    %A      M Bremner
+    %T      Quantum dynamics as a physical resource
+    %J      Physical Review A
+    %V      67
+    %P      523011-5230119
+    %I      American Physical Society
+    %D      2003
+
+=head1 FILES
+
+    promptfile - optional file to define prompting
 
 =head1 AUTHOR
 
@@ -131,7 +209,13 @@ Jeffrey S. Haemer
 
 =head1 BUGS
 
-Needs a man page.  Duh.
-
 Also wants both testing and the other bib/refer utilities to go with it.
 Release early and often, that's my motto.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright (c) Jeffrey S. Haemer (2004).
+
+This program is free and open software. You may use, modify, distribute,
+and sell this program (and any modified variants) in any way you wish,
+provided you do not restrict others from doing the same.
