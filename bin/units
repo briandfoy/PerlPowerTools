@@ -25,6 +25,7 @@ License: GNU GPL
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
 
+use Config;
 
 # Usage:
 # units [-f unittab]
@@ -93,7 +94,7 @@ while ($ARGV[0] =~ /^-/) {
 }
 usage() if $USAGE || @ARGV;
 
-@UNITTABS = split /:/, $ENV{UNITTAB} unless @UNITTABS;
+@UNITTABS = split /$Config{path_sep}/, $ENV{UNITTAB} unless @UNITTABS;
 @UNITTABS = @DEFAULT_UNITTABS unless @UNITTABS;
 for (@UNITTABS) {
   read_defs($_);
@@ -987,8 +988,7 @@ Mark-Jason Dominus, C<< <mjd-perl-units@plover.com> >>
 
 =item *
 
-Contents of C<$ENV{UNITTAB}> may be misinterpreted on Windows (L<GitHub
-#44|https://github.com/briandfoy/PerlPowerTools/issues/44>).
+None whatsoever.
 
 =back
 
