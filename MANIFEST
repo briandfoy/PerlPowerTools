@@ -116,6 +116,7 @@ bin/wump
 bin/xargs
 bin/yes
 Changes
+CONTRIBUTING.md
 INSTALL.SKIP
 lib/PerlPowerTools.pm
 lib/ppt.pm
