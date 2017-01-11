@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.012 2017-01-11T13:07:08Z
+	* Fix a { for v5.24
+	* Fix a deprecated use of POSIX::isprint
+
 1.011_03 2016-08-31T17:32:53Z
 	* Fix Makefile to work with v5.8
 	* Fix some programs to work with v5.26 (escape { in regexes)
