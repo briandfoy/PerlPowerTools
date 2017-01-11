@@ -737,7 +737,7 @@ field_start or field_end option argument (see below).
 Use I<STRING> as the field separator character; char is not considered
 to be part of a field (although it can be included in a sort key).  Each
 occurrence of char is significant (for example,
-E<lt>charE<gt>E<lt>charE<gt> delimits an empty field).  If B<t> is not
+C<< <char> >>C<< <char> >> delimits an empty field).  If B<t> is not
 specified, blank characters are used as default field separators; each
 maximal non-empty sequence of blank characters that follows a non-blank
 character is a field separator.
@@ -994,27 +994,27 @@ back into the original source, the File::Sort module.
 
 =head1 THANKS
 
-Mike Blazer E<lt>blazer@mail.nevalink.ruE<gt>,
-Vicki Brown E<lt>vlb@cfcl.comE<gt>,
-Tom Christiansen E<lt>tchrist@perl.comE<gt>,
-Albert Dvornik E<lt>bert@mit.eduE<gt>,
-Paul Eckert E<lt>peckert@epicrealm.comE<gt>,
-Gene Hsu E<lt>gene@moreinfo.comE<gt>,
-Andrew M. Langmead E<lt>aml@world.std.comE<gt>,
-Gael Marziou E<lt>gael_marziou@hp.comE<gt>,
-Brian L. Matthews E<lt>blm@halcyon.comE<gt>,
-Rich Morin E<lt>rdm@cfcl.comE<gt>,
-Matthias Neeracher E<lt>neeri@iis.ee.ethz.chE<gt>,
-Miko O'Sullivan E<lt>miko@idocs.comE<gt>,
-Tom Phoneix E<lt>rootbeer@teleport.comE<gt>,
-Marco A. Romero E<lt>mromero@iglou.comE<gt>,
-Gurusamy Sarathy E<lt>gsar@activestate.comE<gt>,
-Hubert Toullec E<lt>Hubert.Toullec@wanadoo.frE<gt>.
+Mike Blazer C<< <blazer@mail.nevalink.ru> >>,
+Vicki Brown C<< <vlb@cfcl.com> >>,
+Tom Christiansen C<< <tchrist@perl.com> >>,
+Albert Dvornik C<< <bert@mit.edu> >>,
+Paul Eckert C<< <peckert@epicrealm.com> >>,
+Gene Hsu C<< <gene@moreinfo.com> >>,
+Andrew M. Langmead C<< <aml@world.std.com> >>,
+Gael Marziou C<< <gael_marziou@hp.com> >>,
+Brian L. Matthews C<< <blm@halcyon.com> >>,
+Rich Morin C<< <rdm@cfcl.com> >>,
+Matthias Neeracher C<< <neeri@iis.ee.ethz.ch> >>,
+Miko O'Sullivan C<< <miko@idocs.com> >>,
+Tom Phoneix C<< <rootbeer@teleport.com> >>,
+Marco A. Romero C<< <mromero@iglou.com> >>,
+Gurusamy Sarathy C<< <gsar@activestate.com> >>,
+Hubert Toullec C<< <Hubert.Toullec@wanadoo.fr> >>.
 
 
 =head1 AUTHOR
 
-Chris Nandor E<lt>pudge@pobox.comE<gt>, http://pudge.net/
+Chris Nandor C<< <pudge@pobox.com> >>, http://pudge.net/
 
 Copyright (c) 1997-2001 Chris Nandor.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the terms
