@@ -502,8 +502,7 @@ sub _make_sort_sub {
 
             # only printable characters
             } elsif ($opts->{kst} =~ /i/) {
-                require POSIX;
-                $fil[0] = "join '', grep {POSIX::isprint \$_} " .
+                $fil[0] = "join '', grep { / ^ [[:print:]]+ $ /x } " .
                     "split //,\n$fil[0]";
             }
 
