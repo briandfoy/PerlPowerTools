@@ -1,5 +1,11 @@
 Revision history for Perl module PerlPowerTools
 
+1.012_01 2017-01-14T03:50:20Z
+	* Adjust prereq version to Test::Trap to not use leading v,
+	which I think is confusing some installers.
+	* Ideally, Test::Trap will disappear so we don't have the
+	dependency: https://github.com/briandfoy/PerlPowerTools/issues/49
+
 1.012 2017-01-11T13:07:08Z
 	* Fix a { for v5.24
 	* Fix a deprecated use of POSIX::isprint
