@@ -44,7 +44,7 @@ project:
    git checkout -b <topic-branch-name>
    ```
 
-4. Commit your changes in logical chunks. Please make you git commit message detailed and specific
+4. Commit your changes in logical chunks. Please make your git commit message detailed and specific
    or your code is unlikely be merged into the main project. Use Git's
    [interactive rebase](https://help.github.com/articles/interactive-rebase)
    feature to tidy up your commits before making them public.
