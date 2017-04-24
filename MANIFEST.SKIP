@@ -57,8 +57,11 @@
 ^MYMETA\.
 #!end included /usr/local/perls/perl-5.20.0/lib/5.20.0/ExtUtils/MANIFEST.SKIP
 
-.travis.yml
+\.travis\.yml
+\.?appveyor.yml
+\.releaserc
+\.lwpcookies
+
 util/create_tool_list
-.releaserc
 CNAME
 data
