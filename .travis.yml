@@ -18,6 +18,7 @@ before_install:
 
 install:
     - cpanm --quiet --installdeps --notest .
+    - cpanm --quiet --notest Devel::Cover@1.23
     - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
