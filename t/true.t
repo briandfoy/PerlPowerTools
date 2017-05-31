@@ -2,7 +2,13 @@ use Test::More 0.95;
 
 use File::Spec;
 
-my $file = File::Spec->catfile( qw(blib script true) );
+my $file;
+if ($^O eq 'MSWin32') {
+	$file = File::Spec->catfile( qw(blib script true.bat) );
+} else {
+	$file = File::Spec->catfile( qw(blib script true) );
+}
+
 
 subtest 'check file' => sub {
 	ok( -e $file, "$file exists" );
