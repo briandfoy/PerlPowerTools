@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More 0.95;
+use Test::More 0.95 tests => 5;
 
 my ($stdout, $stderr, $did_exit, $exit_code);
 sub exit_trap (;$) {
@@ -14,8 +14,8 @@ sub exit_trap (;$) {
 sub do_trap (&) {
 	$did_exit = $exit_code = undef;
 	$stdout = $stderr = '';
-	close(STDOUT);
-	close(STDERR);
+	local *STDOUT;
+	local *STDERR;
 	open(STDOUT, '>', \$stdout);
 	open(STDERR, '>', \$stderr);
 
@@ -33,11 +33,13 @@ BEGIN {
 my $class = 'PerlPowerTools::echo';
 
 subtest setup => sub {
+	plan tests => 2;
 	require_ok( 'bin/echo' );
 	can_ok( $class, 'run' );
 };
 
 subtest no_input => sub {
+	plan tests => 4;
 	do_trap { $class->run() };
 	is ( $did_exit, 1 );
 	is ( $exit_code, 0 );
@@ -46,6 +48,7 @@ subtest no_input => sub {
 };
 
 subtest ask_for_help => sub {
+	plan tests => 4;
 	my $help = <<'HELP';
 Usage: echo [-n] [arguments]
 
@@ -63,6 +66,7 @@ HELP
 };
 
 subtest no_new_lines => sub {
+	plan tests => 4;
 	do_trap { $class->run( '-n', 'no new lines' ) };
 	is ( $did_exit, 1);
 	is ( $exit_code, 0);
@@ -71,6 +75,7 @@ subtest no_new_lines => sub {
 };
 
 subtest with_new_lines => sub {
+	plan tests => 4;
 	do_trap { $class->run( 'with new lines' ) };
 	is ( $did_exit, 1 );
 	is ( $exit_code, 0);
