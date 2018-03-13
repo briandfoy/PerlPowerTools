@@ -13,17 +13,23 @@ perl:
     - "5.24"
     - "5.26"
 
+matrix:
+    include:
+        - perl: 5.8
+          env: NO_DEVEL_COVER=1
+
 before_install:
     - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
     - source ~/travis-perl-helpers/init --auto
 
 install:
-    - cpanm --quiet --installdeps --notest .
-    - cpanm --quiet --notest Devel::Cover
-    - cpanm --quiet --notest Devel::Cover::Report::Coveralls
+    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --installdeps --notest .
+    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --notest Devel::Cover
+    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
-    - cover -delete && cover -test
+    - test $NO_DEVEL_COVER != 1 && cover -delete && cover -test
+    - test $NO_DEVEL_COVER = 1 && perl Makefile.PL && make test
 
 after_success:
-    - cover -report coveralls
+    - if [ ] cover -report coveralls
