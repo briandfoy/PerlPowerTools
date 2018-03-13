@@ -13,6 +13,9 @@ perl:
     - "5.24"
     - "5.26"
 
+env:
+    - NO_DEVEL_COVER=0
+
 matrix:
     include:
         - perl: 5.8
@@ -24,12 +27,12 @@ before_install:
 
 install:
     - cpanm --quiet --installdeps --notest .
-    - [ "$NO_DEVEL_COVER" != "1" ] && cpanm --quiet --notest Devel::Cover
-    - [ "$NO_DEVEL_COVER" != "1" ] && cpanm --quiet --notest Devel::Cover::Report::Coveralls
+    - if [ "$NO_DEVEL_COVER" = "0" ] && cpanm --quiet --notest Devel::Cover
+    - if [ "$NO_DEVEL_COVER" = "0" ] && cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
-    - [ "$NO_DEVEL_COVER" != "1" ] && cover -delete && cover -test
-    - [ "$NO_DEVEL_COVER"  = "1" ] && perl Makefile.PL && make test
+    - if [ "$NO_DEVEL_COVER" = "0" ] && cover -delete && cover -test
+    - if [ "$NO_DEVEL_COVER" = "1" ] && perl Makefile.PL && make test
 
 after_success:
-    - if [ ] cover -report coveralls
+    - if [ "$NO_DEVEL_COVER" = "0" ] cover -report coveralls
