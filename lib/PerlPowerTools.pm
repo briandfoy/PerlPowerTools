@@ -46,7 +46,7 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item bc - An arbitrary precision calculator language
 
-=item cal - member of the Perl Power Tools
+=item cal - display a calendar
 
 =item cat - concatenate and print files.
 
