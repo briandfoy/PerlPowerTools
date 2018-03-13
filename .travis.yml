@@ -23,13 +23,13 @@ before_install:
     - source ~/travis-perl-helpers/init --auto
 
 install:
-    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --installdeps --notest .
-    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --notest Devel::Cover
-    - test $NO_DEVEL_COVER != 1 && cpanm --quiet --notest Devel::Cover::Report::Coveralls
+    - cpanm --quiet --installdeps --notest .
+    - [ "$NO_DEVEL_COVER" != "1" ] && cpanm --quiet --notest Devel::Cover
+    - [ "$NO_DEVEL_COVER" != "1" ] && cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
-    - test $NO_DEVEL_COVER != 1 && cover -delete && cover -test
-    - test $NO_DEVEL_COVER = 1 && perl Makefile.PL && make test
+    - [ "$NO_DEVEL_COVER" != "1" ] && cover -delete && cover -test
+    - [ "$NO_DEVEL_COVER"  = "1" ] && perl Makefile.PL && make test
 
 after_success:
     - if [ ] cover -report coveralls
