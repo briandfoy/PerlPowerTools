@@ -27,12 +27,12 @@ before_install:
 
 install:
     - cpanm --quiet --installdeps --notest .
-    - if [ "$NO_DEVEL_COVER" = "0" ] && cpanm --quiet --notest Devel::Cover
-    - if [ "$NO_DEVEL_COVER" = "0" ] && cpanm --quiet --notest Devel::Cover::Report::Coveralls
+    - if [ "$NO_DEVEL_COVER" = "0" ]; then cpanm --quiet --notest Devel::Cover; fi
+    - if [ "$NO_DEVEL_COVER" = "0" ]; then cpanm --quiet --notest Devel::Cover::Report::Coveralls; fi
 
 script:
-    - if [ "$NO_DEVEL_COVER" = "0" ] && cover -delete && cover -test
-    - if [ "$NO_DEVEL_COVER" = "1" ] && perl Makefile.PL && make test
+    - if [ "$NO_DEVEL_COVER" = "0" ]; then cover -delete && cover -test; fi
+    - if [ "$NO_DEVEL_COVER" = "1" ]; then perl Makefile.PL && make test; fi
 
 after_success:
-    - if [ "$NO_DEVEL_COVER" = "0" ] cover -report coveralls
+    - if [ "$NO_DEVEL_COVER" = "0" ]; then cover -report coveralls; fi
