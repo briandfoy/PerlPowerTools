@@ -17,7 +17,7 @@ to read one again for any Perl module.
 
 To read about L<PerlPowerTools>, look at the embedded documentation
 in the module itself. Inside the distribution, you can format it
-with L<perldoc|http://perldoc.perl.org/perldoc.html>:
+with L<perldoc|https://perldoc.perl.orgperldoc.html>:
 
 	% perldoc lib/PerlPowerTools.pm
 
@@ -27,7 +27,7 @@ name instead of the file location:
 	% perldoc PerlPowerTools
 
 You can read the documentation and inspect the meta data at
-L<MetaCPAN|http://www.metacpan.org/module/PerlPowerTools>.
+L<MetaCPAN|https://metacpan.org/pod/PerlPowerTools>.
 
 The standard module documentation has example uses in the SYNOPSIS
 section, but you can also look in the I<examples/> directory (if it's
