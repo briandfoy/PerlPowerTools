@@ -1,11 +1,37 @@
+# brian's standard Appveyor config for Perl 5 modules
+# https://github.com/briandfoy/brians_perl_modules_appveyor_config
+# This file is licensed under the Artistic License 2.0
+
+image:
+  - Visual Studio 2015
+  - ubuntu1604
+  - ubuntu1804
+  - ubuntu
+
+environment:
+  PERL5LIB: /home/appveyor/perl5/lib/perl5
+
+platform: x64
+
+branches:
+  only:
+    - master
+    - appveyor
+
 skip_tags: true
-cache:
-  - C:\strawberry
+
 install:
-  - if not exist "C:\strawberry" cinst strawberryperl
-  - set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
-  - cd C:\projects\%APPVEYOR_PROJECT_NAME%
+  - cmd: if not exist "C:\strawberry" cinst strawberryperl
+  - cmd: set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
+  - cmd: cd %APPVEYOR_BUILD_FOLDER%
+  - sh: sudo apt-get install build-essential git libssl-dev
+  - sh: sudo apt-get install -y perl
+  - sh: export PATH=/home/appveyor/perl5/bin:$PATH
+  - perl -v
+  - cpan App::cpanminus ExtUtils::MakeMaker
   - cpanm --installdeps .
+
 build_script:
   - perl Makefile.PL
-  - gmake test
+  - cmd: gmake test
+  - sh: make test
