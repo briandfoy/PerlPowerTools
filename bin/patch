@@ -18,7 +18,7 @@ License: perl
 
 use strict;
 
-my $VERSION = '0.26';
+my $VERSION = '0.27';
 
 $|++;
 
@@ -491,11 +491,25 @@ sub error {
 sub end {
     my $self = shift;
 
-    return if $self->{skip} || ref $self eq 'Patch';
+    return if ref $self eq 'Patch';
+
+    return $self->restore_file if $self->{skip};
 
     $self->print_tail;
     $self->print_rejects;
     $self->remove_empty_files;
+}
+
+# Restore file from backup.
+sub restore_file {
+    my $self = shift;
+    my $in   = $self->{i_file} or return;
+    my $out  = $self->{o_file} or return;
+
+    close $self->{i_fh};
+    close $self->{o_fh};
+
+    rename $in, $out or print "Couldn't restore file from backup '$in': $!";
 }
 
 # Output any lines left in input handle.
@@ -1019,7 +1033,7 @@ sub apply {
 sub end {
     my $self = shift;
 
-    return if $self->{skip};
+    return $self->restore_file if $self->{skip};
 
     $self->print_rejects;
     $self->remove_empty_files;
