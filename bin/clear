@@ -30,7 +30,11 @@ eval {
 	$cl = $terminal->Tputs('cl', 1);
 };
 
-print $cl;
+if ($cl eq "" && $^O eq 'MSWin32') {
+    system 'cls';
+} else {
+    print $cl;
+}
 
 
 =head1 NAME
