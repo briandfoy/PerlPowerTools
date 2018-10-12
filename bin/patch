@@ -282,11 +282,22 @@ sub throw {
 }
 
 # Prints a prompt message and returns response.
-sub prompt {
-    print @_;
-    local $_ = <STDIN>;
-    chomp;
-    $_;
+{
+    my $TERM;
+    sub prompt {
+        unless ($TERM) {
+            # From commit 5c9f32cb374a034c1ad4b9e02a9b9ee2014b9b5c:
+            #
+            # with strawberry perl under windows 7 (and likely elsewhere)
+            # the default tends to be to use Term::ReadLine::Perl, which
+            # doesn't work well on windows. Force it to T::RL::Stub instead
+            local $ENV{PERL_RL} = $ENV{PERL_RL} || 'stub' if $^O eq 'MSWin32';
+            require Term::ReadLine;
+            $TERM = Term::ReadLine->new('patch');
+        }
+
+        $TERM->readline(join '', @_);
+    }
 }
 
 # Constructs a Patch object.
@@ -1176,10 +1187,11 @@ If I<patchfile> is omitted, or is a hyphen, the patch will be
 read from standard input.
 
 Upon  startup, patch will attempt to determine the type of
-the diff listing, unless over-ruled by a B<-c>, B<-e>, B<-n>, or B<-u>
-switch.  Context diffs [see L<"note 2">], unified diffs,
+the diff listing, unless over-ruled by a B<-c>, B<-e>, B<-n>, or
+B<-u> switch.  Context diffs [see L<"note 2">], unified diffs,
 and normal diffs are applied by the I<patch> program  itself,
-while ed diffs are simply fed to the I<ed> editor via a pipe [see L<"note 3">].
+while ed diffs are simply fed to the I<ed> editor via a pipe
+[see L<"note 3">].
 
 I<Patch> will try to skip  any  leading  garbage,  apply  the
 diff,  and then skip any trailing garbage.  Thus you could
@@ -1190,10 +1202,10 @@ by a consistent amount, this will be taken into account.
 With context diffs, and to a  lesser  extent  with  normal
 diffs, I<patch> can detect when the line numbers mentioned in
 the patch are incorrect, and  will  attempt  to  find  the
-correct place to apply each hunk of the patch.  A linear search is made  for  a
-place  where  all  lines of the context match.
-The hunk is applied at the place nearest the line number mentioned in the
-diff [see L<"note 4">].
+correct place to apply each hunk of the patch.  A linear search
+is made  for  a place  where  all  lines of the context match.
+The hunk is applied at the place nearest the line number
+mentioned in the diff [see L<"note 4">].
 If no such
 place is found, and it's a context diff, and  the  maximum
 fuzz  factor  is set to 1 or more, then another scan takes
@@ -1211,13 +1223,15 @@ As  each  hunk  is completed, you will be told whether the
 hunk succeeded or failed, and which line (in the new file)
 I<patch> thought the hunk should go on.  If this is different
 from the line number specified in the  diff  you  will  be
-told  the offset.  A single large offset MAY be an indication that a hunk was installed in the  wrong  place.   You
+told  the offset.  A single large offset MAY be an indication
+that a hunk was installed in the  wrong  place.   You
 will  also  be  told if a fuzz factor was used to make the
 match, in which case you should also  be  slightly  suspicious.
 
 If  no  original  file  is  specified on the command line,
 I<patch> will try to figure out from the leading garbage what
-the  name of the file to edit is.  In the header of a context diff, the filename is found from lines beginning with
+the  name of the file to edit is.  In the header of a context
+diff, the filename is found from lines beginning with
 "***" or "---", with the shortest name of an existing file
 winning.  Only context diffs have lines like that, but  if
 there  is  an  "Index:" line in the leading garbage, I<patch>
@@ -1245,9 +1259,11 @@ article containing the patch.
 If the patch file contains more than one patch, I<patch> will
 try to apply each of them as if they  came  from  separate
 patch  files.   This means, among other things, that it is
-assumed that the name of the file to patch must be  determined  for  each diff listing, and that the garbage before
+assumed that the name of the file to patch must be  determined
+for  each diff listing, and that the garbage before
 each diff listing will be examined for interesting  things
-such  as filenames and revision level, as mentioned previously.  You can give switches (and another  original  file
+such  as filenames and revision level, as mentioned previously.
+You can give switches (and another  original  file
 name)  for the second and subsequent patches by separating
 the corresponding argument lists by a '+'.  (The  argument
 list  for  a  second or subsequent patch may not specify a
@@ -1260,11 +1276,13 @@ I<Patch> recognizes the following switches:
 =item -b or --suffix
 
 causes the next argument to  be  interpreted  as  the
-backup  extension,  to be used in place of ".orig" [see L<"note 1">].
+backup  extension,  to be used in place of ".orig"
+[see L<"note 1">].
 
 =item -B or --prefix
 
-causes the next argument to be interpreted as a  prefix  to  the  backup  file  name. If this argument is
+causes the next argument to be interpreted as a  prefix
+to  the  backup  file  name. If this argument is
 specified any argument from B<-b> will be ignored.
 
 =item -c or --context
@@ -1301,7 +1319,8 @@ after the patches have been applied.
 =item -f or --force
 
 forces  I<patch>  to  assume that the user knows exactly
-what he or she is doing, and to  not  ask  any  questions.   It  assumes  the following: skip patches for
+what he or she is doing, and to  not  ask  any  questions.
+It  assumes  the following: skip patches for
 which a file to patch can't  be  found;  patch  files
 even  though  they  have  the  wrong  version for the
 ``Prereq:''  line  in  the  patch;  and  assume  that
@@ -1334,7 +1353,8 @@ ordinarily 3.
 
 causes the pattern matching to be  done  loosely,  in
 case  the  tabs  and  spaces have been munged in your
-input file.  Any sequence of whitespace in  the  pattern  line will match any sequence in the input file.
+input file.  Any sequence of whitespace in  the  pattern
+line will match any sequence in the input file.
 Normal characters must  still  match  exactly.   Each
 line  of  the  context must still match a line in the
 input file.
@@ -1362,11 +1382,13 @@ case the you keep your files in a different directory
 than the person who sent out the  patch.   The  strip
 count  specifies  how many slashes are to be stripped
 from the front of  the  pathname.   (Any  intervening
-directory  names also go away.)  For example, supposing the filename in the patch file was
+directory  names also go away.)  For example, supposing
+the filename in the patch file was
 
    /i/want/a/moogle/stuffy
 
-setting B<-p> or B<-p0> gives the entire  pathname  unmodified, B<-p1> gives
+setting B<-p> or B<-p0> gives the entire  pathname
+unmodified, B<-p1> gives
 
    i/want/a/moogle/stuff
 
@@ -1485,6 +1507,10 @@ Extension  to  use for backup file names instead of
 B<VERSION_CONTROL>
 Selects when numbered backup files are made.
 
+B<PERL_RL>
+Used by Term::Readline to select implementation.  Unless set,
+I<patch> will use Term::Readline::Stub on Windows.
+
 =head1 SEE ALSO
 
 diff(1), ed(1)
@@ -1499,11 +1525,13 @@ in the patch file you send out.  If you put a Prereq: line
 in  with the patch, it won't let them apply patches out of
 order without some  warning.   Second,  make  sure  you've
 specified  the  filenames  right, either in a context diff
-header, or with an Index: line.  If you are patching something in a subdirectory, be sure to tell the patch user to
+header, or with an Index: line.  If you are patching
+something in a subdirectory, be sure to tell the patch user to
 specify a B<-p> switch as needed.  Third, you  can  create  a
 file  by  sending  out a diff that compares a null file to
 the file you want to create.  This will only work  if  the
-file  you want to create doesn't exist already in the target directory.  Fourth, take care not to send out reversed
+file  you want to create doesn't exist already in the target
+directory.  Fourth, take care not to send out reversed
 patches, since it makes people wonder whether they already
 applied the patch.  Fifth, while you may be  able  to  get
 away  with  putting 582 diff listings into one file, it is
@@ -1530,7 +1558,8 @@ a later patch to a partially patched file.
 I<Patch> cannot tell if the line numbers are  off  in  an  ed
 script,  and  can only detect bad line numbers in a normal
 diff when it finds a "change" or a  "delete"  command.   A
-context  diff  using fuzz factor 3 may have the same problem.  Until a suitable interactive interface is added, you
+context  diff  using fuzz factor 3 may have the same problem.
+Until a suitable interactive interface is added, you
 should probably do a context diff in these cases to see if
 the changes made  sense.   Of  course,  compiling  without
 errors  is a pretty good indication that the patch worked,
@@ -1548,12 +1577,14 @@ Could  be  smarter  about  partial  matches,   excessively
 deviant  offsets  and swapped code, but that would take an
 extra pass.
 
-Check patch mode ( B<-C>) will fail if you try to check  several  patches in succession that build on each other.  The
+Check patch mode ( B<-C>) will fail if you try to check
+several  patches in succession that build on each other.  The
 whole code of I<patch> would have to be restructured to  keep
 temporary  files  around so that it can handle this situation.
 
-If code has been duplicated (for instance with #ifdef OLDCODE  ... #else ...  #endif), I<patch> is incapable of patch-
-ing both versions, and, if it works at  all,  will  likely
+If code has been duplicated (for instance with
+#ifdef OLDCODE  ... #else ...  #endif), I<patch> is incapable
+of patching both versions, and, if it works at  all,  will  likely
 patch  the  wrong  one,  and tell you that it succeeded to
 boot.
 
