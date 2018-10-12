@@ -18,52 +18,109 @@ License: perl
 
 use strict;
 
-my(
-   $temp_file,  # file to capture the output of find2perl
-   $program,    # results of find2perl for eval
-);
+use File::Temp qw/ tempfile /;
+
+my $script = 'find2perl';
+
+# Temp files to capture find2perl output and error.
+my ($out_fh, $out_file) = tempfile();
+my ($err_fh, $err_file) = tempfile();
 
 END {
-  unlink $temp_file;
+    unlink $out_file;
+    unlink $err_file;
 }
 
-# save standard out so that we can redirect it, then recover original
-# standard out
+# Save STDOUT and STDERR.  Redirect to temp files.
 
-open(SAVE_OUT, ">&STDOUT") || die "can't save stdout: $!";
+open SAVE_OUT, ">&STDOUT" or die "Can't save STDOUT: $!";
 die unless defined fileno SAVE_OUT;
 
-open(TEMPOUT,"+> " . ($temp_file = "find2perl.$$"))	    ||
-open(TEMPOUT,"+> " . ($temp_file = "/tmp/find2perl.$$"))    ||
-die "can't find a temp output file";
+open STDOUT, ">&", $out_fh or die "Can't dup STDOUT to $out_file: $!";
+$|++, select $_ for select STDOUT;
 
-open(STDOUT, ">&TEMPOUT")    || die "can't dup to $temp_file: $!";
-$| = 1;
+open SAVE_ERR, ">&STDERR" or die "Can't save STDERR: $!";
+die unless defined fileno SAVE_ERR;
 
-system 'find2perl', @ARGV;
+open STDERR, ">&", $err_fh or die "Can't dup STDERR to $err_file: $!";
+$|++, select $_ for select STDERR;
 
-if ($?) {
-  die "Couldn't run find2perl (wait status == $?)";
+# Run find2perl to convert find command to Perl script.
+
+system $script, @ARGV;
+
+# Check for errors.
+
+my $child_error = $?;
+my $acm_min_error;
+
+open STDERR, ">&SAVE_ERR" or die "Can't restore STDERR: $!";
+
+seek $err_fh, 0, 0 or die "Can't rewind $err_file: $!";
+
+my $error = do { local $/; <$err_fh> };
+
+close $err_fh;
+
+if ($error) {
+    if ($error =~ /^Unrecognized switch: -[acm]min\s*$/) {
+        # Tried to use -amin, -cmin or -mmin, which find2perl doesn't
+        # support.
+        $acm_min_error++;
+
+        # So change to -atime, -ctime or -mtime, and append an
+        # identifier to its argument (fortunately, find2perl does not
+        # validate the argument).
+        for my $i (0..$#ARGV) {
+            $ARGV[$i + 1] .= '-ppt-minutes'
+                if $ARGV[$i] =~ s/^(-[acm])min$/${1}time/;
+        }
+
+        system $script, @ARGV;
+        $child_error = $?;
+    } else {
+        warn $error;
+    }
 }
 
-die "empty program" unless -s TEMPOUT;
-die "empty program" unless -s $temp_file;
+die "Can't run $script (wait status == $child_error)" if $child_error;
 
-seek(TEMPOUT, 0, 0)	   || die "can't rewind $temp_file: $!";
-$program = do { local $/; <TEMPOUT> };	 # $program now contains file
-                                         # contents
-close(TEMPOUT)	   || die "can't close $temp_file: $!";
-open(STDOUT, ">&SAVE_OUT") || die "can't restore stdout: $!";
+die "Empty program" unless -s $out_fh && -s $out_file;
+
+# Get "find" Perl script from output.
+
+seek $out_fh, 0, 0 or die "Can't rewind $out_file: $!";
+
+my $program = do { local $/; <$out_fh> };
+
+close $out_fh;
+
+open STDOUT, ">&SAVE_OUT" or die "Can't restore STDOUT: $!";
+
+# Convert fake -atime, -ctime and -mtime conditionals, such as:
+#
+#    (int(-C _) > 60-ppt-minutes) &&
+#    (int(-M _) < 15-ppt-minutes)
+#
+# To -amin, -cmin and -mmin conditionals, such as:
+#
+#    (int(1440 * -C _) > 60) &&
+#    (int(1440 * -M _) < 15)
+#
+if ($acm_min_error) {
+    my $minutes_per_day = 24 * 60;
+    $program =~ s/(\bint\()(-[AMC] .*)-ppt-minutes/$1$minutes_per_day * $2/g;
+}
+
+# Run "find" Perl script.
 
 eval qq{
-  no strict;
-  local \$^W = 0;
-  $program;
+    no strict;
+    local \$^W = 0;
+    $program;
 };
 
-if ($@) {
-  die "Couldn't compile and execute find-t0-perl program: $@\n";
-}
+die "Can't compile and execute $script program: $@\n" if $@;
 
 exit 0;
 
