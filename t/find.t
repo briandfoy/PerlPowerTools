@@ -39,13 +39,15 @@ for my $file (@files) {
     ok(utime($time, $time, $file), "Set file time to $minutes minutes ago");
 }
 
-my $args;
+my ($args, $got);
 
 $args = "$dir -type f -amin -50";
-is(`$find $args`, $found[0], "Found files with -amin: find $args");
+$got = join '', sort `$find $args`;
+is($got, $found[0], "Found files with -amin: find $args");
 
 $args = "$dir -type f -mmin +50";
-is(`$find $args`, $found[1], "Found files with -mmin: find $args");
+$got = join '', sort `$find $args`;
+is($got, $found[1], "Found files with -mmin: find $args");
 
 done_testing();
 
