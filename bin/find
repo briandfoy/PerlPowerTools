@@ -19,8 +19,12 @@ License: perl
 use strict;
 
 use File::Temp qw/ tempfile /;
+use FindBin;
 
 my $script = 'find2perl';
+
+`perl $FindBin::Bin/which $script`
+    or die "Please install App::find2perl before continuing.\n";
 
 # Temp files to capture find2perl output and error.
 my ($out_fh, $out_file) = tempfile();
