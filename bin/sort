@@ -69,7 +69,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
 
 package MyElem;
 
-use vars qw/ $opt_K @ISA /;
+use vars qw/ $opt_K @ISA *_s /;
 BEGIN {
 @ISA = ('Heap::Elem');
 };
@@ -85,7 +85,7 @@ sub new {
 
 sub cmp {
     ($::b, $::a) = ($_[0]->val, $_[1]->val);
-    return $opt_K ? ::sort1() : ::sortsub();
+    return _s();
 }
 
 # other methods for the rest of myObject's functionality
@@ -118,8 +118,10 @@ sub _sort_file {
 
     # see big ol' mess below
     _make_sort_sub($opts);
-    $MyElem::opt_K = $opts->{K};
-
+    {
+        local $^W;
+        *MyElem::_s = ($MyElem::opt_K = $opts->{K}) ? \&sort1 : \&sortsub;
+    }
     my $pq;
     if (defined $head) {
         require Heap::Fibonacci;
