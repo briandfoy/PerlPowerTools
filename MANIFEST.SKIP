@@ -64,4 +64,4 @@
 
 util/create_tool_list
 CNAME
-data
+^data/
