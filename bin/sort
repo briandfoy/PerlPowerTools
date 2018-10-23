@@ -67,9 +67,39 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
     exit($exit == 1 ? $exit ? 0 : $exit : 1);
 }
 
+package MyElem;
+
+use parent 'Heap::Elem';
+
+sub new {
+    my $self = shift;
+    my $class = ref($self) || $self;
+
+    my ($key, $opt_K) = @_;
+    my $self = $class->SUPER::new({key =>$key, opt_K=>$opt_K});
+
+    return $self;
+}
+
+sub cmp {
+    my $self = shift->val;
+    my $other = shift->val;
+    $::b = $self->{key};
+    $::a = $other->{key};
+    my $ret = $self->{opt_K} ? ::sort1($::a,$::b) : ::sortsub($::a,$::b);
+    # print "{{",$self->{key} , ",",$other->{key}, ", $ret}}";
+    return $ret;
+}
+
+# other methods for the rest of myObject's functionality
+
+package main;
+
 sub _sort_file {
     local $\;   # don't mess up our prints
     my($opts, @fh, @recs) = shift;
+    my $head = $opts->{head};
+
 
     # record separator, default to \n
     local $/ = $opts->{R} ? $opts->{R} : "\n";
@@ -91,7 +121,13 @@ sub _sort_file {
 
     # see big ol' mess below
     _make_sort_sub($opts);
+    my $K = $opts->{K};
 
+    my $pq;
+    if (defined $head) {
+        require Heap::Fibonacci;
+        $pq = Heap::Fibonacci->new;
+    }
     # only check to see if file is sorted
     if ($opts->{c}) {
         local *F;
@@ -165,9 +201,17 @@ sub _sort_file {
             }
 
             while (defined(my $rec = <F>)) {
-                push @recs, $rec;
-                $count++;  # keep track of number of records
-
+                ++$count;  # keep track of number of records
+                if (defined $pq) {
+                    $pq->add(MyElem->new($rec, $K));
+                    while ($count > $head) {
+                        $pq->extract_top;
+                        --$count;
+                    }
+                }
+                else {
+                    push @recs, $rec;
+                }
                 if ($count >= $opts->{'y'}) {    # don't go over record limit
 
                     _debug("$count records reached in `$filein'\n")
@@ -194,6 +238,12 @@ sub _sort_file {
         }
 
         # records leftover, didn't reach record limit
+        if (defined $pq) {
+            while (my $e = $pq->extract_top) {
+                push @recs, $e->val->{key};
+            }
+            $pq->DESTROY;
+        }
         if (@recs) {
             _debug("\nSorting leftover records ...\n") if $opts->{D};
             _check_last(\@recs);
@@ -221,9 +271,6 @@ sub _merge_files {
     # we need the options, filehandles, and output file
     my($opts, $fh, $recs, $file) = @_;
     my($uniq, $first, $o, %oth);
-    if (my $head = $opts->{head}) {
-        $recs = [ @$recs[0 .. $head-1] ];
-    }
 
     # arbitrarily named keys, store handles as values
     %oth = map {($o++ => $_)} @$fh;
