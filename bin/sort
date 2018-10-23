@@ -84,10 +84,7 @@ sub new {
 }
 
 sub cmp {
-    my $self = shift->val;
-    my $other = shift->val;
-    $::b = $self;
-    $::a = $other;
+    ($::b, $::a) = ($_[0]->val, $_[1]->val);
     return $opt_K ? ::sort1() : ::sortsub();
 }
 
