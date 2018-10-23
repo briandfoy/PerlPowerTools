@@ -16,7 +16,7 @@ use Test::More tests => 2;
 
     # TEST
     like( scalar(`$^X -Ilib bin/sort -n t/data/sort/ints1.txt`),
-        qr#\A$ints_re\r?\n?\z#ms, "letters sort" );
+        qr#\A$ints_re\r?\n?\z#ms, "integers sort" );
 }
 
 __END__
