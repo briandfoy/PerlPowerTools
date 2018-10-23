@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 sub _lines2re
 {
@@ -61,22 +61,12 @@ EOF
 );
 
 {
-    my $lines_re = _lines2re( split/\n/,<<'EOF' );
-column by pencil
-row by row
-a little love
-based little mint
-the meta protocol
-mooing persistent cat
-the wonderful unicorn
-mooing yodelling dog
-EOF
+    my $ints_re = _lines2re( 1 .. 10 );
 
     # TEST
-    like( scalar(`$^X -Ilib bin/sort -k 2 -k 1 t/data/sort/three-words.txt`),
-        qr#\A$lines_re\z#ms, "-k 2,1 sort" );
+    like( scalar(`$^X -Ilib bin/sort --head=10 -n t/data/sort/ints1.txt`),
+        qr#\A$ints_re\z#ms, "head integers sort" );
 }
-
 __END__
 
 =head1 COPYRIGHT & LICENSE

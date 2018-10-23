@@ -56,7 +56,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
         splice(@ARGV, $_, 1);
     }
 
-    GetOptions(\%o, 'k=s@', qw(c m u d f i n r b D),
+    GetOptions(\%o, 'head=n', 'k=s@', qw(c m u d f i n r b D),
         map {"$_=s"} qw(X t y F o R));
     push @{$o{'k'}}, @pos if @pos;   # add pos stuff back
     @ARGV = '-' unless @ARGV;
@@ -221,6 +221,9 @@ sub _merge_files {
     # we need the options, filehandles, and output file
     my($opts, $fh, $recs, $file) = @_;
     my($uniq, $first, $o, %oth);
+    if (my $head = $opts->{head}) {
+        $recs = [ @$recs[0 .. $head-1] ];
+    }
 
     # arbitrarily named keys, store handles as values
     %oth = map {($o++ => $_)} @$fh;
