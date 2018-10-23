@@ -5,18 +5,25 @@ use warnings;
 
 use Test::More tests => 2;
 
+sub _lines2re
 {
+    return join( qq#\r?\n#, @_ ) . qq#\r?\n?#;
+}
+
+{
+    my $letters_re = _lines2re(qw/ a b c d e f /);
+
     # TEST
-    like(
-        scalar(`$^X -Ilib bin/sort t/data/sort/letters1.txt`),
-        qr#\Aa\r?\nb\r?\nc\r?\nd\r?\ne\r?\nf\r?\n?\z#ms,
-        "letters sort"
-    );
-    my $ints_re = join( qq#\r?\n#, 1 .. 100 );
+    like( scalar(`$^X -Ilib bin/sort t/data/sort/letters1.txt`),
+        qr#\A$letters_re\z#ms, "letters sort" );
+}
+
+{
+    my $ints_re = _lines2re( 1 .. 100 );
 
     # TEST
     like( scalar(`$^X -Ilib bin/sort -n t/data/sort/ints1.txt`),
-        qr#\A$ints_re\r?\n?\z#ms, "integers sort" );
+        qr#\A$ints_re\z#ms, "integers sort" );
 }
 
 __END__
