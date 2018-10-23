@@ -866,6 +866,12 @@ Here are some equivalencies:
     +2.1 -2.4       =>  -k 3.2,3.4
     +2.0 -3.0       =>  -k 3.1,4.0
 
+=item I<--head>=N
+
+Limits to the first N elements. C<sort -n --head=10> is equivalent to
+C<sort -n | head -10> only should be faster. This option requires L<Heap>
+from CPAN.
+
 =back
 
 
