@@ -72,3 +72,5 @@ MANIFEST\s
 Changes\s
 Makefile\s
 MYMETA\s
+/\..*?\.swp$
+^PerlPowerTools-[0-9].*
