@@ -69,7 +69,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
 
 package MyElem;
 
-use vars qw/ @ISA /;
+use vars qw/ $opt_K @ISA /;
 BEGIN {
 @ISA = ('Heap::Elem');
 };
@@ -78,8 +78,7 @@ sub new {
     my $self = shift;
     my $class = ref($self) || $self;
 
-    my ($key, $opt_K) = @_;
-    my $self = $class->SUPER::new({key =>$key, opt_K=>$opt_K});
+    my $self = $class->SUPER::new(shift);
 
     return $self;
 }
@@ -87,11 +86,9 @@ sub new {
 sub cmp {
     my $self = shift->val;
     my $other = shift->val;
-    $::b = $self->{key};
-    $::a = $other->{key};
-    my $ret = $self->{opt_K} ? ::sort1() : ::sortsub();
-    # print "{{",$self->{key} , ",",$other->{key}, ", $ret}}";
-    return $ret;
+    $::b = $self;
+    $::a = $other;
+    return $opt_K ? ::sort1() : ::sortsub();
 }
 
 # other methods for the rest of myObject's functionality
@@ -124,7 +121,7 @@ sub _sort_file {
 
     # see big ol' mess below
     _make_sort_sub($opts);
-    my $K = $opts->{K};
+    $MyElem::opt_K = $opts->{K};
 
     my $pq;
     if (defined $head) {
@@ -207,7 +204,7 @@ sub _sort_file {
             while (defined(my $rec = <F>)) {
                 ++$count;  # keep track of number of records
                 if (defined $pq) {
-                    $pq->add(MyElem->new($rec, $K));
+                    $pq->add(MyElem->new($rec));
                     while ($count > $head) {
                         $pq->extract_top;
                         --$count;
@@ -244,7 +241,7 @@ sub _sort_file {
         # records leftover, didn't reach record limit
         if (defined $pq) {
             while (my $e = $pq->extract_top) {
-                push @recs, $e->val->{key};
+                push @recs, $e->val;
             }
             $pq->DESTROY;
         }
