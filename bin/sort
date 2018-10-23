@@ -244,8 +244,12 @@ sub _sort_file {
                 push @recs, $e->val;
             }
             $pq->DESTROY;
+            if (! $opts->{K}) {
+                @recs = map {$_->[0]} @recs;
+            }
+            @recs = reverse @recs;
         }
-        if (@recs) {
+        elsif (@recs) {
             _debug("\nSorting leftover records ...\n") if $opts->{D};
             _check_last(\@recs);
             if ($opts->{K}) {
