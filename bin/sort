@@ -69,7 +69,10 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
 
 package MyElem;
 
-use parent 'Heap::Elem';
+use vars qw/ @ISA /;
+BEGIN {
+@ISA = ('Heap::Elem');
+};
 
 sub new {
     my $self = shift;
@@ -126,6 +129,7 @@ sub _sort_file {
     my $pq;
     if (defined $head) {
         require Heap::Fibonacci;
+        require Heap::Elem;
         $pq = Heap::Fibonacci->new;
     }
     # only check to see if file is sorted
