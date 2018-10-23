@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 {
     # TEST
@@ -12,6 +12,11 @@ use Test::More tests => 1;
         qr#\Aa\r?\nb\r?\nc\r?\nd\r?\ne\r?\nf\r?\n?\z#ms,
         "letters sort"
     );
+    my $ints_re = join( qq#\r?\n#, 1 .. 100 );
+
+    # TEST
+    like( scalar(`$^X -Ilib bin/sort -n t/data/sort/ints1.txt`),
+        qr#\A$ints_re\r?\n?\z#ms, "letters sort" );
 }
 
 __END__

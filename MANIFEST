@@ -126,7 +126,9 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README.pod
+t/.sort.t.swp
 t/compile.t
+t/data/sort/ints1.txt
 t/data/sort/letters1.txt
 t/echo.t
 t/factor.t
