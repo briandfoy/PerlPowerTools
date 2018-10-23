@@ -89,7 +89,7 @@ sub cmp {
     my $other = shift->val;
     $::b = $self->{key};
     $::a = $other->{key};
-    my $ret = $self->{opt_K} ? ::sort1($::a,$::b) : ::sortsub($::a,$::b);
+    my $ret = $self->{opt_K} ? ::sort1() : ::sortsub();
     # print "{{",$self->{key} , ",",$other->{key}, ", $ret}}";
     return $ret;
 }
