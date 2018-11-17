@@ -274,7 +274,7 @@ though he wrote none of the utilities.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2004-2016 by various authors. See each program for
+Copyright (c) 2004-2018 by various authors. See each program for
 specific information.
 
 This program is free software; you can redistribute it and/or modify
