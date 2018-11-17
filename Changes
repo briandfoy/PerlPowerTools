@@ -1,5 +1,12 @@
 Revision history for Perl module PerlPowerTools
 
+1.013 2018-11-17T14:32:26Z
+	* Add tests for the sort program (Shlomi Fish)
+	* Add -amin, -cmin and -mmin to `find` command (timgimyee)
+	* Fix patch to restore original if the patch fails (timgimyee)
+	* patch uses Term::Readline for prompt (timgimyee)
+	* clear tries harder on Windows (timgimyee)
+
 1.012_01 2017-01-14T03:50:20Z
 	* Adjust prereq version to Test::Trap to not use leading v,
 	which I think is confusing some installers.
