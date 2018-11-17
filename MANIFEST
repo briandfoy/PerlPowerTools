@@ -127,10 +127,14 @@ MANIFEST.SKIP
 META.yml
 README.pod
 t/compile.t
+t/data/sort/ints1.txt
+t/data/sort/letters1.txt
 t/echo.t
 t/factor.t
 t/false.t
+t/find.t
 t/pod.t
+t/sort.t
 t/true.t
 TODO
 xt/changes.t
