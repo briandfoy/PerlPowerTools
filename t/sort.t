@@ -10,24 +10,44 @@ sub _lines2re
     return join( qq#\r?\n#, @_ ) . qq#\r?\n?#;
 }
 
+sub test_sort
 {
-    my $letters_re = _lines2re(qw/ a b c d e f /);
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    my ($args) = @_;
 
-    # TEST
-    like( scalar(`$^X -Ilib bin/sort t/data/sort/letters1.txt`),
-        qr#\A$letters_re\z#ms, "letters sort" );
+    my $re = _lines2re( @{ $args->{lines} } );
+    return like(
+        scalar(`$^X -Ilib bin/sort @{$args->{flags}} @{$args->{files}}`),
+        qr#\A$re\z#ms, $args->{blurb} );
 }
 
-{
-    my $ints_re = _lines2re( 1 .. 100 );
+# TEST
+test_sort(
+    {
+        blurb => "letters sort",
+        files => [qw( t/data/sort/letters1.txt )],
+        flags => [],
+        lines => [qw/ a b c d e f /],
+    }
+);
 
-    # TEST
-    like( scalar(`$^X -Ilib bin/sort -n t/data/sort/ints1.txt`),
-        qr#\A$ints_re\z#ms, "integers sort" );
-}
+# TEST
+test_sort(
+    {
+        blurb => "integers sort",
+        files => [qw( t/data/sort/ints1.txt )],
+        flags => [qw/ -n /],
+        lines => [ 1 .. 100 ],
+    }
+);
 
-{
-    my $lines_re = _lines2re( split/\n/,<<'EOF' );
+# TEST
+test_sort(
+    {
+        blurb => "multiple -k sort",
+        files => [qw( t/data/sort/three-words.txt )],
+        flags => [qw/ -k 2 -k 1 /],
+        lines => [ split /\n/, <<'EOF'],
 column by pencil
 row by row
 a little love
@@ -37,11 +57,8 @@ mooing persistent cat
 the wonderful unicorn
 mooing yodelling dog
 EOF
-
-    # TEST
-    like( scalar(`$^X -Ilib bin/sort -k 2 -k 1 t/data/sort/three-words.txt`),
-        qr#\A$lines_re\z#ms, "-k 2,1 sort" );
-}
+    }
+);
 
 __END__
 
