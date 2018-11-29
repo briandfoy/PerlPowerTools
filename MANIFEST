@@ -130,6 +130,7 @@ t/compile.t
 t/data/cat/cat-n-1.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
+t/data/sort/three-words.txt
 t/cat.t
 t/echo.t
 t/factor.t
