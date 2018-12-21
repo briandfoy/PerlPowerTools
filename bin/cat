@@ -63,8 +63,8 @@ while (<>) {
         $was_empty = $is_empty;
     }
 
-    $_ = sprintf "%6d  $_", ++ $count if $number_lines ||
-                                         $number_non_blanks && /\S/;
+    $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
+                                             $number_non_blanks && /\S/;
 
     $_ =~ s/$/\$/   if $ends;
     if ($nonprinting) {
