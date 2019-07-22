@@ -126,11 +126,11 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README.pod
+t/cat.t
 t/compile.t
 t/data/cat/cat-n-1.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
-t/cat.t
 t/echo.t
 t/factor.t
 t/false.t
