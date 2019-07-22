@@ -5,7 +5,7 @@ use Test::More;
 use File::Temp qw/ tempdir /;
 use File::Path qw/ make_path /;
 
-my $find = 'perl bin/find';
+my $find = "$^X bin/find";
 
 my $dir = tempdir('ppt-find-XXXXXXXX', TMPDIR => 1, CLEANUP => 1);
 
