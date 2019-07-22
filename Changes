@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.015 2019-07-22T01:34:34Z
+	* test bin/cat
+
 1.014 2019-07-22T01:25:36Z
 	* Fix the test for bin/find to use the perl that's running the test
 
