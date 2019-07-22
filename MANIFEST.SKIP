@@ -65,3 +65,7 @@
 util/create_tool_list
 CNAME
 ^data/
+
+pm_to_blib\s
+MANIFEST\s
+Changes\s
