@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.014 2019-07-22T01:25:36Z
+	* Fix the test for bin/find to use the perl that's running the test
+
 1.013 2018-11-17T14:32:26Z
 	* Add tests for the sort program (Shlomi Fish)
 	* Add -amin, -cmin and -mmin to `find` command (timgimyee)
