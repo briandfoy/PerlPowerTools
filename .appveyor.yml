@@ -4,6 +4,8 @@
 
 image:
   - Visual Studio 2015
+  - Visual Studio 2017
+  - Visual Studio 2019
   - ubuntu1604
   - ubuntu1804
   - ubuntu
@@ -25,7 +27,7 @@ install:
   - cmd: set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - cmd: cd %APPVEYOR_BUILD_FOLDER%
   - sh: sudo apt-get update
-  - sh: sudo apt-get install build-essential git libssl-dev
+  - sh: sudo env DEBIAN_FRONTEND=noninteractive apt-get -yq install build-essential git libssl-dev
   - sh: sudo apt-get install -y perl
   - sh: export PATH=/home/appveyor/perl5/bin:$PATH
   - perl -v
