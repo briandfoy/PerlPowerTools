@@ -66,6 +66,9 @@ util/create_tool_list
 CNAME
 ^data/
 
+# weird iCloud file versioning
 pm_to_blib\s
 MANIFEST\s
 Changes\s
+Makefile\s
+MYMETA\s
