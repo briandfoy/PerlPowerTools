@@ -24,6 +24,7 @@ install:
   - cmd: if not exist "C:\strawberry" cinst strawberryperl
   - cmd: set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - cmd: cd %APPVEYOR_BUILD_FOLDER%
+  - sh: sudo apt-get update
   - sh: sudo apt-get install build-essential git libssl-dev
   - sh: sudo apt-get install -y perl
   - sh: export PATH=/home/appveyor/perl5/bin:$PATH
