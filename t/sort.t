@@ -60,7 +60,12 @@ EOF
     }
 );
 
+SKIP:
 {
+    if (not eval { require Heap::Fibonacci; 1})
+    {
+        skip "--head flag requires Heap::Fibonacci", 1;
+    }
     my $ints_re = _lines2re( 1 .. 10 );
 
     # TEST
