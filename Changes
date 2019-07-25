@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.015_02 2019-07-25T16:33:45Z
+	* more testing to see what's going on in CPAN Testers
+
 1.015_01 2019-07-23T18:54:31Z
 	* Debugging this issue with t/find.t in CPAN Testers
 	* Add Shlomi's sort test improvements
