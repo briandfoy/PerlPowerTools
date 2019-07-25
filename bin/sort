@@ -56,7 +56,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
         splice(@ARGV, $_, 1);
     }
 
-    GetOptions(\%o, 'head=n', 'k=s@', qw(c m u d f i n r b D),
+    GetOptions(\%o, 'head=n', 'tail=n', 'k=s@', qw(c m u d f i n r b D),
         map {"$_=s"} qw(X t y F o R));
     push @{$o{'k'}}, @pos if @pos;   # add pos stuff back
     @ARGV = '-' unless @ARGV;
@@ -69,7 +69,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
 
 package MyElem;
 
-use vars qw/ $opt_K @ISA *_s /;
+use vars qw/ $tail $opt_K @ISA *_s /;
 BEGIN {
 @ISA = ('Heap::Elem');
 };
@@ -84,7 +84,7 @@ sub new {
 }
 
 sub cmp {
-    ($::b, $::a) = ($_[0]->val, $_[1]->val);
+    ($::b, $::a) = map { $_->val } @_[$tail?(1,0):(0,1)];
     return _s();
 }
 
@@ -96,6 +96,8 @@ sub _sort_file {
     local $\;   # don't mess up our prints
     my($opts, @fh, @recs) = shift;
     my $head = $opts->{head};
+    my $tail = $opts->{tail};
+    my $quota;
 
 
     # record separator, default to \n
@@ -123,10 +125,20 @@ sub _sort_file {
         *MyElem::_s = ($MyElem::opt_K = $opts->{K}) ? \&sort1 : \&sortsub;
     }
     my $pq;
-    if (defined $head) {
+    if (defined $head or defined $tail) {
         require Heap::Fibonacci;
         require Heap::Elem;
         $pq = Heap::Fibonacci->new;
+        if (defined $tail) {
+            $MyElem::tail = 1;
+            if (defined $head) {
+                die "Cannot specify both --head and --tail !";
+            }
+            $quota = $tail;
+        }
+        else {
+            $quota = $head;
+        }
     }
     # only check to see if file is sorted
     if ($opts->{c}) {
@@ -204,7 +216,7 @@ sub _sort_file {
                 ++$count;  # keep track of number of records
                 if (defined $pq) {
                     $pq->add(MyElem->new($rec));
-                    while ($count > $head) {
+                    while ($count > $quota) {
                         $pq->extract_top;
                         --$count;
                     }
@@ -246,7 +258,10 @@ sub _sort_file {
             if (! $opts->{K}) {
                 @recs = map {$_->[0]} @recs;
             }
-            @recs = reverse @recs;
+            if (not defined $tail)
+            {
+                @recs = reverse @recs;
+            }
         }
         elsif (@recs) {
             _debug("\nSorting leftover records ...\n") if $opts->{D};
@@ -870,6 +885,12 @@ Here are some equivalencies:
 
 Limits to the first N elements. C<sort -n --head=10> is equivalent to
 C<sort -n | head -10> only should be faster. This option requires L<Heap>
+from CPAN.
+
+=item I<--tail>=N
+
+Limits to the last N elements. C<sort -n --tail=10> is equivalent to
+C<sort -n | tail -10> only should be faster. This option requires L<Heap>
 from CPAN.
 
 =back

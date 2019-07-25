@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 sub _lines2re
 {
@@ -62,15 +62,21 @@ EOF
 
 SKIP:
 {
-    if (not eval { require Heap::Fibonacci; 1})
+    if ( not eval { require Heap::Fibonacci; 1 } )
     {
-        skip "--head flag requires Heap::Fibonacci", 1;
+        skip "--head flag requires Heap::Fibonacci", 2;
     }
     my $ints_re = _lines2re( 1 .. 10 );
 
     # TEST
     like( scalar(`$^X -Ilib bin/sort --head=10 -n t/data/sort/ints1.txt`),
         qr#\A$ints_re\z#ms, "head integers sort" );
+
+    $ints_re = _lines2re( 96 .. 100 );
+
+    # TEST
+    like( scalar(`$^X -Ilib bin/sort --tail=5 -n t/data/sort/ints1.txt`),
+        qr#\A$ints_re\z#ms, "--tail integers sort" );
 }
 __END__
 
