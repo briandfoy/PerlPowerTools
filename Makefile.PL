@@ -20,7 +20,7 @@ be able to use them.
 If you want to install them somewhere else, run the F<Makefile.PL>
 with your installation location:
 
-    perl Makefile.PL INSTALL_BASE=/where/you/want/them/to/go
+    % perl Makefile.PL INSTALL_BASE=/where/you/want/them/to/go
 
 But, this F<Makefile.PL> is more interesting than that. You can load
 it with C<require> and call C<arguments> to get the data structure it
