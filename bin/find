@@ -18,7 +18,6 @@ License: perl
 
 use strict;
 
-use App::find2perl;
 use File::Temp qw/ tempfile /;
 use FindBin;
 
