@@ -18,13 +18,32 @@ License: perl
 
 use strict;
 
+use Config;
+use File::Basename;
+use File::Spec::Functions;
 use File::Temp qw/ tempfile /;
 use FindBin;
 
 my $script = 'find2perl';
 
-`$^X $FindBin::Bin/which $script`
-    or die "Please install App::find2perl before continuing.\n";
+my $perlbin  = catfile( dirname($Config{perlpath}), $script );
+
+my $path = $ENV{FIND2PERL} // $perlbin;
+
+die <<'HEREDOC' unless -e $path;
+Did not find the find2perl program. Install App::find2perl or set the
+FIND2PERL environment variable with the path.
+
+This program looked for find2perl in:
+
+	$path
+
+find2perl was distributed with perl up to v5.18 and became a separate
+module in v5.20. Older versions of find2perl assumed that the program
+would be next to the perl binary but installed something like
+/usr/bin/find2perl that would dispatch to the Standard Library
+version.
+HEREDOC
 
 # Temp files to capture find2perl output and error.
 my ($out_fh, $out_file) = tempfile();
