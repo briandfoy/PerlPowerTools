@@ -28,7 +28,7 @@ my $script = 'find2perl';
 
 my $perlbin  = catfile( dirname($Config{perlpath}), $script );
 
-my $path = $ENV{FIND2PERL} // $perlbin;
+my $path = defined $ENV{FIND2PERL} ? $ENV{FIND2PERL} : $perlbin;
 
 die <<'HEREDOC' unless -e $path;
 Did not find the find2perl program. Install App::find2perl or set the
