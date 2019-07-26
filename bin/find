@@ -18,12 +18,13 @@ License: perl
 
 use strict;
 
+use App::find2perl;
 use File::Temp qw/ tempfile /;
 use FindBin;
 
 my $script = 'find2perl';
 
-`perl $FindBin::Bin/which $script`
+`$^X $FindBin::Bin/which $script`
     or die "Please install App::find2perl before continuing.\n";
 
 # Temp files to capture find2perl output and error.
@@ -51,7 +52,7 @@ $|++, select $_ for select STDERR;
 
 # Run find2perl to convert find command to Perl script.
 
-system $script, @ARGV;
+system $^X, $script, @ARGV;
 
 # Check for errors.
 
