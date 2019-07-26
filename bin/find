@@ -70,7 +70,7 @@ $|++, select $_ for select STDERR;
 
 # Run find2perl to convert find command to Perl script.
 
-system $^X, $script, @ARGV;
+system $^X, $path, @ARGV;
 
 # Check for errors.
 
