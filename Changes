@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.015_03 2019-07-26T18:28:12Z
+	* Work harder to lock down the location of find2perl. Different 
+	versions are conflicting.
+
 1.015_02 2019-07-25T16:33:45Z
 	* more testing to see what's going on in CPAN Testers
 
