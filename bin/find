@@ -27,15 +27,13 @@ use FindBin;
 sub find_script {
 	my $script = 'find2perl';
 
-	my $dir = dirname($FindBin::Bin);
-
-	my $which = catfile( $dir, 'which' );
+	my $which = catfile( $FindBin::Bin, 'which' );
 	my @which_paths = `$^X $which $script`;
 	chomp( @which_paths );
 
 	my @paths = grep -e,
 		map { catfile( $_, $script ) }
-			$dir,
+			$FindBin::Bin,
 			dirname($Config{perlpath}),
 			@which_paths;
 
