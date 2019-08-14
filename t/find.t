@@ -3,7 +3,7 @@ use warnings;
 
 use Test::More;
 
-use Config;
+use Config qw(%Config);
 use Data::Dumper;
 use File::Basename;
 use File::Path qw/ make_path /;
@@ -11,28 +11,27 @@ use File::Spec::Functions;
 use File::Temp qw/ tempdir /;
 use FindBin;
 
-my $find2perl = catfile( dirname($Config{perlpath}), 'find2perl' )
-    or die "Please install App::find2perl before continuing.\n";
+my $find      = catfile( qw(blib script find) );
+my $find2perl = find_find2perl();
+
+unless( defined $find2perl ) {
+	diag( <<"HERE" );
+Did not find find2perl. This comes with the App::find2perl module
+but some testing systems do not fully install prerequisites. The
+find2perl script may be missing. Until we figure out how to track
+down its location, we'll skip these tests on this system.
+HERE
+
+	pass( "Null pass" );
+	done_testing();
+	exit;
+	}
+
 diag( "find2perl is at <$find2perl>" );
 
-subtest check_find2perl => sub {
-	ok( -e $find2perl, "find2perl exists at $find2perl" );
-	ok( -x $find2perl, "find2perl is executable $find2perl" );
 
-	my $output = `$^X -c $find2perl 2>&1`;
-	like( $output, qr/syntax OK/, "$find2perl compiles" );
-	};
-
-my $find = 'blib/script/find';
-diag( "find is at <$find>" );
-
-subtest check_find => sub {
-	ok( -e $find, "find exists at $find" );
-	ok( -x $find, "find is executable $find" );
-
-	my $output = `$^X -c $find 2>&1`;
-	like( $output, qr/syntax OK/, "$find compiles" );
-	};
+subtest check_find2perl => sub { check_find2perl( $find2perl ) };
+subtest check_find      => \&check_find;
 
 my $dir = tempdir('perlpowertools-find-XXXXXXXX', TMPDIR => 1, CLEANUP => 1);
 ok(-d $dir, "Created temp dir: $dir");
@@ -48,8 +47,9 @@ my @file_paths = map catfile( $dir, $_ ), qw[
 my $files;
 subtest create_files => sub {
 	$files = create_files( @file_paths );
-	diag( "Files are\n\t" . join( "\n\t", map { @$_ } @$files ) );
 	};
+
+diag( "Files are\n " . join( "\n ", map { @$_ } @$files ) );
 
 sub show_times {
 	foreach my $file ( @file_paths ) {
@@ -84,6 +84,39 @@ foreach my $args ( [qw(amin -50)], [qw(mmin +50)] ) {
 
 done_testing();
 
+sub find_find2perl {
+	my @candidates =
+		grep { -e }
+		map { catfile( $_, 'find2perl' ) }
+			dirname($Config{perlpath}),
+			split( /$Config{path_sep}/, $ENV{PATH} ),
+
+			;
+
+	push @candidates, catfile( $ENV{PERL_LOCAL_LIB_ROOT}, 'bin', 'find2perl' )
+		if defined $ENV{PERL_LOCAL_LIB_ROOT};
+
+	return defined $candidates[0] ? $candidates[0] : ();
+	}
+
+sub check_find2perl {
+	my( $find2perl ) = @_;
+
+	ok( -e $find2perl, "find2perl exists at $find2perl" );
+	ok( -x $find2perl, "find2perl is executable $find2perl" );
+
+	my $output = `$^X -c $find2perl 2>&1`;
+	like( $output, qr/syntax OK/, "$find2perl compiles" );
+	}
+
+sub check_find {
+   ok( -e $find, "find exists at $find" );
+   ok( -x $find, "find is executable $find" );
+
+   my $output = `$^X -c $find 2>&1`;
+   like( $output, qr/syntax OK/, "$find compiles" );
+   }
+
 sub create_files {
 	my $pivot = 50;
 	my @files;
@@ -110,7 +143,7 @@ sub create_files {
 	\@files;
 	}
 
-sub min_test {
+sub min_test () {
 	my( $arg, $time, $files ) = @_;
 	show_times();
 
