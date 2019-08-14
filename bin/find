@@ -24,19 +24,35 @@ use File::Spec::Functions;
 use File::Temp qw/ tempfile /;
 use FindBin;
 
-my $script = 'find2perl';
+sub find_script {
+	my $script = 'find2perl';
 
-my $perlbin  = catfile( dirname($Config{perlpath}), $script );
+	my $dir = dirname($FindBin::Bin);
 
-my $path = defined $ENV{FIND2PERL} ? $ENV{FIND2PERL} : $perlbin;
+	my $which = catfile( $dir, 'which' );
+	my @which_paths = `$^X $which $script`;
+	chomp( @which_paths );
 
-die <<'HEREDOC' unless -e $path;
+	my @paths = grep -e,
+		map { catfile( $_, $script ) }
+			$dir,
+			dirname($Config{perlpath}),
+			@which_paths;
+
+	$paths[0]
+	}
+
+my $find2perl  = find_script();
+
+my $path = defined $ENV{FIND2PERL} ? $ENV{FIND2PERL} : $find2perl;
+
+die <<"HEREDOC" unless -e $path;
 Did not find the find2perl program. Install App::find2perl or set the
 FIND2PERL environment variable with the path.
 
 This program looked for find2perl in:
 
-	$path
+	$find2perl
 
 find2perl was distributed with perl up to v5.18 and became a separate
 module in v5.20. Older versions of find2perl assumed that the program
@@ -99,14 +115,14 @@ if ($error) {
                 if $ARGV[$i] =~ s/^(-[acm])min$/${1}time/;
         }
 
-        system $script, @ARGV;
+        system $find2perl, @ARGV;
         $child_error = $?;
     } else {
         warn $error;
     }
 }
 
-die "Can't run $script (wait status == $child_error)" if $child_error;
+die "Can't run $find2perl (wait status == $child_error)" if $child_error;
 
 die "Empty program" unless -s $out_fh && -s $out_file;
 
@@ -143,7 +159,7 @@ eval qq{
     $program;
 };
 
-die "Can't compile and execute $script program: $@\n" if $@;
+die "Can't compile and execute $find2perl: $@\n" if $@;
 
 exit 0;
 
