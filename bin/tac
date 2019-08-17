@@ -55,6 +55,9 @@ use Carp;
 use Symbol;
 use Fcntl;
 
+use Fcntl 'SEEK_CUR';
+sub systell { sysseek($_[0], 0, SEEK_CUR) }
+
 sub new {
     my $class = shift;
     my $fh    = gensym;
@@ -89,10 +92,9 @@ sub TIEHANDLE {
 
     # Open files for reading.
     @files = map {
-        local *FH;
-        sysopen FH, $_, $mode   or return;
-        sysseek FH, 0, 2        or return;
-        [$_, *FH];
+        sysopen my $fh, $_, $mode   or return;
+        sysseek $fh, 0, 2        or return;
+        [$_, $fh];
     } @files ? @files : @ARGV;
 
     # Add files and filehandles to object.
@@ -189,12 +191,14 @@ sub get_lines {
         # Get next chunk of data.  Make sure that it contains at least
         # one record separator (hence, at least one line) and that no
         # record separator has been broken across two chunks.
-        my $file = *$self->{files}[0];
+        my $file = *$self->{files}[0][0];
         CHUNK: {
-            my $tell = tell $fh;
-            unless ($tell > $size) {
-                sysseek $fh, 0, 0       or confess "Bad seek on [$file]: $!";
-                sysread $fh, $_, $tell  or confess "Bad read on [$file]: $!";
+            my $tell = systell $fh;
+            if ($tell <= $size ) {
+                if ($tell) {
+                    sysseek $fh, 0, 0       or confess "Bad seek on [$file]: $!";
+                    sysread $fh, $_, $tell  or confess "Bad read on [$file]: $!";
+                }
                 *$self->{EOF}++, last CHUNK;
             }
             sysseek $fh, -$size, 1      or confess "Bad seek on [$file]: $!";
