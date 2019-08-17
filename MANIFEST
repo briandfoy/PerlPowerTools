@@ -132,12 +132,14 @@ t/data/cat/cat-n-1.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
 t/data/sort/three-words.txt
+t/data/tac/a-sep.txt
 t/echo.t
 t/factor.t
 t/false.t
 t/find.t
 t/pod.t
 t/sort.t
+t/tac.t
 t/true.t
 TODO
 xt/changes.t
