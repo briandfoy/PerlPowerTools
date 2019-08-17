@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 sub _lines2re
 {
@@ -157,6 +157,18 @@ test_tac(
         blurb => "-s flag",
         files => [qw( t/data/tac/a-sep.txt )],
         flags => [qw/ -s a /],
+        lines => [ split /\n/, <<'EOF'],
+threeatwoaonea
+EOF
+    }
+);
+
+# TEST
+test_tac(
+    {
+        blurb => "-s and -r flags",
+        files => [qw( t/data/tac/a-sep.txt )],
+        flags => [qw/ -rs "[az]" /],
         lines => [ split /\n/, <<'EOF'],
 threeatwoaonea
 EOF
