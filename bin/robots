@@ -34,8 +34,8 @@ BEGIN {
 		warn <<"HERE";
 $0 requires the Perl Curses module!
 HERE
+		exit;
 		}
-	exit;
 	}
 
 
