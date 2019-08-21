@@ -11,6 +11,8 @@ use File::Spec::Functions;
 use File::Temp qw/ tempdir /;
 use FindBin;
 
+$ENV{HARNESS_VERBOSE} = 1;
+
 my $find      = catfile( qw(blib script find) );
 my $find2perl = find_find2perl();
 
