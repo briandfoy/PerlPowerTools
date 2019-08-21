@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.015_05 2019-08-21T14:52:16Z
+	* Try harder
+
 1.015_04 2019-08-14T12:45:58Z
 	* Skip the find.t test if we can't locate find2perl
 
