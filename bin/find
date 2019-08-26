@@ -41,7 +41,7 @@ sub find_find2perl {
 
 my $find2perl  = find_find2perl();
 
-die <<"HEREDOC" unless -e $path;
+die <<"HEREDOC" unless -e $find2perl;
 Did not find the find2perl program. Install App::find2perl or set the
 FIND2PERL environment variable with the path.
 
@@ -81,7 +81,7 @@ $|++, select $_ for select STDERR;
 
 # Run find2perl to convert find command to Perl script.
 
-system $^X, $path, @ARGV;
+system $^X, $find2perl, @ARGV;
 
 # Check for errors.
 
