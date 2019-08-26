@@ -92,7 +92,6 @@ sub find_find2perl {
 		map { catfile( $_, 'find2perl' ) }
 			dirname($Config{perlpath}),
 			split( /$Config{path_sep}/, $ENV{PATH} ),
-
 			;
 
 	push @candidates, catfile( $ENV{PERL_LOCAL_LIB_ROOT}, 'bin', 'find2perl' )

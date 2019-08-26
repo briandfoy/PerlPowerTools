@@ -18,31 +18,28 @@ License: perl
 
 use strict;
 
-use Config;
+use Config qw(%Config);
 use File::Basename;
 use File::Spec::Functions;
 use File::Temp qw/ tempfile /;
 use FindBin;
 
-sub find_script {
-	my $script = 'find2perl';
-
-	my $which = catfile( $FindBin::Bin, 'which' );
-	my @which_paths = `$^X $which $script`;
-	chomp( @which_paths );
-
-	my @paths = grep -e,
-		map { catfile( $_, $script ) }
-			$FindBin::Bin,
+sub find_find2perl {
+	return $ENV{FIND2PERL} if defined $ENV{FIND2PERL};
+	my @candidates =
+		grep { -e }
+		map { catfile( $_, 'find2perl' ) }
 			dirname($Config{perlpath}),
-			@which_paths;
+			split( /$Config{path_sep}/, $ENV{PATH} )
+			;
 
-	$paths[0]
+	push @candidates, catfile( $ENV{PERL_LOCAL_LIB_ROOT}, 'bin', 'find2perl' )
+		if defined $ENV{PERL_LOCAL_LIB_ROOT};
+
+	return defined $candidates[0] ? $candidates[0] : ();
 	}
 
-my $find2perl  = find_script();
-
-my $path = defined $ENV{FIND2PERL} ? $ENV{FIND2PERL} : $find2perl;
+my $find2perl  = find_find2perl();
 
 die <<"HEREDOC" unless -e $path;
 Did not find the find2perl program. Install App::find2perl or set the
@@ -50,7 +47,7 @@ FIND2PERL environment variable with the path.
 
 This program looked for find2perl in:
 
-	$find2perl
+	@{[ defined $find2perl ? $find2perl : '<not found>' ]}
 
 find2perl was distributed with perl up to v5.18 and became a separate
 module in v5.20. Older versions of find2perl assumed that the program
