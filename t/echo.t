@@ -34,6 +34,7 @@ my $class = 'PerlPowerTools::echo';
 
 subtest setup => sub {
 	plan tests => 2;
+	use lib qw(.);
 	require_ok( 'bin/echo' );
 	can_ok( $class, 'run' );
 };

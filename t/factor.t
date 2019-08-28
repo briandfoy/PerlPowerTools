@@ -10,6 +10,7 @@ use Test::More 0.95;
 my $class = 'PerlPowerTools::factor';
 
 subtest setup => sub {
+	use lib qw(.);
 	require_ok( 'bin/factor' );
 	can_ok( $class, 'run' );
 	};
