@@ -3,26 +3,6 @@ Revision history for Perl module PerlPowerTools
 1.015_07 2019-08-28T14:15:50Z
 	* Use . in @INC for a few situations
 
-1.015_06 2019-08-26T17:28:31Z
-	* Try harder
-
-1.015_05 2019-08-21T14:52:16Z
-	* Try harder
-
-1.015_04 2019-08-14T12:45:58Z
-	* Skip the find.t test if we can't locate find2perl
-
-1.015_03 2019-07-26T18:28:12Z
-	* Work harder to lock down the location of find2perl. Different 
-	versions are conflicting.
-
-1.015_02 2019-07-25T16:33:45Z
-	* more testing to see what's going on in CPAN Testers
-
-1.015_01 2019-07-23T18:54:31Z
-	* Debugging this issue with t/find.t in CPAN Testers
-	* Add Shlomi's sort test improvements
-
 1.015 2019-07-22T01:34:34Z
 	* test bin/cat
 
@@ -65,7 +45,7 @@ Revision history for Perl module PerlPowerTools
 
 1.007_01 2016-03-07T19:05:46Z
 	* Exit gracefully in robots if Curses isn't installed
-	since a die in a BEGIN is a compilation error when 
+	since a die in a BEGIN is a compilation error when
 	triggered
 	* Skip -x tests on Windows.
 
