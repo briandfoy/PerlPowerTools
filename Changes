@@ -1,8 +1,5 @@
 Revision history for Perl module PerlPowerTools
 
-1.015_07 2019-08-28T14:15:50Z
-	* Use . in @INC for a few situations
-
 1.015 2019-07-22T01:34:34Z
 	* test bin/cat
 
