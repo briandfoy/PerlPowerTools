@@ -88,7 +88,8 @@ Revision history for Perl module PerlPowerTools
 	* Trim the distribution, drastically. Let MetaCPAN be the website.
 
 1.01 - 2014-09-12
-	* Let's update Perl Power Tools and make it easier to find
+	* Let's update Perl Power Tools and make it easier to find - call
+	it PerlPowerTools instead of ppt
 	* I'm not sure all of the programs even ran, but at least they
 	compile now
 	* I've probably broken some things, but now I want to see what's
