@@ -45,7 +45,7 @@ if ($opt_p) {
 }
 
 my $database = shift;
-open DATABASE, ">>$database" or die "can't append to $database: $!";
+open my $DATABASE, '>>', $database or die "can't append to $database: $!";
 
 my $inst = <<_EOINST;
 	Addbib will prompt you for various bibliographic fields.
@@ -71,7 +71,7 @@ print "$inst" if /^y/i;
 # I did it to preserve order.
 
 while (1) {
-	print DATABASE "\n";		# start a new entry
+	print $DATABASE "\n";		# start a new entry
 
 	PROMPT: for (my $i=0; $i < @prompts; $i++)  {
 		my ($prompt, $code) = split /\t/, $prompts[$i];
@@ -82,40 +82,40 @@ while (1) {
 			$i -= 2;
 			next PROMPT;
 		}
-		print DATABASE "$code\t";
+		print $DATABASE "$code\t";
 		while (/\\$/) {
 			chop; chop;
-			print DATABASE "$_\n";
+			print $DATABASE "$_\n";
 			print "> ";
 			$_ = <>;
 		}
-		print DATABASE $_;
+		print $DATABASE $_;
 	}
 
 	unless ($opt_a) {
 		print "Abstract: ";
 		$_ = <>;
 		next if (/^$/);
-		print DATABASE "%X\t$_";
+		print $DATABASE "%X\t$_";
 		while (<>) {
-			print DATABASE $_;
+			print $DATABASE $_;
 		}
 	}
 } continue {
 	print "Continue? (y) ";
 	$_ = <>;
 	while (/^\s*(edit|ex|vi|view|emacs)\s*/) {
-		close DATABASE or die "can't close $database: $!";
+		close $DATABASE or die "can't close $database: $!";
 		system("$1 $database") == 0
 		 or die "system '$1 $database' failed: $?";
-		open DATABASE, ">>$database" or die "can't open $database: $!";
+		open my $DATABASE, '>>', $database or die "can't open $database: $!";
 		print "Continue? (y) ";
 		$_ = <>;
 	}
 	last if /^(n|q)/i;
 }
 
-close DATABASE or die "can't close $database: $!";
+close $DATABASE or die "can't close $database: $!";
 
 __END__
 
