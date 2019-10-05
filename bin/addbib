@@ -35,13 +35,13 @@ my @prompts = (
 
 if ($opt_p) {
 	@prompts = ();
-	open PROMPTFILE, $opt_p or die "can't read $opt_p: $!";
-	foreach (<PROMPTFILE>) {
+	open my $PROMPTFILE, '<', $opt_p or die "can't read $opt_p: $!";
+	foreach (<$PROMPTFILE>) {
 		if (/^\s*([^%]+)\t(%\w)/) {
 			push @prompts, "$1\t$2";
 		}
 	}
-	close(PROMPTFILE);
+	close($PROMPTFILE);
 }
 
 my $database = shift;
