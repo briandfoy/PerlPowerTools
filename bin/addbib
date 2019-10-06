@@ -13,6 +13,7 @@ License:
 
 
 use strict;
+use warnings;
 use Getopt::Std;
 use vars qw($opt_a $opt_p);
 
