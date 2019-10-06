@@ -13,6 +13,7 @@ License: perl
 
 
 use strict;
+use warnings;
 
 my ($VERSION) = '1.2';
 
