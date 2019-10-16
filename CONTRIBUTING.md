@@ -1,5 +1,23 @@
 # Contributing to this project
 
+PerlPowerTools is a collection of scripts that reproduce the behavior
+of standard unix tools so you can use the same commands on non-Unix
+systems.
+
+This is designed as a drop-in installation, so comes with some unusual
+requirements.
+
+* Works on Perl v5.8
+* Uses only core modules (with very few exceptions)
+
+Many of these scripts were written around the time of Perl v5.6, so the
+style and idioms you may encounter can be quite archaic. Feel free to
+update those, but only up to v5.8.
+
+Before you go crazy with huge changes, make some small pull requests to
+check that we want to change the tools in that way. Pull requests that
+have one logical change are better.
+
 <a name="pull-requests"></a>
 ## Pull requests
 
