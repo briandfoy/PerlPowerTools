@@ -34,8 +34,8 @@ BEGIN {
 		warn <<"HERE";
 $0 requires the Perl Curses module!
 HERE
+		exit;
 		}
-	exit;
 	}
 
 
@@ -150,8 +150,10 @@ my($key_r_re) = "[$key_ur$key_r$key_dr]"; # movement right
 #
 # Globals
 #
-
-use vars qw($LINES $COLS); # From Curses.pm(?)
+BEGIN {
+	import Curses;
+}
+# use vars qw($LINES $COLS); # From Curses.pm(?)
 
 MAIN:
 {
