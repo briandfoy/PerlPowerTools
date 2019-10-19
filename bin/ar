@@ -9,6 +9,8 @@ License: perl
 
 =cut
 
+use strict;
+use warnings;
 use POSIX qw(strftime);
 use File::Basename;
 use FileHandle;
@@ -63,8 +65,7 @@ if ($opt_b || $opt_a) {
 }
 
 # loop through each file, adding, moving, extracting, etc.
-my $file;
-foreach $file (@ARGV) {
+foreach my $file (@ARGV) {
     my $name = basename($file);
 
     # do the task
@@ -86,8 +87,8 @@ foreach $file (@ARGV) {
 	if (!defined($idx)) { $putpos = @$pNames; }
 
 	# remove from current position
-	@{$pNames->[$pAr->{$name}[0]]} = grep(!/^$name$/,
-					      @{$pNames->[$pAr->{$name}[0]]} );
+   	@{$pNames->[$pAr->{$name}[0]]}
+        = grep { !/^$name$/ } @{$pNames->[$pAr->{$name}[0]]};
 
 	# relocate to $putpos
 	$pAr->{$name}[0] = $putpos;
@@ -152,9 +153,8 @@ foreach $file (@ARGV) {
 # no files given.  -p, -t, and -x will apply to all in archive.
 if (!@ARGV) {
     if ($opt_p || $opt_t || $opt_x) {
-	my ($group,$name);
-	foreach $group (@$pNames) {
-	    foreach $name (@$group) {
+	foreach my $group (@$pNames) {
+	    foreach my $name (@$group) {
 		if ($opt_p) { printMember($name,$pAr,$opt_v); }
 		elsif ($opt_t) { printList($name,$pAr,$opt_v); }
 		elsif ($opt_x) { extractMember($name, $pAr, $opt_v,
@@ -209,7 +209,8 @@ sub extractMember {
     my $attr = $pAr->{$name};
 
     # get current uid/gid and mode
-    my @stat = stat($name) if -e $name;
+    my @stat;
+    @stat = stat($name) if -e $name;
     my ($uid,$gid,$mode,$modt);
     if (@stat) {
 	($uid,$gid,$mode,$modt) = ($stat[4], $stat[5], $stat[2], $stat[9]);
@@ -225,7 +226,7 @@ sub extractMember {
 				   oct($attr->[4]), int($attr->[1]));
     }
 
-    my $out = new FileHandle ">$name" or die "$name: $!\n";
+    my $out = FileHandle->new ">$name" or die "$name: $!\n";
     binmode($out);
     $out->print($attr->[6]);
     $out->close();
@@ -244,7 +245,7 @@ sub extractMember {
 # [ undef, $modt, $uid, $gid, $mode, $sz, $data ]
 sub readFile {
     my ($file) = @_;
-    my $in = new FileHandle "< $file" or die "$file: $!\n";
+    my $in = FileHandle->new "< $file" or die "$file: $!\n";
     binmode($in);
 
     # read the data in one swell foop
@@ -271,7 +272,7 @@ sub readAr {
     # names in order in file
     my @Names = ( undef );
 
-    my $arfh = new FileHandle "< $archive" or die "$0: $archive: $!\n";
+    my $arfh = FileHandle->new "< $archive" or die "$0: $archive: $!\n";
     binmode($arfh);
 
     # read magic
@@ -335,17 +336,16 @@ sub writeAr {
 
     my $arfh;
     if (!defined($append)) {
-	$arfh = new FileHandle "> $archive" or die "$0: $archive: $!\n";
+	$arfh = FileHandle->new "> $archive" or die "$0: $archive: $!\n";
 	$arfh->print("!<arch>\n");
     }
     else {
-	$arfh = new FileHandle ">> $archive" or die "$0: $archive: $!\n";
+	$arfh = FileHandle->new ">> $archive" or die "$0: $archive: $!\n";
     }
 
     # loop through each member of the archive and write to filehandle
-    my ($group,$name);
-    foreach $group (@$pNames) {
-	foreach $name (@$group) {
+    foreach my $group (@$pNames) {
+	foreach my $name (@$group) {
 	    if ($pAr->{$name}) {
 		my $attr = $pAr->{$name};
 		my $sz = $attr->[5];
