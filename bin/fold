@@ -117,7 +117,7 @@ sub fold_file {
     my($column, $char, $output);
 
     $column = 0;
-    open(INPUT, $filename) || die "Cannot open $filename: $!\n";
+    open(INPUT, '<', $filename) || die "Cannot open $filename: $!\n";
 
     # the following hack allows us to dispense with the
     # slow getc() and the hairy adj_col() code because we
