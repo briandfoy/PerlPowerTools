@@ -13,10 +13,12 @@ License:
 
 
 use strict;
+use warnings;
+use List::Util qw/ any /;
 
-exit 1 if grep {!-r} @ARGV;		# traditional
+exit 1 if any {!-r} @ARGV;		# traditional
 
-if (grep /-/, @ARGV) {
+if (any {/-/} @ARGV) {
 	$0 =~ s(.*/)();
 	warn "usage: $0 [filename ...]\n";
 	exit 2;						# traditional
