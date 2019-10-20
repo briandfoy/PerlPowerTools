@@ -71,7 +71,7 @@ sub nextfile {
 
     # MS-DOS: $curname = "$prefix." . $curext;
     $curname = $prefix . $curext;
-    open (FH, ">$curname") or die "$me: Can't open $curname: $!\n";
+    open (FH, '<', ">$curname") or die "$me: Can't open $curname: $!\n";
     binmode(FH);
     return *FH;
 }
@@ -105,7 +105,7 @@ clue if $opt{"?"};    # heeeeeeeeeeelp!
 my $infile = (defined $ARGV[0] ? $ARGV[0] : "-");
 my $prefix = ($ARGV[1] ? "$ARGV[1]" : "x");
 
-open (INFILE, "$infile") || die "$me: Can't open $infile: $!\n";
+open (INFILE, '<', "$infile") || die "$me: Can't open $infile: $!\n";
 binmode(INFILE);
 ## Byte operations.
 if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {

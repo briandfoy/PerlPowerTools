@@ -75,7 +75,7 @@ sub get_a_word {
 	my( $line_num ) = 1;
 	my( $random ) = rand();
 	my( $val ) = int( $random * 9151 ) + 1;
-	open( FILE, "wordlist.txt" ) || die "$!, stopped";
+	open( FILE, '<', "wordlist.txt" ) || die "$!, stopped";
 	while( <FILE> ) {
 		if( $line_num == $val ) {
 			$word = $_;

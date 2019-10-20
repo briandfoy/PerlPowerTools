@@ -34,7 +34,7 @@ $av0 =~ s@.*/@@;
 # Do work.
 $dirty = 0;
 ARGUMENT: foreach $f ( @ARGV ) {
-    if ( ! open(FH, $f) ) {
+    if ( ! open(FH, '<', $f) ) {
 	warn "$av0: can't open $f, $!\n";
 	next ARGUMENT;
     }
