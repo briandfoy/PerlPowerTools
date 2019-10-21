@@ -150,7 +150,7 @@ foreach(1..$columns) {
 	push(@COLINFO, &create_col);
 }
 foreach(@ARGV) {
-	my $fh=new FileHandle "$_", "r";
+	my $fh= FileHandle->new "$_", "r";
 	if (! $fh) {
 		next if ($quietskip);
 		die "$0: Can't open $_";

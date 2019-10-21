@@ -17,9 +17,9 @@ License: perl
 
 use Benchmark;
 
-$t0 = new Benchmark;
+$t0 = Benchmark->new;
 $rc = system(@ARGV);
-$t1 = new Benchmark;
+$t1 = Benchmark->new;
 $td = timediff($t1,$t0);
 ($real, $child_user, $child_system) = @$td[0,3,4];
 

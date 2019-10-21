@@ -39,7 +39,7 @@ if (defined $opts{separator} && $opts{regex}) {
 
 $opts{files} = \@ARGV;
 
-my $fh = new IO::Tac %opts or die "$0: can't open file: $!\n";
+my $fh =  IO::Tac->new %opts or die "$0: can't open file: $!\n";
 print while <$fh>;
 
 END {

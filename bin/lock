@@ -57,7 +57,7 @@ for ( my $i = 0 ; $i <= $#ARGV ; ++ $i )
 }
 
 local $main::fd_stdin = fileno(STDIN);
-local $main::term = new POSIX::Termios;
+local $main::term = POSIX::Termios->new;
 $main::term->getattr($main::fd_stdin);
 local $main::oterm = $main::term->getlflag();
 local $main::echo = &POSIX::ECHO;

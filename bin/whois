@@ -37,7 +37,7 @@ while($i = shift) {
 
 $| = 1;
 
-$sock = new IO::Socket::INET(PeerAddr => $host,
+$sock = IO::Socket::INET->new(PeerAddr => $host,
                              PeerPort => 43,
 			     Proto => 'tcp');
 
