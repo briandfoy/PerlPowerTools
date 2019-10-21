@@ -52,8 +52,8 @@ open(TMPIN, '>',  ($tmpin = "a2pin.$$"))	     ||
 open(TMPIN, '>',  ($tmpin = "/tmp/a2pin.$$"))      ||
 die "can't find a tmp input file";
 
-open(TMPOUT, "+> ",  ($tmpout = "a2pout.$$"))	     ||
-open(TMPOUT, "+> " , ($tmpout = "/tmp/a2pout.$$"))    ||
+open(TMPOUT, "+>",  ($tmpout = "a2pout.$$"))	     ||
+open(TMPOUT, "+>" , ($tmpout = "/tmp/a2pout.$$"))    ||
 die "can't find a tmp output file";
 
 # And some people think getopts does everything. Sheesh.

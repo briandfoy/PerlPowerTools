@@ -31,7 +31,7 @@ else
 {
     foreach $file (@ARGV)
     {
-        open(FILE, '<', "<$file") or die "Unable to read $file: $!";
+        open(FILE, '<', $file) or die "Unable to read $file: $!";
         printWhat(\*FILE,$file,$stop);
         close FILE;
     }
