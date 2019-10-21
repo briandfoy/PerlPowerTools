@@ -230,7 +230,7 @@ find sub {
     FILE
 
     # Inline file as here-doc.
-    open F, '<', "< $_" or die "Couldn't open '$_': $!";
+    open F, '<',  $_ or die "Couldn't open '$_': $!";
     binmode F;
     if ($bin) {
         local $_;
