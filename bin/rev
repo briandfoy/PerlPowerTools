@@ -45,7 +45,7 @@ EOF
 elsif (-f $ARGV[0]) {
 
 	if ($debug) {print "\n\nthis is a file\n\n";}
-	my $fh = FileHandle->new "< $ARGV[0]";  # here is the file handle
+	my $fh = FileHandle->new("< $ARGV[0]");  # here is the file handle
 
 	# in case the file handle does not open
     unless (defined ($fh)) {
