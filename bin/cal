@@ -76,7 +76,7 @@ sub print_month {
 	my( $year, $month ) = @_;
 	my( @month ) = &make_month_array( $year, $month );
 	my( $title, $length, $diff, $left, $right ) = ();
-	my( $day, $end, $x, $size ) = ();
+	my( $end, $x, $size ) = ();
 	my( @months ) = ( '', 'January', 'February', 'March', 'April', 'May',
 					  'June', 'July', 'August', 'September', 'October',
 					  'November', 'December' );
@@ -89,7 +89,7 @@ sub print_month {
 	$left = $diff - $right;
 	$title = ' ' x $left."$title".' ' x $right;
 	print "$title\n";
-	foreach $day (@days) {
+	for my $day (@days) {
 		print "$day";
 	}
 	$end = 0;

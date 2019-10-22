@@ -22,8 +22,8 @@ License:
 
 use IO::Socket;
 
-$host = "whois.internic.net";
-
+my $host = "whois.internic.net";
+my $i;
 while($i = shift) {
 	if ($i eq "-a") { $host = "whois.arin.net"; last; }
 	elsif ($i eq "-d") { $host = "whois.nic.mil"; last; }
@@ -37,14 +37,14 @@ while($i = shift) {
 
 $| = 1;
 
-$sock = new IO::Socket::INET(PeerAddr => $host,
+my $sock = new IO::Socket::INET(PeerAddr => $host,
                              PeerPort => 43,
-			     Proto => 'tcp');
+                             Proto => 'tcp');
 
 die "IO::Socket::INET $!" unless $sock;
 
-foreach $i (@ARGV) {
-	print $sock "$i ";
+for my $i (@ARGV) {
+    print $sock "$i ";
 }
 print $sock "\n\r";
 

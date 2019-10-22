@@ -338,13 +338,10 @@ sub handle_INT()
 {
     print "\n*** recently changed files ***\n";
 
-    my $f;
-    my $i=1;
-    for $f (reverse sort { $info{$a}[2] <=> $info{$b}[2] }
-	    keys %info) {
-	print sprintf("%3d  %s  %s",
-		      $i, scalar localtime($info{$f}[2]), $f)."\n";
-	$i++;
+    my $i = 1;
+    for my $f (reverse sort { $info{$a}[2] <=> $info{$b}[2] } keys %info) {
+        print sprintf("%3d  %s  %s", $i, scalar localtime($info{$f}[2]), $f)."\n";
+        $i++;
     }
     my @existing = get_existing_files(@filelist, @dirlist);
     my @unknown = grep {! -e $_} @filelist;
@@ -368,21 +365,20 @@ sub handle_args($$$)
     # Expand the directories (but not the sub-directories)
     my @files;
     my @dirs;
-    my $f;
-    for $f (@$files_) {
-	if(-d $f) {
-	    push @dirs, $f;
-	} else {
-	    push @files, $f;
-	}
+
+    for my $f (@$files_) {
+        if(-d $f) {
+             push @dirs, $f;
+        } else {
+            push @files, $f;
+        }
     }
 
     if(scalar @files >= 1 or scalar @dirs >= 1) {
-	my $i=0;
+	my $i = 0;
 
 	# Ignore the directories
-	my $file;
-	for $file (@files) {
+	for my $file (@files) {
 
 	    # do not die if the file does not exist, when -f is used
 	    next if(!-e $file and ($opt_f or $me eq "xtail"));

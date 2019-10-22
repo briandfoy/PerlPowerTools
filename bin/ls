@@ -323,7 +323,7 @@ sub List {
 	 exists($Options->{'l'}) ||
 	 exists($Options->{'s'}) ||
 	 exists($Options->{'i'})) {
-		foreach $Entry (@SortedEntries) {
+		for my $Entry (@SortedEntries) {
 			EntryFormat(\%Options,
 			 $Attributes, $Entry);
 		}
@@ -359,7 +359,7 @@ sub List {
 	# ------ list subdirectories of this directory
 	if (!exists($Options{'d'}) &&
 	 ($Expand || exists($Options->{'R'}))) {
-		foreach $Entry (Order(\%Options, $Attributes, @_)) {
+		for my $Entry (Order(\%Options, $Attributes, @_)) {
 			next if ($Entry eq "." || $Entry eq "..");
 			if (defined($Attributes->{$Entry}) &&
 			 $Attributes->{$Entry}->mode & 0040000) {
@@ -465,7 +465,7 @@ if ($#ARGV < 0) {
 # ------ named files/directories if arguments
 } else {
 	$ArgCount = -1;
-	foreach $Arg (@ARGV) {
+	for my $Arg (@ARGV) {
 		if (!exists($Options{'d'}) && -d $Arg) {
 			$ArgCount++;
 			push(@Dirs, $Arg);
@@ -474,18 +474,18 @@ if ($#ARGV < 0) {
 			push(@Files, $Arg);
 		}
 	}
-	foreach $Arg (@Files) {
+	for my $Arg (@Files) {
 		$Attributes{$Arg} = stat($Arg);
 	}
-	foreach $Arg (Order(\%Options, \%Attributes, @Files)) {
+	for my $Arg (Order(\%Options, \%Attributes, @Files)) {
 		$First = 0;
 		List($Arg, \%Options, 0,
 		 DirEntries(\%Options, $Arg));
 	}
-	foreach $Arg (@Dirs) {
+	for my $Arg (@Dirs) {
 		$Attributes{$Arg} = stat($Arg);
 	}
-	foreach $Arg (Order(\%Options, \%Attributes, @Dirs)) {
+	for my $Arg (Order(\%Options, \%Attributes, @Dirs)) {
 		if (!exists($Options{'R'})) {
 			print "\n" if (!$First);
 			$First = 0;

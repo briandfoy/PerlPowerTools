@@ -593,7 +593,7 @@ sub import {
   no strict;
   my $package = shift;
   my $caller = caller;
-  foreach $func (@_) {
+  for my $func (@_) {
     unless ($ {$package . '::EXPORT_OK'}{$func}) {
       require Carp;
       Carp::croak("$package does not export function `$func'; aborting");

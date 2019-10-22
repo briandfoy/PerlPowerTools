@@ -284,7 +284,7 @@ sub edPrint {
 	return;
     }
 
-    for $i ($adrs[0]..$adrs[1]) {
+    for my $i ($adrs[0]..$adrs[1]) {
 	print "$lines[$i]";
     }
 
@@ -334,7 +334,7 @@ sub edSubstitute {
 
     $LastMatch = $CurrentLineNum;
 
-    for $lineno ($adrs[0]..$adrs[1]) {
+    for my $lineno ($adrs[0]..$adrs[1]) {
 	$evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
 	if (eval $evalstring) {
@@ -431,9 +431,9 @@ sub edWrite {
 	}
     }
 
-    for $line (@lines[$adrs[0]..$adrs[1]]) {
-	print FILE $line;
-	$chars += length($line);
+    for my $line (@lines[$adrs[0]..$adrs[1]]) {
+        print FILE $line;
+        $chars += length($line);
     }
 
     $NeedToSave = 0;
@@ -650,12 +650,12 @@ sub edPrintLineNum {
     my($adr);
 
     if (defined($args[0])) {
-	edWarn("Extra arguments detected","\?");
-	return;
+        edWarn("Extra arguments detected","\?");
+        return;
     }
 
-    for $i (0..1) {
-	$adr = $adrs[$i] if (defined($adrs[$i]));
+    for my $i (0..1) {
+        $adr = $adrs[$i] if (defined($adrs[$i]));
     }
 
     $adr = $maxline unless (defined($adr));
@@ -706,15 +706,15 @@ sub edQuit {
 
 sub edSetCurrentLine {
 
-    my($i,$adr);
+    my $adr;
 
     if (defined($args[0])) {
-	edWarn("Extra arguments detected","\?");
-	return;
+        edWarn("Extra arguments detected","\?");
+        return;
     }
 
-    for $i (0..1) {
-	$adr = $adrs[$i] if (defined($adrs[$i]));
+    for my $i (0..1) {
+        $adr = $adrs[$i] if (defined($adrs[$i]));
     }
 
     if (defined($adr)) {
@@ -903,11 +903,10 @@ sub CalculateLine {
 
 sub edSearchForward {
     my($pattern) = @_;
-    my($line,$start);
 
-    $start = $CurrentLineNum < $maxline ? $CurrentLineNum : 1;
+    my $start = $CurrentLineNum < $maxline ? $CurrentLineNum : 1;
 
-    for $line ($start..$maxline,1..$CurrentLineNum) {
+    for my $line ($start..$maxline,1..$CurrentLineNum) {
 
 	if ($lines[$line] =~ /$pattern/) {
 	    return $line;

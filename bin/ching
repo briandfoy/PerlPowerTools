@@ -235,8 +235,7 @@ sub get_hex_body {
   $body .= join '', handle_image(@chunk);
 
   # Print commentary for each moving line.
-  my $line;
-  foreach $line (split //, $change) {
+  for my $line (split //, $change) {
     defined($_) && /^\.L /
       or die "ching: Some changes (.L) are missing for hexagram $hex\n";
 

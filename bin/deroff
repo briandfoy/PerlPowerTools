@@ -25,7 +25,7 @@ $ARGV[0] ||= '-';
 
 $HC = '\%';     # default hyphenation characters
 
-foreach $filename ( @ARGV )
+for my $filename ( @ARGV )
 {
     open( $filename, $filename ) or die "Can't open $filename: $!\n";
     $input = $filename;

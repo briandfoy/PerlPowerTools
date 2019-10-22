@@ -384,8 +384,7 @@ sub explode_glob($) {
     # alternatives expanded thus far, and appending to the set every
     # time a list-ref introduces a new set of alternatives.
     my @exploded = ("");
-    my ($elem, $i);
-    for $elem (reverse @elements) {
+    for my $elem (reverse @elements) {
         # If this is a string, just append this element to each "alternative"
         (ref $elem)  or  $_ = $elem.$_ for (@exploded);
         next unless (ref($elem) eq 'ARRAY' and @$elem);
@@ -399,7 +398,7 @@ sub explode_glob($) {
         $_ = $elem->[0].$_  for (@exploded);
         # Append subsequent items in the list to copy of alternatives,
         # and then add that result to the list of alternatives
-        for $i (1 .. $#{$elem}) {
+        for my $i (1 .. $#{$elem}) {
             push @exploded, (map { $elem->[$i].$_ } @cp);
         }
     }

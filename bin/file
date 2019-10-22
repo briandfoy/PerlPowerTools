@@ -135,15 +135,14 @@ $$MF[2] = 0;
 readMagicEntry(\@magic,$MF);
 
 # iterate over each file explicitly so we can seek
-my $file;
-foreach $file (@ARGV) {
+for my $file (@ARGV) {
 
     # '-' is a problem because we can't seek on it.
     # BSD's file just reads the first line.  Sounds reasonable, but
     # a hassle.  Just complain.
     if ($file eq '-') {
-	warn "Can't operate on standard input.\n";
-	next;
+        warn "Can't operate on standard input.\n";
+        next;
     }
 
     # the description line.  append info to this string
@@ -151,52 +150,56 @@ foreach $file (@ARGV) {
 
     # 0) check permission
     if (! -r $file) {
-	$desc .= " can't read `$file': Permission denied.";
-	print $desc,"\n";
-	next;
+        $desc .= " can't read `$file': Permission denied.";
+        print $desc,"\n";
+        next;
     }
 
     # 1) check for various special files first
-    if ($followLinks) { stat($file); } else { lstat($file); }
+    if ($followLinks) {
+        stat($file);
+    } else {
+        lstat($file);
+    }
+
     if (! -f _  or -z _) {
-	if ( !$followLinks && -l _ ) {
-	    $desc .= " symbolic link to ".readlink($file);
-	}
-	elsif ( -d _ ) { $desc .= " directory"; }
-	elsif ( -p _ ) { $desc .= " named pipe"; }
-	elsif ( -S _ ) { $desc .= " socket"; }
-	elsif ( -b _ ) { $desc .= " block special file"; }
-	elsif ( -c _ ) { $desc .= " character special file"; }
-	elsif ( -z _ ) { $desc .= " empty"; }
-	else { $desc .= " special"; }
+        if ( !$followLinks && -l _ ) {
+            $desc .= " symbolic link to ".readlink($file);
+        }
+        elsif ( -d _ ) { $desc .= " directory"; }
+        elsif ( -p _ ) { $desc .= " named pipe"; }
+        elsif ( -S _ ) { $desc .= " socket"; }
+        elsif ( -b _ ) { $desc .= " block special file"; }
+        elsif ( -c _ ) { $desc .= " character special file"; }
+        elsif ( -z _ ) { $desc .= " empty"; }
+        else { $desc .= " special"; }
 
-	print $desc,"\n";
+        print $desc,"\n";
 
-	next;
+        next;
     }
 
     # current file handle.  or undef if checkMagic (-c option) is true.
-    my $fh;
-
-    $fh = new FileHandle "< $file" or die "$F: $file: $!\n" ;
+    my $fh = new FileHandle "< $file" or die "$F: $file: $!\n" ;
 
     # 2) check for script
     if (-x $file && -T _) {
+        # Note, some magic files include elaborate attempts
+        # to match #! header lines and return pretty responses
+        # but this slows down matching and is unnecessary.
+        my $line1 = <$fh>;
+        if ($line1 =~ /^\#!\s*(\S+)/) {
+            $desc .= " executable $1 script text";
+        }
+        else {
+            $desc .= " commands text";
+        }
 
-	# Note, some magic files include elaborate attempts
-	# to match #! header lines and return pretty responses
-	# but this slows down matching and is unnecessary.
-	my $line1 = <$fh>;
-	if ($line1 =~ /^\#!\s*(\S+)/) {
-	    $desc .= " executable $1 script text";
-	}
-	else { $desc .= " commands text"; }
+        print $desc,"\n";
 
-	print $desc,"\n";
+        $fh->close();
 
-	$fh->close();
-
-	next;
+        next;
     }
 
     # 3) iterate over each magic entry.
@@ -232,15 +235,14 @@ foreach $file (@ARGV) {
 
 	    # in BSD's version, there's an effort to search from
 	    # more specific to less, but I don't do that.
-	    my ($type,$token);
-	    foreach $type (keys %SPECIALS) {
-		foreach $token (@{$SPECIALS{$type}}) {
+	    for my $type (keys %SPECIALS) {
+		for my $token (@{$SPECIALS{$type}}) {
 		    # we could do \b word boundaries if the end chars in
 		    # $token were always \w, but they're not.  this is
 		    # crude guessing anyway.
 		    if ($data =~ /\Q$token\E/m) {
-			$desc .= " $type";
-			goto ALLDONE;
+                $desc .= " $type";
+                goto ALLDONE;
 		    }
 		}
 	    }
@@ -413,8 +415,7 @@ sub magicMatch {
 	    $$p_desc .= ' ' . sprintf($message,$data) if $message;
 	}
 
-	my $subtest;
-	foreach $subtest (@$subtests) {
+	for my $subtest (@$subtests) {
 	    magicMatch($subtest,$p_desc,$fh);
 	}
 
@@ -663,13 +664,12 @@ sub readMagicLine {
 	    $operator, $testval, $template, $message, $subtests ];
 }
 
-# recursively write the magic file to stderr.  Numbers are written
-# in decimal.
+# recursively write the magic file to stderr.
+# Numbers are written in decimal.
 sub dumpMagic {
     my ($magic,$depth) = @_;
 
-    my $entry;
-    foreach $entry (@$magic) {
+    for my $entry (@$magic) {
 	# delayed evaluation.
 	$entry = readMagicLine(@$entry) if @$entry == 3;
 
