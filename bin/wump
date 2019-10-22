@@ -30,6 +30,7 @@ my $I = uc(<>); chomp($I); 			#20 INPUT I$
                                   		#35 GOTO 80  (what's this for?)
 
 # 80 REM *** SET UP CAVE (DODECAHEDRAL NODE LIST) ***
+my ($J, $K);
 my @S;						#85 DIM S(20,3)
 my @temp; while (<DATA>) {chomp;push @temp, (split(",",$_))}
 for my $J (1..20) { 				#90 FOR J=1 TO 20
