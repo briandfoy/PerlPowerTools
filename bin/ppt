@@ -11,6 +11,7 @@ License:
 
 =cut
 
+use strict;
 
 # ppt - reformat input as paper tape
 # mjd@plover.com
