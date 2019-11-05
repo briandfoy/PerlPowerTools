@@ -35,6 +35,8 @@ License: perl
 # revise how zero-length files are handled ?
 #
 
+use strict;
+
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
