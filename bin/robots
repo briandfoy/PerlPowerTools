@@ -159,7 +159,7 @@ MAIN:
 {
   &Parse_Args();
 
-  $Win = new Curses;
+  $Win = Curses->new;
 
   &Show_Scores()  if($Opts{'s'});
 
@@ -651,7 +651,7 @@ sub Get_Command
       # The is the only way I could get a nice screen redraw
       # for some reason.  If Curses.pm just supported tstp(),
       # I wouldn't have to do this...
-      $Win = new Curses;
+      $Win = Curses->new;
       $chr = $key_redraw;
 
       $Just_Suspended = 1;

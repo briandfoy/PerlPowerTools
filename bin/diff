@@ -148,7 +148,7 @@ my ($hunk,$oldhunk);
 # Loop over hunks. If a hunk overlaps with the last hunk, join them.
 # Otherwise, print out the old one.
 foreach my $piece (@$diffs) {
-    $hunk = new Hunk ($piece, $Context_Lines);
+    $hunk = Hunk->new($piece, $Context_Lines);
     next unless $oldhunk; # first time through
 
     # Don't need to check for overlap if blocks have no context lines
@@ -203,7 +203,7 @@ sub new {
 # after_diff  - difference due to all hunks including this one
     my ($class, $piece, $context_items) = @_;
 
-    my $block = new Block ($piece); # this modifies $FLD!
+    my $block = Block->new($piece); # this modifies $FLD!
 
     my $before_diff = $File_Length_Difference; # BEFORE this hunk
     my $after_diff = $before_diff + $block->{"length_diff"};

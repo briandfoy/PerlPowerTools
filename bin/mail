@@ -397,7 +397,7 @@ sub load {
 	while(<MBOX>) {
 		chomp;
 		if (@MESS and /^From /) {
-			my $message=new message;
+			my $message=message->new;
 			$message->load_from_array(@MESS);
 			$message->sequence($start++);
 			push(@{$self->{messages}}, $message);
@@ -406,7 +406,7 @@ sub load {
 		push(@MESS, $_)
 	}
 	if (@MESS) {
-		my $message=new message;
+		my $message=message->new;
 		$message->load_from_array(@MESS);
 		$message->sequence($start++);
 		push(@{$self->{messages}}, $message);
@@ -684,9 +684,9 @@ sub shell {
 }
 sub mail {
 	my($list,$mesgno)=@_;   # Target addresses
-	my $msg=new message;
+	my $msg=message->new;
 	$msg->to($list);    # For whom the message tolls
-	my $editor=new editor;
+	my $editor=editor->new;
 	$editor->mesgno($mesgno);
 	$editor->message($msg);
 	$msg=$editor->edit({ subject => 1});
@@ -694,7 +694,7 @@ sub mail {
 		print "Aborted\n";
 		return;
 	}
-	my $mailer=new mailer;
+	my $mailer=mailer->new;
 	$mailer->send($msg);
 }
 sub replyCC {
@@ -715,11 +715,11 @@ sub replyCC {
 		push(@ccaddrs, @$tc);
 	}
 
-	my $msg=new message;
+	my $msg=message->new;
 	$msg->to(\@replies);    # For whom the message tolls
 	$msg->cc(\@ccaddrs);
 	$msg->subject($subj);
-	my $editor=new editor;
+	my $editor=editor->new;
 	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
 	$editor->message($msg);
 	print "To: ", join(',', @replies), "\n";
@@ -732,7 +732,7 @@ sub replyCC {
 		print "Aborted\n";
 		return;
 	}
-	my $mailer=new mailer;
+	my $mailer=mailer->new;
 	$mailer->send($msg);
 }
 sub reply {
@@ -751,10 +751,10 @@ sub reply {
 		push(@replies, $original->from);
 	}
 
-	my $msg=new message;
+	my $msg=message->new;
 	$msg->to(\@replies);    # For whom the message tolls
 	$msg->subject($subj);
-	my $editor=new editor;
+	my $editor=editor->new;
 	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
 	$editor->message($msg);
 	print "To: ", join(',', @replies), "\n";
@@ -764,7 +764,7 @@ sub reply {
 		print "Aborted\n";
 		return;
 	}
-	my $mailer=new mailer;
+	my $mailer=mailer->new;
 	$mailer->send($msg);
 }
 sub quit {
@@ -791,12 +791,12 @@ sub visual {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
-		my $tmbox=new mailbox(file => "/tmp/ppt_mail$$");
+		my $tmbox=mailbox->new(file => "/tmp/ppt_mail$$");
 		$tmbox->stuff($message);
 		$tmbox->file("/tmp/ppt_mail$$");
 		$tmbox->write;
 		system("$ENV{VISUAL} /tmp/ppt_mail$$");
-		$tmbox2=new mailbox(file => "/tmp/ppt_mail$$");  # Hope this isn't a leak
+		$tmbox2=mailbox->new(file => "/tmp/ppt_mail$$");  # Hope this isn't a leak
 		print Dumper $tmbox2;
 		$tmbox2->load;
 		print Dumper $tmbox2;
@@ -881,7 +881,7 @@ sub msg_store {
 	my($msgs, $file, $options)=@_;
 
 	print "Saving message...$msgs to $file\n";
-	my $tempbox=new mailbox(file => $file);
+	my $tempbox=mailbox->new(file => $file);
 	foreach my $msg (@$msgs) {
 		$message=$box->messagex($msg);
 		if (! defined $message) {
@@ -960,7 +960,7 @@ sub parse_msg_list {
 #
 sub Interactive {
 	my($file)=@_;
-	$box=new mailbox(file => $file);
+	$box=mailbox->new(file => $file);
 	if (! $box->load ) {
 		print "You have no mail\n";
 		exit;
@@ -1015,12 +1015,12 @@ sub debug {
 	}
 }
 sub Batch {
-	my $message=new message;
+	my $message=message->new;
 	$message->to([@_]);
 	$message->cc([ split(/,/, $opt_c) ]) if ($opt_c);
 	$message->bcc([ split(/,/, $opt_b) ]) if ($opt_b);
 	$message->subject($opt_s) if ($opt_s);
-	my $mailer=new mailer;
+	my $mailer=mailer->new;
 	my @BODY=<STDIN>;
 	chomp(@BODY);
 	$message->add_to_body(@BODY);
