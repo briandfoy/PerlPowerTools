@@ -26,7 +26,7 @@ while ($ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     die "usage tee [-aiun] [filenames] ...\n";
 }
 if ($ignore_ints) {
-    for $sig ('INT', 'TERM', 'HUP', 'QUIT') { $SIG{$sig} = 'IGNORE'; }
+    for my $sig ('INT', 'TERM', 'HUP', 'QUIT') { $SIG{$sig} = 'IGNORE'; }
 }
 $SIG{'PIPE'} = 'PLUMBER';
 $mode = $append ? '>>' : '>';
@@ -46,11 +46,11 @@ for (@ARGV) {
     $fh{$fh++} = $_;
 }
 while (<STDIN>) {
-    for $fh (keys %fh) {
+    for my $fh (keys %fh) {
 	print $fh $_;
     }
 }
-for $fh (keys %fh) {
+for my $fh (keys %fh) {
     next if close($fh) || !defined $fh{$fh};
     warn "$0: couldn't close $fh{$fh}: $!\n";
     $status++;

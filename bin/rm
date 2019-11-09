@@ -53,7 +53,7 @@ getOptions();
 
 #
 # Process each file named on the command line.
-foreach $arg ( @ARGV )
+for my $arg ( @ARGV )
 {
     processFile( $arg );
 }

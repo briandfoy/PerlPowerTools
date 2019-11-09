@@ -29,7 +29,7 @@ if ($#ARGV < 0) ## use stdin
 }
 else
 {
-    foreach $file (@ARGV)
+    for my $file (@ARGV)
     {
         open(FILE, "<$file") or die "Unable to read $file: $!";
         printWhat(\*FILE,$file,$stop);
@@ -56,8 +56,7 @@ sub printWhat($$$)
                 if ((! $stop_flag) && ($line =~ /\0/)) ## there may be more than 1 in here
                 {
                     my @F = split(/\0/,$line);
-                    my $f;
-                    foreach $f (@F)
+                    for my $f (@F)
                     {
                         last if $done;
                         if ($f =~ /\@\(#\)/)

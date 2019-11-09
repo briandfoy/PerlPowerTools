@@ -63,8 +63,7 @@ if ($opt_b || $opt_a) {
 }
 
 # loop through each file, adding, moving, extracting, etc.
-my $file;
-foreach $file (@ARGV) {
+for my $file (@ARGV) {
     my $name = basename($file);
 
     # do the task
@@ -152,9 +151,8 @@ foreach $file (@ARGV) {
 # no files given.  -p, -t, and -x will apply to all in archive.
 if (!@ARGV) {
     if ($opt_p || $opt_t || $opt_x) {
-	my ($group,$name);
-	foreach $group (@$pNames) {
-	    foreach $name (@$group) {
+	for my $group (@$pNames) {
+	    for my $name (@$group) {
 		if ($opt_p) { printMember($name,$pAr,$opt_v); }
 		elsif ($opt_t) { printList($name,$pAr,$opt_v); }
 		elsif ($opt_x) { extractMember($name, $pAr, $opt_v,
@@ -343,9 +341,8 @@ sub writeAr {
     }
 
     # loop through each member of the archive and write to filehandle
-    my ($group,$name);
-    foreach $group (@$pNames) {
-	foreach $name (@$group) {
+    for my $group (@$pNames) {
+	for my $name (@$group) {
 	    if ($pAr->{$name}) {
 		my $attr = $pAr->{$name};
 		my $sz = $attr->[5];

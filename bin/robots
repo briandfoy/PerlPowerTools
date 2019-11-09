@@ -800,7 +800,7 @@ sub Move_Robots
       $Win->addch($y, $x, HEAP_CHR);  # Draw heap
 
       # Remove robots
-      foreach $i (@{$robot_at{$coords}})
+      for my $i (@{$robot_at{$coords}})
       {
         $Arena{'PLAYER'}{'SCORE'} += ROBOT_SCORE;
         $Arena{'PLAYER'}{'BONUS'} += 1  if($waiting && $allow_kill);
@@ -812,7 +812,7 @@ sub Move_Robots
   $Arena{'ROBOT_AT'} = {}; # Clear robot positions
 
   # Redraw robots
-  foreach $robot (@{$Arena{'ROBOTS'}})
+  for my $robot (@{$Arena{'ROBOTS'}})
   {
     next  unless($robot->{'STATUS'} == ALIVE);
     $Arena{'ROBOT_AT'}{"$robot->{'X'}:$robot->{'Y'}"} = 1;
@@ -999,7 +999,7 @@ sub Record_Score
   }
   else
   {
-    foreach $score (keys(%High_Scores))
+    for my $score (keys(%High_Scores))
     {
       if($Arena{'PLAYER'}{'SCORE'} >= $score)
       {
@@ -1031,9 +1031,9 @@ sub Record_Score
   $i = 1;
   $count = 0;
 
-  foreach $score (sort { $b <=> $a } keys(%High_Scores))
+  for my $score (sort { $b <=> $a } keys(%High_Scores))
   {
-    foreach $info (@{$High_Scores{$score}})
+    for my $info (@{$High_Scores{$score}})
     {
       # Only allow MAX_SCORES_PER_USER
       unless($< == ${$info}[0] && ++$count >= MAX_SCORES_PER_USER)
@@ -1084,9 +1084,9 @@ sub Show_Scores_In_Game
 
   $line = 1;
 
-  foreach $score (sort { $b <=> $a } keys(%High_Scores))
+  for my $score (sort { $b <=> $a } keys(%High_Scores))
   {
-    foreach $info (@{$High_Scores{$score}})
+    for my $info (@{$High_Scores{$score}})
     {
       ($uid, $score, $name) = @{$info};
 
@@ -1226,11 +1226,11 @@ sub Must_Teleport
     return(1);
   }
 
-  MOVE_TO_X: foreach $x1 ($px - 1 .. $px + 1)
+  MOVE_TO_X: for my $x1 ($px - 1 .. $px + 1)
   {
     next  if($x1 < $Arena{'MIN_X'} || $x1 > $Arena{'MAX_X'});
 
-    MOVE_TO_Y: foreach $y1 ($py - 1 .. $py + 1)
+    MOVE_TO_Y: for my $y1 ($py - 1 .. $py + 1)
     {
       next  if($y1 < $Arena{'MIN_Y'} || $y1 > $Arena{'MAX_Y'} ||
                $Arena{'ROBOT_AT'}{"$x1:$y1"} ||
@@ -1252,13 +1252,11 @@ sub Unsafe_Pos
 {
   my($x, $y) = @_;
 
-  my($x1, $y1);
-
-  foreach $x1 ($x - 1 .. $x + 1)
+  for my $x1 ($x - 1 .. $x + 1)
   {
     next  if($x1 < $Arena{'MIN_X'} || $x1 > $Arena{'MAX_X'});
 
-    foreach $y1 ($y - 1 .. $y + 1)
+    for my $y1 ($y - 1 .. $y + 1)
     {
       next  if($y1 < $Arena{'MIN_Y'} || $y1 > $Arena{'MAX_Y'});
 

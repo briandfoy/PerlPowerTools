@@ -24,80 +24,99 @@ use strict;
 my $F = $FindBin::Script;
 
 # translation of type in magic file to unpack template and byte count
-my %TEMPLATES = (byte     => [ 'c', 1 ],
-		 ubyte    => [ 'C', 1 ],
-		 char     => [ 'c', 1 ],
-		 uchar    => [ 'C', 1 ],
-		 short    => [ 's', 2 ],
-		 ushort   => [ 'S', 2 ],
-		 long     => [ 'l', 4 ],
-		 ulong    => [ 'L', 4 ],
-		 date     => [ 'l', 4 ],
-		 ubeshort => [ 'n', 2 ],
-		 beshort  => [ [ 'n', 'S', 's' ], 2 ],
-		 ubelong  => [   'N',             4 ],
-		 belong   => [ [ 'N', 'I', 'i' ], 4 ],
-		 bedate   => [   'N',             4 ],
-		 uleshort => [   'v',             2 ],
-		 leshort  => [ [ 'v', 'S', 's' ], 2 ],
-		 ulelong  => [   'V',             4 ],
-		 lelong   => [ [ 'V', 'I', 'i' ], 4 ],
-		 ledate   => [   'V',             4 ],
-		 string   => undef);
+my %TEMPLATES = (
+    byte     => [ 'c', 1 ],
+    ubyte    => [ 'C', 1 ],
+    char     => [ 'c', 1 ],
+    uchar    => [ 'C', 1 ],
+    short    => [ 's', 2 ],
+    ushort   => [ 'S', 2 ],
+    long     => [ 'l', 4 ],
+    ulong    => [ 'L', 4 ],
+    date     => [ 'l', 4 ],
+    ubeshort => [ 'n', 2 ],
+    beshort  => [ [ 'n', 'S', 's' ], 2 ],
+    ubelong  => [   'N',             4 ],
+    belong   => [ [ 'N', 'I', 'i' ], 4 ],
+    bedate   => [   'N',             4 ],
+    uleshort => [   'v',             2 ],
+    leshort  => [ [ 'v', 'S', 's' ], 2 ],
+    ulelong  => [   'V',             4 ],
+    lelong   => [ [ 'V', 'I', 'i' ], 4 ],
+    ledate   => [   'V',             4 ],
+    string   => undef,
+    );
 
 # for letter escapes in magic file
-my %ESC = ( n => "\n",
-	    r => "\r",
-	    b => "\b",
-	    t => "\t",
-	    f => "\f",
-	    v => "\v" );
+my %ESC = (
+    n => "\n",
+    r => "\r",
+    b => "\b",
+    t => "\t",
+    f => "\f",
+    v => "\v"
+    );
 
 # from the BSD names.h, some tokens for hard-coded checks of
 # different texts.  This isn't rocket science.  It's prone to
 # failure so these checks are only a last resort.
-my %SPECIALS = 	("C program" => [ "/*",
-				  "#include",
-				  "char",
-				  "double",
-				  "extern",
-				  "float",
-				  "real",
-				  "struct",
-				  "union" ],
- 		 "C++ program" => [ "template",
- 				    "virtual",
- 				    "class",
- 				    "public:",
- 				    "private:" ],
- 		 "make commands" => [ "CFLAGS",
- 				      "LDFLAGS",
- 				      "all:",
- 				      ".PRECIOUS" ],
- 		 "assembler program" => [ ".ascii",
- 					  ".asciiz",
- 					  ".byte",
- 					  ".even",
- 					  ".globl",
- 					  ".text",
- 					  "clr" ],
-		 "mail" => [ "Received:",
-			     ">From",
-			     "Return-Path:",
-			     "Cc:",         ],
-		 "news", => [ "Newsgroups:",
-			      "Path:",
-			      "Organization:" ] );
+my %SPECIALS = (
+    "C program" => [ "/*",
+        "#include",
+        "char",
+        "double",
+        "extern",
+        "float",
+        "real",
+        "struct",
+        "union"
+        ],
+    "C++ program" => [
+        "template",
+        "virtual",
+        "class",
+        "public:",
+        "private:"
+        ],
+    "make commands" => [
+        "CFLAGS",
+        "LDFLAGS",
+        "all:",
+        ".PRECIOUS"
+        ],
+    "assembler program" => [
+        ".ascii",
+        ".asciiz",
+        ".byte",
+        ".even",
+        ".globl",
+        ".text",
+        "clr"
+        ],
+    "mail" => [
+        "Received:",
+        ">From",
+        "Return-Path:",
+        "Cc:",
+        ],
+    "news", => [
+        "Newsgroups:",
+        "Path:",
+        "Organization:"
+        ],
+    );
 
 my $magicFile = $ENV{MAGIC}||$FindBin::Bin . "/../share/magic";
 my $checkMagic;
 my $followLinks;
 my $fileList;
 
-GetOptions("m=s",\$magicFile,
-	   "c!", \$checkMagic,
-	   "L!", \$followLinks,
-	   "f=s",\$fileList);
+GetOptions(
+    "m=s", \$magicFile,
+    "c!",  \$checkMagic,
+    "L!",  \$followLinks,
+    "f=s", \$fileList
+    );
 
 # the names of the files are in $fileList.
 if ($fileList) {
@@ -115,7 +134,7 @@ if ( ! -f $magicFile ) {
     # have a fallback for now until a distribution heirarchy is done.
     # this works on many unix systems.
     if (! -f "/etc/magic" ) {
-	die "$F: Can't find magic file either in $magicFile or /etc/magic.\n";
+        die "$F: Can't find magic file either in $magicFile or /etc/magic.\n";
     }
     $magicFile = "/etc/magic";
 }
@@ -135,15 +154,14 @@ $$MF[2] = 0;
 readMagicEntry(\@magic,$MF);
 
 # iterate over each file explicitly so we can seek
-my $file;
-foreach $file (@ARGV) {
+for my $file (@ARGV) {
 
     # '-' is a problem because we can't seek on it.
     # BSD's file just reads the first line.  Sounds reasonable, but
     # a hassle.  Just complain.
     if ($file eq '-') {
-	warn "Can't operate on standard input.\n";
-	next;
+        warn "Can't operate on standard input.\n";
+        next;
     }
 
     # the description line.  append info to this string
@@ -151,103 +169,104 @@ foreach $file (@ARGV) {
 
     # 0) check permission
     if (! -r $file) {
-	$desc .= " can't read `$file': Permission denied.";
-	print $desc,"\n";
-	next;
+        $desc .= " can't read `$file': Permission denied.";
+        print $desc,"\n";
+        next;
     }
 
     # 1) check for various special files first
-    if ($followLinks) { stat($file); } else { lstat($file); }
+    if ($followLinks) {
+        stat($file);
+    } else {
+        lstat($file);
+    }
+
     if (! -f _  or -z _) {
-	if ( !$followLinks && -l _ ) {
-	    $desc .= " symbolic link to ".readlink($file);
-	}
-	elsif ( -d _ ) { $desc .= " directory"; }
-	elsif ( -p _ ) { $desc .= " named pipe"; }
-	elsif ( -S _ ) { $desc .= " socket"; }
-	elsif ( -b _ ) { $desc .= " block special file"; }
-	elsif ( -c _ ) { $desc .= " character special file"; }
-	elsif ( -z _ ) { $desc .= " empty"; }
-	else { $desc .= " special"; }
+        if ( !$followLinks && -l _ ) {
+            $desc .= " symbolic link to ".readlink($file);
+        }
+        elsif ( -d _ ) { $desc .= " directory"; }
+        elsif ( -p _ ) { $desc .= " named pipe"; }
+        elsif ( -S _ ) { $desc .= " socket"; }
+        elsif ( -b _ ) { $desc .= " block special file"; }
+        elsif ( -c _ ) { $desc .= " character special file"; }
+        elsif ( -z _ ) { $desc .= " empty"; }
+        else { $desc .= " special"; }
 
-	print $desc,"\n";
+        print $desc,"\n";
 
-	next;
+        next;
     }
 
     # current file handle.  or undef if checkMagic (-c option) is true.
-    my $fh;
-
-    $fh = new FileHandle "< $file" or die "$F: $file: $!\n" ;
+    my $fh = new FileHandle "< $file" or die "$F: $file: $!\n" ;
 
     # 2) check for script
     if (-x $file && -T _) {
+        # Note, some magic files include elaborate attempts
+        # to match #! header lines and return pretty responses
+        # but this slows down matching and is unnecessary.
+        my $line1 = <$fh>;
+        if ($line1 =~ /^\#!\s*(\S+)/) {
+            $desc .= " executable $1 script text";
+        }
+        else {
+            $desc .= " commands text";
+        }
 
-	# Note, some magic files include elaborate attempts
-	# to match #! header lines and return pretty responses
-	# but this slows down matching and is unnecessary.
-	my $line1 = <$fh>;
-	if ($line1 =~ /^\#!\s*(\S+)/) {
-	    $desc .= " executable $1 script text";
-	}
-	else { $desc .= " commands text"; }
+        print $desc,"\n";
 
-	print $desc,"\n";
+        $fh->close();
 
-	$fh->close();
-
-	next;
+        next;
     }
 
     # 3) iterate over each magic entry.
     my $matchFound = 0;
     my $m;
     for ($m = 0; $m <= $#magic; $m++) {
+        # check if the m-th magic entry matches
+        # if it does, then $desc will contain an updated description
+        if (magicMatch($magic[$m],\$desc,$fh)) {
+            $matchFound = 1;
+            last;
+        }
 
-	# check if the m-th magic entry matches
-	# if it does, then $desc will contain an updated description
-	if (magicMatch($magic[$m],\$desc,$fh)) {
-	    $matchFound = 1;
-	    last;
-	}
-
-	# read another entry from the magic file if we've exhausted
-	# all the entries already buffered.  readMagicEntry will
-	# add to the end of the array if there are more.
-	if ($m == $#magic && !$$MF[0]->eof()) {
-	    readMagicEntry(\@magic,$MF);
-	}
+        # read another entry from the magic file if we've exhausted
+        # all the entries already buffered.  readMagicEntry will
+        # add to the end of the array if there are more.
+        if ($m == $#magic && !$$MF[0]->eof()) {
+            readMagicEntry(\@magic,$MF);
+        }
     }
 
     # 4) check if it's text or binary.
     # if it's text, then do a bunch of searching for special tokens
     if (!$matchFound) {
-	if (-B $file) {
-	    $desc .= " data";
-	}
-	else {
-	    my $data;
-	    $fh->seek(0,0);
-	    $fh->read($data,8192); # this is how far BSD file looks
+        if (-B $file) {
+            $desc .= " data";
+        }
+        else {
+            my $data;
+            $fh->seek(0,0);
+            $fh->read($data,8192); # this is how far BSD file looks
 
-	    # in BSD's version, there's an effort to search from
-	    # more specific to less, but I don't do that.
-	    my ($type,$token);
-	    foreach $type (keys %SPECIALS) {
-		foreach $token (@{$SPECIALS{$type}}) {
-		    # we could do \b word boundaries if the end chars in
-		    # $token were always \w, but they're not.  this is
-		    # crude guessing anyway.
-		    if ($data =~ /\Q$token\E/m) {
-			$desc .= " $type";
-			goto ALLDONE;
-		    }
-		}
-	    }
-
-	  ALLDONE:
-	    $desc .= " text";
-	}
+            # in BSD's version, there's an effort to search from
+            # more specific to less, but I don't do that.
+            for my $type (keys %SPECIALS) {
+                for my $token (@{$SPECIALS{$type}}) {
+                    # we could do \b word boundaries if the end chars in
+                    # $token were always \w, but they're not.  this is
+                    # crude guessing anyway.
+                    if ($data =~ /\Q$token\E/m) {
+                        $desc .= " $type";
+                        goto ALLDONE;
+                    }
+                }
+            }
+        ALLDONE:
+            $desc .= " text";
+        }
     }
 
     $fh->close();
@@ -259,7 +278,7 @@ foreach $file (@ARGV) {
 if ($checkMagic) {
     # read the whole file if we haven't already
     while (!$$MF[0]->eof()) {
-	readMagicEntry(\@magic,$MF);
+        readMagicEntry(\@magic,$MF);
     }
     dumpMagic(\@magic);
 }
@@ -291,7 +310,7 @@ sub magicMatch {
     return unless defined($fh);
 
     my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval,
-	$template, $message, $subtests) = @$item;
+    $template, $message, $subtests) = @$item;
 
     # bytes from file
     my $data;
@@ -301,124 +320,122 @@ sub magicMatch {
 
     # offset = [ off1, sz, template, off2 ] for indirect offset
     if ($offtype == 1) {
-	my ($off1, $sz, $template, $off2) = @$offset;
-	$fh->seek($off1,0) or return;
-	if ($fh->read($data,$sz) != $sz) { return };
-	$off2 += unpack($template,$data);
-	$fh->seek($off2,0) or return;
+        my ($off1, $sz, $template, $off2) = @$offset;
+        $fh->seek($off1,0) or return;
+        if ($fh->read($data,$sz) != $sz) { return };
+        $off2 += unpack($template,$data);
+        $fh->seek($off2,0) or return;
     }
     elsif ($offtype == 2) {
-	# relative offsets from previous seek
-	$fh->seek($offset,1) or return;
+        # relative offsets from previous seek
+        $fh->seek($offset,1) or return;
     }
     else {
-	# absolute offset
-	$fh->seek($offset,0) or return;
+        # absolute offset
+        $fh->seek($offset,0) or return;
     }
 
     if ($type eq 'string') {
-	# read the length of the match string unless the
-	# comparison is '>' ($numbytes == 0), in which case
-	# read to the next null or "\n". (that's what BSD's file does)
-	if ($numbytes > 0) {
-	    if ($fh->read($data,$numbytes) != $numbytes) { return; }
-	}
-	else {
-	    my $ch = $fh->getc();
-	    while (defined($ch) && $ch ne "\0" && $ch ne "\n") {
-		$data .= $ch;
-		$ch = $fh->getc();
-	    }
-	}
+        # read the length of the match string unless the
+        # comparison is '>' ($numbytes == 0), in which case
+        # read to the next null or "\n". (that's what BSD's file does)
+        if ($numbytes > 0) {
+            if ($fh->read($data,$numbytes) != $numbytes) { return; }
+        }
+        else {
+            my $ch = $fh->getc();
+            while (defined($ch) && $ch ne "\0" && $ch ne "\n") {
+            $data .= $ch;
+            $ch = $fh->getc();
+        }
+    }
 
-	# now do the comparison
-	if ($op eq '=') {
-	    $match = ($data eq $testval);
-	}
-	elsif ($op eq '<') {
-	    $match = ($data lt $testval);
-	}
-	elsif ($op eq '>') {
-	    $match = ($data gt $testval);
-	}
-	# else bogus op, but don't die, just skip
+    # now do the comparison
+    if ($op eq '=') {
+        $match = ($data eq $testval);
+    }
+    elsif ($op eq '<') {
+        $match = ($data lt $testval);
+    }
+    elsif ($op eq '>') {
+        $match = ($data gt $testval);
+    }
+    # else bogus op, but don't die, just skip
 
-	if ($checkMagic) {
-	    print STDERR "STRING: $data $op $testval => $match\n";
-	}
+    if ($checkMagic) {
+        print STDERR "STRING: $data $op $testval => $match\n";
+    }
 
     }
     else {
-	#numeric
+        #numeric
 
-	# read up to 4 bytes
-	if ($fh->read($data,$numbytes) != $numbytes) { return; }
+        # read up to 4 bytes
+        if ($fh->read($data,$numbytes) != $numbytes) { return; }
 
-	# If template is a ref to an array of 3 letters,
-	# then this is an endian
-	# number which must be first unpacked into an unsigned and then
-	# coerced into a signed.  Is there a better way?
-	if (ref($template)) {
-	    $data = unpack($$template[2],
-			   pack($$template[1],
-				unpack($$template[0],$data)));
-	}
-	else {
-	    $data = unpack($template,$data);
-	}
+        # If template is a ref to an array of 3 letters,
+        # then this is an endian
+        # number which must be first unpacked into an unsigned and then
+        # coerced into a signed.  Is there a better way?
+        if (ref($template)) {
+            $data = unpack($$template[2],
+                   pack($$template[1],
+                    unpack($$template[0],$data)));
+        }
+        else {
+            $data = unpack($template,$data);
+        }
 
-	# if mask
-	if (defined($mask)) {
-	    $data &= $mask;
-	}
+        # if mask
+        if (defined($mask)) {
+            $data &= $mask;
+        }
 
-	# Now do the check
-	if ($op eq '=') {
-	    $match = ($data == $testval);
-	}
-	elsif ($op eq 'x') {
-	    $match = 1;
-	}
-	elsif ($op eq '!') {
-	    $match = ($data != $testval);
-	}
-	elsif ($op eq '&') {
-	    $match = (($data & $testval) == $testval);
-	}
-	elsif ($op eq '^') {
-	    $match = ((~$data & $testval) == $testval);
-	}
-	elsif ($op eq '<') {
-	    $match = ($data < $testval);
-	}
-	elsif ($op eq '>') {
-	    $match = ($data > $testval);
-	}
-	# else bogus entry that we're ignoring
+        # Now do the check
+        if ($op eq '=') {
+            $match = ($data == $testval);
+        }
+        elsif ($op eq 'x') {
+            $match = 1;
+        }
+        elsif ($op eq '!') {
+            $match = ($data != $testval);
+        }
+        elsif ($op eq '&') {
+            $match = (($data & $testval) == $testval);
+        }
+        elsif ($op eq '^') {
+            $match = ((~$data & $testval) == $testval);
+        }
+        elsif ($op eq '<') {
+            $match = ($data < $testval);
+        }
+        elsif ($op eq '>') {
+            $match = ($data > $testval);
+        }
+        # else bogus entry that we're ignoring
 
-	if ($checkMagic) {
-	    print STDERR "NUMERIC: $data $op $testval => $match\n";
-	}
-
+        if ($checkMagic) {
+            print STDERR "NUMERIC: $data $op $testval => $match\n";
+        }
     }
 
     if ($match) {
-	# it's pretty common to find "\b" in the message, but
-	# sprintf doesn't insert a backspace.  if it's at the
-	# beginning (typical) then don't include separator space.
-	if ($message =~ s/^\\b//) {
-	    $$p_desc .= sprintf($message,$data);
-	}
-	else {
-	    $$p_desc .= ' ' . sprintf($message,$data) if $message;
-	}
+        # it's pretty common to find "\b" in the message, but
+        # sprintf doesn't insert a backspace.  if it's at the
+        # beginning (typical) then don't include separator space.
+        if ($message =~ s/^\\b//) {
+            $$p_desc .= sprintf($message,$data);
+        }
+        else {
+            $$p_desc .= ' ' . sprintf($message,$data) if $message;
+        }
 
-	my $subtest;
-	foreach $subtest (@$subtests) {
-	    magicMatch($subtest,$p_desc,$fh);
-	}
+        for my $subtest (@$subtests) {
+            magicMatch($subtest,$p_desc,$fh);
+        }
 
-	return 1;
+        return 1;
     }
 
 }
@@ -443,56 +460,56 @@ sub readMagicEntry {
     # a ref to an array containing a magic line's components
     my $entry;
 
-    my $line = $$MF[1];		# buffered last line
+    my $line = $$MF[1];  # buffered last line
     while (1) {
-	if ($line =~ /^\#/ || $line =~ /^\s*$/) {
-	    last if $magicFH->eof();
-	    $line = <$magicFH>;
-	    $$MF[2]++;
-	    next;
-	}
+    if ($line =~ /^\#/ || $line =~ /^\s*$/) {
+        last if $magicFH->eof();
+        $line = <$magicFH>;
+        $$MF[2]++;
+        next;
+    }
 
-	my ($thisDepth) = ($line =~ /^(>+)/);
+    my ($thisDepth) = ($line =~ /^(>+)/);
 
-	if (length($thisDepth) > $depth) {
-	    $$MF[1] = $line;
+    if (length($thisDepth) > $depth) {
+        $$MF[1] = $line;
 
-	    # call ourselves recursively.  will return the depth
-	    # of the entry following the nested group.
-	    if (readMagicEntry($entry->[2], $MF, $depth+1) < $depth ||
-		$$MF[0]->eof())
-	    {
-		return;
-	    }
-	    $line = $$MF[1];
-	}
-	elsif (length($thisDepth) < $depth) {
-	    $$MF[1] = $line;
-	    return length($thisDepth);
-	}
-	elsif (@$entry) {
-	    # already have an entry.  this is not a continuation.
-	    # save this line for the next call and exit.
-	    $$MF[1] = $line;
-	    return length($thisDepth);
-	}
-	else {
-	    # we're here if the number of '>' is the same as the
-	    # current depth and we haven't read a magic line yet.
+        # call ourselves recursively.  will return the depth
+        # of the entry following the nested group.
+        if (readMagicEntry($entry->[2], $MF, $depth+1) < $depth ||
+        $$MF[0]->eof())
+        {
+        return;
+        }
+        $line = $$MF[1];
+    }
+    elsif (length($thisDepth) < $depth) {
+        $$MF[1] = $line;
+        return length($thisDepth);
+    }
+    elsif (@$entry) {
+        # already have an entry.  this is not a continuation.
+        # save this line for the next call and exit.
+        $$MF[1] = $line;
+        return length($thisDepth);
+    }
+    else {
+        # we're here if the number of '>' is the same as the
+        # current depth and we haven't read a magic line yet.
 
-	    # create temp entry
-	    # later -- if we ever get around to evaluating this condition --
-	    # we'll replace @$entry with the results from readMagicLine.
-	    $entry = [ $line , $$MF[2], [] ];
+        # create temp entry
+        # later -- if we ever get around to evaluating this condition --
+        # we'll replace @$entry with the results from readMagicLine.
+        $entry = [ $line , $$MF[2], [] ];
 
-	    # add to list
-	    push(@$pa_magic,$entry);
+        # add to list
+        push(@$pa_magic,$entry);
 
-	    # read the next line
-	    last if $magicFH->eof();
-	    $line = <$magicFH>;
-	    $$MF[2]++;
-	}
+        # read the next line
+        last if $magicFH->eof();
+        $line = <$magicFH>;
+        $$MF[2]++;
+    }
     }
 }
 
@@ -511,7 +528,7 @@ sub readMagicLine {
     my ($line, $line_num, $subtests) = @_;
 
     my ($offtype, $offset, $numbytes, $type, $mask,
-	$operator, $testval, $template, $message);
+    $operator, $testval, $template, $message);
 
     # this would be easier if escaped whitespace wasn't allowed.
 
@@ -520,74 +537,74 @@ sub readMagicLine {
     # like (x[.[bsl]][+-][y]), or a relative offset specified by &.
     # offtype : 0 = absolute, 1 = indirect, 2 = relative
     if ($line =~ s/^>*([&\(]?[a-flsx\.\+\-\d]+\)?)\s+(\S+)\s+//) {
-	($offset,$type) = ($1,$2);
+    ($offset,$type) = ($1,$2);
 
-	if ($offset =~ /^\(/) {
-	    # indirect offset.
-	    $offtype = 1;
+    if ($offset =~ /^\(/) {
+        # indirect offset.
+        $offtype = 1;
 
-	    # store as a reference [ offset1 type template offset2 ]
+        # store as a reference [ offset1 type template offset2 ]
 
-	    my ($o1,$type,$o2);
-	    if (($o1,$type,$o2) = ($offset =~ /\((\d+)(\.[bsl])?([\+\-]?\d+)?\)/))
-	    {
-		$o1 = oct($o1) if $o1 =~ /^0/o;
-		$o2 = oct($o2) if $o2 =~ /^0/o;
+        my ($o1,$type,$o2);
+        if (($o1,$type,$o2) = ($offset =~ /\((\d+)(\.[bsl])?([\+\-]?\d+)?\)/))
+        {
+        $o1 = oct($o1) if $o1 =~ /^0/o;
+        $o2 = oct($o2) if $o2 =~ /^0/o;
 
-		$type =~ s/\.//;
-		if ($type eq '') { $type = 'l'; }  # default to long
-		$type =~ tr/b/c/; # type will be template for unpack
+        $type =~ s/\.//;
+        if ($type eq '') { $type = 'l'; }  # default to long
+        $type =~ tr/b/c/; # type will be template for unpack
 
-		my $sz = $type;	  # number of bytes
-		$sz =~ tr/csl/124/;
+        my $sz = $type;      # number of bytes
+        $sz =~ tr/csl/124/;
 
-		$offset = [ $o1,$sz,$type,int($o2) ];
-	    } else {
-		warn "$F: Bad indirect offset at line $line_num. '$offset'\n";
-		return;
-	    }
-	}
-	elsif ($offset =~ /^&/o) {
-	    # relative offset
-	    $offtype = 2;
+        $offset = [ $o1,$sz,$type,int($o2) ];
+        } else {
+        warn "$F: Bad indirect offset at line $line_num. '$offset'\n";
+        return;
+        }
+    }
+    elsif ($offset =~ /^&/o) {
+        # relative offset
+        $offtype = 2;
 
-	    $offset = substr($offset,1);
-	    $offset = oct($offset) if $offset =~ /^0/o;
-	}
-	else {
-	    # normal absolute offset
-	    $offtype = 0;
-
-	    # convert if needed
-	    $offset = oct($offset) if $offset =~ /^0/o;
-	}
+        $offset = substr($offset,1);
+        $offset = oct($offset) if $offset =~ /^0/o;
     }
     else {
-	warn "$F: Bad Offset/Type at line $line_num. '$line'\n";
-	return;
+        # normal absolute offset
+        $offtype = 0;
+
+        # convert if needed
+        $offset = oct($offset) if $offset =~ /^0/o;
+    }
+    }
+    else {
+    warn "$F: Bad Offset/Type at line $line_num. '$line'\n";
+    return;
     }
 
     # check for & operator on type
     if ($type =~ s/&(.*)//) {
-	$mask = $1;
+    $mask = $1;
 
-	# convert if needed
-	$mask = oct($mask) if $mask =~ /^0/o;
+    # convert if needed
+    $mask = oct($mask) if $mask =~ /^0/o;
     }
 
     # check if type is valid
     if (!exists($TEMPLATES{$type})) {
-	warn "$F: Invalid type '$type' at line $line_num\n";
-	return;
+    warn "$F: Invalid type '$type' at line $line_num\n";
+    return;
     }
 
     # take everything after the first non-escaped space
     if ($line =~ s/([^\\])\s+(.*)/$1/) {
-	$message = $2;
+    $message = $2;
     }
     else {
-	warn "$F: Missing or invalid test condition or message at line $line_num\n";
-	return;
+    warn "$F: Missing or invalid test condition or message at line $line_num\n";
+    return;
     }
 
     # remove the return if it's still there
@@ -595,108 +612,107 @@ sub readMagicLine {
 
     # get the operator.  if 'x', must be alone.  default is '='.
     if ($line =~ s/^([><&^=!])//o) {
-	$operator = $1;
+    $operator = $1;
     }
     elsif ($line eq 'x') {
-	$operator = 'x';
+    $operator = 'x';
     }
     else { $operator = '='; }
 
 
     if ($type eq 'string') {
-	$testval = $line;
+    $testval = $line;
 
-	# do octal/hex conversion
-	$testval =~ s/\\([x0-7][0-7]?[0-7]?)/chr(oct($1))/eg;
+    # do octal/hex conversion
+    $testval =~ s/\\([x0-7][0-7]?[0-7]?)/chr(oct($1))/eg;
 
-	# do single char escapes
-	$testval =~ s/\\(.)/$ESC{$1}||$1/eg;
+    # do single char escapes
+    $testval =~ s/\\(.)/$ESC{$1}||$1/eg;
 
-	# put the number of bytes to read in numbytes.
-	# '0' means read to \0 or \n.
-	if ($operator =~ /[>x]/o) {
-	    $numbytes = 0;
-	}
-	elsif ($operator =~ /[=<]/o) {
-	    $numbytes = length($testval);
-	}
-	elsif ($operator eq '!') {
-	    # annoying special case.  ! operator only applies to numerics so
-	    # put it back.
-	    $testval = $operator . $testval;
-	    $numbytes = length($testval);
-	    $operator = '=';
-	}
-	else {
-	    # there's a bug in my magic file where there's
-	    # a line that says "0	string	^!<arc..." and the BSD
-	    # file program treats the argument like a numeric.  To minimize
-	    # hassles, complain about bad ops only if -c is set.
-	    warn "Invalid operator '$operator' for type 'string' at line $line_num.\n"
-	      if $checkMagic;
-	    return;
-	}
+    # put the number of bytes to read in numbytes.
+    # '0' means read to \0 or \n.
+    if ($operator =~ /[>x]/o) {
+        $numbytes = 0;
+    }
+    elsif ($operator =~ /[=<]/o) {
+        $numbytes = length($testval);
+    }
+    elsif ($operator eq '!') {
+        # annoying special case.  ! operator only applies to numerics so
+        # put it back.
+        $testval = $operator . $testval;
+        $numbytes = length($testval);
+        $operator = '=';
     }
     else {
-	# numeric
-	if ($operator ne 'x') {
-	    # this conversion is very forgiving.  it's faster and
-	    # it doesn't complain about bugs in popular magic files,
-	    # but it will silently turn a string into zero.
-	    if ($line =~ /^0/o) {
-		$testval = oct($line);
-	    } else {
-		$testval = int($line);
-	    }
-	}
+        # there's a bug in my magic file where there's
+        # a line that says "0    string    ^!<arc..." and the BSD
+        # file program treats the argument like a numeric.  To minimize
+        # hassles, complain about bad ops only if -c is set.
+        warn "Invalid operator '$operator' for type 'string' at line $line_num.\n"
+          if $checkMagic;
+        return;
+    }
+    }
+    else {
+    # numeric
+    if ($operator ne 'x') {
+        # this conversion is very forgiving.  it's faster and
+        # it doesn't complain about bugs in popular magic files,
+        # but it will silently turn a string into zero.
+        if ($line =~ /^0/o) {
+        $testval = oct($line);
+        } else {
+        $testval = int($line);
+        }
+    }
 
-	($template,$numbytes) = @{$TEMPLATES{$type}};
+    ($template,$numbytes) = @{$TEMPLATES{$type}};
 
-	# unset coercion of $unsigned unless we're doing order comparison
-	if (ref($template)) {
-	    $template = $$template[0]
-	      unless $operator eq '>' || $operator eq '<';
-	}
+    # unset coercion of $unsigned unless we're doing order comparison
+    if (ref($template)) {
+        $template = $$template[0]
+          unless $operator eq '>' || $operator eq '<';
+    }
     }
 
     return [ $offtype, $offset, $numbytes, $type, $mask,
-	    $operator, $testval, $template, $message, $subtests ];
+        $operator, $testval, $template, $message, $subtests ];
 }
 
-# recursively write the magic file to stderr.  Numbers are written
-# in decimal.
+# recursively write the magic file to stderr.
+# Numbers are written in decimal.
 sub dumpMagic {
     my ($magic,$depth) = @_;
 
-    my $entry;
-    foreach $entry (@$magic) {
-	# delayed evaluation.
-	$entry = readMagicLine(@$entry) if @$entry == 3;
+    for my $entry (@$magic) {
+    # delayed evaluation.
+    $entry = readMagicLine(@$entry) if @$entry == 3;
 
-	next if !defined($entry);
+    next if !defined($entry);
 
-	my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval,
-	    $template, $message, $subtests) = @$entry;
+    my ($offtype, $offset, $numbytes, $type, $mask, $op, $testval,
+        $template, $message, $subtests) = @$entry;
 
-	print STDERR '>'x$depth;
-	if ($offtype == 1) {
-	    $offset->[2] =~ tr/c/b/;
-	    print STDERR "($offset->[0].$offset->[2]$offset->[3])";
-	}
-	elsif ($offtype == 2) {
-	    print STDERR "&",$offset;
-	}
-	else {
-	    # offtype == 0
-	    print STDERR $offset;
-	}
-	print STDERR "\t",$type;
-	if ($mask) { print STDERR "&",$mask; }
-	print STDERR "\t",$op,$testval,"\t",$message,"\n";
+    print STDERR '>'x$depth;
+    if ($offtype == 1) {
+        $offset->[2] =~ tr/c/b/;
+        print STDERR "($offset->[0].$offset->[2]$offset->[3])";
+    }
+    elsif ($offtype == 2) {
+        print STDERR "&",$offset;
+    }
+    else {
+        # offtype == 0
+        print STDERR $offset;
+    }
+    print STDERR "\t",$type;
+    if ($mask) { print STDERR "&",$mask; }
+    print STDERR "\t",$op,$testval,"\t",$message,"\n";
 
-	if ($subtests) {
-	    dumpMagic($subtests,$depth+1);
-	}
+    if ($subtests) {
+        dumpMagic($subtests,$depth+1);
+    }
     }
 }
 
@@ -809,14 +825,14 @@ operator for strings.  Thus, the following line from the solaris
 /etc/magic will be misinterpreted by this implementation of B<file>
 (An '=' should be prepended):
 
- 0	string		<ar>		System V R1 archive
+ 0    string        <ar>        System V R1 archive
 
 The BSD version of file has a few bugs which make it more tolerant
 of bogus entries including:
 
- >168	belong		&=0x00000004	dynamically linked
+ >168    belong        &=0x00000004    dynamically linked
 
- 0	string	^!<arch>\n_______64E	Alpha archive
+ 0    string    ^!<arch>\n_______64E    Alpha archive
 
 This implementation accepts bogus numerics without complaining, and
 only complains about bogus operators if -B<c> is enabled.

@@ -33,8 +33,8 @@ my $I = uc(<>); chomp($I); 			#20 INPUT I$
 my ($J, $K);
 my @S;						#85 DIM S(20,3)
 my @temp; while (<DATA>) {chomp;push @temp, (split(",",$_))}
-for $J (1..20) { 				#90 FOR J=1 TO 20
-    for $K (1..3) {				#95 FOR K=1 TO 3
+for my $J (1..20) { 				#90 FOR J=1 TO 20
+    for my $K (1..3) {				#95 FOR K=1 TO 3
         $S[$J][$K] = shift(@temp);		#100 READ S(J,K)
     }						#105 NEXT K
 }						#110 NEXT J
@@ -51,15 +51,15 @@ my $locate = 1; # avoid gotos
 while (1) {
     LOCATE: {
 	last LOCATE unless $locate; # avoid gotos
-	for $J (1..6) {				# 170 FOR J=1 TO 6
+	for my $J (1..6) {			# 170 FOR J=1 TO 6
 	    $L[$J] = &fna;			# 175 L(J)=FNA(0)
 	    $M[$J] = $L[$J];			# 180 M(J)=L(J)
 	}					# 185 NEXT J
 
 	# 190 REM *** CHECK FOR CROSSOVERS (IE L(1)=L(2), ETC) ***
-	for $J (1..6) {				# 195 FOR J=1 TO 6
-	    for $K (1..6) {			# 200 FOR K=1 TO 6
-		unless ($J==$K) {		# 205 IF J=K THEN 215
+	for my $J (1..6) {			# 195 FOR J=1 TO 6
+	    for my $K (1..6) {		# 200 FOR K=1 TO 6
+		unless ($J == $K) {		# 205 IF J=K THEN 215
 		    redo LOCATE if $L[$J]==$L[$K]; # 210 IF L(J)=L(K) THEN 170
 		}
 	    }					# 215 NEXT K
@@ -98,8 +98,8 @@ while (1) {
 	# 335 PRINT "HEE HEE HEE - THE WUMPUS'LL GET YOU NEXT TIME!!"
 	print "HEE HEE HEE - THE WUMPUS'LL GET YOU NEXT TIME!!\n"
     }
-    for $J (1..6) {				# 340 FOR J=1 TO 6
-	$L[$J]=$M[$J];				# 345 L(J)=M(J)
+    for my $J (1..6) {			# 340 FOR J=1 TO 6
+        $L[$J] = $M[$J];		# 345 L(J)=M(J)
     }						# 350 NEXT J
     print "SAME SETUP (Y-N) ";			# 355 PRINT "SAME SETUP (Y-N)";
     $I = uc(<>); chomp($I);			# 360 INPUT I$
@@ -164,8 +164,8 @@ INSTRUCTIONS3
 # 585 REM *** PRINT LOCATION & HAZARD WARNINGS ***
 sub hazard {
     print "\n";					# 590 PRINT
-    for $J (2..6) {				# 595 FOR J=2 TO 6
-        for $K (1..3) {				# 600 FOR K=1 TO 3
+    for my $J (2..6) {				# 595 FOR J=2 TO 6
+        for my $K (1..3) {			# 600 FOR K=1 TO 3
             next if $S[$L[1]][$K] != $L[$J];   # 605 IF S(L(1),K)<>L(J) THEN 640
 	    print (("",                    # 610 ON J-1 GOTO 615,625,625,635,635
 	        "I SMELL A WUMPUS!",      	# 615 PRINT "I SMELL A WUMPUS!"
@@ -202,7 +202,7 @@ sub shoot_or_move {
 ############
 # 715 REM *** ARROW ROUTINE ***
 sub shoot {
-    my (@P, $K1, $J9);
+    my (@P, $J9);
     $F = 0;					# 720 F=0
 
     # 725 REM *** PATH OF ARROW ***
@@ -212,7 +212,7 @@ sub shoot {
 	redo if $J9 < 1;			# 745 IF J9<1 THEN 735
 	redo if $J9 > 5;			# 750 IF J9>5 THEN 735
     }
-    for $K (1..$J9) {				# 755 FOR K=1 TO J9
+    for my $K (1..$J9) {			# 755 FOR K=1 TO J9
 	print "ROOM # ";			# 760 PRINT "ROOM #";
 	$_=uc(<>); chomp; $P[$K]=$_;		# 765 INPUT P(K)
         next if $K <= 2;			# 770 IF K<=2 THEN 790
@@ -228,8 +228,8 @@ sub shoot {
 # of the "for $K" loop.
     # 795 REM *** SHOOT ARROW ***
     $L = $L[1];					# 800 L=L(1)
-    PATH:for $K (1..$J9) {			# 805 FOR K=1 TO J9
-        for $K1 (1..3) {			# 810 FOR K1=1 TO 3
+    PATH:for my $K (1..$J9) {		# 805 FOR K=1 TO J9
+        for my $K1 (1..3) {			# 810 FOR K1=1 TO 3
     	    if ($S[$L][$K1]==$P[$K]) {		# 815 IF S(L,K1)=P(K) THEN 895
 		$L = $P[$K];			# 895 L=P(K)
 		next PATH; # go to continue block (line 900)
@@ -290,7 +290,7 @@ sub move {
 	next if $L < 1;				# 995 IF L<1 THEN 985
 	next if $L > 20;			# 1000 IF L>20 THEN 985
 
-	for $K (1..3) {				# 1005 FOR K=1 TO 3
+	for my $K (1..3) {			# 1005 FOR K=1 TO 3
 	    # 1010 REM *** CHECK IF LEGAL MOVE ***
 	    last MOVE if $S[$L[1]][$K]==$L;	# 1015 IF S(L(1),K)=L THEN 1045
 	}					# 1020 NEXT K

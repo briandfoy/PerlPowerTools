@@ -89,8 +89,7 @@ if ($#paths < 1)  ## need at least one source and a target
 my $target = pop @paths; ## last is target...
 
 #######   M O V E   S O U R C E S   T O   T A R G E T   ########################
-my $path;
-foreach $path (@paths)
+for my $path (@paths)
 {
     my $current_target = $target;
 
@@ -243,9 +242,8 @@ sub checkArgs(@)
     my $Cwd = cwd();
     $Cwd = uc $Cwd if (! $cp::CASE_SENSITIVE);
     $Cwd =~ s|[/\\]$|| unless $Cwd eq '/'; ## remove any possible trailing slash (DOS or UNIX style)
-    my $path;
     my @paths = "";
-    foreach $path (@_)  ## check all paths passed in
+    for my $path (@_)  ## check all paths passed in
     {
         $path =~ s|\\|/|g;         ## normalize
         ## if OS is not case sensitive then let's just set to uc and make life easy
@@ -292,9 +290,8 @@ sub checkArgs(@)
             }
             $path =~ s|\/\.?$|| unless $path eq '/'; ## remove '/' or '/.' from end of path
 
-            my $tmpPath;
             my $path_cnt = 0; ## number used for splicing
-            foreach $tmpPath (@paths)
+            for my $tmpPath (@paths)
             {
                 if ($path eq $tmpPath)
                 {

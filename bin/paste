@@ -17,7 +17,7 @@ no strict 'refs';
 
 my ($VERSION) = '1.2';
 
-my (@fh, $i);
+my @fh;
 
 my @sep = ( "\t" );
 my $dash_ess = 0;
@@ -40,7 +40,7 @@ EOF
 }
 
 if (@ARGV) {
-	for $i (0..$#ARGV) {
+	for my $i (0..$#ARGV) {
 		$fh[$i] = "F$i";
 		open($fh[$i], $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
 	}
@@ -49,7 +49,7 @@ if (@ARGV) {
 }
 
 if ($dash_ess) {
-	foreach $i (0..$#fh) {
+	for my $i (0..$#fh) {
 		my $fh;
 		$fh = $fh[$i];
 		my $current_sep = 0;
@@ -70,13 +70,13 @@ my $files_still_open = 1;
 while (1) {
 	my $current_sep = 0;
 	$files_still_open = 0;
-	foreach $i (0..$#fh) {
+	for my $i (0..$#fh) {
 		$files_still_open = 1 if not eof $fh[$i];
 	}
 	last if not $files_still_open;
 
 	my $tline;
-	foreach $i (0..$#fh) {
+	for my $i (0..$#fh) {
 		if (not eof $fh[$i]) {
 			my $fh;
 			$fh = $fh[$i];

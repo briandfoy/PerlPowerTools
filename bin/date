@@ -14,7 +14,7 @@ License:
 
 use strict;
 
-my ($arg, $format, $time, $hr_diff, $let, $date_str);
+my ($format, $time, $hr_diff, $let, $date_str);
 my ($sec, $min, $hour, $m_day, $mon, $year, $w_day, $y_day, $isdst);
 
 $time = time();
@@ -23,11 +23,11 @@ $format = "%a %b %e %T %Z %Y";
 	localtime($time);
 
 if (@ARGV) {
-	foreach $arg(@ARGV) {
-	if($arg =~ /^\-u/) {
+	for my $arg (@ARGV) {
+	if ($arg =~ /^\-u/) {
 		($sec, $min, $hour, $m_day, $mon, $year, $w_day, $y_day, $isdst)
 			= gmtime($time);
-	} elsif($arg =~ /^\-/ || $arg !~ /^\+/) {
+	} elsif ($arg =~ /^\-/ || $arg !~ /^\+/) {
 		usage("Option $arg not support in this version.\n");
 	} elsif ($arg =~ s/(^\+)//){
 			$format = $arg;

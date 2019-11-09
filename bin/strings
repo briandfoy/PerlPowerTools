@@ -74,7 +74,7 @@ $punctuation = join '\\', split //, q/`~!@#$%^&*()-+={}|[]\:";'<>?,.\//;
 $printable = '\w \t' . $punctuation;
 $chunksize = 4096; # whatever
 
-foreach $filename ( @ARGV )
+for my $filename ( @ARGV )
 {
     open( IN, $filename ) or die "Can't open $filename: $!\n";
     binmode IN;

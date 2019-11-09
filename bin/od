@@ -125,7 +125,7 @@ sub char1 {
     my $val1 = undef;
 
     my @arr1 = unpack($upformat,$data);
-    foreach $val (@arr1) {
+    for my $val (@arr1) {
         if (exists $charescs{$val}) {
 	    $arr[0] .= $charescs{$val} . " ";
 	}

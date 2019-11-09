@@ -235,22 +235,22 @@ sub parse_args {
     foreach (@patterns) { s(/)(\\/)g }
 
     if ($opt{H}) {
-	foreach $pattern (@patterns) {
+	for my $pattern (@patterns) {
 	    $match_code .= "\$Matches += s/($pattern)/${SO}\$1${SE}/g;";
 	}
     }
     elsif ($opt{v}) {
-	foreach $pattern (@patterns) {
+	for my $pattern (@patterns) {
 	    $match_code .= "\$Matches += !/$pattern/;";
 	}
     }
     elsif ($opt{C}) {
-	foreach $pattern (@patterns) {
+	for my $pattern (@patterns) {
 	    $match_code .= "\$Matches++ while /$pattern/g;";
 	}
     }
     else {
-	foreach $pattern (@patterns) {
+	for my $pattern (@patterns) {
 	    $match_code .= "\$Matches++ if /$pattern/;";
 	}
     }

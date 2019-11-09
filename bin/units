@@ -231,8 +231,7 @@ sub unit_multiply {
   print STDERR "Multiplying @{[%$a]} by @{[%$b]}: \n" if $DEBUG_o;
   my $r = {%$a};
   $r->{_} *= $b->{_};
-  my $u;
-  for $u (keys %$b) {
+  for my $u (keys %$b) {
     next if $u eq '_';
     $r->{$u} += $b->{$u};
   }
@@ -245,8 +244,7 @@ sub unit_divide {
   die "Division by zero error" if $b->{_} == 0;
   my $r = {%$a};
   $r->{_} /= $b->{_};
-  my $u;
-  for $u (keys %$b) {
+  for my $u (keys %$b) {
     next if $u eq '_';
     $r->{$u} -= $b->{$u};
   }
@@ -258,8 +256,7 @@ sub unit_power {
   print STDERR "Raising unit @{[%$u]} to power $p.\n" if $DEBUG_o;
   my $r = {%$u};
   $r->{_} **= $p;
-  my $d;
-  for $d (keys %$r) {
+  for my $d (keys %$r) {
     next if $d eq '_';
     $r->{$d} *= $p;
   }
@@ -283,8 +280,7 @@ sub con_multiply {
 
 sub is_dimensionless {
   my ($r) = @_;
-  my $u;
-  for $u (keys %$r) {
+  for my $u (keys %$r) {
     next if $u eq '_';
     return if $r->{$u} != 0;
   }
@@ -305,23 +301,21 @@ sub is_fundamental {
 sub text_unit {
   my ($u) = @_;
   my (@pos, @neg);
-  my $k;
   my $c = $u->{_};
-  for $k (sort keys %$u) {
+  for my $k (sort keys %$u) {
     next if $k eq '_';
     push @pos, $k if $u->{$k} > 0;
     push @neg, $k if $u->{$k} < 0;
   }
   my $text = ($c == 1 ? '' : $c);
-  my $d;
-  for $d (@pos) {
+  for my $d (@pos) {
     my $e = $u->{$d};
     $text .= " $d";
     $text .= "^$e" if $e > 1;
   }
 
   $text .= ' per' if @neg;
-  for $d (@neg) {
+  for my $d (@neg) {
     my $e = - $u->{$d};
     $text .= " $d";
     $text .= "^$e" if $e > 1;

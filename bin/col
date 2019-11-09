@@ -236,7 +236,6 @@ if ($max_row & 1) {
 # uses globals @buf, $oset, $front, $opt_x, $opt_s
 sub print_line {
     my($row) = @_;
-    my $char;
 
     if (@{$buf[$row]}) {
         $front = 0;
@@ -254,7 +253,7 @@ sub print_line {
             }
 
             my $b;
-            foreach $char (@{$buf[$row][$col]}) {
+            for my $char (@{$buf[$row][$col]}) {
                 # print backspace if necessary
                 print "\x08" if $b++;
 

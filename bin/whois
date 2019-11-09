@@ -22,34 +22,36 @@ License:
 
 use IO::Socket;
 
-$host = "whois.internic.net";
-
+my $host = "whois.internic.net";
+my $i;
 while($i = shift) {
-	if ($i eq "-a") { $host = "whois.arin.net"; last; }
-	elsif ($i eq "-d") { $host = "whois.nic.mil"; last; }
-	elsif ($i eq "-p") { $host = "whois.apnic.net"; last; }
-	elsif ($i eq "-r") { $host = "whois.ripe.net"; last; }
-	elsif ($i eq "-g") { $host = "whois.nic.gov"; last; }
-	elsif ($i eq "-6") { $host = "whois.6bone.net"; last; }
-	elsif ($i eq "-h") { $host = shift; last; }
-	else { unshift(@ARGV, $i); last; }
+    if    ($i eq "-a") { $host = "whois.arin.net";  last; }
+    elsif ($i eq "-d") { $host = "whois.nic.mil";   last; }
+    elsif ($i eq "-p") { $host = "whois.apnic.net"; last; }
+    elsif ($i eq "-r") { $host = "whois.ripe.net";  last; }
+    elsif ($i eq "-g") { $host = "whois.nic.gov";   last; }
+    elsif ($i eq "-6") { $host = "whois.6bone.net"; last; }
+    elsif ($i eq "-h") { $host = shift;             last; }
+    else               { unshift(@ARGV, $i);        last; }
 }
 
 $| = 1;
 
-$sock = new IO::Socket::INET(PeerAddr => $host,
-                             PeerPort => 43,
-			     Proto => 'tcp');
+my $sock = new IO::Socket::INET(
+    PeerAddr => $host,
+    PeerPort => 43,
+    Proto => 'tcp',
+    );
 
 die "IO::Socket::INET $!" unless $sock;
 
-foreach $i (@ARGV) {
-	print $sock "$i ";
+for my $i (@ARGV) {
+    print $sock "$i ";
 }
 print $sock "\n\r";
 
 while($line = <$sock>) {
-	print $line
+    print $line
 }
 
 close($sock);

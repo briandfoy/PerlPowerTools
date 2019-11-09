@@ -250,7 +250,7 @@ exit $status;
 sub genwhatis {
     local($elt,$whatis);
 
-    for $elt (@MANPATH) {
+    for my $elt (@MANPATH) {
 	$whatis = "$elt/whatis";
 	if (-f $whatis) {
 	    push(@whatis, $whatis);
@@ -271,7 +271,7 @@ sub whatis {
 
     &genwhatis;
 
-    for $target (@ARGV) { $seeking{$target} = 1; }
+    for my $target (@ARGV) { $seeking{$target} = 1; }
 
     if ($hard_way) {
 	&slow_whatis;
@@ -279,7 +279,7 @@ sub whatis {
 	&fast_whatis;
     }
 
-    for $target (keys %seeking) {
+    for my $target (keys %seeking) {
 	print "$program: $target: not found.\n";
 	$status = 1;
     }
@@ -291,7 +291,7 @@ sub whatis {
 sub fast_whatis {
     local($entry, $cmd, $page, $section, $desc, @entries);
 
-    for $INDEX (@whatis) {
+    for my $INDEX (@whatis) {
 	unless (-f "$INDEX.db" && dbmopen(%INDEX,"$INDEX.db",0444)) {
 	    warn "$program: No dbm file $INDEX.db: $!\n" if $debug;
 	    #$status = 1;
@@ -303,12 +303,12 @@ sub fast_whatis {
 	} else {
 	    warn "$program: dbmopened $INDEX.db";
 	}
-       	for $target (@ARGV) {
+       	for my $target (@ARGV) {
 	    local($ext);
 	    @entries = &quick_fetch($target,'INDEX');
 	    next unless @entries;
 	    # $target =~ s/([^\w])/\\$1/g;
-	    for $entry (@entries) {
+	    for my $entry (@entries) {
 		($cmd, $page, $section, $desc) = split(/\001/, $entry);
 		#  STUPID_SO is one that .so's that reference things that
 		#  don't know they are being referenced.  STUPID_SO may cause
@@ -344,7 +344,7 @@ sub slow_whatis {
 	    %seeking = ();
 	}
     } else {
-	foreach $WHATIS (@whatis)  {
+	for my $WHATIS (@whatis) {
 	    unless (open WHATIS) {
 		warn "can't open $WHATIS: $!\n";
 		next;
@@ -397,7 +397,7 @@ sub apropos {
 	    sleep 1;
 	    select(PAGER);
 	}
-	foreach $WHATIS (@whatis) {
+	for my $WHATIS (@whatis) {
 	    unless (open WHATIS) {
 		warn "can't open $WHATIS: $!\n";
 		next;
@@ -583,7 +583,7 @@ sub slow_fetch {
 sub whereis {
     local($target, @files);
 
-    foreach $target (@ARGV) {
+    for my $target (@ARGV) {
 	@files = &find_files($target);
 	if ($#files < $[) {
 	    warn "$program: $target not found\n";
@@ -616,7 +616,7 @@ sub find_files {
 
     if (!$hard_way && !$called_before++) {
 	# generate dbm names
-	for $root (@MANPATH) {
+	for my $root (@MANPATH) {
 	    $dbm{$root} = $vars++; # magic incr
 	    unless (-f "$root/whatis.db"
 		    && dbmopen(%$root,"$root/whatis.db",undef))
@@ -632,7 +632,7 @@ sub find_files {
 	}
     }
 
-    for $root (@MANPATH) {
+    for my $root (@MANPATH) {
 	local($fullname);
 	@tmplist = ();
 	#if ($hard_way || !$dbmopened{$root})  {
@@ -644,7 +644,7 @@ sub find_files {
 	    @entries = &fetch($target,$root);
 	    next if $#entries < 0;
 
-	    for $entry (sort @entries) {
+	    for my $entry (sort @entries) {
 		($cmd, $page, $section, $desc) = split(/\001/, $entry);
 
 		# STUPID_SO is so that .so's that reference things that
@@ -1538,13 +1538,13 @@ EOCODE
     print "grep eval code: $code" if $debug;
 
 
-    foreach $root ( split(/:/, $MANPATH)) {
+    for my $root ( split(/:/, $MANPATH)) {
 	unless (chdir($root)) {
 	    warn "can't chdir to $root: $!";
 	    $status++;
 	    next;
 	}
-	foreach $dir ( <man?*> ) {
+	for my $dir ( <man?*> ) {
 	    unless (chdir($dir)) {
 		warn "can't chdir to $root/$dir: $!" if $debug;
 		next;
@@ -1553,7 +1553,7 @@ EOCODE
 		warn "can't opendir $root/$dir: $!" if $debug;
 		next;
 	    }
-	    foreach $FILE ( readdir(DIR) ) {
+	    for my $FILE ( readdir(DIR) ) {
 		next if $FILE eq '.' || $FILE eq '..';
 		$path = "$root/$dir/$FILE";
 		if ($FILE !~ /\S\.\S/ || !-f $FILE) {
