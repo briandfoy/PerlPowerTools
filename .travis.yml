@@ -1,10 +1,12 @@
 sudo: false
 
+dist: trusty
+
+cache:
+    directories:
+    - $HOME/.perlbrew-cache
+
 language: perl
-
-env:
-    - NO_DEVEL_COVER=0
-
 matrix:
     include:
         - perl: "5.30"
@@ -13,32 +15,36 @@ matrix:
         - perl: "5.24"
         - perl: "5.22"
         - perl: "5.20"
-          dist: trusty
         - perl: "5.18"
-          dist: trusty
         - perl: "5.16"
-          dist: trusty
         - perl: "5.14"
-          dist: trusty
         - perl: "5.12"
-          dist: trusty
         - perl: "5.10"
-          dist: trusty
+
+env:
+    - OLD_DEVEL_COVER=0
+
+matrix:
+    include:
         - perl: 5.8
-          env: NO_DEVEL_COVER=1
+          env: OLD_DEVEL_COVER=1
 
 before_install:
     - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
     - source ~/travis-perl-helpers/init --auto
+    - build-perl
+    - perl -V
+    - build-dist
+    - cd $BUILD_DIR
 
 install:
     - cpanm --quiet --installdeps --notest .
-    - if [ "$NO_DEVEL_COVER" = "0" ]; then cpanm --quiet --notest Devel::Cover; fi
-    - if [ "$NO_DEVEL_COVER" = "0" ]; then cpanm --quiet --notest Devel::Cover::Report::Coveralls; fi
+    - if [ "$OLD_DEVEL_COVER" = "0" ]; then cpanm --quiet --notest Devel::Cover; fi
+    - if [ "$OLD_DEVEL_COVER" = "1" ]; then cpanm --quiet --notest Devel::Cover@1.23; fi
+    - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 
 script:
-    - if [ "$NO_DEVEL_COVER" = "0" ]; then cover -delete && cover -test; fi
-    - if [ "$NO_DEVEL_COVER" = "1" ]; then perl Makefile.PL && make test; fi
+    - cover -delete && cover -test
 
 after_success:
-    - if [ "$NO_DEVEL_COVER" = "0" ]; then cover -report coveralls; fi
+    - cover -report coveralls
