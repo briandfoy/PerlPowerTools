@@ -145,7 +145,7 @@ sub parse_args {
     my $no_re = $opt{F} || ($Me =~ /\bfgrep\b/);
 
     if ($opt{f}) {                # -f patfile
-	open(PATFILE, $opt{f})		or die qq($Me: Can't open '$opt{f}': $!);
+	open PATFILE, '<', $opt{f} or die qq($Me: Can't open '$opt{f}': $!);
 
 				  # make sure each pattern in file is valid
 	while ( defined($pattern = <PATFILE>) ) {
@@ -337,7 +337,7 @@ FILE: while (defined ($file = shift(@_))) {
 
 	warn "$Me: checking $file\n" if $opt->{T};
 
-	unless (open(FILE, $file)) {
+	unless ( open FILE, '<', $file ) {
 	    unless ($opt->{'q'}) {
 		warn "$Me: $file: $!\n";
 		$Errors++;
