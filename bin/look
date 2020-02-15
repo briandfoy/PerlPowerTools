@@ -29,11 +29,11 @@ sub usage {
 }
 
 my (
-    @dicts, 	# file list
-    $search,	# the string to look for
-    %opt, 	# option hash
-    $opened,	# did we ever open something?
-    $found, 	# did we ever find something?
+    @dicts,     # file list
+    $search,    # the string to look for
+    %opt,       # option hash
+    $opened,    # did we ever open something?
+    $found,     # did we ever find something?
     $def_dict,  # did we use the default dict list?
 );
 
@@ -42,7 +42,7 @@ my (
 while ($ARGV[0] =~ /^-/) {
     $ARGV[0] =~ s/^-//;
     for my $flag (split(//,$ARGV[0])) {
-	usage("unknown flag: `$flag'") unless 'df' =~ /\Q$flag/;
+    usage("unknown flag: `$flag'") unless 'df' =~ /\Q$flag/;
         warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
     }
     shift;
@@ -77,17 +77,17 @@ FILE: for my $file (@dicts) {
     $opened++;
 
     if (-1 == look(*DICT, $search, $opt{'d'}, $opt{'f'})) {
-	last FILE;
+        last FILE;
     }
 
 LINE:
     while (<DICT>) {
-	if (0 == index(squish($_), $search)) {
-	    print;
-	    $found++;
-	} else {
-	    last LINE;
-	}
+        if (0 == index(squish($_), $search)) {
+            print;
+            $found++;
+        } else {
+            last LINE;
+        }
     }
     close(DICT) || die "can't close $file: $!";
     last FILE;
@@ -95,7 +95,7 @@ LINE:
 
 if ($opened == 0) {
     warn "$0: No dictionaries in default list (@dicts)\n"
-	if $def_dict;
+    if $def_dict;
     exit 2;
 }
 
@@ -103,7 +103,7 @@ exit($found == 0 ? 1 : 0);
 
 sub squish {
     my $str = shift;
-    $str = lc($str) 	    if $opt{'f'};
+    $str = lc($str)         if $opt{'f'};
     $str =~ s/[^\w\s]//g    if $opt{'d'};
     return $str;
 }
