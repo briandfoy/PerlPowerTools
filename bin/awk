@@ -17,7 +17,11 @@ License: perl
 
 use strict;
 
-use App::a2p;
+BEGIN {
+	my $external_module = 'App::a2p';
+	my $rc = eval "require $external_module; $external_module->import; 1";
+	die "This program needs the $external_module module.\n" unless $rc;
+	}
 
 my(
     $program,		# the code to eval

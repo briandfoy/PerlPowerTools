@@ -14,6 +14,11 @@ License:
 
 use Getopt::Std;
 
+BEGIN {
+	my $external_module = 'MIME::Parser';
+	my $rc = eval "require $external_module; $external_module->import; 1";
+	die "This program needs the $external_module module.\n" unless $rc;
+	}
 
 {package PerlPowerTools::MIME::Parser;
  use base 'MIME::Parser';

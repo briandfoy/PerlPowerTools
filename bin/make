@@ -15,7 +15,12 @@ License:
 use 5.005;  # Need look-behind assertions
 
 use Getopt::Std;
-use Make;
+
+BEGIN {
+	my $external_module = 'Make';
+	my $rc = eval "require $external_module; $external_module->import; 1";
+	die "This program needs the $external_module module.\n" unless $rc;
+	}
 
 getopts('gnpf:j:C:');
 
