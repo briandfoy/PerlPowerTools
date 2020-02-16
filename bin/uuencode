@@ -80,7 +80,7 @@ sub encode($$) {
     printf "begin %03o $destination\n", $mode || 0644;
 
     local *INPUT;
-    open(INPUT, "< $source") 	|| die "can't open $source: $!";
+    open(INPUT, '<', $source) 	|| die "can't open $source: $!";
     binmode(INPUT);   # winsop
 
     my $block;
