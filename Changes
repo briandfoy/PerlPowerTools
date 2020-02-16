@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.017 2020-02-16T00:27:01Z
+	* Convert to three-argument open in a bunch of places. No new
+	utilities or features.
+
 1.016 2019-09-13T13:37:01Z
 	* Try very hard to make the find.t test work now that find2perl
 	does not come with perl. Look in many places for it and skip
