@@ -434,8 +434,8 @@ sub bless {
 
     # Open output file.
     if ($self->{check}) {
-        $self->{o_fh} = \*NULL;     # output filehandle
-        $self->{d_fh} = \*NULL;     # ifdef filehandle
+        $self->{o_fh} = *NULL;     # output filehandle
+        $self->{d_fh} = *NULL;     # ifdef filehandle
     } else {
         local *OUT;
         open OUT, "+> $out" or $self->skip("Couldn't open OUTFILE: $!\n");
@@ -443,7 +443,7 @@ sub bless {
         $|++, select $_ for select OUT;
         $self->{o_fh}   = *OUT;
         $self->{o_file} = $out;
-        $self->{d_fh}   = length $self->{ifdef} ? *OUT : \*NULL;
+        $self->{d_fh}   = length $self->{ifdef} ? *OUT : *NULL;
     }
 
     $self->{'reject-file'} = "$out.rej" unless defined $self->{'reject-file'};
