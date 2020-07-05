@@ -17,7 +17,7 @@ sub test_cat
 
     my $re = _lines2re( @{ $args->{lines} } );
     return like(
-        scalar(`$^X -Ilib bin/cat @{$args->{flags}} @{$args->{files}}`),
+        scalar(`"$^X" -Ilib bin/cat @{$args->{flags}} @{$args->{files}}`),
         qr#\A$re\z#ms, $args->{blurb} );
 }
 
