@@ -32,8 +32,8 @@ HERE
 diag( "find2perl is at <$find2perl>" );
 
 
-subtest check_find2perl => sub { check_find2perl( $find2perl ) };
-subtest check_find      => \&check_find;
+subtest check_find2perl => \&check_find, "find2perl", $find2perl;
+subtest check_find      => \&check_find, "find", $find;
 
 my $dir = tempdir('perlpowertools-find-XXXXXXXX', TMPDIR => 1, CLEANUP => 1);
 ok(-d $dir, "Created temp dir: $dir");
@@ -64,12 +64,12 @@ sub show_times {
 subtest 'all_files' => sub {
 	show_times();
 	my $options = "$dir -type f";
-	my $command = "$^X $find $options";
+	my $command = qq{"$^X" $find $options};
 
 	my $got = join "", sort `$command`;
 	my $expected = join "\n", sort map { @$_ } @$files;
 	$expected .= "\n";
-	my $rc = is( $got, $expected, "Found files with `$command`" );
+	my $rc = is( slash_fixup($got), slash_fixup($expected), "Found files with `$command`" );
 
 	unless( $rc ) {
 		diag( "!!! Command: $command" );
@@ -100,22 +100,16 @@ sub find_find2perl {
 	return defined $candidates[0] ? $candidates[0] : ();
 	}
 
-sub check_find2perl {
-	my( $find2perl ) = @_;
-
-	ok( -e $find2perl, "find2perl exists at $find2perl" );
-	ok( -x $find2perl, "find2perl is executable $find2perl" );
-
-	my $output = `$^X -c $find2perl 2>&1`;
-	like( $output, qr/syntax OK/, "$find2perl compiles" );
-	}
-
 sub check_find {
-   ok( -e $find, "find exists at $find" );
-   ok( -x $find, "find is executable $find" );
+   my ( $label, $file ) = @_;
+   ok( -e $file, "$label exists at $file" );
+   SKIP: {
+      skip 'executable meaningless on Win32', 1 if $^O eq 'MSWin32';
+      ok -x $file, "$label is executable $file";
+   }
 
-   my $output = `$^X -c $find 2>&1`;
-   like( $output, qr/syntax OK/, "$find compiles" );
+   my $output = `"$^X" -c "$file" 2>&1`;
+   like( $output, qr/syntax OK/, "$file compiles" );
    }
 
 sub create_files {
@@ -144,16 +138,22 @@ sub create_files {
 	\@files;
 	}
 
+sub slash_fixup {
+  my ($text) = @_;
+  $text =~ s#\\#/#g;
+  $text;
+}
+
 sub min_test () {
 	my( $arg, $time, $files ) = @_;
 	show_times();
 
 	my $options = "$dir -type f -$arg $time";
-	my $command = "$^X $find $options";
+	my $command = qq{"$^X" $find $options};
 
 	my $got = join '', sort `$command`;
 	my $expected = join "\n", @$files, '';
-	my $rc = is( $got, $expected, "Found files with `$command`" );
+	my $rc = is( slash_fixup($got), slash_fixup($expected), "Found files with `$command`" );
 
 	unless( $rc ) {
 		diag( "!!! Command: $command" );
