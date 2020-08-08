@@ -6,7 +6,7 @@ diag(
 	);
 
 $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
-diag( "PERL5LIB: $ENV{PERL5LIB}" );
+diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
 
 foreach my $program ( glob( "bin/*" ) ) {
 	if( $program eq 'bin/man' and exists $ENV{TRAVIS} ) {

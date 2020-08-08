@@ -51,13 +51,12 @@ subtest create_files => sub {
 	$files = create_files( @file_paths );
 	};
 
-diag( "Files are\n " . join( "\n ", map { @$_ } @$files ) );
+diag( "Files are\n " . join( "\n ", map { @$_ } @$files ) ) if $ENV{DEBUG};
 
 sub show_times {
+	return unless $ENV{DEBUG};
 	foreach my $file ( @file_paths ) {
-		diag sprintf "%s  a:%d  m:%d",
-			$file,
-			(stat $file)[8,9]
+		diag sprintf "%s  a:%d  m:%d", $file, (stat $file)[8,9]
 		}
 	}
 
