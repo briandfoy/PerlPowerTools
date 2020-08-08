@@ -81,6 +81,7 @@ bin/rev
 bin/rm
 bin/rmdir
 bin/robots
+bin/rot13
 bin/shar
 bin/sleep
 bin/sort
@@ -137,6 +138,7 @@ t/factor.t
 t/false.t
 t/find.t
 t/pod.t
+t/rot13.t
 t/sort.t
 t/true.t
 TODO
