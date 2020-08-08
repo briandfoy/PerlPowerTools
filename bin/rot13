@@ -2,6 +2,17 @@
 use warnings;
 use strict;
 
+=begin metadata
+
+Name: rot13
+Description: Rotate the Latin letters by 13 positions
+Author: Mark Rosetta (@marked on GitHub)
+License: perl
+
+=end metadata
+
+=cut
+
 while (my $line = <>) {
   $line =~ tr/A-Za-z/N-ZA-Mn-za-m/;
   print $line;
