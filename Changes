@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.019_01 2020-08-08T21:07:03Z
+	* Added rot13 from @marked (#83)
+	* Several test fixes by mohawk2 (#86)
+
 1.017 2020-02-16T00:27:01Z
 	* Convert to three-argument open in a bunch of places. No new
 	utilities or features.
