@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+while (my $line = <>) {
+  $line =~ tr/A-Za-z/N-ZA-Mn-za-m/;
+  print $line;
+};
