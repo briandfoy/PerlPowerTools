@@ -7,7 +7,7 @@ use strict;
 Name: rot13
 Description: Rotate the Latin letters by 13 positions
 Author: Mark Rosetta (@marked on GitHub)
-License: perl
+License: artistic2
 
 =end metadata
 
