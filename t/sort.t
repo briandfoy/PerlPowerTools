@@ -17,7 +17,7 @@ sub test_sort
 
     my $re = _lines2re( @{ $args->{lines} } );
     return like(
-        scalar(`$^X -Ilib bin/sort @{$args->{flags}} @{$args->{files}}`),
+        scalar(`"$^X" -Ilib bin/sort @{$args->{flags}} @{$args->{files}}`),
         qr#\A$re\z#ms, $args->{blurb} );
 }
 

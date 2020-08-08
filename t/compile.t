@@ -13,14 +13,14 @@ foreach my $program ( glob( "bin/*" ) ) {
 		TODO: {
 			local $TODO = "Travis Perl can't find DB_File";
 			subtest $program => sub {
-				my $output = `$Config{perlpath} -c $program 2>&1`;
+				my $output = `"$^X" -c $program 2>&1`;
 				like( $output, qr/syntax OK/, "$program compiles" );
 				};
 			}
 		next;
 		}
 	subtest $program => sub {
-		my $output = `$Config{perlpath} -c $program 2>&1`;
+		my $output = `"$^X" -c $program 2>&1`;
 		like( $output, qr/syntax OK/, "$program compiles" );
 		}
 	}
