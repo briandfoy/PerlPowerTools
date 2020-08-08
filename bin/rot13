@@ -7,13 +7,14 @@ use strict;
 Name: rot13
 Description: Rotate the Latin letters by 13 positions
 Author: Mark Rosetta (@marked on GitHub)
+Contributor: brian d foy, bdfoy@cpan.org
 License: artistic2
 
 =end metadata
 
 =cut
 
-while (my $line = <>) {
-  $line =~ tr/A-Za-z/N-ZA-Mn-za-m/;
-  print $line;
+while ( <> ) {
+  tr/A-Za-z/N-ZA-Mn-za-m/;
+  print;
 };
