@@ -3,10 +3,18 @@ use warnings;
 
 use Test::More;
 
-use File::Spec::Functions;
+use File::Spec;
 use IPC::Open2;
 
-my $program = catfile( qw(bin rot13) );
+my $program = File::Spec->catfile( qw(blib script rot13) );
+
+subtest 'check file' => sub {
+	ok( -e $program, "$program exists" );
+	SKIP: {
+		skip "This test isn't for Windows", 1 if $^O eq 'MSWin32';
+		ok( -x $program, "$program is executable" );
+		}
+	};
 
 my @strings = (
 	[ 'abcdefghijklmnopqrstuvwxyz', 'nopqrstuvwxyzabcdefghijklm' ],
