@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.019_02 2020-08-10T16:43:59Z
+	* Fixing up the rot13 test
+
 1.019_01 2020-08-08T21:07:03Z
 	* Added rot13 from @marked (#83)
 	* Several test fixes by mohawk2 (#86)
