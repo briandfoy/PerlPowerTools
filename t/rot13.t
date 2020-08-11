@@ -4,7 +4,6 @@ use warnings;
 use Test::More;
 
 use File::Spec;
-use IPC::Open2;
 
 my $program = File::Spec->catfile( qw(blib script rot13) );
 
@@ -25,11 +24,11 @@ my @strings = (
 
 foreach my $tuple ( @strings ) {
 	my( $input, $expected ) = @$tuple;
-	my $pid = open2( my $reader, my $writer, $program );
-	print { $writer } $input;
-	close $writer;
 
-	my $output = do { local $/; <$reader> };
+	{ open my $fh,'>', 't/temp-rot13-in' or die "Error: $!"; print $fh $input; }
+	`$program <t/temp-rot13-in >t/temp-rot13-out`;
+	my $output = do { open my $fh, '<', 't/temp-rot13-out'; local $/; <$fh> };
+	unlink 't/temp-rot13-in', 't/temp-rot13-out';
 
 	is( $output, $expected, 'Rot13 is right' );
 	}
