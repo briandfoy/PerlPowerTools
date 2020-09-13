@@ -25,6 +25,6 @@ jobs:
                 openssl version
                 cpan IO::Socket::SSL
                 cpan ExtUtils::MakeMaker
-                cpan App::a2p App::find2perl Make MIME::Parser DB_File
+                cpan App::a2p App::find2perl Make MIME::Parser
             - name: Install
               run: cpan .
