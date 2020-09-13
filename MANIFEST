@@ -55,7 +55,11 @@ bin/look
 bin/ls
 bin/mail
 bin/make
-bin/man
+# bin/man doesn't actually work and is heavily tied to unix utilities
+# that we don't provide or no longer exist in standard setups. I'm
+# temporarily kicking this out of PerlPowerTools until someone
+# complains about it.
+# bin/man
 bin/maze
 bin/mimedecode
 bin/mkdir
