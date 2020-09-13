@@ -44,7 +44,7 @@ jobs:
               run: perl -V
             - name: install cpanm and multiple modules
               run: |
-                curl -L https://cpanmin.us | perl - --sudo App::cpanminus
+                curl -L https://cpanmin.us | perl - App::cpanminus
                 cpanm IO::Socket::SSL
                 cpan ExtUtils::MakeMaker
                 cpan App::a2p App::find2perl Make MIME::Parser
