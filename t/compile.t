@@ -8,9 +8,9 @@ diag(
 $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
 diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
 
-my %NeedsExternalModule = map { ( "bin/$_" => 1 ) } qw(awk make mimedecode);
+my %NeedsExternalModule = map { ( "blib/script/$_" => 1 ) } qw(awk make mimedecode);
 
-foreach my $program ( glob( "bin/*" ) ) {
+foreach my $program ( glob( "blib/script/*" ) ) {
 	if( $program eq 'bin/man' and exists $ENV{TRAVIS} ) {
 		TODO: {
 			local $TODO = "Travis Perl can't find DB_File";
