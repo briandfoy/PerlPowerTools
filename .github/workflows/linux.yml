@@ -43,15 +43,11 @@ jobs:
             - name: Perl version check
               run: perl -V
             - name: install cpanm and multiple modules
-              uses: perl-actions/install-with-cpanm@v1.1
-              with:
-                install: |
-                  IO::Socket::SSL
-                  ExtUtils::MakeMaker
-                  App::a2p
-                  App::find2perl
-                  Make
-                  MIME::Parser
+              run: |
+                curl -L https://cpanmin.us | perl - --sudo App::cpanminus
+                cpanm IO::Socket::SSL
+                cpan ExtUtils::MakeMaker
+                cpan App::a2p App::find2perl Make MIME::Parser
             - name: Run tests
               run: |
                 perl Makefile.PL
