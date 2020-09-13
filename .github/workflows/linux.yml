@@ -51,6 +51,7 @@ jobs:
             - name: install Berkely DB
               run: |
                 apt-get update
+                apt-cache search libdb
                 apt-get install libdb1-compat
                 cpan DB_File
             - name: Run tests
