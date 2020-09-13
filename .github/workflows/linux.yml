@@ -50,7 +50,7 @@ jobs:
                 cpan App::a2p App::find2perl Make MIME::Parser
             - name: install Berkely DB
               run: |
-                sudo apt-get install libdb1-compat
+                apt-get install libdb1-compat
                 cpan DB_File
             - name: Run tests
               run: |
