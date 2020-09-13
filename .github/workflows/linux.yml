@@ -48,12 +48,6 @@ jobs:
                 cpanm IO::Socket::SSL
                 cpan ExtUtils::MakeMaker
                 cpan App::a2p App::find2perl Make MIME::Parser
-            - name: install Berkely DB
-              run: |
-                apt-get update
-                apt-cache search libdb
-                apt-get install libdb1-compat
-                cpan DB_File
             - name: Run tests
               run: |
                 perl Makefile.PL
