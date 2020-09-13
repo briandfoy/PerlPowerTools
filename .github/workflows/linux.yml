@@ -47,7 +47,7 @@ jobs:
                 curl -L https://cpanmin.us | perl - App::cpanminus
                 cpanm IO::Socket::SSL
                 cpan ExtUtils::MakeMaker
-                cpan App::a2p App::find2perl Make MIME::Parser
+                cpan App::a2p App::find2perl Make MIME::Parser DB_File
             - name: Run tests
               run: |
                 perl Makefile.PL
