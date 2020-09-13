@@ -8,19 +8,13 @@ diag(
 $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
 diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
 
+# Even programs not in MANIFEST, but they are in the repo and CI
+# still catches it
+my %SkipPrograms        = map { ( "blib/script/$_" => 1 ) } qw(man);
 my %NeedsExternalModule = map { ( "blib/script/$_" => 1 ) } qw(awk make mimedecode);
 
 foreach my $program ( glob( "blib/script/*" ) ) {
-	if( $program eq 'bin/man' and exists $ENV{TRAVIS} ) {
-		TODO: {
-			local $TODO = "Travis Perl can't find DB_File";
-			subtest $program => sub {
-				my $output = `"$^X" -c $program 2>&1`;
-				like( $output, qr/syntax OK/, "$program compiles" );
-				};
-			}
-		next;
-		}
+	next if exists $SkipPrograms{$program};
 
 	if( exists $NeedsExternalModule{$program} ) {
 		TODO: {
