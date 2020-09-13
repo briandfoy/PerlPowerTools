@@ -1,0 +1,28 @@
+name: macos
+
+on:
+    push:
+        branches:
+            - '*'
+        tags-ignore:
+            - '*'
+        pull_request:
+
+jobs:
+    perl:
+        runs-on: macOS-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - name: Platform check
+              run: uname -a
+            - name: Set up Perl
+              run: brew install perl
+            - name: Perl version check
+              run: perl -V
+            - name: Prepare cpan
+              run: |
+                openssl version
+                cpan App::a2p App::find2perl Make MIME::Parser DB_File
+            - name: Install
+              run: cpan .

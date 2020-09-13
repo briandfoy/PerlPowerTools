@@ -1,0 +1,29 @@
+name: windows
+
+on:
+    push:
+        branches:
+            -
+        tags-ignore:
+            -
+        pull_request:
+
+jobs:
+    perl:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os:
+                - windows-2019
+                - windows-2016
+
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Perl
+              run: |
+                choco install strawberryperl
+                echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+            - name: Perl version
+              run: perl -V
+            - name: Install
+              run: cpan .
