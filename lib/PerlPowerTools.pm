@@ -138,8 +138,6 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item pmake - a perl 'make' replacement
 
-=item man - format and display the on-line manual page
-
 =item maze - generate a maze problem
 
 =item mimedecode - extract MIME attachments in uudecode-like manner
