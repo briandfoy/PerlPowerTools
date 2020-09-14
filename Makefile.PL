@@ -77,8 +77,22 @@ HERE
 	push @ARGV, "INSTALL_BASE=$path";
 	}
 
-my @exe_files = glob "bin/*";
 
+open my $manifest_fh, '<:utf8', 'MANIFEST'
+	or die "Could not open MANIFEST: $!";
+
+my @exe_files;
+while( <$manifest_fh> ) {
+	chomp;
+	next if /\A\s*#/;
+	s/\s*#.*$//;
+	next unless m|\Abin/|;
+	push @exe_files, $_;
+	}
+
+print "EXE_FILES [@exe_files]\n";
+
+close $manifest_fh;
 
 my $module    = __PACKAGE__;
 ( my $dist = $module ) =~ s/::/-/g;

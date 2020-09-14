@@ -8,22 +8,7 @@ diag(
 $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
 diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
 
-# Even programs not in MANIFEST, but they are in the repo and CI
-# still catches it
-open my $manifest_fh, '<:utf8', 'MANIFEST'
-	or die "Could not open MANIFEST: $!";
-
-my @programs;
-while( <$manifest_fh> ) {
-	chomp;
-	next if /\A\s*#/;
-	s/\s*#.*//;
-	next unless m|\Abin/|;
-	s{bin/}{blib/script/};
-	push @programs, $_;
-	}
-
-close $manifest_fh;
+my @programs = glob( 'blib/script/*' );
 
 my %NeedsExternalModule = map { ( "blib/script/$_" => 1 ) } qw(awk make mimedecode);
 

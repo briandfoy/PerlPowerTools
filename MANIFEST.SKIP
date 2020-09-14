@@ -72,3 +72,9 @@ MANIFEST\s
 Changes\s
 Makefile\s
 MYMETA\s
+\B\.github/
+\bTODO\b
+
+# This program isn't working and has Perl 4 dependencies
+# https://github.com/briandfoy/PerlPowerTools/issues/92
+bin/man
