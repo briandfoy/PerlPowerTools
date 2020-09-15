@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.020 2020-09-15T17:09:32Z
+	* Better Windows tests for rot13
+	* Exclude bin/man, which is old Perl4 code that needs a lot of work
+
 1.019_03 2020-09-13T16:03:58Z
 	* work harder to test rot13 on Windows
 
