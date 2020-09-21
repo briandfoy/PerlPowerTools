@@ -1,10 +1,13 @@
-build:
-    script:
-        - curl -L https://cpanmin.us | perl - App::cpanminus
-        - cpanm IO::Socket::SSL
-        - cpan ExtUtils::MakeMaker
-        - cpan App::a2p App::find2perl Make MIME::Parser
-        - perl Makefile.PL
+default:
+  image: ruby:2.5
+  before_script:
+    - uname -a
+    - perl -v
+    - curl -L https://cpanmin.us | perl - App::cpanminus
+    - cpanm IO::Socket::SSL
+    - cpan ExtUtils::MakeMaker
+    - cpan App::a2p App::find2perl Make MIME::Parser
+    - perl Makefile.PL
 
 test:
      script:
