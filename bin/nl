@@ -1,0 +1,242 @@
+#!/usr/bin/env perl
+#
+# nl - line numbering filter
+#
+# nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
+# files sequentially, and writes them to STDOUT, with lines numbered. If file
+# is a dash "-" or if no file is given as argument, nl reads from STDIN.
+#
+# 2020.10.25 v1.00 jul : first public release
+
+=begin metadata
+
+Name: nl
+Description: line numbering filter
+Author: jul, kaldor@cpan.org
+License: Artistic License 2.0
+
+=end metadata
+
+=cut
+
+use strict;
+use warnings;
+use utf8;
+use Getopt::Std;
+use File::Basename;
+
+our $VERSION = '1.00';
+my $program  = basename($0);
+my $usage    = <<EOF;
+
+Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
+
+    -V              version
+    -b type         'a'     all lines
+                    't'     only non-empty lines (default)
+                    'n'     no numbering
+                    'pexpr' only lines matching pattern specified by expr
+                    'eexpr' exclude lines matching pattern specified by expr
+    -d delim        characters (max 2) indicating new section (default : '\\:')
+    -f type         same as -b but for footer lines (default : 'n')
+    -h type         same as -b but for header lines (default : 'n')
+    -i incr         increment value (dafault : 1)
+    -n format       'ln'    left justified
+                    'rn'    right justified without leading zeros (default)
+                    'rz'    right justified with leading zeros
+    -p              single page (don't restart numbering at pages delimiters)
+    -s sep          characters between number and text line (default : TAB)
+    -v startnum     initial value to number pages (default : 1)
+    -w width        line number width (default : 6)
+EOF
+
+# options
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
+my %options = ();
+getopts("Vb:d:f:h:i:n:ps:v:w:", \%options) or die $usage;
+
+my $version     = $options{V} || 0;
+my $type_b      = $options{b} || "t";
+my $delim       = $options{d} || '\:';
+my $type_f      = $options{f} || "n";
+my $type_h      = $options{h} || "n";
+my $incr        = $options{i} || 1;
+my $format      = $options{n} || "rn";
+my $single_page = $options{p} || 0;
+my $sep         = $options{s} || "\t";
+my $startnum    = $options{v} || 1;
+my $width       = $options{w} || 6;
+
+die $VERSION . "\n" if $version;
+
+# options -b -f -h
+my $regex_b = "";
+my $regex_f = "";
+my $regex_h = "";
+
+($type_b, $regex_b) = split //, $type_b, 2;
+($type_f, $regex_f) = split //, $type_f, 2;
+($type_h, $regex_h) = split //, $type_h, 2;
+
+my @type = ($type_h, $type_b, $type_f,); # don't change order
+my @regex = ($regex_h, $regex_b, $regex_f); # don't change order
+
+# options -d
+my $delim_std = '\:';
+substr($delim_std, 0, length($delim), $delim);
+$delim = quotemeta(substr($delim_std, 0, 2)); # max 2 chars, backslash escaped
+
+# options -n -w
+my $format_str	= '%';
+$format_str .= '-' if $format eq "ln";
+$format_str .= '0' if $format eq "rz";
+$format_str .= $width;
+$format_str .= 'd';
+
+# options -v
+my $number = $startnum;
+
+
+###############
+# SUBROUTINES #
+###############
+
+sub print_number {
+
+	my $match = shift;
+
+	if ($match)
+	{
+		printf($format_str, $number);
+		$number += $incr;
+	}
+	else
+	{
+		print ' ' x $width;
+	}
+	
+	print $sep;
+}
+
+sub print_line {
+
+	my $line  = shift;
+	my $type  = shift;
+	my $regex = shift;
+
+	if ($type eq 'a')
+	{
+		print_number(1);
+	}
+	elsif ($type eq 't')
+	{
+		my $match = /^$/ ? 0 : 1;
+		print_number($match);
+	}
+	elsif ($type eq 'n')
+	{
+		print_number(0);
+	}
+	elsif ($type eq 'p')
+	{
+		my $match = /$regex/ ? 1 : 0;
+		print_number($match);
+	}
+	elsif ($type eq 'e')
+	{
+		my $match = /$regex/ ? 0 : 1;
+		print_number($match);
+	}
+	else
+	{
+		die $usage;
+	}
+	
+	print $line;
+}
+
+
+########
+# MAIN #
+########
+
+my $section = 1;
+my $new_section = 1;
+
+while (<>)
+{
+	my $line = $_;
+
+	if ( $line =~ /^($delim)($delim)?($delim)?$/ )
+	{
+		if    ($3) {$new_section = 0} # header
+		elsif ($2) {$new_section = 1} # body
+		else       {$new_section = 2} # footer
+
+		# change page
+		if ($new_section <= $section)
+		{
+			$number = $startnum unless $single_page;
+		}
+
+		$section = $new_section;
+	}
+	else
+	{
+		print_line($_, $type[$section], $regex[$section]);
+	}
+}
+
+exit 1;
+
+__END__
+
+=head1 NAME
+
+nl - line numbering filter.
+
+=head1 SYNOPSIS
+
+    $ nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
+
+    -V              version
+    -b type         'a'     all lines
+                    't'     only non-empty lines (default)
+                    'n'     no numbering
+                    'pexpr' only lines matching pattern specified by expr
+                    'eexpr' exclude lines matching pattern specified by expr
+    -d delim        characters (max 2) indicating new section (default : '\\:')
+    -f type         same as -b but for footer lines (default : 'n')
+    -h type         same as -b but for header lines (default : 'n')
+    -i incr         increment value (dafault : 1)
+    -n format       'ln'    left justified
+                    'rn'    right justified without leading zeros (default)
+                    'rz'    right justified with leading zeros
+    -p              single page (don't restart numbering at pages delimiters)
+    -s sep          characters between number and text line (default : TAB)
+    -v startnum     initial value to number pages (default : 1)
+    -w width        line number width (default : 6)
+
+=head1 DESCRIPTION
+
+nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
+files sequentially, and writes them to STDOUT, with lines numbered. If file
+is a dash "-" or if no file is given as argument, nl reads from STDIN.
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<kaldor@cpan.org>, or through
+the web interface at L<https://github.com/briandfoy/PerlPowerTools/issues>.
+
+=head1 AUTHOR
+
+jul, C<kaldor@cpan.org>
+
+=head1 LICENSE AND COPYRIGHT
+
+This software is Copyright (c) 2020 by jul.
+
+This is free software, licensed under:
+
+  The Artistic License 2.0 (GPL Compatible)
+
