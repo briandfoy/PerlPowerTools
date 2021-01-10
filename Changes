@@ -1,5 +1,10 @@
 Revision history for Perl module PerlPowerTools
 
+1.021 2021-01-10T01:49:25Z
+	* jul added the nl program
+	* Dumped Travis CI, added GitHub Actions: everything is green
+	* Happy New Year everyone!
+
 1.020 2020-09-15T17:09:32Z
 	* Better Windows tests for rot13
 	* Exclude bin/man, which is old Perl4 code that needs a lot of work
