@@ -42,11 +42,13 @@ jobs:
               run: uname -a
             - name: Perl version check
               run: perl -V
-            - name: install cpanm and multiple modules
+            - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
                 cpanm IO::Socket::SSL
                 cpan ExtUtils::MakeMaker
+            - name: Install dependencies
+              run: |
                 cpan App::a2p App::find2perl Make MIME::Parser
             - name: Run tests
               run: |
