@@ -61,6 +61,7 @@ bin/mkdir
 bin/mkfifo
 bin/moo
 bin/morse
+bin/nl
 bin/od
 bin/par
 bin/paste
@@ -129,6 +130,7 @@ README.pod
 t/cat.t
 t/compile.t
 t/data/cat/cat-n-1.txt
+t/data/nl/nl.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
 t/data/sort/three-words.txt
@@ -136,6 +138,7 @@ t/echo.t
 t/factor.t
 t/false.t
 t/find.t
+t/nl.t
 t/pod.t
 t/rot13.t
 t/sort.t
