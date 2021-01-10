@@ -2,8 +2,6 @@
 
 =encoding utf8
 
-=for HTML <a href="https://travis-ci.org/briandfoy/PerlPowerTools"><img src="https://travis-ci.org/briandfoy/PerlPowerTools.svg?branch=master" /></a>
-
 =for HTML <a href='https://ci.appveyor.com/project/briandfoy/PerlPowerTools'><img src='https://ci.appveyor.com/api/projects/status/9visklo7hlsvsv6n?svg=true' /></a>
 
 =for HTML <a href='https://coveralls.io/github/briandfoy/PerlPowerTools?branch=master'><img src='https://coveralls.io/repos/github/briandfoy/PerlPowerTools/badge.svg?branch=master' alt='Coverage Status' /></a>
