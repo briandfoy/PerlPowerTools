@@ -314,7 +314,7 @@ my @output = hexagram($change);
 $format = '' unless defined $format;
 $format .= "| $pager" if defined $pager && length $pager;
 
-open(SPEW, $format) ? select(SPEW) : warn "Can't open pipe to `$format'"
+open(SPEW, '<', $format) ? select(SPEW) : warn "Can't open pipe to `$format'"
   if length($format);
 
 print @output;

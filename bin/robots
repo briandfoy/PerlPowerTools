@@ -217,7 +217,7 @@ sub Sanity_Check
 
   if(-f $Score_File)
   {
-    unless(open(SCORE, "+>>$Score_File"))
+    unless(open(SCORE, '+>>', $Score_File))
     {
       warn "$Score_File: $!; no scores will be saved\n";
       $Score_File = undef;
@@ -959,7 +959,7 @@ sub Record_Score
 {
   return  if($Cheater || !defined($Score_File));
 
-  unless(open(SCORE, "+>>$Score_File"))
+  unless(open(SCORE, '+>>', $Score_File))
   {
     $Score_File = undef;
     warn "$Score_File: $!; no scores will be saved\n";
@@ -1059,7 +1059,7 @@ sub Show_Scores
 
   return  unless(defined($Score_File));
 
-  open(SCORE, $Score_File) || die "$Score_File: $!\n";
+  open(SCORE, '<', $Score_File) || die "$Score_File: $!\n";
 
   my($uid, $score, $name, $i);
 

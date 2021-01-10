@@ -73,7 +73,7 @@ unshift @ARGV => "-" unless @ARGV;
 
 foreach my $file (@ARGV) {
     local *FILE;
-    open FILE, $file or die "$file: $!\n";
+    open FILE, '<', $file or die "$file: $!\n";
     while (<FILE>) {
         my $line;
         s/^\s+//;                       # Leading space.

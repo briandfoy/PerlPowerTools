@@ -39,7 +39,7 @@ if ($opts{'v'}) {
 
 my @files = map {
     local *F;
-    open F, "< $_" or die "Couldn't open '$_': $!";
+    open F, '<', $_ or die "Couldn't open '$_': $!";
     *F;
 } @ARGV;
 

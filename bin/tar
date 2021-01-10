@@ -204,7 +204,7 @@ else
 
   if ($opt{'f'})
    {
-    open(STDIN,"<$opt{'f'}") || die "Cannot open $opt{'f'}:$!";
+    open(STDIN, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
    }
   binmode(STDIN);
 

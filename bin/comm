@@ -31,9 +31,9 @@ unless (@ARGV == 2) {
   die "Usage: comm [-123] file1 file2\n";
 }
 
-open F1, "< $ARGV[0]"
+open F1, '<', $ARGV[0]
   or die "comm: Couldn't open file $ARGV[0]: $!\n";
-open F2, "< $ARGV[1]"
+open F2, '<', $ARGV[1]
   or die "comm: Couldn't open file $ARGV[1]: $!\n";
 
 $r1 = <F1>;

@@ -119,8 +119,8 @@ if (@ARGV) {
 $skip1 = eval "$skip1" if defined $skip1;
 $skip2 = eval "$skip2" if defined $skip2;
 
-open FILE1, "<$file1" || die "$0: cannot open $file1\n";
-open FILE2, "<$file2" || die "$0: cannot open $file2\n";
+open FILE1, '<', $file1 || die "$0: cannot open $file1\n";
+open FILE2, '<', $file2 || die "$0: cannot open $file2\n";
 
 sysseek FILE1, $skip1, 0 if $skip1;
 sysseek FILE2, $skip2, 0 if $skip2;
@@ -188,7 +188,7 @@ sub manual {
     # on STDIN ?  Would rather use "|perldoc -", as it already
     # knows about pager, etc.
 
-    open  MAN, "|pod2text" or die "$0: Cannot open pod2text converter\n";
+    open  MAN, '|-', "pod2text" or die "$0: Cannot open pod2text converter\n";
     print MAN  <DATA>;
     close MAN;
     exit;
@@ -241,6 +241,14 @@ all output and warnings.
 list differences; return the byte number and the differing byte values
 for each difference between the two files.  The byte number is given
 in decimal, and the byte values are given in octal.
+
+=item -?
+
+show the documentation
+
+=item -.
+
+show a short usage summary
 
 =back
 

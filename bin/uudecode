@@ -6,15 +6,13 @@ Name: uudecode
 Description: decode a binary file
 Author: Nick Ing-Simmons, nick@ni-s.u-net.com
 Author: Tom Christiansen, tchrist@perl.com
+Author: brian d foy, brian.d.foy@gmail.com
 License:
 
 =end metadata
 
 =cut
 
-
-# uudecode -- original once by Nick Ing-Simmons
-# but since irrecognizably hacked on by Tom Christiansen
 
 use strict;
 
@@ -23,18 +21,29 @@ END {
     $? = 1 if $? == 255;    # from die
 }
 
+my $output_file = $ARGV[1] if @ARGV > 1;
+@ARGV = $ARGV[0];
+
 FILESPEC :
 while (<>) {
-    my ($mode, $file);
-    next FILESPEC unless ($mode,$file) = /^begin\s+(\d+)\s+(\S+)/;
-    open(OUT, "> $file")     	or die "can't create $file: $!";
-    binmode(OUT);	# winsop
-    # Quickly protect file before data is written.
-    # XXX: Does this break on sub-Unix systems, like if
-    #      it's a mode 400 or 000 file? If so, then we must
-    #      wait until after the close.
-    chmod oct($mode), $file 	or die "can't chmod $file to mode $mode: $!";
+    my( $mode, $header_name );
+    next FILESPEC unless ($mode, $header_name) = /^begin\s+(\d+)\s+(\S+)/;
+	$output_file = $header_name unless defined $output_file;
+
+    my $out;
+    if( $output_file eq '-' ) { open $out, '>&', STDOUT }
+    else               {
+    	open( $out, ">", $output_file ) or die "can't create <$output_file>: $!";
+		# Quickly protect file before data is written.
+		# XXX: Does this break on sub-Unix systems, like if
+		#      it's a mode 400 or 000 file? If so, then we must
+		#      wait until after the close.
+		chmod oct($mode), $output_file or die "can't chmod <$output_file> to mode <$mode>: $!";
+    }
+
+    binmode($out);	# winsop
     my $ended = 0;
+
 LINE:
     while (<>) {
 	if (/^end$/) {
@@ -44,12 +53,12 @@ LINE:
 	next LINE if /[a-z]/;
 	next LINE unless int((((ord() - 32) & 077) + 2) / 3)
 		      == int(length() / 4);
-	print OUT unpack("u", $_)
-			    	or die "can't write $file: $!";
+	print $out unpack("u", $_)
+			    	or die "can't write <$output_file>: $!";
 
     }
-    close(OUT) 			or die "can't close $file: $!";
-    $ended			or die "missing end; $file may be truncated";
+    close($out) 			or die "can't close <$output_file>: $!";
+    $ended			or die "missing end; <$output_file> may be truncated";
 }
 
 =encoding utf8
@@ -57,3 +66,30 @@ LINE:
 =head1 NAME
 
 uudecode - decode a binary file
+
+=head1 SYNOPSIS
+
+	# decode to the name in the header
+	% uudecode file.uu
+
+	# decode to the name on the command line
+	% uudecode file.uu output.txt
+
+	# decode to standard output despite the header
+	% uudecode file.uu -
+
+=head1 DESCRIPTION
+
+This program decodes a uuencoded file and saves the results to the file
+denoted in the header line. If that filename is C<->, the output goes to
+standard output.
+
+You can override the file named in the uuencoded text by supplying a
+second command-line argument.
+
+=head1 AUTHOR
+
+Originally by Nick Ing-Simmons but since irrecognizably hacked on
+by Tom Christiansen. brian d foy further packaged, improved, and tested
+it.
+

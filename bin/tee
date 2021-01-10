@@ -37,7 +37,7 @@ unless ($nostdout) {
 $| = 1 if $unbuffer;
 
 for (@ARGV) {
-    if (!open($fh, (/^[^>|]/ && $mode) . $_)) {
+    if (!open($fh, (/^[^>|]/ && $mode), $_)) {
 	warn "$0: cannot open $_: $!\n"; # like sun's; i prefer die
 	$status++;
 	next;

@@ -67,16 +67,16 @@ END {
 
 # Save STDOUT and STDERR.  Redirect to temp files.
 
-open SAVE_OUT, ">&STDOUT" or die "Can't save STDOUT: $!";
+open SAVE_OUT, '>&', STDOUT or die "Can't save STDOUT: $!";
 die unless defined fileno SAVE_OUT;
 
-open STDOUT, ">&", $out_fh or die "Can't dup STDOUT to $out_file: $!";
+open STDOUT, '>&', $out_fh or die "Can't dup STDOUT to $out_file: $!";
 $|++, select $_ for select STDOUT;
 
-open SAVE_ERR, ">&STDERR" or die "Can't save STDERR: $!";
+open SAVE_ERR, '>&', STDERR or die "Can't save STDERR: $!";
 die unless defined fileno SAVE_ERR;
 
-open STDERR, ">&", $err_fh or die "Can't dup STDERR to $err_file: $!";
+open STDERR, '>&', $err_fh or die "Can't dup STDERR to $err_file: $!";
 $|++, select $_ for select STDERR;
 
 # Run find2perl to convert find command to Perl script.
@@ -88,7 +88,7 @@ system $^X, $find2perl, @ARGV;
 my $child_error = $?;
 my $acm_min_error;
 
-open STDERR, ">&SAVE_ERR" or die "Can't restore STDERR: $!";
+open STDERR, '>&', SAVE_ERR or die "Can't restore STDERR: $!";
 
 seek $err_fh, 0, 0 or die "Can't rewind $err_file: $!";
 
@@ -129,7 +129,7 @@ my $program = do { local $/; <$out_fh> };
 
 close $out_fh;
 
-open STDOUT, ">&SAVE_OUT" or die "Can't restore STDOUT: $!";
+open STDOUT, '>&', SAVE_OUT or die "Can't restore STDOUT: $!";
 
 # Convert fake -atime, -ctime and -mtime conditionals, such as:
 #

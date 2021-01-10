@@ -56,7 +56,7 @@ die "invalid number `$count'\n" if $count =~ /\D/;
 
 foreach my $file (@ARGV) {
     local *FILE;
-    open FILE, $file or do {
+    open FILE, '<', $file or do {
         $0 =~ s{.*/}{};
         warn "$0: $file: $!\n";
         next;

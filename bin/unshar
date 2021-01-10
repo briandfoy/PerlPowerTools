@@ -122,7 +122,7 @@ while (<>) {
 	$filename =~ s/\\(.)/$1/;
 	die "Reference to parent directory" if $filename =~ m|\.\./|;
 	die "Reference to absolute directory" if $filename =~ m|^[/~]|;
-	open(FILE,"$redir$filename") || die "Can't create $filename";
+	open(FILE, '<', "$redir$filename") || die "Can't create $filename";
 	while (<>) {
 	    last if $_ eq $endmark;
 	    print FILE $_;
@@ -157,7 +157,7 @@ while (<>) {
 	if ($filename eq 'uudecode') {
 	    $_ = <ARGV>;
 	    /^begin\s+(\d+)\s+(\S+)/ || die 'Missing uuencode header';
-	    open(FILE,"> $2") || die "Can't create '$2'";
+	    open(FILE, '>', $2) || die "Can't create '$2'";
 	    binmode FILE;
 	    eval sprintf '
 		while (<>) {
@@ -172,7 +172,7 @@ while (<>) {
 		last if $_ eq $endmark;
 	    }
 	} else {
-	    open(FILE,"> $filename") || die "Can't create $filename: $!";
+	    open(FILE, '>', $filename) || die "Can't create $filename: $!";
 	    binmode FILE;
 	    eval sprintf '
 		while (<>) {
@@ -244,11 +244,11 @@ while (<>) {
 	if ($_) {
 	    $_ = <> until $_ eq '' || /^[#:]/;
 	}
-	open(REM,">.r") || die "Can't create .r";
+	open(REM, '>', ".r") || die "Can't create .r";
 	print REM $r;
 	close REM;
 	chmod 0700, '.r';
-	if ($lines > 21 || !open(TTY,'/dev/tty')) {
+	if ($lines > 21 || !open(TTY, '<', '/dev/tty')) {
 	    print "Could not run remainder of kit.  Inspect .r and run it\n";
 	    exit;
 	}

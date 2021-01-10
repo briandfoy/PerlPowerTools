@@ -119,8 +119,8 @@ if ($Diff_Type eq "CONTEXT") {
     $char1 = '-' x 3; $char2 = '+' x 3;
 }
 
-open (F1, $file1) or bag("Couldn't open $file1: $!");
-open (F2, $file2) or bag("Couldn't open $file2: $!");
+open (F1, '<', $file1) or bag("Couldn't open $file1: $!");
+open (F2, '<', $file2) or bag("Couldn't open $file2: $!");
 my (@f1, @f2);
 chomp(@f1 = <F1>);
 close F1;

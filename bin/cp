@@ -176,8 +176,8 @@ sub copyFile($$)
     }
     print "cp $path $target\n" if $VERBOSE;
 
-    open(PATH, "<$path") or die "Unable to read $path: $!";
-    open(TARGET, ">$target") or die "Unable to create $target: $!";
+    open(PATH, '<', $path) or die "Unable to read $path: $!";
+    open(TARGET, '>', $target) or die "Unable to create $target: $!";
     if ($cp::BINMODE) { binmode PATH; binmode TARGET; }
     my $buffer;
     while (read PATH, $buffer, 1024) { print TARGET $buffer; }

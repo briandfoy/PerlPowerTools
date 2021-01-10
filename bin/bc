@@ -1304,7 +1304,7 @@ sub next_file
 
     debug { "reading from $file\n" };
 
-    if (! open(IN, $file)) {
+    if (! open(IN, '<', $file)) {
       die "$file: cannot open file: $!\n";
     }
     $input = IN;

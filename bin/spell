@@ -86,7 +86,7 @@ unshift @supp, $dict_file;
 # read in dictionary words
 
 for my $dict_file (@supp) {
-  open(IN,$dict_file) || die "Could not open dictionary <$dict_file>: $!\n";
+  open(IN, '<', $dict_file) || die "Could not open dictionary <$dict_file>: $!\n";
   my @tmp_words;
   @tmp_words = map {lc} <IN>;
   chomp @tmp_words;

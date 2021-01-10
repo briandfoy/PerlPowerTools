@@ -391,7 +391,7 @@ sub load {
 	print "Loading the mailfile ", $self->file, "\n";
 	my $start=1;
 	if (! defined $self->file) { die "No mailbox specified in class\n"; }
-	open(MBOX, $self->file) || return;
+	open(MBOX, '<', $self->file) || return;
 	$self->size(-s $self->file);
 	my @MESS=();
 	while(<MBOX>) {
@@ -431,7 +431,7 @@ sub write {
 	}
 	my $alt_msg="\"" . $self->file . "\" ";
 	$alt_msg.=(-e $self->file)?"[Appended]":"[New File]";
-	if (! open(MBOX, $of )) {
+	if (! open(MBOX, '<', $of )) {
 		warn "Failed to write to ", $self->file, ": $!\n";
 		return;
 	}
@@ -589,7 +589,7 @@ EDLOOP: {
 					last SWITCH;
 				};
 			/r/ && do {
-				open(F, $arg) || do { warn "Unable to open $arg: $!\n"; last SWITCH; };
+				open(F, '<', $arg) || do { warn "Unable to open $arg: $!\n"; last SWITCH; };
 				my $bytes=(-s $arg);
 				my(@FOO)=<F>;
 				close(F);
@@ -605,12 +605,12 @@ EDLOOP: {
 						last SWITCH;
 					}
 				}
-				open(F, ">/tmp/ppt_mail$$") || do { warn "Unable to open temp file"; last SWITCH; };
+				open(F, '>', "/tmp/ppt_mail$$") || do { warn "Unable to open temp file"; last SWITCH; };
 				@BODY=grep(s/$/\n/g, @BODY);
 				print F @BODY;
 				close(F);
 				system("$ENV{VISUAL} /tmp/ppt_mail$$");
-				open(F, "/tmp/ppt_mail$$") || die "Unable to re-open temp file";
+				open(F, '>', "/tmp/ppt_mail$$") || die "Unable to re-open temp file";
 				@BODY=<F>;
 				chomp(@BODY);
 				close(F);

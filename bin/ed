@@ -420,12 +420,12 @@ sub edWrite {
 
 
     if ($AppendMode) {
-        unless (open(FILE,">>$filename")) {
+        unless (open(FILE, '>>', $filename)) {
             edWarn("Unable to open $filename for writing: $!","\?");
             return;
         }
     } else {
-        unless (open(FILE,">$filename")) {
+        unless (open(FILE, '>', $filename)) {
             edWarn("Unable to open $filename for writing: $!","\?");
             return;
         }
@@ -483,7 +483,7 @@ sub edEdit {
 
     # suck the file into a temp array
 
-    unless (open(SOURCE, "<$filename")) {
+    unless (open(SOURCE, '<', $filename)) {
         edWarn ("unable to open $filename: $!","\?");
         return 0;
     }

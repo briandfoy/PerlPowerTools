@@ -76,7 +76,7 @@ $chunksize = 4096; # whatever
 
 for my $filename ( @ARGV )
 {
-    open( IN, $filename ) or die "Can't open $filename: $!\n";
+    open( IN, '<', $filename ) or die "Can't open $filename: $!\n";
     binmode IN;
     $offset = 0;
 

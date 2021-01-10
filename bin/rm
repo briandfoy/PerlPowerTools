@@ -182,7 +182,7 @@ sub overWriteFile( )
     }
 
     ## First pass at overwrite
-    if ( open (FILEHANDLE, ">$fileName" ) )
+    if ( open (FILEHANDLE, '>', $fileName ) )
     {
 	$text = $ff x $size;
 	print FILEHANDLE $text;
@@ -190,7 +190,7 @@ sub overWriteFile( )
     }
 
     ## Second pass at overwrite
-    if ( open (FILEHANDLE, ">$fileName" ) )
+    if ( open (FILEHANDLE, '>', $fileName ) )
     {
 	$text = "\0" x $size;
 	print $text;
@@ -199,7 +199,7 @@ sub overWriteFile( )
     }
 
     ## Third  pass at overwrite
-    if ( open (FILEHANDLE, ">$fileName" ) )
+    if ( open (FILEHANDLE, '>', $fileName ) )
     {
 	$text = $ff x $size;
 	print FILEHANDLE $text;

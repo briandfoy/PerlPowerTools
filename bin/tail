@@ -293,7 +293,7 @@ sub tail_f(\@\@$$)
             {
                 # The file has probably been completely changed,
                 # we reopen it and read the last lines.
-                open FH, $file or
+                open FH, '<', $file or
                 do {print STDERR
                     "Couldn't reopen $file for reading: $!\n";
                     exit 1;};
@@ -306,7 +306,7 @@ sub tail_f(\@\@$$)
             elsif($size > $oldsize)
             {
                 # Only some data has been appended. We print them.
-                open FH, $file or
+                open FH, '<', $file or
                 do {print STDERR
                     "Couldn't reopen $file for reading: $!\n";
                     exit 1;};
@@ -382,7 +382,7 @@ sub handle_args($$$)
         # do not die if the file does not exist, when -f is used
         next if(!-e $file and ($opt_f or $me eq "xtail"));
 
-        open FH, "< $file"
+        open FH, '<', $file
         or do { print STDERR
                 "Couldn't open $file for reading: $!\n";
                 exit 1 };

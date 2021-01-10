@@ -168,7 +168,7 @@ EOM
 
 sub read_defs {
   my ($file) = @_;
-  open D, $file
+  open D, '<', $file
     or die "Couldn't read definitions from from `$file': $!; aborting";
   while (<D>) {
     s/\#.*$//;
