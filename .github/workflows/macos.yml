@@ -23,11 +23,10 @@ jobs:
             - name: Prepare cpan
               run: |
                 openssl version
-                cpan -M https://www.cpan.org IO::Socket::SSL
-                cpan ExtUtils::MakeMaker
+                cpan -M https://www.cpan.org -T IO::Socket::SSL ExtUtils::MakeMaker
             - name: Install dependencies
               run: |
-                cpan -M https://www.cpan.org App::a2p App::find2perl Make MIME::Parser
+                cpan -M https://www.cpan.org -T App::a2p App::find2perl MIME::Parser
             - name: Run tests
               run: |
                 perl Makefile.PL

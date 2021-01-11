@@ -71,7 +71,7 @@ subtest 'decode_to_stdout' => sub {
 	make_input_file( $output_name, $mode );
 	ok( -e $input_name, "uu file <$input_name> exists" );
 
-	my $output = `$^X $program $input_name`;
+	my $output = `"$^X" $program $input_name`;
 
 	is( $output, $decoded_text, "standard output is the right message" );
 	};
@@ -110,7 +110,7 @@ subtest 'decode_to_other_file' => sub {
 	unlink $alt_name or diag "Unintentionally leaving behind <$alt_name>! $!";
 
 	subtest 'decode_to_alt_stdout' => sub {
-		my $output = `$^X $program -o - $input_name`;
+		my $output = `"$^X" $program -o - $input_name`;
 		ok( ! -e $output_name, "output file <$output_name> is not there (good)" );
 		is( $output, $decoded_text, "standard output is the right message" );
 		};

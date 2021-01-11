@@ -54,7 +54,6 @@ bin/lock
 bin/look
 bin/ls
 bin/mail
-bin/make
 bin/maze
 bin/mimedecode
 bin/mkdir
