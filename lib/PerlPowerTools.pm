@@ -136,8 +136,6 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item mail - implementation of Berkeley mail(1)
 
-=item pmake - a perl 'make' replacement
-
 =item maze - generate a maze problem
 
 =item mimedecode - extract MIME attachments in uudecode-like manner
