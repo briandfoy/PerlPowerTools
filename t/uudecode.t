@@ -5,7 +5,6 @@ my $input_name   = 't/data/uuencoded.uu';
 END { unlink $input_name }
 
 my $decoded_text = "Paul is dead\n";
-my $output_mode  = '664';
 
 my $encoded_text = <<"HERE";
 begin %%MODE%% %%FILE%%
@@ -13,6 +12,8 @@ begin %%MODE%% %%FILE%%
 `
 end
 HERE
+
+my %SkipModePlatforms = map { $_, 1 } qw(MSWin32);
 
 sub make_input_file {
 	my( $filename, $mode ) = @_;
@@ -43,16 +44,22 @@ subtest 'decode_to_file' => sub {
 	ok( ! -e $output_name, "output file <$output_name> does not exist yet" );
 	system $^X, $program, $input_name;
 	ok(   -e $output_name, "output file <$output_name> now exists" );
-	is(
-		sprintf( '%o', (stat $output_name)[2] & 0777 ),
-		$mode,
-		"output file has the right mode"
-		);
+
+	SKIP: {
+		skip "Permissions make no sense on $^O", 1
+			if exists $SkipModePlatforms{$^O};
+		is(
+			sprintf( '%o', (stat $output_name)[2] & 0777 ),
+			$mode,
+			"output file has the right mode"
+			);
+		}
 
 	my $output = do { local( @ARGV, $/ ) = $output_name; <> };
+	close ARGV; # windows can't delete the file otherwise
 
 	is( $output, $decoded_text, "Output in <$output_name> is right" );
-	unlink $output_name or diag "Unintentionally leaving behind <$output_name>!";
+	unlink $output_name or diag "Unintentionally leaving behind <$output_name>!: $!";
 	};
 
 subtest 'decode_to_stdout' => sub {
@@ -83,22 +90,27 @@ subtest 'decode_to_other_file' => sub {
 	make_input_file( $output_name, $mode );
 	ok( -e $input_name, "uu file <$input_name> exists" );
 
-	system $^X, $program, $input_name, $alt_name;
+	system $^X, $program, '-o', $alt_name, $input_name;
 	ok( ! -e $output_name, "output file <$output_name> is not there (good)" );
 	ok(   -e $alt_name,    "output file <$alt_name> is now there (good)" );
-	is(
-		sprintf( '%o', (stat $alt_name)[2] & 0777 ),
-		$mode,
-		"output file has the right mode"
-		);
+
+	SKIP: {
+		skip "Permissions make no sense on $^O", 1
+			if exists $SkipModePlatforms{$^O};
+		is(
+			sprintf( '%o', (stat $alt_name)[2] & 0777 ),
+			$mode,
+			"output file has the right mode"
+			);
+		}
 
 	my $output = do { local( @ARGV, $/ ) = $alt_name; <> };
 
 	is( $output, $decoded_text, "standard output is the right message" );
-	unlink $alt_name or diag "Unintentionally leaving behind <$alt_name>!";
+	unlink $alt_name or diag "Unintentionally leaving behind <$alt_name>! $!";
 
 	subtest 'decode_to_alt_stdout' => sub {
-		my $output = `$^X $program $input_name -`;
+		my $output = `$^X $program -o - $input_name`;
 		ok( ! -e $output_name, "output file <$output_name> is not there (good)" );
 		is( $output, $decoded_text, "standard output is the right message" );
 		};

@@ -21,8 +21,11 @@ END {
     $? = 1 if $? == 255;    # from die
 }
 
-my $output_file = $ARGV[1] if @ARGV > 1;
-@ARGV = $ARGV[0];
+my $output_file;
+if( $ARGV[0] eq '-o' ) {
+	shift @ARGV;
+	$output_file = shift @ARGV;
+	}
 
 FILESPEC :
 while (<>) {
@@ -73,10 +76,10 @@ uudecode - decode a binary file
 	% uudecode file.uu
 
 	# decode to the name on the command line
-	% uudecode file.uu output.txt
+	% uudecode -o output.txt file.uu
 
 	# decode to standard output despite the header
-	% uudecode file.uu -
+	% uudecode -o - file.uu
 
 =head1 DESCRIPTION
 
