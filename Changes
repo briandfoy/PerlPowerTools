@@ -1,5 +1,21 @@
 Revision history for Perl module PerlPowerTools
 
+1.022 2021-01-11T06:59:31Z
+	* Remove the make program and its dependencies, which recently 
+	became much heavier. Strawberry Perl comes with gmake and it's
+	to find make tools for Windows.
+	https://github.com/graphviz-perl/Graph/issues/17
+	* Remove a bit of fluff sticking around after taking out bin/man
+	* Completed the move from Travis CI to Github Actions
+	* The uudecode tool now has tests, and with the -o option can
+	send its output somewhere else, including stdout
+	* Many programs have converted to three argument open calls, but
+	many don't have tests beyond compilation. Let me know what breaks.
+	https://github.com/briandfoy/PerlPowerTools/issues/75
+	* Most uses of indirect object notation are gone
+	https://github.com/briandfoy/PerlPowerTools/issues/73 (thanks
+	to Ivan Ludvig)
+
 1.021 2021-01-10T01:49:25Z
 	* jul added the nl program
 	* Dumped Travis CI, added GitHub Actions: everything is green
