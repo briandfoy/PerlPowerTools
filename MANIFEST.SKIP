@@ -82,3 +82,6 @@ bin/man
 # https://github.com/graphviz-perl/Graph/issues/17
 bin/make
 bin/pmake
+\bMANIFEST\s\d
+\bChanges\s\d
+
