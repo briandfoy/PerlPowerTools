@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.023 2021-02-10T06:23:32Z
+	* A fix for `grep -v` from Ed Avis (#69)
+
 1.022 2021-01-11T06:59:31Z
 	* Remove the make program and its dependencies, which recently 
 	became much heavier. Strawberry Perl comes with gmake and it's
