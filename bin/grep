@@ -61,6 +61,8 @@ init();                           # initialize globals
 
 matchfile($opt, $matcher, @ARGV); # process files
 
+our $VERSION = '1.001';
+
 exit(2) if $Errors;
 exit(0) if $Grand_Total;
 exit(1);
