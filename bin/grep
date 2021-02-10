@@ -217,7 +217,7 @@ sub parse_args {
 
     $opt{p}   && ($/ = '');
     $opt{P}   && ($/ = eval(qq("$opt{P}")));     # for -P '%%\n'
-    $opt{w}   && (@patterns = map {'\b' . $_ . '\b'} @patterns);
+    $opt{w}   && (@patterns = map {'(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))'} @patterns);
     $opt{'x'} && (@patterns = map {"^$_\$"} @patterns);
     $Mult = 1 if ($opt{r} || @ARGV > 1 || @ARGV > 0 && -d $ARGV[0]) && !$opt{h};
     $opt{1}   += $opt{l};                   # that's a one and an ell
