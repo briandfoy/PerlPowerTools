@@ -631,7 +631,7 @@ use English;
 use Getopt::Std;
 use vars qw($VERSION $ROWS $BUFFERL $box);
 
-$VERSION=".02";
+$VERSION="0.02";
 $ROWS=23;         # Screen Dimensions.  Yeah, this sucks.
 $COLS=80;
 $BUFFERL=2;	  # Lines needed for "fluff"
