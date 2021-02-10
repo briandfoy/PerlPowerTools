@@ -5,7 +5,18 @@ on:
         branches:
             - '*'
         tags-ignore:
-            - '*'
+            # I tag release pushes but those should have already been tested
+            - 'release-*'
+        paths-ignore:
+            # list all the files which are irrelevant to the tests
+            # non-code, support files, docs, etc
+            - '.appveyor.yml'
+            - '.github/**'
+            - '.gitignore'
+            - '.releaserc'
+            - 'Changes'
+            - 'LICENSE'
+            - 'README.pod'
         pull_request:
 
 jobs:
