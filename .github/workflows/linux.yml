@@ -64,3 +64,13 @@ jobs:
               run: |
                 perl Makefile.PL
                 make test
+            - name: Run tests in parallel
+              env:
+                HARNESS_OPTIONS: j10
+              run: |
+                perl Makefile.PL
+                make test
+            - name: Run distribution tests
+              run: |
+                perl Makefile.PL
+                make disttest
