@@ -637,26 +637,26 @@ $COLS=80;
 $BUFFERL=2;	  # Lines needed for "fluff"
 
 %commands=(
-	"chdir" => { alias => 'c',   args  => 'path', },
-	copy  => { alias => 'co',  args  => 'msg,path', func=> \&msg_copy },
-	"delete" =>{ alias => 'd',   args  => 'msg', func => \&msg_delete },
-	"exit"  => { alias => 'ex,x',                func => sub { exit; } },
-	from  => { alias => 'f',   args  => 'msg', func => \&from },
-	headers=>{ alias => 'h',   args  => 'msg', func => \&listing },
-	hold  => { alias => 'ho,preserve', args => 'msg', func => \&unread },
-	mail  => { alias => 'm',   args  => 'addr',func=> \&mail },
-	"next"  => { alias => 'n',                   func => \&msg_next },
-	"print" => { alias => 'p',   args  => 'msg', func => \&msg_print },
-	quit  => { alias => 'q', 		   func => \&quit },
-	reply => { alias => 'r',   args  => 'msg', func => \&replyCC },  # Weird.
-	Reply => { alias => 'R',   args  => 'msg', func => \&reply },
-	save  => { alias => 's',   args  => 'msg,path', func => \&msg_save },
-	shell => { alias => 'sh', 		   func => \&shell },
-	top   => {                                 func => \&top },
-	undelete=>{ alias => 'u',  args => 'msg',  func => \&undelete },
-	unread =>{ alias => 'U', args => 'msg',    func => \&unread },
-	visual => { alias => 'v', args => 'msg',   func => \&visual },
-	"write"  => { alias => 'w', args => 'msg,path',   func => \&msg_write },
+	"chdir"  => { alias => 'c',           args => 'path',                           },
+	copy     => { alias => 'co',          args => 'msg,path', func => \&msg_copy    },
+	"delete" => { alias => 'd',           args => 'msg',      func => \&msg_delete  },
+	"exit"   => { alias => 'ex,x',                            func => sub { exit; } },
+	from     => { alias => 'f',           args => 'msg',      func => \&from        },
+	headers  => { alias => 'h',           args => 'msg',      func => \&listing     },
+	hold     => { alias => 'ho,preserve', args => 'msg',      func => \&unread      },
+	mail     => { alias => 'm',           args => 'addr',     func => \&mail        },
+	"next"   => { alias => 'n',                               func => \&msg_next    },
+	"print"  => { alias => 'p',           args => 'msg',      func => \&msg_print   },
+	quit     => { alias => 'q', 		                      func => \&quit        },
+	reply    => { alias => 'r',           args => 'msg',      func => \&replyCC     },  # Weird.
+	Reply    => { alias => 'R',           args => 'msg',      func => \&reply       },
+	save     => { alias => 's',           args => 'msg,path', func => \&msg_save    },
+	shell    => { alias => 'sh', 		                      func => \&shell       },
+	top      => {                                             func => \&top         },
+	undelete => { alias => 'u',           args => 'msg',      func => \&undelete    },
+	unread   => { alias => 'U',           args => 'msg',      func => \&unread      },
+	visual   => { alias => 'v',           args => 'msg',      func => \&visual      },
+	"write"  => { alias => 'w',           args => 'msg,path', func => \&msg_write   },
 );
 
 $SET::toplines=5;
