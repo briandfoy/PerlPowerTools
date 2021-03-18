@@ -98,8 +98,7 @@ sub _sort_file {
         my $last;
 
         if ($opts->{I}[0] eq '-') {
-            open(F, '<', $opts->{I}[0])
-                or die "Can't open `$opts->{I}[0]' for reading: $!";
+            *F = *STDIN;
         } else {
             sysopen(F, $opts->{I}[0], O_RDONLY)
                 or die "Can't open `$opts->{I}[0]' for reading: $!";
@@ -157,8 +156,7 @@ sub _sort_file {
             _debug("Sorting file $filein ...\n") if $opts->{D};
 
             if ($filein eq '-') {
-                open(F, '<', $filein)
-                    or die "Can't open `$filein' for reading: $!";
+                *F = *STDIN;
             } else {
                 sysopen(F, $filein, O_RDONLY)
                     or die "Can't open `$filein' for reading: $!";

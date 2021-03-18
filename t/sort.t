@@ -3,25 +3,27 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More;
 
-sub _lines2re
-{
-    return join( qq#\r?\n#, @_ ) . qq#\r?\n?#;
-}
+use IPC::Open3 qw(open3);
 
-sub test_sort
-{
+sub test_sort {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    my ($args) = @_;
+    my( $args ) = @_;
 
-    my $re = _lines2re( @{ $args->{lines} } );
-    return like(
-        scalar(`"$^X" -Ilib bin/sort @{$args->{flags}} @{$args->{files}}`),
-        qr#\A$re\z#ms, $args->{blurb} );
-}
+	subtest $args->{blurb} => sub {
+		my $pid = open3( my $in, my $out, my $err,
+			$^X, 'bin/sort', @{$args->{flags}}, @{$args->{files}}
+			);
+		ok( $pid > 0, "open3 opened" );
 
-# TEST
+		close $in;
+		chomp( my @output = <$out> );
+
+		is_deeply( \@output, $args->{lines}, "Output is sorted" );
+		};
+	}
+
 test_sort(
     {
         blurb => "letters sort",
@@ -31,7 +33,6 @@ test_sort(
     }
 );
 
-# TEST
 test_sort(
     {
         blurb => "integers sort",
@@ -41,7 +42,6 @@ test_sort(
     }
 );
 
-# TEST
 test_sort(
     {
         blurb => "multiple -k sort",
@@ -60,11 +60,51 @@ EOF
     }
 );
 
+subtest sort_stdin => sub {
+	my $pid = open3( my $in, my $out, my $err,
+		$^X, 'bin/sort', '-'
+		);
+	ok( $pid > 0, "open3 opened" );
+
+	my @letters = qw(a b c d);
+	foreach my $i ( reverse @letters ) {
+		print {$in} "$i\n";
+		}
+	close $in;
+
+	chomp( my @output = <$out> );
+	close $out;
+
+	is_deeply( \@letters, \@output );
+	};
+
+subtest is_sorted => sub {
+	open my $p, '|-', qq("$^X" bin/sort -c);
+	foreach my $i ( qw( a b c d ) ) {
+		print {$p} "$i\n";
+		}
+	close $p;
+	my $exit = $? >> 8;
+	is( $exit, 0, 'sort -c exits with 0 for sorted input' );
+	};
+
+subtest is_not_sorted => sub {
+	open my $p, '|-', qq("$^X" bin/sort -c);
+	foreach my $i ( qw( b a d ) ) {
+		print {$p} "$i\n";
+		}
+	close $p;
+	my $exit = $? >> 8;
+	is( $exit, 1, 'sort -c exits with 0 for unsorted input' );
+	};
+
+done_testing();
+
 __END__
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2018 by Shlomi Fish
+Portions Copyright 2018 by Shlomi Fish
 
 This code is licensed under the Artistic License 2.0
 L<https://opensource.org/licenses/Artistic-2.0>, or at your option any later
