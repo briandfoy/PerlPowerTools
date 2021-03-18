@@ -37,7 +37,7 @@ if ($minlen =~ /\D/) {
     die "$0: <min-length> must be a whole number\n";
 }
 
-open(DICT, $wordlist) or                 # open word list
+open(DICT, '<', $wordlist) or                 # open word list
     die "Unable to open $wordlist: $!\n";
 
 $| = 1;

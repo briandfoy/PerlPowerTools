@@ -19,6 +19,13 @@ Before you go crazy with huge changes, make some small pull requests to
 check that we want to change the tools in that way. Pull requests that
 have one logical change are better.
 
+There's a Perl::Critic test is *xt/perlcritic.t*. Your new code or fixes
+should at least pass all those checks. Many are disabled because they are
+a problem across the code base (and there aren't tests).
+
+For new programs, include tests with as high a coverage as you can
+stand.
+
 <a name="pull-requests"></a>
 ## Pull requests
 

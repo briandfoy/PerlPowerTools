@@ -42,7 +42,7 @@ EOF
 if (@ARGV) {
 	for my $i (0..$#ARGV) {
 		$fh[$i] = "F$i";
-		open($fh[$i], $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
+		open($fh[$i], '<', $ARGV[$i]) or die "$0: cannot open $ARGV[$i]";
 	}
 } else {
 	$fh[0] = \*STDIN;

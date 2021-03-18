@@ -109,7 +109,7 @@ sub do_expand(@)
 
 for my $file (@files) {
 
-    open IN, $file or usage(1, "couldn't open '$file' for reading: $!'");
+    open IN, '<', $file or usage(1, "couldn't open '$file' for reading: $!'");
     do_expand <IN>;
     close IN;
 

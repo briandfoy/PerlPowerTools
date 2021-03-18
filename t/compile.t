@@ -10,7 +10,7 @@ diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
 
 my @programs = glob( 'blib/script/*' );
 
-my %NeedsExternalModule = map { ( "blib/script/$_" => 1 ) } qw(awk make mimedecode);
+my %NeedsExternalModule = map { ( "blib/script/$_" => 1 ) } qw(awk mimedecode);
 
 foreach my $program ( @programs ) {
 	my $command = qq("$^X" -c $program 2>&1);

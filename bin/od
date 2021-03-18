@@ -65,7 +65,7 @@ getopts('A:bcdfhilovxs:');
     defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
     defined $opt_s && ($offset1 = $opt_s);
 
-open(FH,"$ARGV[0]") || die "Can't open $ARGV[0] for read: $!";
+open(FH, '<', $ARGV[0]) || die "Can't open $ARGV[0] for read: $!";
 
 binmode(FH);
 seek(FH,$offset1,0);

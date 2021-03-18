@@ -49,15 +49,15 @@ usage() unless @ARGV;
 # pipes or even redirections for process control
 # on broken soi-disant operating systems.
 
-open(SAVE_OUT, ">&STDOUT") || die "can't save stdout: $!";
+open(SAVE_OUT, '>&', STDOUT) || die "can't save stdout: $!";
 die unless defined fileno SAVE_OUT;
 
-open(TMPIN, ">  " . ($tmpin = "a2pin.$$"))	     ||
-open(TMPIN, ">  " . ($tmpin = "/tmp/a2pin.$$"))      ||
+open(TMPIN, '>', ($tmpin = "a2pin.$$"))	     ||
+open(TMPIN, '>', ($tmpin = "/tmp/a2pin.$$"))      ||
 die "can't find a tmp input file";
 
-open(TMPOUT,"+> " . ($tmpout = "a2pout.$$"))	     ||
-open(TMPOUT,"+> " . ($tmpout = "/tmp/a2pout.$$"))    ||
+open(TMPOUT, '+>', ($tmpout = "a2pout.$$"))	     ||
+open(TMPOUT, '+>', ($tmpout = "/tmp/a2pout.$$"))    ||
 die "can't find a tmp output file";
 
 # And some people think getopts does everything. Sheesh.
@@ -109,7 +109,7 @@ unshift @ARGV, @vargs;  # put back var=val statements
 
 close(TMPIN)		    || die "can't close $tmpin: $!";
 
-open(STDOUT, ">&TMPOUT")    || die "can't dup to $tmpout: $!";
+open(STDOUT, '>&', TMPOUT)    || die "can't dup to $tmpout: $!";
 $| = 1;
 
 system 'a2p', @nargs;
@@ -130,7 +130,7 @@ die "empty program" unless -s $tmpout;
 seek(TMPOUT, 0, 0)	   || die "can't rewind $tmpout: $!";
 $program = do { local $/;  <TMPOUT> };
 close(TMPOUT)	   || die "can't close $tmpout: $!";
-open(STDOUT, ">&SAVE_OUT") || die "can't restore stdout: $!";
+open(STDOUT, '>&', SAVE_OUT) || die "can't restore stdout: $!";
 
 eval qq{
     no strict;

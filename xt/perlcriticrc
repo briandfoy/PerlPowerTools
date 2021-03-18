@@ -1,0 +1,26 @@
+include = Objects::ProhibitIndirectSyntax
+verbose = %f: [%p] %m at line %l, column %c.\n
+
+
+[Objects::ProhibitIndirectSyntax]
+forbid = create destroy
+
+# It's not that we don't care about these, but we haven't
+# fixed them yet. These are all here because they are actual
+# failues
+[-InputOutput::ProhibitBarewordFileHandles]
+[-Perl::Critic::Policy::ValuesAndExpressions::ProhibitLeadingZeros]
+[-TestingAndDebugging::RequireUseStrict]
+[-Subroutines::ProhibitSubroutinePrototypes]
+[-TestingAndDebugging::ProhibitNoStrict]
+[-BuiltinFunctions::ProhibitStringyEval]
+[-InputOutput::ProhibitInteractiveTest]
+[-ControlStructures::ProhibitMutatingListFunctions]
+[-Subroutines::ProhibitExplicitReturnUndef]
+[-Subroutines::ProhibitReturnSort]
+[-Modules::RequireBarewordIncludes]
+[-Subroutines::ProhibitNestedSubs]
+[-Variables::ProhibitConditionalDeclarations]
+[-ClassHierarchies::ProhibitOneArgBless]
+[-Variables::ProhibitConditionalDeclarations]
+[-BuiltinFunctions::RequireGlobFunction]

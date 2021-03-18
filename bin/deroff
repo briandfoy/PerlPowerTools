@@ -27,7 +27,7 @@ $HC = '\%';     # default hyphenation characters
 
 for my $filename ( @ARGV )
 {
-    open( $filename, $filename ) or die "Can't open $filename: $!\n";
+    open( $filename, '<', $filename ) or die "Can't open $filename: $!\n";
     $input = $filename;
 
     while ( <$input> )
@@ -49,7 +49,7 @@ for my $filename ( @ARGV )
             unless ( $included{ $2 } )
             {
                 ++$included{ $2 };
-                if ( open $2, $2 )
+                if ( open $2, '<', $2 )
                 {
                     push @input, $input;
                     $input = $2;

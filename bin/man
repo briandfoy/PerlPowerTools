@@ -444,7 +444,7 @@ sub usage {
 	warn "usage: $program [-flags] topic ...\n";
 	warn "        (use -u for long usage message)\n";
     } else {
-	open (PIPE, "| $PAGER");
+	open (PIPE, '|-', $PAGER);
 	print PIPE <<USAGE;  # in case he wants a page
 USAGE SUMMARY:
     man [-flags] [section] page[/index] ...
@@ -1006,7 +1006,7 @@ sub nroff {
 	    $tmppage = "$catpage.$$";
 
 	    unless (-d $catdir && -w _
-		    && open(tmppage, ">$tmppage") # usually EROFS
+		    && open(tmppage, '>', $tmppage) # usually EROFS
 		    && close(tmppage) )
 	    {
 		$catpage = $tmppage = "/tmp/man.$$";
@@ -1237,7 +1237,7 @@ sub show_index {
 	$_ = <STDIN>;
 	local($SIG{'PIPE'}) = 'IGNORE';
 	if ($no_idx_file) {
-	    open (PAGER, "| $PAGER");
+	    open (PAGER, '|-', $PAGER);
 	    print PAGER @ssindex;
 	    close PAGER;
 	} else {
@@ -1371,7 +1371,7 @@ sub getidx {
 
     $mask = sprintf("%%2d   %%-%ds %%5d\n", $maxlen + 2);
 
-    $no_idx_file = $idx_file eq $manpage || !open(idx, ">$idx_file");
+    $no_idx_file = $idx_file eq $manpage || !open(idx, '>', $idx_file);
 
     $line = sprintf(sprintf("Idx  %%-%ds Lines\n", $maxlen + 2), $header);
     @retlist = ($line);
@@ -1450,8 +1450,8 @@ sub reformat {
 
     warn "$nroff | (this proc) | $col\n" if $debug;
 
-    open (NROFF, "$nroff |");
-    $colpid = open (COL, "| $col");
+    open (NROFF, '-|', $nroff);
+    $colpid = open (COL, '|-', $col);
 
     select(COL);
 

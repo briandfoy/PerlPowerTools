@@ -423,7 +423,7 @@ sub bless {
 
     # Open original file.
     local *IN;
-    open IN, "< $in" or $self->skip("Couldn't open INFILE: $!\n");
+    open IN, '<', $in or $self->skip("Couldn't open INFILE: $!\n");
     binmode IN;
     $self->{i_fh} = *IN;    # input filehandle
     $self->{i_file} = $in;  # input filename
@@ -438,7 +438,7 @@ sub bless {
         $self->{d_fh} = *NULL;     # ifdef filehandle
     } else {
         local *OUT;
-        open OUT, "+> $out" or $self->skip("Couldn't open OUTFILE: $!\n");
+        open OUT, '+>', $out or $self->skip("Couldn't open OUTFILE: $!\n");
         binmode OUT;
         $|++, select $_ for select OUT;
         $self->{o_fh}   = *OUT;
@@ -542,7 +542,7 @@ sub print_rejects {
         @rej . " out of $self->{hunk} hunks ignored--saving rejects to ",
         "$self->{'reject-file'}\n\n"
     );
-    if (open REJ, "> $self->{'reject-file'}") {
+    if (open REJ, '>', $self->{'reject-file'}) {
         print REJ map @$_, @rej;
         close REJ;
     } else {
@@ -912,7 +912,7 @@ sub apply {
     eval {
         local $SIG{PIPE} = sub { die 'Pipe broke...' };
         local $SIG{CHLD} = sub { die 'Bad child...' };
-        open ED, "| ed - -s $self->{i_file}" or die "Couldn't fork ed: $!";
+        open ED, '|-', qw(ed - -s), $self->{i_file} or die "Couldn't fork ed: $!";
         print ED map @$_, @cmd               or die "Couldn't print ed: $!";
         print ED "1,\$w $self->{o_file}"     or die "Couldn't print ed: $!";
         close ED                             or die "Couldn't close ed: $?";
@@ -1105,7 +1105,7 @@ package
 sub TIEHANDLE {
     my ($class, $file) = @_;
     local *FH;
-    open *FH, "< $file" or return;
+    open *FH, '<', $file or return;
     bless [*FH], $class;
 }
 

@@ -439,7 +439,7 @@ sub print_matching_fortunes
 	return unless num_choices( $file );
 
 	my @matches;
-	open FORTUNE, "<$file->{path}" or die "Can't open $file->{path}:$!";
+	open FORTUNE, '<', $file->{path} or die "Can't open $file->{path}:$!";
 	until ( eof( FORTUNE ) ) {
 		my $fortune = read_next_fortune( $file, \*FORTUNE );
 		next if is_wrong_length( length( $fortune ) );
@@ -773,7 +773,7 @@ sub read_table
 	return if defined $file->{num_strings}; # already read the table
 
 	my $datfile = "$file->{path}.dat";
-	open(DAT,"<$datfile") || die "Can't Open $datfile:$!";
+	open(DAT, '<', $datfile) || die "Can't Open $datfile:$!";
 	binmode DAT; # we're reading binary data, right?
 	my $header;
 	read (DAT, $header, $HEADER_LENGTH) or die "failed to read $datfile\n";
@@ -830,7 +830,7 @@ sub read_fortune
 	my ($offset) = read_offsets( $file, $index );
 	warn "read_fortune: offset is $offset\n" if $debug;
 
-	open FORTUNE, "<$file->{path}" or die "Can't open $file->{path}:$!";
+	open FORTUNE, '<', $file->{path} or die "Can't open $file->{path}:$!";
 	seek( FORTUNE, $offset, 0 );
 	load_fortune( $file, \*FORTUNE );
 	close FORTUNE;
@@ -907,7 +907,7 @@ sub read_offsets
 	my $offset_length = offset_length( $file );
 
 	my $datfile = "$file->{path}.dat";
-	open DAT, "<$datfile" || die "Can't open $datfile:$!";
+	open DAT, '<', $datfile || die "Can't open $datfile:$!";
 	binmode DAT; # we're reading binary data, right?
 	seek( DAT, $HEADER_LENGTH + $offset_length * $index, 0 );
 	my @offsets;

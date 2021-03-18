@@ -50,8 +50,8 @@ $" = defined $delimiter ? $delimiter : ' ';
 
 my @file_names = map { $_ eq '-' ? 'STDIN' : $_ } @ARGV;
 
-open(F1, $ARGV[0]) || die "Can't read $file_names[0]: $!\n";
-open(F2, $ARGV[1]) || die "Can't read $file_names[1]: $!\n";
+open(F1, '<', $ARGV[0]) || die "Can't read $file_names[0]: $!\n";
+open(F2, '<', $ARGV[1]) || die "Can't read $file_names[1]: $!\n";
 
 my @buf1; # line buffers for the two files
 my @buf2; #
