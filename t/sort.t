@@ -18,7 +18,7 @@ sub test_sort {
 		ok( $pid > 0, "open3 opened" );
 
 		close $in;
-		my @output = map { s/\R// } <$out>;
+		my @output = map { s/\R//; $_ } <$out>;
 
 		is_deeply( \@output, $args->{lines}, "Output is sorted" );
 		};
