@@ -77,7 +77,7 @@ diag "past open2";
 		diag "Sent <$i>";
 		}
 		diag "Done with loop";
-	close $in;
+	close( $in ) or die "Could not close input: $!/$^E";
 		diag "Closed filehandles";
 
 	diag "Getting output";
