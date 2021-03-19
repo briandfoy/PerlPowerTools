@@ -28,7 +28,6 @@ jobs:
             os:
                 - windows-2019
                 - windows-2016
-
         steps:
             - uses: actions/checkout@v2
             - name: Set up Perl
