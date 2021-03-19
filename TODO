@@ -1,7 +1,6 @@
 === find
 shells out to find2perl, which might be removed from perl.
 
-
 === Things that use system() and need special attention
 addbib:          or die "system '$1 $database' failed: $?";
 addbib:         system("$1 $database") == 0
