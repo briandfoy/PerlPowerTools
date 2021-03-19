@@ -3,9 +3,7 @@ name: windows
 on:
     push:
         branches:
-            - '*'
-            - '!*linux*'
-            - '!*macos*'
+            - '**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
@@ -29,8 +27,6 @@ jobs:
           matrix:
             os:
                 - windows-2019
-                - windows-2016
-
         steps:
             - uses: actions/checkout@v2
             - name: Set up Perl
@@ -40,11 +36,15 @@ jobs:
             - name: Perl version
               run: perl -V
             - name: Install dependencies
-              run: cpan -T .
+              run: |
+                cpan -T .
+                cpan -T IPC::Run3
             - name: Run tests
               run: |
                 perl Makefile.PL
                 make test
+              env:
+                HARNESS_VERBOSE: 1
             - name: Run tests in parallel
               env:
                 HARNESS_OPTIONS: j10

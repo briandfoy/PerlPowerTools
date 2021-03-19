@@ -120,6 +120,7 @@ my %WriteMakefile = (
 		},
 
 	'TEST_REQUIRES' => {
+		'IPC::Run3'  => '0',
 		'Test::More' => '1',
 		},
 

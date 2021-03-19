@@ -5,22 +5,22 @@ use warnings;
 
 use Test::More;
 
-use IPC::Open3 qw(open3);
+use IPC::Run3 qw(run3);
 
 sub test_sort {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     my( $args ) = @_;
 
 	subtest $args->{blurb} => sub {
-		my $pid = open3( my $in, my $out, my $err,
-			$^X, 'bin/sort', @{$args->{flags}}, @{$args->{files}}
+		run3(
+			[ $^X, 'bin/sort', @{$args->{flags}}, @{$args->{files}} ],
+			undef, \my @output
 			);
-		ok( $pid > 0, "open3 opened" );
+		is( $? >> 8, 0, 'Successful exit code' );
 
-		close $in;
-		chomp( my @output = <$out> );
+		@output = map { s/\R//; $_ } @output;
 
-		is_deeply( \@output, $args->{lines}, "Output is sorted" );
+		is_deeply( \@output, $args->{lines}, "Output for <$args->{blurb}> is sorted" );
 		};
 	}
 
@@ -60,47 +60,50 @@ EOF
     }
 );
 
+
 subtest sort_stdin => sub {
-	my $pid = open3( my $in, my $out, my $err,
-		$^X, 'bin/sort', '-'
-		);
-	ok( $pid > 0, "open3 opened" );
-
+	$ENV{TMPDIR} //= '.';
 	my @letters = qw(a b c d);
-	foreach my $i ( reverse @letters ) {
-		print {$in} "$i\n";
-		}
-	close $in;
+	my $input = join "\n", reverse qw(a b c d);
 
-	chomp( my @output = <$out> );
-	close $out;
+	run3(
+		[$^X, 'bin/sort', '-' ],
+		\$input, \my @output, \my $error
+		);
+
+	@output = map { s/[\r\n]+//; $_ } @output;
 
 	is_deeply( \@letters, \@output );
 	};
 
+
 subtest is_sorted => sub {
-	open my $p, '|-', qq("$^X" bin/sort -c);
-	foreach my $i ( qw( a b c d ) ) {
-		print {$p} "$i\n";
-		}
-	close $p;
-	my $exit = $? >> 8;
-	is( $exit, 0, 'sort -c exits with 0 for sorted input' );
+	$ENV{TMPDIR} //= '.';
+	my @letters = qw(a b c d);
+	my $input = join "\n", qw(a b c d);
+
+	run3(
+		[$^X, 'bin/sort', '-c', '-' ],
+		\$input, \my @output, \my $error
+		);
+
+	is( $? >> 8, 0, "sorted list exits with 0" );
 	};
 
 subtest is_not_sorted => sub {
-	open my $p, '|-', qq("$^X" bin/sort -c);
-	foreach my $i ( qw( b a d ) ) {
-		print {$p} "$i\n";
-		}
-	close $p;
-	my $exit = $? >> 8;
-	is( $exit, 1, 'sort -c exits with 0 for unsorted input' );
+	$ENV{TMPDIR} //= '.';
+	my @letters = qw(a b c d);
+	my $input = join "\n", qw(b a d);
+
+	run3(
+		[$^X, 'bin/sort', '-c', '-' ],
+		\$input, \my @output, \my $error
+		);
+
+	is( $? >> 8, 1, "unsorted list exits with 1" );
 	};
 
 done_testing();
-
-__END__
 
 =head1 COPYRIGHT & LICENSE
 
