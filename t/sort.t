@@ -61,40 +61,22 @@ EOF
     }
 );
 
-$SIG{ALRM} = sub { say STDERR "Caught Alarm\n"; exit 1 };
-alarm( 60 );
+
 subtest sort_stdin => sub {
-	my $pid = open2( my $out, my $in,
-		$^X, 'bin/sort', '-'
-		);
-	ok( $pid > 0, "open3 opened" );
-	$in->autoflush(1);
-	$out->autoflush(1);
-diag "past open2";
-
+	require IPC::Run3;
+	$ENV{TMPDIR} //= '.';
 	my @letters = qw(a b c d);
-	foreach my $i ( reverse @letters ) {
-		diag "Sending <$i>";
-		print {$in} "$i\n";
-		diag "Sent <$i>";
-		}
-		diag "Done with loop";
-	close( $in ) or die "Could not close input: $!/$^E";
-		diag "Closed filehandles";
+	my $input = join "\n", reverse qw(a b c d);
 
-	diag "Getting output";
+	my $rc = IPC::Run3::run3(
+		[$^X, 'bin/sort', '-' ],
+		\$input, \my @output, \my $error
+		);
 
-	my @output;
-	while( <$out> ) {
-		chomp;
-		diag "read a line <$_>\n";
-		push @output, $_
-		}
-	diag "Got output <@output>";
+	@output = map { s/[\r\n]+//; $_ } @output;
 
 	is_deeply( \@letters, \@output );
 	};
-alarm(0);
 
 done_testing();
 

@@ -37,6 +37,7 @@ jobs:
               run: perl -V
             - name: Install dependencies
               run: cpan -T .
+              run: cpan -T IPC::Run3
             - name: Run tests
               run: |
                 perl Makefile.PL
