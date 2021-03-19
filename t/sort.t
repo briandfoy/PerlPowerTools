@@ -81,8 +81,8 @@ diag "past open2";
 		diag "Closed filehandles";
 
 	diag "Getting output";
-	chomp( my @output = <$out> );
-	close $out;
+
+	while( <$out> ) { chomp; push @output, $_ }
 	diag "Got output <@output>";
 
 	is_deeply( \@letters, \@output );
