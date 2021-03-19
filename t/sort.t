@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 
+use IPC::Open2 qw(open2);
 use IPC::Open3 qw(open3);
 
 sub test_sort {
@@ -63,7 +64,7 @@ EOF
 $SIG{ALRM} = sub { exit 1 };
 alarm( 60 );
 subtest sort_stdin => sub {
-	my $pid = open3( my $in, my $out, my $err,
+	my $pid = open2( my $out, my $in,
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
