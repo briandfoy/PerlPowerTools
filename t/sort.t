@@ -20,7 +20,7 @@ sub test_sort {
 		close $in;
 		my @output = map { s/\R//; $_ } <$out>;
 
-		is_deeply( \@output, $args->{lines}, "Output is sorted" );
+		is_deeply( \@output, $args->{lines}, "Output for <$args->{blurb}> is sorted" );
 		};
 	}
 
