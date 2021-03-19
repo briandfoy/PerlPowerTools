@@ -164,7 +164,9 @@ sub _sort_file {
                     or die "Can't open `$filein' for reading: $!";
             }
 
+print "Before reading loop";
             while (defined(my $rec = <F>)) {
+            print STDERR "Reading a line from F";
                 push @recs, $rec;
                 $count++;  # keep track of number of records
 
