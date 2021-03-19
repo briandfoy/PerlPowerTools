@@ -65,25 +65,25 @@ subtest sort_stdin => sub {
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
+diag "past open3";
 
 	my @letters = qw(a b c d);
 	foreach my $i ( reverse @letters ) {
 		print {$in} "$i\n";
 		}
 	close $in;
-
-	};
-
-done_testing();
-
-
-__END__
+	close $err;
 
 	chomp( my @output = <$out> );
 	close $out;
 
 	is_deeply( \@letters, \@output );
 	};
+
+done_testing();
+
+
+__END__
 
 subtest is_sorted => sub {
 	open my $p, '|-', qq("$^X" bin/sort -c);
