@@ -157,7 +157,8 @@ sub _sort_file {
 
             if ($filein eq '-') {
             print STDERR "About to open STDERR on F\n";
-                open F, '<-';
+                open F, '<-' or die "Could not open '-': $!/$^E";
+            print STDERR "opened STDERR on F\n";
             } else {
                 sysopen(F, $filein, O_RDONLY)
                     or die "Can't open `$filein' for reading: $!";

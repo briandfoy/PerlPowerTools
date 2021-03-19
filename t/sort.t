@@ -61,7 +61,7 @@ EOF
     }
 );
 
-$SIG{ALRM} = sub { exit 1 };
+$SIG{ALRM} = sub { say STDERR "Caught Alarm\n"; exit 1 };
 alarm( 60 );
 subtest sort_stdin => sub {
 	my $pid = open2( my $out, my $in,
@@ -83,10 +83,11 @@ diag "past open2";
 	diag "Getting output";
 	chomp( my @output = <$out> );
 	close $out;
-	diag "Got output";
+	diag "Got output <@output>";
 
 	is_deeply( \@letters, \@output );
 	};
+alarm(0);
 
 done_testing();
 
