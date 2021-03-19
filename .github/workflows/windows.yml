@@ -4,8 +4,6 @@ on:
     push:
         branches:
             - '*'
-            - '!*linux*'
-            - '!*macos*'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
