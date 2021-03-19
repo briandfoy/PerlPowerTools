@@ -4,6 +4,8 @@ on:
     push:
         branches:
             - '*'
+            - '!*linux*'
+            - '!*macos*'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
@@ -11,7 +13,8 @@ on:
             # list all the files which are irrelevant to the tests
             # non-code, support files, docs, etc
             - '.appveyor.yml'
-            - '.github/**'
+            - '.github/workflows/linux.yml'
+            - '.github/workflows/macos.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
