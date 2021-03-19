@@ -393,7 +393,7 @@ sub apropos {
     } else {  # use perl
 	local($code) = <<'EOF';
 	if ($isatty) {
-	    $pid = open(PAGER, "| $PAGER");
+	    $pid = open(PAGER, "|-", $PAGER);
 	    sleep 1;
 	    select(PAGER);
 	}
