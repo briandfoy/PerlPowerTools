@@ -72,13 +72,20 @@ diag "past open3";
 
 	my @letters = qw(a b c d);
 	foreach my $i ( reverse @letters ) {
+		diag "Sending <$i>";
 		print {$in} "$i\n";
+		diag "Sent <$i>";
 		}
+		diag "Done with loop";
 	close $in;
-	close $err;
+	my @error = <$err>; close $err;
+	diag "Error output <@error>";
+		diag "Closed filehandles";
 
+	diag "Getting output";
 	chomp( my @output = <$out> );
 	close $out;
+	diag "Got output";
 
 	is_deeply( \@letters, \@output );
 	};
