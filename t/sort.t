@@ -18,7 +18,7 @@ sub test_sort {
 			);
 		is( $? >> 8, 0, 'Successful exit code' );
 
-		@output = map { s/\R//; $_ } @output;
+		@output = map { s/[\r\n]+//; $_ } @output;
 
 		is_deeply( \@output, $args->{lines}, "Output for <$args->{blurb}> is sorted" );
 		};
