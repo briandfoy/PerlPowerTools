@@ -40,7 +40,7 @@ jobs:
                 cpan -M https://www.cpan.org -T IO::Socket::SSL ExtUtils::MakeMaker
             - name: Install dependencies
               run: |
-                cpan -M https://www.cpan.org -T App::a2p App::find2perl MIME::Parser
+                cpan -M https://www.cpan.org -T App::a2p App::find2perl MIME::Parser IPC::Run3
             - name: Run tests
               run: |
                 perl Makefile.PL
