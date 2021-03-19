@@ -68,7 +68,7 @@ subtest sort_stdin => sub {
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
-diag "past open3";
+diag "past open2";
 
 	my @letters = qw(a b c d);
 	foreach my $i ( reverse @letters ) {
@@ -78,8 +78,6 @@ diag "past open3";
 		}
 		diag "Done with loop";
 	close $in;
-	my @error = <$err>; close $err;
-	diag "Error output <@error>";
 		diag "Closed filehandles";
 
 	diag "Getting output";
