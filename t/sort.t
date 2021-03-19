@@ -62,7 +62,7 @@ EOF
 
 
 subtest sort_stdin => sub {
-	$ENV{TMPDIR} //= '.';
+	$ENV{TMPDIR} ||= '.';
 	my @letters = qw(a b c d);
 	my $input = join "\n", reverse qw(a b c d);
 
@@ -78,7 +78,7 @@ subtest sort_stdin => sub {
 
 
 subtest is_sorted => sub {
-	$ENV{TMPDIR} //= '.';
+	$ENV{TMPDIR} ||= '.';
 	my @letters = qw(a b c d);
 	my $input = join "\n", qw(a b c d);
 
@@ -91,7 +91,7 @@ subtest is_sorted => sub {
 	};
 
 subtest is_not_sorted => sub {
-	$ENV{TMPDIR} //= '.';
+	$ENV{TMPDIR} ||= '.';
 	my @letters = qw(a b c d);
 	my $input = join "\n", qw(b a d);
 
