@@ -3,9 +3,9 @@ name: ubuntu
 on:
     push:
         branches:
-            - '*'
-            - '!*windows*'
-            - '!*macos*'
+            - '**'
+            - '!**windows**'
+            - '!**macos**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'

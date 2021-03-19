@@ -3,9 +3,9 @@ name: macos
 on:
     push:
         branches:
-            - '*'
-            - '!*windows*'
-            - '!*linux*'
+            - '**'
+            - '!**windows**'
+            - '!**linux**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
