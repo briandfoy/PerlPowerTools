@@ -68,6 +68,8 @@ subtest sort_stdin => sub {
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
+	$in->autoflush(1);
+	$out->autoflush(1);
 diag "past open2";
 
 	my @letters = qw(a b c d);
