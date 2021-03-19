@@ -166,7 +166,7 @@ sub _sort_file {
 
 print "Before reading loop";
             while (defined(my $rec = <F>)) {
-            print STDERR "Reading a line from F";
+            print STDERR "Reading a line from F: $rec";
                 push @recs, $rec;
                 $count++;  # keep track of number of records
 
