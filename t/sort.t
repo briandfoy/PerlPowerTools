@@ -65,18 +65,19 @@ subtest sort_stdin => sub {
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
-	};
-
-done_testing();
-
-
-__END__
 
 	my @letters = qw(a b c d);
 	foreach my $i ( reverse @letters ) {
 		print {$in} "$i\n";
 		}
 	close $in;
+
+	};
+
+done_testing();
+
+
+__END__
 
 	chomp( my @output = <$out> );
 	close $out;
