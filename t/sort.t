@@ -60,6 +60,10 @@ EOF
     }
 );
 
+done_testing();
+
+__END__
+
 subtest sort_stdin => sub {
 	my $pid = open3( my $in, my $out, my $err,
 		$^X, 'bin/sort', '-'
@@ -98,9 +102,6 @@ subtest is_not_sorted => sub {
 	is( $exit, 1, 'sort -c exits with 0 for unsorted input' );
 	};
 
-done_testing();
-
-__END__
 
 =head1 COPYRIGHT & LICENSE
 
