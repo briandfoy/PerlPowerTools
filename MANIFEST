@@ -144,3 +144,5 @@ t/sort.t
 t/true.t
 t/uudecode.t
 xt/changes.t
+xt/perlcritic.t
+xt/perlcriticrc
