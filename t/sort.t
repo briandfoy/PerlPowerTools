@@ -60,6 +60,8 @@ EOF
     }
 );
 
+$SIG{ALRM} = sub { exit 1 };
+alarm( 60 );
 subtest sort_stdin => sub {
 	my $pid = open3( my $in, my $out, my $err,
 		$^X, 'bin/sort', '-'
