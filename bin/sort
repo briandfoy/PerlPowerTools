@@ -165,7 +165,7 @@ sub _sort_file {
             }
 
 print STDERR "Before reading loop";
-            while (!eof and defined(my $rec = <F>)) {
+            while (defined(my $rec = <F>)) {
             print STDERR "Reading a line from F: $rec";
                 push @recs, $rec;
                 $count++;  # keep track of number of records
@@ -190,6 +190,8 @@ print STDERR "Before reading loop";
                         _debug("\nCreating temp files ...\n") if $opts->{D};
                     }
                 }
+            } continue {
+              close F if eof;
             }
 
             close F;
