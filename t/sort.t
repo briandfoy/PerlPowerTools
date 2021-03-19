@@ -60,15 +60,17 @@ EOF
     }
 );
 
-done_testing();
-
-__END__
-
 subtest sort_stdin => sub {
 	my $pid = open3( my $in, my $out, my $err,
 		$^X, 'bin/sort', '-'
 		);
 	ok( $pid > 0, "open3 opened" );
+	};
+
+done_testing();
+
+
+__END__
 
 	my @letters = qw(a b c d);
 	foreach my $i ( reverse @letters ) {
