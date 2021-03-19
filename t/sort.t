@@ -82,7 +82,12 @@ diag "past open2";
 
 	diag "Getting output";
 
-	while( <$out> ) { chomp; push @output, $_ }
+	my @output;
+	while( <$out> ) {
+		chomp;
+		diag "read a line <$_>\n";
+		push @output, $_
+		}
 	diag "Got output <@output>";
 
 	is_deeply( \@letters, \@output );
