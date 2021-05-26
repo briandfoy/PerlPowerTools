@@ -23,7 +23,7 @@ use File::Basename;
 use Cwd 'abs_path';
 my $ppt_dir;
 BEGIN { $ppt_dir = dirname(abs_path($0)) . '/..' };
-use lib $ppt_dir . '/lib/perl5';
+use lib $ppt_dir . '/lib';
 use PerlPowerTools;
 
 our $VERSION = $PerlPowerTools::VERSION;
@@ -73,6 +73,8 @@ system("pp -v 2 -P -o $ppt_dir/packed/$program $ppt_dir/packer/$program.pl $tool
 
 # cleanup
 unlink $filename;
+
+use Pod::Perldoc;
 
 exit 1;
 
