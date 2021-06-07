@@ -2,6 +2,7 @@
 #
 # packer.pl - packer for perlpowertools
 #
+# 2021.05.31 v1.10 jul : fixes spaces in paths and "The command line is too long" (win32) 
 # 2021.05.22 v1.00 jul : initial
 
 =begin metadata
@@ -20,7 +21,8 @@ use warnings;
 use utf8;
 use Getopt::Std;
 use File::Basename;
-use Cwd 'abs_path';
+use File::Glob ':bsd_glob';
+use Cwd qw(abs_path getcwd);
 my $ppt_dir;
 BEGIN { $ppt_dir = dirname(abs_path($0)) . '/..' };
 use lib $ppt_dir . '/lib';
@@ -52,9 +54,12 @@ die $VERSION . "\n" if $version;
 ########
 
 # bulid tools list
-my @tools_abs = glob("$ppt_dir/bin/*");
-my $tools_abs = join ' ', @tools_abs;
-my @tools = map { basename($_) } @tools_abs;
+chdir $ppt_dir;
+
+my @tools_rel = glob("bin/*");
+my $tools_rel = join ' ', @tools_rel;
+
+my @tools = map { basename($_) } @tools_rel;
 my $tools = join ' ', @tools;
 
 # build helper script
@@ -63,18 +68,21 @@ close DATA;
 $ppt_script =~ s/_VERSION_/$VERSION/;
 $ppt_script =~ s/_TOOLS_/$tools/;
 
-my $filename = "$ppt_dir/packer/$program.pl";
+my $filename = "packer/$program.pl";
 open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 print $fh $ppt_script;
 close $fh;
 
 # pack
-system("pp -v 2 -P -o $ppt_dir/packed/$program $ppt_dir/packer/$program.pl $tools_abs") == 0 or die "system failed: $?";
+system("pp -v 2 -P -o packed/$program packer/$program.pl $tools_rel") == 0 or die "system failed: $?";
+
+if ($^O eq "MSWin32")
+{
+	system("pp -v 2 -o packed/$program.exe packer/$program.pl $tools_rel") == 0 or die "system failed: $?";
+}
 
 # cleanup
 unlink $filename;
-
-use Pod::Perldoc;
 
 exit 1;
 
