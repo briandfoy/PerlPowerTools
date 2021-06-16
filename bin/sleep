@@ -13,7 +13,7 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.201';
 
 if (@ARGV) {
     if ($ARGV [0] eq '-?') {
