@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.025 2021-06-16T05:50:50Z
+	* Fix sleep do not do its work twice (GitHub #97)
+
 1.024 2021-03-19T19:22:31Z
 	* bin/sort again handles the special filename '-' (for stdin)
 	GitHub #95.
