@@ -1,128 +1,95 @@
 #!/usr/bin/perl
+use strict;
 
 =begin metadata
 
 Name: date
 Description: display or set date and time
-Author: Joshua Gross
-License:
+Author: brian d foy
+License: artistic2
 
 =end metadata
 
 =cut
 
+use POSIX;
+use Time::Piece;
+Time::Piece->use_locale;
 
-use strict;
+my $VERSION = '1.0.1';
 
-my ($format, $time, $hr_diff, $let, $date_str);
-my ($sec, $min, $hour, $m_day, $mon, $year, $w_day, $y_day, $isdst);
+my $format = "%a %b %e %T %Z %Y";
+my $t = localtime;
 
-$time = time();
-$format = "%a %b %e %T %Z %Y";
-($sec, $min, $hour, $m_day, $mon, $year, $w_day, $y_day, $isdst) =
-	localtime($time);
+sub core_time { CORE::localtime }
 
-if (@ARGV) {
-	for my $arg (@ARGV) {
-	if ($arg =~ /^\-u/) {
-		($sec, $min, $hour, $m_day, $mon, $year, $w_day, $y_day, $isdst)
-			= gmtime($time);
-	} elsif ($arg =~ /^\-/ || $arg !~ /^\+/) {
-		usage("Option $arg not support in this version.\n");
-	} elsif ($arg =~ s/(^\+)//){
-			$format = $arg;
-			last;
+foreach (@ARGV) {
+	chomp;
+	   if( /^\-u/ ) { $t = gmtime; *core_time = sub { CORE::gmtime } }
+	elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
+	else {
+		usage("$_ is not supported in this version.\n");
 		}
-	} #end foreach $arg
-}# end else
+	}
 
-my $s = " ";
-my $c = ":";
-my $l = "/";
-
-my $wk_offset = 7 - (($y_day - $w_day) % 7);
-
-my $mon_name = (qw(January February March April May June July August
-	September October November December))[$mon];
-my $wk_name = (qw(Sunday Monday Tuesday Wednesday Thursday Friday
-	Saturday))[$w_day];
-
-my %format_hash = (
+my %formats = (
 	'%' => '%',
-	'a' => substr($wk_name,0,3),
-	'A' => $wk_name,
-	'B' => $mon_name,
-	'b' => substr($mon_name,0,3),
-	'C' => zpad(int($year/100 + 19)),
-	'd' => zpad($m_day),
-	'D' => zpad($mon+1).$l.zpad($m_day).$l.substr($year, -2, 2),
-	'e' => spad($m_day),
-	'h' => substr($mon_name,0,3),
-	'H' => zpad($hour),
-	'I' => zpad(hour12($hour)),
-	'j' => zpad3($y_day + 1),
-	'k' => spad($hour),
-	'l' => spad(hour12($hour)),
-	'm' => zpad($mon+1),
-	'M' => zpad($min),
+	'a' => $t->day,
+	'A' => $t->fullday,
+	'b' => $t->month,
+	'B' => $t->fullmonth,
+	'C' => sprintf( '%02d', int($t->year/100) ),
+	'd' => sprintf( '%02d', $t->mday ),
+	'D' => join( '/', map { sprintf '%02d', $t->$_ } qw(mon mday yy) ),
+	'e' => sprintf( '% 2d', $t->mday ),
+	'F' => join( '-', $t->year, sprintf( '%02d', $t->mon ), sprintf( '%02d', $t->mday ) ),
+	'h' => $t->monname,
+	'H' => sprintf( '%02d', $t->hour ),
+	'I' => sprintf( '%02d', hour12($t->hour) ),
+	'j' => sprintf( '%03d', $t->yday + 1 ),
+	'k' => sprintf( '% 2d', $t->hour ),
+	'l' => sprintf( '% 2d', hour12($t->hour) ),
+	'm' => sprintf( '%02d', $t->mon ),
+	'M' => sprintf( '%02d', $t->min ),
 	'n' => "\n",
-	'p' => ampm($hour),
-	'r' => zpad(hour12($hour)).$c.zpad($min).$c.zpad($sec).$s.ampm($hour),
-	'R' => zpad($hour).$c.zpad($min),
-	's' => $time,
-	'S' => zpad($sec),
+	'p' => ampm($t->hour),
+	'P' => lc( ampm($t->hour) ),
+	'q' => quarter($t),
+	'r' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min sec ) ) . ' ' . ampm($t->hour),
+	'R' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min ) ),
+	's' => time,
+	'S' => sprintf( '%02d', $t->sec ),
 	't' => "\t",
-	'T' => zpad($hour).$c.zpad($min).$c.zpad($sec),
-	'u' => $w_day ? $w_day : 7,
-	'U' => zpad(int(($y_day + $wk_offset)/7)),
-	'w' => $w_day,
-	'W' => zpad(int(($y_day + $wk_offset - 1)/7)),
-	'y' => substr($year, -2, 2),
-	'Y' => $year + 1900,
-	'Z' => gettz((gmtime())[2] - $hour, $isdst),
+	'T' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min sec) ),
+	'u' => ($t->_wday ? $t->_wday : 7),
+	'U' => sprintf( '%02d', int(($t->yday + $wk_offset)/7) ),  # week number, Sunday first
+	'w' => $t->_wday,
+	'W' => sprintf( '%02d', int(($t->yday + $wk_offset - 1)/7) ),  # week number. Monday first
+	'y' => $t->yy,
+	'Y' => $t->year,
+	'Z' => gettz(),
 );
 
-while($format ne '') {
-	$let = lpop(\$format);
-	if($let eq "%") {
-		$let = lpop(\$format);
-		$date_str .= $format_hash{$let} || "%".$let;
-	} else {
-		$date_str .= $let;
-	}
-}
-print $date_str."\n";
+my @POSIX = qw(c g G V W x X z);
+@formats{ @POSIX } = map { POSIX::strftime( "%$_", core_time() ) } @POSIX;
 
-#################################################################################
-#####             Formatting Functions and Date Functions Below              ####
-#################################################################################
+$format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
+print $format, "\n";
 
-sub gettz {
-	my ($offset, $isdst) = @_;
-	if($isdst) {
-		return (undef,undef,undef,undef,'EDT','CDT','MDT','PDT')[$offset];
-	} else {
-		return ('GMT',undef,undef,undef,undef,'EST','CST','MST','PST')[$offset];
-	}
-} # determine time zone
-sub lpop { ${$_[0]} =~ s/(^.)(.*)/$2/; return $1 } # pop a letter off
-sub zpad {
-	my $num = shift || 0;
-	$num =~ /^\d{2}/ ? return $num : return "0$num";
-} # pad number to two digits w/ spaces
-sub zpad3 {
-	my $num = shift || 0;
-	$num ="00".$num;
-	return substr($num, -3, 3);
-} # pad number to three digits w/ zeros
-sub spad  {
-	my $num = shift || 0;
-	$num =~ /^\d{2}/ ? return $num : return " $num";
-} # pad number to two chars w/ space
+sub gettz { require POSIX; POSIX::tzset(); (POSIX::tzname())[ gmtime()->isdst ? 0 : 1 ] }
+
 sub hour12 { $_[0]==12 || $_[0]==0 ? return 12 : return($_[0] % 12); }
-# convert 24 hour to 12 hour
+
 sub ampm { $_[0] >= 12 ? return "PM" : return "AM" }
-# determine am or pm
+
+sub quarter {
+	my( $t ) = @_;
+
+	   if( $t->mon <= 3 ) { 1 }
+	elsif( $t->mon <= 6 ) { 2 }
+	elsif( $t->mon <= 9 ) { 3 }
+	else             { 4 }
+	}
 
 sub usage {
 	my $usage =$_[0]."usage: $0".' [-u] [+format]
@@ -163,10 +130,6 @@ formats
 %Z - Time zone code.';
 	 die $usage."\n";
 }
-# This program is copyright (c) Joshua Gross 1999.
-# You may distribute, alter, duplicate, copy or use this program in any legal
-# manner, so long as you don't restrict the ability of other to do likewise.
-# This program is offered with no guarantees, warranties, or vague promises.
 
 =encoding utf8
 
@@ -174,4 +137,4 @@ formats
 
 date - display or set date and time
 
-
+=cut
