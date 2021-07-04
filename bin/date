@@ -5,7 +5,7 @@ use strict;
 
 Name: date
 Description: display or set date and time
-Author: brian d foy
+Author: brian d foy, brian.d.foy@gmail.com
 License: artistic2
 
 =end metadata
