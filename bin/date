@@ -25,111 +25,85 @@ my $t = localtime;
 sub core_time { CORE::localtime }
 
 foreach (@ARGV) {
-	chomp;
-	   if( /^\-u/ ) { $t = gmtime; *core_time = sub { CORE::gmtime } }
-	elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
-	else {
-		usage("$_ is not supported in this version.\n");
-		}
-	}
+    chomp;
+       if( /^\-u/ ) { $t = gmtime; *core_time = sub { CORE::gmtime } }
+    elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
+    else {
+        usage("$_ is not supported in this version.\n");
+        }
+    }
 
 my %formats = (
-	'%' => '%',
-	'a' => $t->day,
-	'A' => $t->fullday,
-	'b' => $t->month,
-	'B' => $t->fullmonth,
-	'C' => sprintf( '%02d', int($t->year/100) ),
-	'd' => sprintf( '%02d', $t->mday ),
-	'D' => join( '/', map { sprintf '%02d', $t->$_ } qw(mon mday yy) ),
-	'e' => sprintf( '% 2d', $t->mday ),
-	'F' => join( '-', $t->year, sprintf( '%02d', $t->mon ), sprintf( '%02d', $t->mday ) ),
-	'h' => $t->monname,
-	'H' => sprintf( '%02d', $t->hour ),
-	'I' => sprintf( '%02d', hour12($t->hour) ),
-	'j' => sprintf( '%03d', $t->yday + 1 ),
-	'k' => sprintf( '% 2d', $t->hour ),
-	'l' => sprintf( '% 2d', hour12($t->hour) ),
-	'm' => sprintf( '%02d', $t->mon ),
-	'M' => sprintf( '%02d', $t->min ),
-	'n' => "\n",
-	'p' => ampm($t->hour),
-	'P' => lc( ampm($t->hour) ),
-	'q' => quarter($t),
-	'r' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min sec ) ) . ' ' . ampm($t->hour),
-	'R' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min ) ),
-	's' => time,
-	'S' => sprintf( '%02d', $t->sec ),
-	't' => "\t",
-	'T' => join( ':', map { sprintf '%02d', $t->$_ } qw( hour min sec) ),
-	'u' => ($t->_wday ? $t->_wday : 7),
-	'U' => sprintf( '%02d', int(($t->yday + $wk_offset)/7) ),  # week number, Sunday first
-	'w' => $t->_wday,
-	'W' => sprintf( '%02d', int(($t->yday + $wk_offset - 1)/7) ),  # week number. Monday first
-	'y' => $t->yy,
-	'Y' => $t->year,
-	'Z' => gettz(),
+    'P' => lc( ampm($t->hour) ),
+    'q' => quarter($t),
 );
 
-my @POSIX = qw(c g G V W x X z);
+my @POSIX = qw(
+    a A b B c C d D e F g G h H I j k l m M
+    n p r R s S t T u U V w W x X y Y z Z
+    );
 @formats{ @POSIX } = map { POSIX::strftime( "%$_", core_time() ) } @POSIX;
 
 $format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
 print $format, "\n";
 
-sub gettz { require POSIX; POSIX::tzset(); (POSIX::tzname())[ gmtime()->isdst ? 0 : 1 ] }
-
-sub hour12 { $_[0]==12 || $_[0]==0 ? return 12 : return($_[0] % 12); }
-
 sub ampm { $_[0] >= 12 ? return "PM" : return "AM" }
 
 sub quarter {
-	my( $t ) = @_;
+    my( $t ) = @_;
 
-	   if( $t->mon <= 3 ) { 1 }
-	elsif( $t->mon <= 6 ) { 2 }
-	elsif( $t->mon <= 9 ) { 3 }
-	else             { 4 }
-	}
+       if( $t->mon <= 3 ) { 1 }
+    elsif( $t->mon <= 6 ) { 2 }
+    elsif( $t->mon <= 9 ) { 3 }
+    else             { 4 }
+    }
 
 sub usage {
-	my $usage =$_[0]."usage: $0".' [-u] [+format]
+    die <<"USAGE";
+$_[0]."usage: $0".' [-u] [+format]
+
 formats
-%% - The character %.
-%a - Three-letter weekday name.
-%A - Full weekday name.
-%b - Three-letter month name.
-%B - Full month name.
-%C - Century (00-99).
-%d - Day of month (padded w/ zero).
-%D - Date in MM/DD/YY format.
-%e - Day of month (padded w/ space).
-%g - ISO 8601 year (not implemented).
-%G - ISO 8601 year (not implemented).
-%h - Three-letter month name.
-%H - Hour HH.
-%I - Hour HH (12 hour).
-%j - Three-digit Julian day.
-%k - Hour - space padded.
-%l - Hour - space padded (12 hour).
-%m - Month number 01-12.
-%M - Minute MM.
-%n - Newline.
-%p - AM or PM.
-%r - Time in HH(12 hour):MM:SS (AM|PM) format.
-%R - Time in HH:MM format.
-%s - Absolute seconds (since epoch).
-%S - Seconds SS.
-%t - Tab.
+%% - The character %
+%a - Three-letter weekday name
+%A - Full weekday name
+%b - Three-letter month name
+%B - Full month name
+%c - locale version of the date-time string
+%C - Century (00-99)
+%d - Day of month (padded w/ zero)
+%D - Date in MM/DD/YY format
+%e - Day of month (padded w/ space)
+%F - %Y-%m-%d
+%g - ISO 8601 year
+%G - ISO 8601 year
+%h - Three-letter month name
+%H - Hour HH
+%I - Hour HH (12 hour)
+%j - Three-digit Julian day
+%k - Hour - space padded
+%l - Hour - space padded (12 hour)
+%m - Month number 01-12
+%M - Minute MM
+%n - Newline
+%p - AM or PM
+%r - Time in HH(12 hour):MM:SS (AM|PM) format
+%R - Time in HH:MM format
+%s - Absolute seconds (since epoch)
+%S - Seconds SS
+%t - Tab
 %T - Time in HH:MM:SS format.
 %u - Day of week, 1=Monday, 7=Sunday.
 %U - Two digit week number, start Sunday.
+%V - ISO week number, with Monday as the first day of week
 %w - Day of week, 0=Sunday, 6=Saturday.
 %W - Two digit week number, start Monday.
+%x - locale's date representation
+%X - locale's time representation
 %y - Two-digit year.
 %Y - Four-digit year.
-%Z - Time zone code.';
-	 die $usage."\n";
+%z - Time zone offset in hours.
+%Z - Time zone code.
+USAGE
 }
 
 =encoding utf8
