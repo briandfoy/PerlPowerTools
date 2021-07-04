@@ -14,19 +14,16 @@ License: artistic2
 =cut
 
 use POSIX;
-use Time::Piece;
-Time::Piece->use_locale;
 
-my $VERSION = '1.0.1';
+my $VERSION = '1.0.3';
 
 my $format = "%a %b %e %T %Z %Y";
-my $t = localtime;
 
 sub core_time { CORE::localtime }
 
 foreach (@ARGV) {
     chomp;
-       if( /^\-u/ ) { $t = gmtime; *core_time = sub { CORE::gmtime } }
+       if( /^\-u/ ) { *core_time = sub { CORE::gmtime } }
     elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
     else {
         usage("$_ is not supported in this version.\n");
@@ -34,8 +31,8 @@ foreach (@ARGV) {
     }
 
 my %formats = (
-    'P' => lc( ampm($t->hour) ),
-    'q' => quarter($t),
+    'P' => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
+    'q' => quarter(),
 );
 
 my @POSIX = qw(
@@ -47,15 +44,13 @@ my @POSIX = qw(
 $format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
 print $format, "\n";
 
-sub ampm { $_[0] >= 12 ? return "PM" : return "AM" }
-
 sub quarter {
-    my( $t ) = @_;
+    my $mon = ( core_time() )[4] + 1;
 
-       if( $t->mon <= 3 ) { 1 }
-    elsif( $t->mon <= 6 ) { 2 }
-    elsif( $t->mon <= 9 ) { 3 }
-    else             { 4 }
+       if( $mon <= 3 ) { 1 }
+    elsif( $mon <= 6 ) { 2 }
+    elsif( $mon <= 9 ) { 3 }
+    else               { 4 }
     }
 
 sub usage {
