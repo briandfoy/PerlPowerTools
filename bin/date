@@ -19,11 +19,14 @@ my $VERSION = '1.0.3';
 
 my $format = "%a %b %e %T %Z %Y";
 
-sub core_time { CORE::localtime }
+BEGIN {
+my @times = CORE::localtime;
+sub core_time { @times }
+}
 
 foreach (@ARGV) {
     chomp;
-       if( /^\-u/ ) { *core_time = sub { CORE::gmtime } }
+       if( /^\-u/ ) { $ENV{'TZ'} = 'UTC'; my @times = CORE::gmtime; *core_time = sub { @times } }
     elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
     else {
         usage("$_ is not supported in this version.\n");
