@@ -28,8 +28,7 @@ jobs:
         strategy:
           matrix:
             os:
-                - ubuntu-18.04
-                - ubuntu-20.04
+                - ubuntu-latest
             perl-version:
                 - '5.8'
                 - '5.10'
