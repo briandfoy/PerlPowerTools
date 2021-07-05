@@ -29,7 +29,7 @@ BEGIN {
 	foreach my $letter ( qw( d p o l ) ) {
 	  no strict 'refs';
 	  my $env_var = uc( "UNITS_DEBUG_$letter" );
-	  my $debugging = $ENV{$env_var} // $ENV{UNITS_DEBUG} // 0;
+	  my( $debugging ) = grep { defined and length } ( $ENV{$env_var}, $ENV{UNITS_DEBUG}, 0 );
 	  *{"debug_$letter"} = ! $debugging ? sub {} : sub {
 		my $indent;
 		my $m = join '', @_;
