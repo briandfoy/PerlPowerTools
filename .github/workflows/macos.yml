@@ -24,7 +24,12 @@ on:
 
 jobs:
     perl:
-        runs-on: macOS-latest
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os:
+                - macos-11
+                - macos-10.15
 
         steps:
             - uses: actions/checkout@v2
