@@ -51,7 +51,7 @@ $format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
 print $format, "\n";
 
 sub munge_tz {
-
+	return 'UTC' if $ENV{TZ} eq 'UTC';
 	my $from_posix = POSIX::strftime( '%Z', core_time() );
 	my $from_windows = windows_time_zones();
 	return $from_posix if $from_posix =~ m/\A[A-Z]{3,4}\z/;
