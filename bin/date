@@ -34,18 +34,29 @@ foreach (@ARGV) {
     }
 
 my %formats = (
+	'e' => sprintf( '% 2d', (core_time)[3] ),
     'P' => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
     'q' => quarter(),
+    'T' => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
+    'Z' => munge_tz(),
 );
 
 my @POSIX = qw(
-    a A b B c C d D e F g G h H I j k l m M
-    n p r R s S t T u U V w W x X y Y z Z
+    a A b B c C d D F g G h H I j k l m M
+    n p r R s S t u U V w W x X y Y z
     );
 @formats{ @POSIX } = map { POSIX::strftime( "%$_", core_time() ) } @POSIX;
 
 $format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
 print $format, "\n";
+
+sub munge_tz {
+
+	my $from_posix = POSIX::strftime( '%Z', core_time() );
+	my $from_windows = windows_time_zones();
+	return $from_posix if $from_posix =~ m/\A[A-Z]{3,4}\z/;
+	return $from_windows->{$from_posix} if exists $from_windows->{$from_posix};
+	}
 
 sub quarter {
     my $mon = ( core_time() )[4] + 1;
@@ -111,3 +122,127 @@ USAGE
 date - display or set date and time
 
 =cut
+
+=begin comment
+
+#!perl
+use v5.10;
+
+use Mojo::UserAgent;
+use Mojo::Util qw(dumper);
+
+my $ua = Mojo::UserAgent->new;
+my $url = 'https://ss64.com/nt/timezones.html';
+
+my %hash = Mojo::UserAgent
+	->new
+	->get( $url )
+	->result
+	->dom
+	->find( 'table#rowhover > tr' )
+	->map( sub { ($_->find( 'td' )->map( 'all_text' )->each)[2,4] } )
+	->each;
+
+say dumper( \%hash );
+
+=end comment
+
+=cut
+
+sub windows_time_zones {
+	my %hash = (
+	  "AUS Central Standard Time" => "ACST",
+	  "AUS Eastern Standard Time" => "AEST",
+	  "Afghanistan Standard Time" => "AFT",
+	  "Alaskan Standard Time" => "AKST",
+	  "Arab Standard Time" => "ABST",
+	  "Arabian Standard Time" => "AST",
+	  "Arabic Standard Time" => "ARST",
+	  "Argentina Standard Time" => "ART",
+	  "Atlantic Standard Time" => "\x{a0}",
+	  "Azerbaijan Standard Time" => "AZT",
+	  "Azores Standard Time" => "AZOT",
+	  "Cabo Verde Standard Time" => "CVT",
+	  "Canada Central Standard Time" => "CT",
+	  "Caucasus Standard Time" => "AMT",
+	  "Cen. Australia Standard Time" => "ACST",
+	  "Central America Standard Time" => "CST",
+	  "Central Asia Standard Time" => "BTT",
+	  "Central Europe Standard Time" => "CET",
+	  "Central European Standard Time" => "CET",
+	  "Central Pacific Standard Time" => "SBT",
+	  "Central Standard Time" => "CT/CCST",
+	  "Central Standard Time (Mexico)" => "CST",
+	  "China Standard Time" => "CST",
+	  "Dateline Standard Time" => "BIT",
+	  "E. Africa Standard Time" => "EAT",
+	  "E. Australia Standard Time" => "AEST",
+	  "E. Europe Standard Time" => "EET",
+	  "E. South America Standard Time" => "EST",
+	  "Eastern Standard Time" => "EST",
+	  "Egypt Standard Time" => "EGST",
+	  "Ekaterinburg Standard Time" => "YEKT",
+	  "FLE Standard Time" => "EET",
+	  "Fiji Standard Time" => "FJT",
+	  "Further-Eastern European Time" => "FET",
+	  "GMT Standard Time" => "GMT",
+	  "GTB Standard Time" => "GTBST",
+	  "Georgian Standard Time" => "GET",
+	  "Greenland Standard Time" => "GNST",
+	  "Greenwich Standard Time" => "GMT",
+	  "Hawaiian Standard Time" => "HST",
+	  "India Standard Time" => "IST",
+	  "Iran Standard Time" => "IRST",
+	  "Israel Standard Time" => "IST",
+	  "Jordan Standard Time" => "JST",
+	  "Korea Standard Time" => "KST",
+	  "Libya Standard Time" => "CET",
+	  "Mauritius Standard Time" => "MUT",
+	  "Mexico Standard Time" => "CST",
+	  "Mexico Standard Time 2" => "",
+	  "Mid-Atlantic Standard Time" => "GST",
+	  "Middle East Standard Time" => "MEST",
+	  "Morocco Standard Time" => "MOST",
+	  "Mountain Standard Time" => "MT/MST",
+	  "Mountain Standard Time (Mexico)" => "MSTM",
+	  "Myanmar Standard Time" => "MYST",
+	  "N. Central Asia Standard Time" => "NCAST",
+	  "Namibia Standard Time" => "NMST",
+	  "Nepal Standard Time" => "NPT",
+	  "New Zealand Standard Time" => "NZST",
+	  "Newfoundland and Labrador Standard Time" => "NST",
+	  "North Asia East Standard Time" => "IRKT",
+	  "North Asia Standard Time" => "KRAT",
+	  "Pacific SA Standard Time" => "PSAST",
+	  "Pacific Standard Time" => "PST",
+	  "Pacific Standard Time (Mexico)" => "PST",
+	  "Pakistan Standard Time" => "PKT",
+	  "Romance Standard Time" => "RST",
+	  "Russian Standard Time" => "MSK",
+	  "SA Eastern Standard Time" => "UYT/SAEST",
+	  "SA Pacific Standard Time" => "SAPST",
+	  "SA Western Standard Time" => "SAWST",
+	  "SE Asia Standard Time" => "THA",
+	  "Samoa Standard Time" => "SMST",
+	  "Singapore Standard Time" => "SST",
+	  "South Africa Standard Time" => "SAST",
+	  "Sri Lanka Standard Time" => "SLST",
+	  "Taipei Standard Time" => "TIST",
+	  "Tasmania Standard Time" => "TAST",
+	  "Tokyo Standard Time" => "TST",
+	  "Tonga Standard Time" => "TOT",
+	  "Turkey Standard Time" => "EET",
+	  "U.S. Eastern Standard Time" => "EST",
+	  "US Mountain Standard Time" => "MST",
+	  "Venezuela Standard Time" => "VET",
+	  "Vladivostok Standard Time" => "VLAT",
+	  "W. Australia Standard Time" => "AWST",
+	  "W. Central Africa Standard Time" => "ECT",
+	  "W. Europe Standard Time" => "WET",
+	  "West Asia Standard Time" => "WAST",
+	  "West Pacific Standard Time" => "WPST",
+	  "Yakutsk Standard Time" => "YAKT",
+	  );
+
+	  \%hash;
+}
