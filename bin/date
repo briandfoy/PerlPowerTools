@@ -16,7 +16,7 @@ License: artistic2
 
 use POSIX;
 
-my $VERSION = '1.0.3';
+my $VERSION = '1.0.4';
 
 # set this if we do anything to select a timezone abbreviation, then
 # prefer this if it is defined.
