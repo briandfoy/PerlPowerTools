@@ -86,7 +86,7 @@ sub run {
 	my $specifiers = setup_specifiers();
 
 	$format =~ s/%(:?.)/ exists $specifiers->{$1} ? $specifiers->{$1} : "%$1" /eg;
-	print "<$format>\n";
+	print "$format\n";
 	}
 
 sub select_format {
