@@ -38,11 +38,10 @@ sub munge_tz {
 	return $TZ if defined $TZ; # something else we did set this, so use it
 	my $from_posix = posix_tz();
 	return $from_posix if $from_posix =~ m/\A[A-Z]{3,4}\z/;
-
-	my $windows_time_zones = windows_time_zones();
-
-	# print STDERR "# Windows time zone: <$from_posix>\n";
-	return $windows_time_zones->{$from_posix}[0] if exists $windows_time_zones->{$from_posix};
+	my $from_windows = windows_time_zones();
+	print "# Windows time zone: $from_posix";
+	my $i_dst = (core_time())[-1] ? -1 : 0; # some only have one entry, so two would be the same
+	return $from_windows->{$from_posix}[$i_dst] if exists $from_windows->{$from_posix};
 	}
 
 sub posix_tz { POSIX::strftime( '%Z', core_time() ) }
