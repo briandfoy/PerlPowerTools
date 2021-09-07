@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+=encoding utf8
+
+=begin metadata
+
+Name: whoami
+Description: display effective user ID
+Author: Oğuz Ersen, oguzersen@protonmail.com
+License: artistic2
+
+=end metadata
+
+=cut
+
+use strict;
+
+my $user;
+
+if ($^O eq 'MSWin32') {
+    $user = getlogin() || $ENV{USERNAME};
+}
+else {
+    $user = getpwuid($>);
+}
+
+print "$user\n";
+
+=head1 NAME
+
+whoami - display effective user ID
+
+=head1 SYNOPSIS
+
+B<whoami>
+
+=head1 DESCRIPTION
+
+Print the username associated with the current effective user ID,
+same as B<id -un>.
+
+=head1 AUTHOR
+
+Oğuz Ersen (oguzersen@protonmail.com)
+
+=head1 SEE ALSO
+
+whoami(1), id(1)
+
+=head1 COPYRIGHT and LICENSE
+
+Copyright (c) by Oğuz Ersen 2021.
+
+This code is licensed under the Artistic License 2.
+
+=cut
