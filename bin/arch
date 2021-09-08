@@ -13,13 +13,15 @@ License:
 
 use strict;
 use POSIX qw(uname);
-my $arch=(uname())[4]; # machine ... (uname -m)
-my $system=(uname())[0]; # system ... (uname -s)
+
+# system ... (uname -s)
+# arch   ... (uname -m)
+my ($system, $arch) = (uname())[0,4];
 
 # sun3.* -> sun3, sun4.* -> sun4, etc. SunOS hooey.
 # looks like `uname -m` eq `arch -k` on suns ...
 unless ( $ARGV[0] =~ /^-k$/i ) {
-	$arch=~s/^(sun\d+).*$/$1/;
+	$arch =~ s/^(sun\d+).*$/$1/;
 }
 
 $arch = "$system.$arch" if ( $system eq "OpenBSD" ); # OpenBSD hooey.
