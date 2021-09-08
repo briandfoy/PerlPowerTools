@@ -10,6 +10,7 @@ requirements.
 * Works on Perl v5.8
 * Uses only core modules (with very few exceptions)
 * Uses the Artistic License 2
+* Works on Windows
 
 Many of these scripts were written around the time of Perl v5.6, so the
 style and idioms you may encounter can be quite archaic. Feel free to
