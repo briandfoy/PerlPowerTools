@@ -146,7 +146,6 @@ t/rot13.t
 t/sort.t
 t/true.t
 t/uudecode.t
-util/test_dates.pl
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc
