@@ -110,6 +110,7 @@ bin/uuencode
 bin/wc
 bin/what
 bin/which
+bin/whoami
 bin/whois
 bin/words
 bin/wump
@@ -133,16 +134,19 @@ t/data/nl/nl.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
 t/data/sort/three-words.txt
+t/date.t
 t/echo.t
 t/factor.t
 t/false.t
 t/find.t
+t/lib/utils.pm
 t/nl.t
 t/pod.t
 t/rot13.t
 t/sort.t
 t/true.t
 t/uudecode.t
+util/test_dates.pl
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc
