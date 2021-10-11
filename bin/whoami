@@ -19,7 +19,7 @@ my @coderefs = (
 	sub { getpwuid($>) },
 	sub { require Win32; Win32::LoginName() },
 	sub { getlogin },
-	sub { $ENV{USER} // $ENV{USERNAME} },
+	sub { defined $ENV{USER} ? $ENV{USER} : $ENV{USERNAME} },
 	sub { exit 1 },
 	);
 
