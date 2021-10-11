@@ -86,4 +86,4 @@ bin/pmake
 \.icloud$
 \A\.github\b
 
-util/
+^util/
