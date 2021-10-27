@@ -1,9 +1,26 @@
 #!/usr/bin/env perl
 #
-# packer.pl - packer for perlpowertools
+# packer.pl - packer for PerlPowerTools
 #
-# 2021.05.31 v1.10 jul : fixes spaces in paths and "The command line is too long" (win32) 
+# This script builds :
+# 1. 'bin/perlpowertools'        -> helper script (calls unpacked tools from bin/*)
+# 2. 'packed/perlpowertools'     -> tools packed as a Perl script (needs external PAR module to run, platform-dependent)
+# 3. 'packed/perlpowertools.exe' -> tools packed as a Windows executable (standalone, no dependencies)
+#
+# The Perl script's shebang and second #line directive are replaced to improve portability,
+# provide meaningful error message to the end user and to avoid leaking data (full path of
+# perl and parl.pl running 'pp'). This couldn't be done for the Windows executable, because
+# it's built in a single step.
+#
+# 2021.10.22 v1.20 jul : - fixed incorrect tools usage message by setting $0 
+#                        - in packed file and helper script : set shebang to #!/usr/bin/env perl
+#                        - in packed file : delete "#line 2" directive (line number and file name)
+#                        - helper script now in /bin, not deleted anymore, works when packed or not
+# 2021.05.31 v1.10 jul : fixed spaces in paths and "The command line is too long" (win32) 
 # 2021.05.22 v1.00 jul : initial
+#
+# TODO
+# - find solution for POD
 
 =begin metadata
 
@@ -22,7 +39,7 @@ use utf8;
 use Getopt::Std;
 use File::Basename;
 use File::Glob ':bsd_glob';
-use Cwd qw(abs_path getcwd);
+use Cwd 'abs_path';
 my $ppt_dir;
 BEGIN { $ppt_dir = dirname(abs_path($0)) . '/..' };
 use lib $ppt_dir . '/lib';
@@ -53,10 +70,11 @@ die $VERSION . "\n" if $version;
 # MAIN #
 ########
 
-# bulid tools list
+# build tools list
 chdir $ppt_dir;
 
 my @tools_rel = glob("bin/*");
+@tools_rel = grep { $_ ne "bin/$program" } @tools_rel;
 my $tools_rel = join ' ', @tools_rel;
 
 my @tools = map { basename($_) } @tools_rel;
@@ -68,29 +86,50 @@ close DATA;
 $ppt_script =~ s/_VERSION_/$VERSION/;
 $ppt_script =~ s/_TOOLS_/$tools/;
 
-my $filename = "packer/$program.pl";
+my $filename = "bin/$program";
 open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 print $fh $ppt_script;
 close $fh;
 
-# pack
-system("pp -v 2 -P -o packed/$program packer/$program.pl $tools_rel") == 0 or die "system failed: $?";
+# build packed script
+system("pp -v 1 -P -o packed/$program bin/$program $tools_rel") == 0 or die "system failed: $?";
 
+# set shebang and remove par.pl line directive
+do {
+	local $^I='.bak';
+	local @ARGV=("packed/$program");
+	while(<>) {
+		if ($. == 1)
+		{
+			print "#!/usr/bin/env perl\n";
+		}
+		elsif ($. > 2)
+		{
+			print;
+		}
+	}
+	unlink "packed/$program.bak";
+};
+
+# build packed executable
 if ($^O eq "MSWin32")
 {
-	system("pp -v 2 -o packed/$program.exe packer/$program.pl $tools_rel") == 0 or die "system failed: $?";
+	system("pp -v 1 -o packed/$program.exe bin/$program $tools_rel") == 0 or die "system failed: $?";
 }
-
-# cleanup
-unlink $filename;
 
 exit 1;
 
 __DATA__
+#!/usr/bin/env perl
+#
+# perlpowertools - helper script for PerlPowerTools
+
 use strict;
 use warnings;
 use utf8;
 use Getopt::Std;
+use File::Basename;
+use Cwd 'abs_path';
 
 our $VERSION = qw( _VERSION_ );
 my $program  = 'perlpowertools';
@@ -125,7 +164,8 @@ die join ("\n", @tools) . "\n" if $list;
 my $tool = shift || '';
 die $usage if not grep { $tool eq $_ } @tools;
 
-my $file = "script/$tool";
+my $file = defined $ENV{PAR_TEMP} ? "$ENV{PAR_TEMP}/inc/script/$tool" : dirname(abs_path($0)) . "/$tool";
+$0 = $tool; # for correct usage message 
 my $return = do $file;
 die $@ if $@;
 die "$file: $!" unless defined $return;
