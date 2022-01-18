@@ -1,3 +1,7 @@
+# brian's standard GitHub Actions Ubuntu config for Perl 5 modules
+# https://github.com/briandfoy/github_actions
+# https://github.com/features/actions
+# This file is licensed under the Artistic License 2.0
 name: ubuntu
 
 on:
@@ -28,40 +32,84 @@ jobs:
         strategy:
           matrix:
             os:
+                - ubuntu-18.04
                 - ubuntu-20.04
             perl-version:
                 - '5.8'
+                - '5.10'
+                - '5.12'
+                - '5.14'
+                - '5.16'
+                - '5.18'
+                - '5.20'
+                - '5.22'
+                - '5.24'
+                - '5.26'
+                - '5.28'
+                - '5.30'
+                - '5.32'
+                - 'latest'
 
         container:
             image: perl:${{ matrix.perl-version }}
-
         steps:
             - uses: actions/checkout@v2
             - name: Platform check
               run: uname -a
             - name: Perl version check
-              run: perl -V
+              run: |
+                perl -V
+                perl -v | perl -0777 -ne 'm/(v5\.\d+)/ && print "PERL_VERSION=$1"' >> $GITHUB_ENV
+# Some older versions of Perl have trouble with hostnames in certs. I
+# haven't figured out why.
             - name: Setup environment
               run: |
                 echo "PERL_LWP_SSL_VERIFY_HOSTNAME=0" >> $GITHUB_ENV
+# I had some problems with openssl on Ubuntu, so I punted by installing
+# cpanm first, which is easy. I can install IO::Socket::SSL with that,
+# then switch back to cpan. I didn't explore this further, but what you
+# see here hasn't caused problems for me.
+# Need HTTP::Tiny 0.055 or later.
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest --without-recommend IO::Socket::SSL App::Cpan ExtUtils::MakeMaker LWP LWP::Protocol::https
+                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny
+                cpan -M https://www.cpan.org -T ExtUtils::MakeMaker Test::Manifest
+# Install the dependencies, again not testing them. This installs the
+# module in the current directory, so we end up installing the module,
+# but that's not a big deal.
             - name: Install dependencies
               run: |
+                cpan -M https://www.cpan.org -T .
                 cpan -M https://www.cpan.org -T App::a2p App::find2perl MIME::Parser IPC::Run3
             - name: Run tests
               run: |
                 perl Makefile.PL
                 make test
+# Running tests in parallel should be faster, but it's also more
+# tricky in cases where different tests share a feature, such as a
+# file they want to write to. Parallel tests can stomp on each other.
+# Test in parallel to catch that, because other people will test your
+# stuff in parallel.
             - name: Run tests in parallel
-              env:
-                HARNESS_OPTIONS: j10
               run: |
                 perl Makefile.PL
-                make test
+                HARNESS_OPTIONS=j10 make test
+# The disttest target creates the distribution, unwraps it, changes
+# into the dist dir, then runs the tests there. That checks that
+# everything that should be in the dist is in the dist. If you forget
+# to update MANIFEST with new modules, data files, and so on, you
+# should notice the error.
             - name: Run distribution tests
               run: |
                 perl Makefile.PL
                 make disttest
+# And, coverage reports, but only under 5.10 and later since modern
+# Devel::Cover instances don't work with 5.8
+            - name: Run coverage tests
+              if: env.PERL_VERSION != 'v5.8'
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
+                cover -test -report coveralls

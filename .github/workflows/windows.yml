@@ -1,11 +1,15 @@
+# brian's standard GitHub Actions Windows config for Perl 5 modules
+# https://github.com/briandfoy/github_actions
+# https://github.com/features/actions
+# This file is licensed under the Artistic License 2.0
 name: windows
 
 on:
     push:
         branches:
             - '**'
-            - '!**macos**'
             - '!**linux**'
+            - '!**macos**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
@@ -15,6 +19,7 @@ on:
             - '.appveyor.yml'
             - '.github/workflows/linux.yml'
             - '.github/workflows/macos.yml'
+            - '.github/workflows/ubuntu.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
@@ -29,31 +34,52 @@ jobs:
           matrix:
             os:
                 - windows-2019
+                - windows-2022
         steps:
             - uses: actions/checkout@v2
             - name: Set up Perl
               run: |
                 choco install strawberryperl
-                echo "PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                echo "C:\strawberry\c\bin"         >> $GITHUB_PATH
+                echo "C:\strawberry\perl\site\bin" >> $GITHUB_PATH
+                echo "C:\strawberry\perl\bin"      >> $GITHUB_PATH
             - name: Perl version
               run: perl -V
+# Install the dependencies, again not testing them. This installs the
+# module in the current directory, so we end up installing the module,
+# but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpan -T .
-                cpan -T IPC::Run3
+                cpan -M https://www.cpan.org -T .
+                cpan -M https://www.cpan.org -T Test::Manifest
             - name: Run tests
               run: |
                 perl Makefile.PL
                 make test
-              env:
-                HARNESS_VERBOSE: 1
+# Running tests in parallel should be faster, but it's also more
+# tricky in cases where different tests share a feature, such as a
+# file they want to write to. Parallel tests can stomp on each other.
+# Test in parallel to catch that, because other people will test your
+# stuff in parallel.
             - name: Run tests in parallel
               env:
                 HARNESS_OPTIONS: j10
               run: |
                 perl Makefile.PL
                 make test
+# The disttest target creates the distribution, unwraps it, changes
+# into the dist dir, then runs the tests there. That checks that
+# everything that should be in the dist is in the dist. If you forget
+# to update MANIFEST with new modules, data files, and so on, you
+# should notice the error.
             - name: Run distribution tests
               run: |
                 perl Makefile.PL
                 make disttest
+# And, coverage reports
+            - name: Run coverage tests
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
+                cover -test -report coveralls
