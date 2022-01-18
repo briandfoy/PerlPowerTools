@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 use strict;
+use subs qw(core_time);
 
 =begin metadata
 
@@ -15,48 +16,36 @@ License: artistic2
 
 use POSIX;
 
-my $VERSION = '1.0.3';
+my $VERSION = '1.0.4';
 
-my $format = "%a %b %e %T %Z %Y";
+# set this if we do anything to select a timezone abbreviation, then
+# prefer this if it is defined.
+my $TZ;
 
-BEGIN {
-my @times = CORE::localtime;
-sub core_time { @times }
-}
+run(\@ARGV) unless caller();
 
-foreach (@ARGV) {
-    chomp;
-       if( /^\-u/ ) { $ENV{'TZ'} = 'UTC'; my @times = CORE::gmtime; *core_time = sub { @times } }
-    elsif( /^\+/  ) { ($format = $_) =~ s/(^\+)// }
-    else {
-        usage("$_ is not supported in this version.\n");
-        }
-    }
-
-my %formats = (
-	'e' => sprintf( '% 2d', (core_time)[3] ),
-    'P' => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
-    'q' => quarter(),
-    'T' => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
-    'Z' => munge_tz(),
-);
-
-my @POSIX = qw(
-    a A b B c C d D F g G h H I j k l m M
-    n p r R s S t u U V w W x X y Y z
-    );
-@formats{ @POSIX } = map { POSIX::strftime( "%$_", core_time() ) } @POSIX;
-
-$format =~ s/%(.)/ exists $formats{$1} ? $formats{$1} : "%$1" /eg;
-print $format, "\n";
+sub get_formats {
+	{
+		"--rfc-3339" => '%Y-%m-%d %H:%M:%S%z',  # iso-8601 without T
+		"--rfc-5322" => '%a, %d %b %Y %H:%M:%S %z',
+		"-I"         => '%Y-%m-%dT%H:%M:%S%:z', # iso-8601
+		"-R"         => '%a, %d %b %Y %T %z',   # rfc-2822
+		"default"    => '%a %b %e %T %Z %Y',
+	};
+	}
 
 sub munge_tz {
-	return 'UTC' if $ENV{TZ} eq 'UTC';
-	my $from_posix = POSIX::strftime( '%Z', core_time() );
-	my $from_windows = windows_time_zones();
+	return $TZ if defined $TZ; # something else we did set this, so use it
+	my $from_posix = posix_tz();
 	return $from_posix if $from_posix =~ m/\A[A-Z]{3,4}\z/;
-	return $from_windows->{$from_posix} if exists $from_windows->{$from_posix};
+	my $from_windows = windows_time_zones();
+	# print "# from POSIX: $from_posix\n";
+	my $i_dst = (core_time())[-1] ? -1 : 0; # some only have one entry, so two would be the same
+
+	return $from_windows->{$from_posix}[$i_dst] if exists $from_windows->{$from_posix};
 	}
+
+sub posix_tz { POSIX::strftime( '%Z', core_time() ) }
 
 sub quarter {
     my $mon = ( core_time() )[4] + 1;
@@ -67,182 +56,513 @@ sub quarter {
     else               { 4 }
     }
 
-sub usage {
-    die <<"USAGE";
-$_[0]."usage: $0".' [-u] [+format]
+sub run {
+	my( $args, $time ) = @_;
+	$time = defined $time ? $time : time;
+	*core_time = do {
+		my @times = CORE::localtime;
+		sub { @times }
+		};
 
-formats
-%% - The character %
-%a - Three-letter weekday name
-%A - Full weekday name
-%b - Three-letter month name
-%B - Full month name
-%c - locale version of the date-time string
-%C - Century (00-99)
-%d - Day of month (padded w/ zero)
-%D - Date in MM/DD/YY format
-%e - Day of month (padded w/ space)
-%F - %Y-%m-%d
-%g - ISO 8601 year
-%G - ISO 8601 year
-%h - Three-letter month name
-%H - Hour HH
-%I - Hour HH (12 hour)
-%j - Three-digit Julian day
-%k - Hour - space padded
-%l - Hour - space padded (12 hour)
-%m - Month number 01-12
-%M - Minute MM
-%n - Newline
-%p - AM or PM
-%r - Time in HH(12 hour):MM:SS (AM|PM) format
-%R - Time in HH:MM format
-%s - Absolute seconds (since epoch)
-%S - Seconds SS
-%t - Tab
-%T - Time in HH:MM:SS format.
-%u - Day of week, 1=Monday, 7=Sunday.
-%U - Two digit week number, start Sunday.
-%V - ISO week number, with Monday as the first day of week
-%w - Day of week, 0=Sunday, 6=Saturday.
-%W - Two digit week number, start Monday.
-%x - locale's date representation
-%X - locale's time representation
-%y - Two-digit year.
-%Y - Four-digit year.
-%z - Time zone offset in hours.
-%Z - Time zone code.
-USAGE
+	   if( grep { $_ eq '-h' } @$args ) { usage(0) }
+	elsif( grep { $_ eq '-v' } @$args ) { print "$0 $VERSION\n"; exit 0; }
+
+	my $formats = get_formats();
+	my %allowed = map { ("-$_" => 1) } split( //, 'u' );
+	@allowed{ keys %$formats } = (1) x (keys %$formats);
+
+	foreach (@$args) {
+		if( /^-/ and ! exists $allowed{$_} ) {
+			print STDERR "Unrecognized option $_\n";
+			exit(2);
+			}
+
+		   if( /^\-u/ ) { $TZ = $ENV{'TZ'} = 'UTC'; my @times = CORE::gmtime; *core_time = sub { @times } }
+		}
+
+	my $format;
+	$format = select_format( @$args );
+
+	my $specifiers = setup_specifiers();
+
+	$format =~ s/%(:?.)/ exists $specifiers->{$1} ? $specifiers->{$1} : "%$1" /eg;
+	print "$format\n";
+	}
+
+sub select_format {
+	my( $supplied ) = grep { /\A\+/ } @_;
+	return $1 if $supplied =~ /\A\+(.+)/;
+
+	my $formats = get_formats();
+
+	(
+		map { $formats->{$_} || () }
+		grep { exists $formats->{$_} }
+		( @ARGV, 'default' )
+	)[0]
+	}
+
+sub setup_specifiers {
+	my %specifiers = (
+		'e'  => sprintf( '% 2d', (core_time)[3] ),
+		'P'  => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
+		'q'  => quarter(),
+		'T'  => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
+		'z'  => tz_offset(),
+		':z' => do { ( my $z = tz_offset() ) =~ s/(\d\d)/$1:/; $z },
+		'Z'  => munge_tz(),
+	);
+
+	# We cheat by letting POSIX figure these out because it can handle the
+	# locale. If we later find out that some system doesn't handle one of these,
+	# we'll define our own. But, only add a POSIX cheat if we haven't already
+	# defined that format.
+	my @POSIX = qw(
+		a A b B c C d D F g G h H I j k l m M
+		n p r R s S t u U V w W x X y Y
+		);
+	@specifiers{ @POSIX } =
+		map { POSIX::strftime( "%$_", core_time() ) }
+		grep { ! exists $specifiers{$_} }
+		@POSIX;
+
+	\%specifiers;
+	}
+
+sub tz_offset {
+	# https://stackoverflow.com/a/6428732/2766176
+    my @l = CORE::localtime;
+    my @g = CORE::gmtime;
+
+    my $minutes = (
+    	$l[2] - $g[2] +
+    	( # is this the same year or day? No? Add or subtract 24 hours
+    		(($l[5]<<9)|$l[7]) <=> (($g[5]<<9)|$g[7])) * 24
+    	) * 60
+    	+ $l[1] - $g[1];
+
+	my $sign = $minutes < 0 ? '-' : "+";
+	$minutes = abs($minutes);
+
+    sprintf "%s%02d%02d", $sign, int($minutes / 60), $minutes % 60;
+	}
+
+sub usage {
+	my $exit_code = defined $_[0] ? $_[0] : 0;
+
+	my $output = <<"HEADER";
+usage: $0 [-fhIRuv] [+format]
+
+Formats:
+HEADER
+
+	open my $fh, '<:encoding(UTF-8)', __FILE__;
+	while( <$fh> ) {
+		next unless s/\A=item \s+ \* \s+(?=%)//x;
+		$output .= "\t$_";
+		}
+
+	print "$output\n";
+	exit( $exit_code );
 }
+
+sub windows_time_zones {
+	my %hash;
+
+	open my $fh, '<:encoding(UTF-8)', __FILE__;
+	while( <$fh> ) {
+		next unless /\A__(?:END|DATA)__/;
+		last;
+		}
+
+	while( <$fh> ) {
+		chomp;
+		s/\s*#.*//;
+		next unless /\S/;
+		my( $windows_name, $tz, @names ) = split /\s*,\s*/;
+		@names = sort @names; # capital letters sort before + - digits!
+		$hash{$windows_name} = \@names;
+		}
+
+	close $fh;
+
+	return \%hash;
+	}
 
 =encoding utf8
 
 =head1 NAME
 
-date - display or set date and time
+date - display date and time
+
+=head1 SYNOPSIS
+
+	# show the local date in the default format
+	% date
+
+	# show the UTC date in the default format
+	% date -u
+
+	# display version, help
+	% date -v
+	% date -h
+
+	# show the local date in the specified format
+	% date +FORMAT
+
+	# show the GMT date in the specified format
+	% date -u +FORMAT
+
+	# show local date in ISO 8601 format
+	% date -I
+
+	# show local date in RFC 2822 format
+	% date -R
+
+
+=head1 DESCRIPTION
+
+=head2 Options
+
+=over 4
+
+=item * +FORMAT
+
+Specify the date format
+
+=item * -h
+
+Show the help message and exit
+
+=item * -I
+
+Use the ISO 8601 date format: C<%Y-%m-%dT%H:%M:%S%:z>
+
+=item * -R
+
+Use RFC 2822 format: C<%a, %d %b %Y %T %z>
+
+=item * -u
+
+Use UTC time instead of local time
+
+=item * -v
+
+Show the version and exit
+
+=back
+
+=head2 Formats
+
+=over 4
+
+=item * %%  - The character %
+
+=item * %a  - Three-letter weekday name
+
+=item * %A  - Full weekday name
+
+=item * %b  - Three-letter month name
+
+=item * %B  - Full month name
+
+=item * %c  - locale version of the date-time string
+
+=item * %C  - Century (00-99)
+
+=item * %d  - Day of month (padded w/ zero)
+
+=item * %D  - Date in MM/DD/YY format
+
+=item * %e  - Day of month (padded w/ space)
+
+=item * %F  - %Y-%m-%d
+
+=item * %g  - ISO 8601 year
+
+=item * %G  - ISO 8601 year
+
+=item * %h  - Three-letter month name
+
+=item * %H  - Hour HH
+
+=item * %I  - Hour HH (12 hour)
+
+=item * %j  - Three-digit Julian day
+
+=item * %k  - Hour - space padded
+
+=item * %l  - Hour - space padded (12 hour)
+
+=item * %m  - Month number 01-12
+
+=item * %M  - Minute MM
+
+=item * %n  - Newline
+
+=item * %p  - AM or PM
+
+=item * %P  - like %p, but lowercase
+
+=item * %r  - Time in HH(12 hour):MM:SS (AM|PM) format
+
+=item * %R  - Time in HH:MM format
+
+=item * %s  - Absolute seconds (since epoch)
+
+=item * %S  - Seconds SS
+
+=item * %t  - Tab
+
+=item * %T  - Time in HH:MM:SS format.
+
+=item * %u  - Day of week, 1=Monday, 7=Sunday.
+
+=item * %U  - Two digit week number, starting on Sunday.
+
+=item * %V  - ISO week number, with Monday as the first day of week
+
+=item * %w  - Day of week, 0=Sunday, 6=Saturday.
+
+=item * %W  - Two digit week number, start Monday.
+
+=item * %x  - locale's date representation
+
+=item * %X  - locale's time representation
+
+=item * %y  - Two-digit year.
+
+=item * %Y  - Four-digit year.
+
+=item * %z  - Time zone offset in [+-]HHMM.
+
+=item * %:z - Time zone offset in [+-]HH:MM.
+
+=item * %Z  - Time zone abbrevation, such as UTC or EST.
+
+Note: Windows does not use the POSIX time stuff, so we try to fake it.
+If you don't get what you expect for the time zone abbreviation
+please open an issue: L<https://github.com/briandfoy/PerlPowerTools/issues>.
+If you look in the C<date> file, you'll see a simple text list at the end
+that we use for Windows.
+
+=se back
 
 =cut
+
+# If any of these are wrong, just send the patch or raise an issue
 
 =begin comment
 
-#!perl
-use v5.10;
+Windows is a bit of a pain here. We want to support %Z, but Windows
+doesn't track the time zone abbreviations. You get the full name,
+such as "Alaskan Standard Time". So, I want a way to convert that.
 
-use Mojo::UserAgent;
-use Mojo::Util qw(dumper);
+These data are ad hoc, and guessing sometimes.
 
-my $ua = Mojo::UserAgent->new;
-my $url = 'https://ss64.com/nt/timezones.html';
+First, I got a list of all the Windows timezone names with `tzutil /l`.
+However, those are just the names you can use with `/s` rather than
+all of the names windows will report. For example, you can set
+"Alaskan Standard Time" but not "Alaskan Daylight Time", although
+Windows, through the POSIX module, will report "Alaskan Daylight Time"
+when appropriate.
 
-my %hash = Mojo::UserAgent
-	->new
-	->get( $url )
-	->result
-	->dom
-	->find( 'table#rowhover > tr' )
-	->map( sub { ($_->find( 'td' )->map( 'all_text' )->each)[2,4] } )
-	->each;
+I get all those names by setting every Windows time zone, then checking
+what POSIX's %Z returns. Note that you need to do this in a separate
+process because most of the time tools only respect the first setting
+of the time zone.
 
-say dumper( \%hash );
+Second, I want to get time zone abbreviations. This is a bit tricky because
+the same offset can have many different abbreviations. By hand, I
+associated the Olson name, such as America/Anchorage, with the Windows
+name. Once I have all of those, I can use DateTime::TimeZone to get the
+Olson abbreviations. In some cases, I added additional time zone names.
+
+Note that some of the abbreviations may be unexpected or unwanted. For
+example, in the Russian Time Zones, they have special names, but you
+may want MSK+n. You can edit this file to put whatever you like.
 
 =end comment
 
-=cut
-
-sub windows_time_zones {
-	my %hash = (
-	  "AUS Central Standard Time" => "ACST",
-	  "AUS Eastern Standard Time" => "AEST",
-	  "Afghanistan Standard Time" => "AFT",
-	  "Alaskan Standard Time" => "AKST",
-	  "Arab Standard Time" => "ABST",
-	  "Arabian Standard Time" => "AST",
-	  "Arabic Standard Time" => "ARST",
-	  "Argentina Standard Time" => "ART",
-	  "Atlantic Standard Time" => "\x{a0}",
-	  "Azerbaijan Standard Time" => "AZT",
-	  "Azores Standard Time" => "AZOT",
-	  "Cabo Verde Standard Time" => "CVT",
-	  "Canada Central Standard Time" => "CT",
-	  "Caucasus Standard Time" => "AMT",
-	  "Cen. Australia Standard Time" => "ACST",
-	  "Central America Standard Time" => "CST",
-	  "Central Asia Standard Time" => "BTT",
-	  "Central Europe Standard Time" => "CET",
-	  "Central European Standard Time" => "CET",
-	  "Central Pacific Standard Time" => "SBT",
-	  "Central Standard Time" => "CT/CCST",
-	  "Central Standard Time (Mexico)" => "CST",
-	  "China Standard Time" => "CST",
-	  "Dateline Standard Time" => "BIT",
-	  "E. Africa Standard Time" => "EAT",
-	  "E. Australia Standard Time" => "AEST",
-	  "E. Europe Standard Time" => "EET",
-	  "E. South America Standard Time" => "EST",
-	  "Eastern Standard Time" => "EST",
-	  "Egypt Standard Time" => "EGST",
-	  "Ekaterinburg Standard Time" => "YEKT",
-	  "FLE Standard Time" => "EET",
-	  "Fiji Standard Time" => "FJT",
-	  "Further-Eastern European Time" => "FET",
-	  "GMT Standard Time" => "GMT",
-	  "GTB Standard Time" => "GTBST",
-	  "Georgian Standard Time" => "GET",
-	  "Greenland Standard Time" => "GNST",
-	  "Greenwich Standard Time" => "GMT",
-	  "Hawaiian Standard Time" => "HST",
-	  "India Standard Time" => "IST",
-	  "Iran Standard Time" => "IRST",
-	  "Israel Standard Time" => "IST",
-	  "Jordan Standard Time" => "JST",
-	  "Korea Standard Time" => "KST",
-	  "Libya Standard Time" => "CET",
-	  "Mauritius Standard Time" => "MUT",
-	  "Mexico Standard Time" => "CST",
-	  "Mexico Standard Time 2" => "",
-	  "Mid-Atlantic Standard Time" => "GST",
-	  "Middle East Standard Time" => "MEST",
-	  "Morocco Standard Time" => "MOST",
-	  "Mountain Standard Time" => "MT/MST",
-	  "Mountain Standard Time (Mexico)" => "MSTM",
-	  "Myanmar Standard Time" => "MYST",
-	  "N. Central Asia Standard Time" => "NCAST",
-	  "Namibia Standard Time" => "NMST",
-	  "Nepal Standard Time" => "NPT",
-	  "New Zealand Standard Time" => "NZST",
-	  "Newfoundland and Labrador Standard Time" => "NST",
-	  "North Asia East Standard Time" => "IRKT",
-	  "North Asia Standard Time" => "KRAT",
-	  "Pacific SA Standard Time" => "PSAST",
-	  "Pacific Standard Time" => "PST",
-	  "Pacific Standard Time (Mexico)" => "PST",
-	  "Pakistan Standard Time" => "PKT",
-	  "Romance Standard Time" => "RST",
-	  "Russian Standard Time" => "MSK",
-	  "SA Eastern Standard Time" => "UYT/SAEST",
-	  "SA Pacific Standard Time" => "SAPST",
-	  "SA Western Standard Time" => "SAWST",
-	  "SE Asia Standard Time" => "THA",
-	  "Samoa Standard Time" => "SMST",
-	  "Singapore Standard Time" => "SST",
-	  "South Africa Standard Time" => "SAST",
-	  "Sri Lanka Standard Time" => "SLST",
-	  "Taipei Standard Time" => "TIST",
-	  "Tasmania Standard Time" => "TAST",
-	  "Tokyo Standard Time" => "TST",
-	  "Tonga Standard Time" => "TOT",
-	  "Turkey Standard Time" => "EET",
-	  "U.S. Eastern Standard Time" => "EST",
-	  "US Mountain Standard Time" => "MST",
-	  "Venezuela Standard Time" => "VET",
-	  "Vladivostok Standard Time" => "VLAT",
-	  "W. Australia Standard Time" => "AWST",
-	  "W. Central Africa Standard Time" => "ECT",
-	  "W. Europe Standard Time" => "WET",
-	  "West Asia Standard Time" => "WAST",
-	  "West Pacific Standard Time" => "WPST",
-	  "Yakutsk Standard Time" => "YAKT",
-	  );
-
-	  \%hash;
-}
+__DATA__
+Afghanistan Standard Time,Asia/Kabul,+0430
+Alaskan Daylight Time,America/Anchorage,-0900,AKDT
+Alaskan Standard Time,America/Anchorage,-0800,AKST
+Aleutian Daylight Time,America/Adak,-0900,HDT
+Aleutian Standard Time,America/Adak,-1000,HST
+Altai Standard Time,Asia/Barnaul,+0700
+Arab Standard Time,Asia/Riyadh,+0300
+Arabian Standard Time,Asia/Riyadh,+0300
+Arabic Standard Time,Asia/Baghdad,+0300
+Argentina Standard Time,America/Argentina/Cordoba,-0300
+Astrakhan Standard Time,Europe/Astrakhan,+0400
+Atlantic Daylight Time,America/Halifax,ADT
+Atlantic Standard Time,America/Halifax,AST
+AUS Central Standard Time,Australia/Adelaide,ACST
+Aus Central W. Standard Time,Australia/Eucla,+0845
+AUS Eastern Standard Time,Australia/Sydney,AEST
+Azerbaijan Standard Time,Asia/Baku,+0400
+Azores Daylight Time,Atlantic/Azores,+0000
+Azores Standard Time,Atlantic/Azores,-0100
+Bahia Standard Time,America/Bahia,-0300
+Bangladesh Standard Time,Asia/Dhaka,+0600
+Belarus Standard Time,Europe/Minsk,+0300
+Bougainville Standard Time,Pacific/Bougainville,+1100
+Cabo Verde Standard Time,Atlantic/Cape_Verde,-0100
+Canada Central Standard Time,America/Regina,CST
+Cape Verde Standard Time,Atlantic/Cape_Verde,-0100
+Caucasus Standard Time,Asia/Tbilisi,+0400
+Cen. Australia Standard Time,Australia/Adelaide,ACST
+Central America Standard Time,America/Belize,CST
+Central Asia Standard Time,Asia/Almaty,+0600
+Central Brazilian Standard Time,America/Cuiaba,-0400
+Central Daylight Time (Mexico),America/Mexico_City,CDT
+Central Daylight Time,America/Chicago,CDT
+Central Europe Daylight Time,Europe/Paris,CEST
+Central Europe Standard Time,Europe/Paris,CET
+Central European Daylight Time,Europe/Paris,CEST
+Central European Standard Time,Europe/Paris,CET
+Central Pacific Standard Time,Pacific/Guadalcanal,+1100
+Central Standard Time (Mexico),America/Mexico_City,CST
+Central Standard Time,America/Chicago,CST
+Chatham Islands Standard Time,Pacific/Chatham,+1245
+China Standard Time,Asia/Shanghai,CST
+Cuba Daylight Time,America/Havana,CDT
+Cuba Standard Time,America/Havana,CST
+Dateline Standard Time,,
+E. Africa Standard Time,Africa/Nairobi,EAT
+E. Australia Standard Time,Australia/Sydney,AEST
+E. Europe Daylight Time,Europe/Bucharest,EEST
+E. Europe Standard Time,Europe/Bucharest,EET
+E. South America Standard Time,America/Argentina/Cordoba,-0300
+Easter Island Standard Time,Pacific/Easter,-0600
+Eastern Daylight Time,America/New_York,EDT
+Eastern Standard Time,America/New_York,EST
+Egypt Standard Time,Africa/Cairo,EET
+Ekaterinburg Standard Time,Asia/Yekaterinburg,+0500
+Fiji Standard Time,Pacific/Fiji,+1200
+FLE Daylight Time,Europe/Helsinki,EEST
+FLE Standard Time,Europe/Helsinki,EET
+Further-Eastern European Time,Europe/Minsk,+0300
+Georgian Standard Time,Asia/Tbilisi,+0400
+!!! Olsen: no dst!
+GMT Daylight Time,Greenwich,UTC
+GMT Standard Time,Greenwich,UTC
+Greenland Daylight Time,America/Nuuk,-0200
+Greenland Standard Time,America/Nuuk,-0300
+Greenwich Standard Time,Greenwich,UTC
+GTB Daylight Time,Europe/Athens,EEST
+GTB Standard Time,Europe/Athens,EET
+Haiti Daylight Time,America/Port-au-Prince,EDT
+Haiti Standard Time,America/Port-au-Prince,EST
+Hawaiian Standard Time,Pacific/Honolulu,HST
+India Standard Time,Asia/Kolkata,IST
+Iran Daylight Time,Asia/Tehran,+0430
+Iran Standard Time,Asia/Tehran,+0330
+Israel Standard Time,Asia/Jerusalem,IST
+Jerusalem Daylight Time,Asia/Jerusalem,IDT
+Jerusalem Standard Time,Asia/Jerusalem,IST
+Jordan Daylight Time,Asia/Amman,EEST
+Jordan Standard Time,Asia/Amman,EET
+Kaliningrad Standard Time,Europe/Kaliningrad,EET
+Korea Standard Time,Asia/Seoul,KST
+Libya Standard Time,Africa/Tripoli,EET
+Line Islands Standard Time,Pacific/Kiritimati,+1400
+Lord Howe Standard Time,Australia/Lord_Howe,+1030
+Magadan Standard Time,Asia/Magadan,+1100
+Magallanes Standard Time,America/Punta_Arenas,-0300
+Malay Peninsula Standard Time,Asia/Kuala_Lumpur,MYT
+Marquesas Standard Time,Pacific/Marquesas,-0930
+Mauritius Standard Time,Indian/Mauritius,+0400
+Mexico Standard Time 2,,
+Mexico Standard Time,,
+Mid-Atlantic Standard Time,,
+Middle East Daylight Time,Asia/Beirut,EEST
+Middle East Standard Time,Asia/Beirut,EET
+Montevideo Standard Time,America/Montevideo,-0300
+Morocco Daylight Time,Africa/Casablanca,+0100
+Morocco Standard Time,Africa/Casablanca,+0100
+Mountain Daylight Time (Mexico),America/Chihuahua,MDT
+Mountain Daylight Time,America/Denver,MDT
+Mountain Standard Time (Mexico),America/Chihuahua,MST
+Mountain Standard Time,America/Denver,MST
+Myanmar Standard Time,Asia/Yangon,+0630
+N. Central Asia Standard Time,Asia/Novosibirsk,+0700
+Namibia Standard Time,Africa/Windhoek,CAT
+Nepal Standard Time,Asia/Kathmandu,+0545
+New Zealand Standard Time,Pacific/Auckland,NZST
+Newfoundland and Labrador Standard Time,America/St_Johns,NST
+Newfoundland Daylight Time,America/St_Johns,NDT
+Newfoundland Standard Time,America/St_Johns,NST
+Norfolk Standard Time,Pacific/Norfolk,+1100
+North Asia East Standard Time,Asia/Irkutsk,+0800
+North Asia Standard Time,Asia/Krasnoyarsk,+0700
+North Korea Standard Time,Asia/Pyongyang,KST
+Novosibirsk Standard Time,Asia/Novosibirsk,+0700
+Omsk Standard Time,Asia/Omsk,+0600
+Pacific Daylight Time,America/Los_Angeles,PDT
+Pacific SA Standard Time,America/Lima,-0500
+Pacific Standard Time (Mexico),America/Tijuana,PST
+Pacific Standard Time,America/Los_Angeles,PST
+Pakistan Standard Time,Asia/Karachi,PKT
+Paraguay Standard Time,America/Asuncion,-0400
+Qyzylorda Standard Time,Asia/Qyzylorda,+0500
+Romance Daylight Time,Europe/Paris,CEST
+Romance Standard Time,Europe/Paris,CET
+Russia TZ 1 Standard Time,Europe/Kaliningrad,EET,USZ1
+Russia TZ 2 Standard Time,Europe/Moscow,MSK
+Russia TZ 3 Standard Time,Europe/Samara,+0400,SAMT
+Russia TZ 4 Standard Time,Asia/Yekaterinburg,+0500,YEKT
+Russia TZ 5 Standard Time,Asia/Omsk,OMST
+Russia TZ 6 Standard Time,Asia/Krasnoyarsk,+0700,KRAT
+Russia TZ 7 Standard Time,Asia/Irkutsk,+0800,IRKT
+Russia TZ 8 Standard Time,Asia/Yakutsk,+0900,YAKT
+Russia TZ 9 Standard Time,Asia/Vladivostok,+1000,VLAT
+Russia TZ 10 Standard Time,Asia/Srednekolymsk,+1100,MAGT
+Russia TZ 11 Standard Time,Asia/Anadyr,+1200,PETT
+Russian Standard Time,Europe/Moscow,MSK
+SA Eastern Standard Time,America/Cayenne,-0300
+SA Pacific Standard Time,America/Lima,-0500
+SA Western Standard Time,America/La_Paz,-0400
+Saint Pierre Daylight Time,America/Miquelon,-0200
+Saint Pierre Standard Time,America/Miquelon,-0300
+Sakhalin Standard Time,Asia/Sakhalin,+1100
+Samoa Standard Time,Pacific/Apia,+1300
+Sao Tome Standard Time,Africa/Sao_Tome,GMT
+Saratov Standard Time,Europe/Saratov,+0400
+SE Asia Standard Time,Asia/Jakarta,WIB
+Singapore Standard Time,Asia/Singapore,+0800
+South Africa Standard Time,Africa/Johannesburg,SAST
+South Sudan Standard Time,Africa/Juba,EAT
+Sri Lanka Standard Time,Asia/Colombo,+0530
+Sudan Standard Time,Africa/Khartoum,CAT
+Syria Daylight Time,Asia/Damascus,EEST
+Syria Standard Time,Asia/Damascus,EET
+Taipei Standard Time,Asia/Taipei,CST
+Tasmania Standard Time,Australia/Hobart,AEST
+Tocantins Standard Time,America/Araguaina,-0300
+Tokyo Standard Time,Asia/Tokyo,JST
+Tomsk Standard Time,Asia/Tomsk,+0700
+Tonga Standard Time,Pacific/Tongatapu,+1300
+Transbaikal Standard Time,Asia/Chita,+0900
+Turkey Standard Time,Europe/Istanbul,+0300
+Turks and Caicos Daylight Time,America/Grand_Turk,EDT
+Turks And Caicos Standard Time,America/Grand_Turk,EST
+U.S. Eastern Standard Time,America/New_York,EST
+Ulaanbaatar Standard Time,Asia/Ulaanbaatar,+0800
+US Eastern Daylight Time,America/New_York,EDT
+US Eastern Standard Time,America/New_York,EST
+US Mountain Standard Time,America/Denver,MST
+Venezuela Standard Time,America/Caracas,-0400
+Vladivostok Standard Time,Asia/Vladivostok,+1000
+Volgograd Standard Time,Europe/Volgograd,+0300
+W. Australia Standard Time,Australia/Perth,AWST
+W. Central Africa Standard Time,,
+W. Europe Daylight Time,Europe/London,BST
+W. Europe Standard Time,Europe/London,GMT
+W. Mongolia Standard Time,Asia/Ulaanbaatar,+0800
+West Asia Standard Time,Asia/Tashkent,+0500
+West Bank Standard Time,Asia/Hebron,EET
+West Pacific Standard Time,Pacific/Port_Moresby,+1000
+Yakutsk Standard Time,Asia/Yakutsk,+0900
+Yukon Standard Time,America/Whitehorse,MST
