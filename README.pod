@@ -24,9 +24,13 @@ distribution provides pure-Perl implementations of popular Unix tools
 aimed at the less fortunate systems that don't come with them. By default,
 these install into F<~/perlpowertools>.
 
-You're probably looking at this because you don't know where else to
-find what you're looking for. Read this once and you might never have
-to read one again for any Perl module.
+There are some other ways that might get you to the same thing (and
+are probably better supported):
+
+* With the [Windows Subsytem for Linux](https://docs.microsoft.com/en-us/windows/wsl/) (WSL), you can run a linux right in a console
+* The [GNU coreutils](https://www.gnu.org/software/coreutils)
+* [Cygwin](https://www.cygwin.com)
+* [GNUWin](http://gnuwin32.sourceforge.net/summary.html)
 
 =head2 Documentation
 
