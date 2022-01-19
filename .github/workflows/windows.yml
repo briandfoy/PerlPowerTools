@@ -46,6 +46,7 @@ jobs:
               run: |
                 perl -V
                 echo $env:Path
+                gcm perl*
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
