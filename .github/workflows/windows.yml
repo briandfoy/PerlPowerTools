@@ -43,7 +43,9 @@ jobs:
                 echo "C:\strawberry\perl\site\bin" >> $GITHUB_PATH
                 echo "C:\strawberry\perl\bin"      >> $GITHUB_PATH
             - name: Perl version
-              run: perl -V
+              run: |
+                perl -V
+                echo "$PATH"
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
