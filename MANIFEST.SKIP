@@ -87,3 +87,4 @@ bin/pmake
 \A\.github\b
 
 ^util/
+output.txt
