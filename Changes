@@ -1,5 +1,10 @@
 Revision history for Perl module PerlPowerTools
 
+1.028 2022-01-19T05:43:47Z
+	* Try to fix Windows's handling of %Z in date - GitHub #98
+	* If you find problems, try adjusting the data in script/date and
+	open an issue with your changes
+
 1.027 2021-10-11T14:15:02Z
 	* Add whoami, originally from Oğuz Ersen. Let me know if you find 
 	problems with this.
