@@ -40,11 +40,14 @@ jobs:
             - name: Set up Perl
               run: |
                 choco install strawberryperl
-                echo "C:\strawberry\c\bin"         >> $GITHUB_PATH
-                echo "C:\strawberry\perl\site\bin" >> $GITHUB_PATH
-                echo "C:\strawberry\perl\bin"      >> $GITHUB_PATH
+                echo "C:\strawberry\c\bin"         | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                echo "C:\strawberry\perl\site\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                echo "C:\strawberry\perl\bin"      | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
             - name: Perl version
-              run: perl -V
+              run: |
+                perl -V
+                echo $env:Path
+                gcm perl*
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
