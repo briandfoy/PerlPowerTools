@@ -17,7 +17,7 @@ use strict;
 use Getopt::Std;
 use vars qw($opt_s $opt_n $opt_r $opt_v $opt_m $opt_a);
 
-my $usage = "usage: uname   [-snrvma]\n";
+my $usage = "usage: uname [-snrvma]\n";
 getopts "snrvma" or die $usage;
 
 my ($sysname, $nodename, $release, $version, $machine ) = uname;
@@ -38,6 +38,8 @@ if ($opt_v || $opt_a) {
 if ($opt_m || $opt_a) {
 	push @out, $machine;
 }
+
+push @out, $sysname unless @out;
 
 print "@out\n";
 

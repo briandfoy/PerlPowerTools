@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+package PerlPowerTools::units;
+
+use strict;
+use warnings;
+use open qw(:std :utf8);
 
 =begin metadata
 
@@ -11,144 +16,198 @@ License: GNU GPL
 
 =cut
 
-
-#     units: convert units of measurement
-#     Copyright (C) 1996,1999 M-J. Dominus (mjd-perl-units@plover.com)
-#
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version, or under Perl's `Artistic License'.
-#
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
 use Config;
 
 # Usage:
 # units [-f unittab]
-$VERSION = '1.01';
+our $VERSION = '1.01';
 
-# $DEBUG_p = 1;
-# $DEBUG_o = 1;
-# $DEBUG_l = 1;
-my %unittab;			# Definitions loaded here
-@DEFAULT_UNITTABS = ('/usr/lib/unittab');
+BEGIN {
+    require Data::Dumper;
+	sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
+
+	foreach my $letter ( qw( d p o l ) ) {
+	  no strict 'refs';
+	  my $env_var = uc( "UNITS_DEBUG_$letter" );
+	  my( $debugging ) = grep { defined and length } ( $ENV{$env_var}, $ENV{UNITS_DEBUG}, 0 );
+	  *{"debug_$letter"} = ! $debugging ? sub {} : sub {
+		my $indent;
+		my $m = join '', @_;
+		$indent = $1 if $m =~ s/\A(\s*)//;
+		print "$indent$letter>>> $m\n";
+	  }
+	}
+}
+
+our %unittab;            # Definitions loaded here
 
 # Metric prefixes.  These must be powers of ten or change the
 # token_value subroutine
+our %PREF;
+our $PREF;
+our $PARSE_ERROR;
+
 BEGIN {
-  %PREF = (yotta => -24,
-	   zetta => -21,
-	   atto => -18,
-	   femto => -15,
-	   pico => -12,
-	   nano => -9,
-	   micro => -6,
-#	      u => -6,
-	   milli => -3,
-	   centi => -2,
-	   deci => -1,
-	   deca => 1,
-	   deka => 1,
-	   hecto => 2,
-	   hect => 2,
-	   kilo => 3,
-	   myria => 4,
-	   mega => 6,
-	   giga => 9,
-	   tera => 12,
-	   zepto => 15,
-	   yocto => 18,
-	  );
+  %PREF = (
+    yotta => -24,
+    zetta => -21,
+    atto  => -18,
+    femto => -15,
+    pico  => -12,
+    nano  => - 9,
+    micro => - 6,
+    milli => - 3,
+    centi => - 2,
+    deci  => - 1,
+    deca  =>   1,
+    deka  =>   1,
+    hecto =>   2,
+    hect  =>   2,
+    kilo  =>   3,
+    myria =>   4,
+    mega  =>   6,
+    giga  =>   9,
+    tera  =>  12,
+    zepto =>  15,
+    yocto =>  18,
+  );
   $PREF = join '|', sort {$PREF{$a} <=> $PREF{$b}} (keys %PREF);
 }
 
+__PACKAGE__->run(@ARGV) unless caller;
 
-################################################################
-#
-# Main program here
-#
-################################################################
+sub run {
+  my( $class, @args ) = @_; local @ARGV;
 
-# $definitions = '-';
-while ($ARGV[0] =~ /^-/) {
-  my $flag = shift;
-  if ($flag =~ /^-(f|-file)?$/) {
-    push @UNITTABS, shift;
-  } elsif ($flag =~ /^-(W|-warranty)$/) {
-    WARRANTY();
-    exit 0;
-  } elsif ($flag =~ /^-(C|-copying)$/) {
-    COPYING();
-    exit 0;
-  } elsif ($flag =~ /^--version$/) {
-    print "perl units version $VERSION.\n";
-    exit 0;
-  } else {
-    warn "Unknown flag: $flag.\n";
-    $USAGE++;
-  }
+  my $args = $class->process_args( @args );
+  $class->read_unittab( $args->{unittabs}[0] );
+
+  $class->input_loop;
+
+  exit 0;
 }
-usage() if $USAGE || @ARGV;
 
-@UNITTABS = split /$Config{path_sep}/, $ENV{UNITTAB} unless @UNITTABS;
-@UNITTABS = @DEFAULT_UNITTABS unless @UNITTABS;
-for (@UNITTABS) {
-  read_defs($_);
+sub default_unittabs {
+  grep { -e } qw(/usr/lib/unittab);
 }
-for (;;) {
-  print "You have: ";
-  my $have = <>;
-  trim($have);
-  if ($have =~ s/^\s*\#\s*//) {
-    if (definition_line($have)) {
-      print "Defined.\n";
-    } else {
-      print "Error: $PARSE_ERROR.\n";
+
+sub env_unittabs {
+  no warnings 'uninitialized';
+  split /$Config{path_sep}/, $ENV{UNITTAB};
+}
+
+sub process_args {
+    my( $class, @args ) = @_;
+
+    my @unittabs;
+    my $USAGE;
+
+    while (@args and $args[0] =~ /^-/) {
+      my $flag = shift @args;
+      if ($flag =~ /^-(f|-file)?$/) {
+        push @unittabs, shift @args;
+      } elsif ($flag =~ /^-(W|-warranty)$/) {
+        $class->WARRANTY();
+        exit 0;
+      } elsif ($flag =~ /^-(C|-copying)$/) {
+        $class->COPYING();
+        exit 0;
+      } elsif ($flag =~ /^--version$/) {
+        print "perl units version $VERSION.\n";
+        exit 0;
+      } else {
+        warn "Unknown flag: $flag.\n";
+        $USAGE++;
+      }
     }
-    next;
-  }
-  exit 0 unless $have =~ /\S/;
-  my $hu = parse_unit($have);
-  if (is_Zero($hu)) {
-    print $PARSE_ERROR, "\n";
-    redo;
-  }
-  my $wu;
-  my $want;
+
+    $class->usage() if $USAGE || @args;
+
+    @unittabs = $class->env_unittabs unless @unittabs;
+    @unittabs = $class->default_unittabs unless @unittabs;
+
+    { unittabs => \@unittabs }
+}
+
+sub read_unittab {
+  my( $class, $file ) = @_;
+  my $read_unittab = 0;
+
+  my( $name, $fh ) = do {
+    if( defined $file and -e $file ) {
+      open my($fh), '<:encoding(UTF-8)', $file or do {
+        die "Could not open <$file>: Aborting.";
+      };
+      ( $file, $fh )
+    }
+    else {
+      debug_d( "Reading from DATA" );
+      open my $fh, '<:encoding(UTF-8)', __FILE__ or die;
+      while( <$fh> ) { last if /\A__(?:DATA|END)__/ }
+      ( 'DATA', $fh );
+    }
+
+  };
+
+  $class->read_defs( $name, $fh );
+}
+
+sub input_loop {
+  my( $class ) = @_;
+
   for (;;) {
-    print "You want: ";
-    $want = <>;
-    trim($want);
-    redo unless $want =~ /\S/;
-    $wu = parse_unit($want);
-    if (is_Zero($wu)) {
+    print "You have: ";
+    my $have = <>;
+    trim($have);
+    if ($have =~ s/^\s*\#\s*//) {
+      if ($class->definition_line($have)) {
+        print "Defined.\n";
+      } else {
+        print "Error: $PARSE_ERROR.\n";
+      }
+      next;
+    }
+    exit 0 unless $have =~ /\S/;
+    my $hu = $class->parse_unit($have);
+    if (is_Zero($hu)) {
       print $PARSE_ERROR, "\n";
+      redo;
+    }
+    my $wu;
+    my $want;
+    for (;;) {
+      print "You want: ";
+      $want = <>;
+      trim($want);
+      redo unless $want =~ /\S/;
+      $wu = $class->parse_unit($want);
+      if (is_Zero($wu)) {
+        print $PARSE_ERROR, "\n";
+      } else {
+        last;
+      }
+    }
+    my $quot = unit_divide($hu, $wu);
+    if (is_dimensionless($quot)) {
+      my $q = $quot->{_};
+      my $p = 1/$q;
+      printf "\t* %.6g\n\t/ %.6g\n", $q, $p;
     } else {
-      last;
+      print
+        "conformability (Not the same dimension)\n",
+        "\t", $have, " is ", text_unit($hu), "\n",
+        "\t", $want, " is ", text_unit($wu), "\n",
+        ;
     }
   }
-  my $quot = unit_divide($hu, $wu);
-  if (is_dimensionless($quot)) {
-    my $q = $quot->{_};
-    my $p = 1/$q;
-    printf "\t* %.6g\n\t/ %.6g\n", $q, $p;
-  } else {
-    print
-      "conformability (Not the same dimension)\n",
-      "\t", $have, " is ", text_unit($hu), "\n",
-      "\t", $want, " is ", text_unit($wu), "\n",
-      ;
-  }
 }
-
 
 ################################################################
 
 sub usage {
+  my( $class ) = @_;
+  my @default_unittabs = $class->default_unittabs();
+
   print STDERR <<EOM;
  Usage: $0 [-f definition-file] [option]...
 
@@ -156,61 +215,63 @@ valid options are:
 
         -? --help         display this help text
         -f --file         use specified definition file instead of
-                          @DEFAULT_UNITTABS
+                          @default_unittabs
         -W --warranty     display information about (lack of) warranty
         -C --copying      display information about license
            --version      display version information
 
-Report bugs to mjd-perl-units\@plover.com.
+Report bugs to https://github.com/briandfoy/PerlPowerTools/issues
 EOM
   exit 1;
 }
 
 sub read_defs {
-  my ($file) = @_;
-  open D, '<', $file
-    or die "Couldn't read definitions from from `$file': $!; aborting";
-  while (<D>) {
-    s/\#.*$//;
+  my ($class, $filename, $fh) = @_;
+  while (<$fh>) {
+  	next if m|\A/|;  # comment line
     trim($_);
     next unless /\S/;
 
-    print ">>> $_\n" if $DEBUG_d;
-    my $r = definition_line($_);
-    unless (defined $r) {
-      warn "Error in line $. of $file: $PARSE_ERROR.  Skipping.\n";
+    debug_d( "$_" );
+    my $hash = $class->definition_line($_);
+    foreach my $key ( keys %$hash ) {
+      $unittab{$key} = $hash->{$key};
     }
   }
 }
 
 sub definition_line {
-  my ($line) = @_;
+  my ($class, $line) = @_;
   my ($name, $data) = split /\s+/, $line, 2;
-  my $value = parse_unit($data);
-  if (is_Zero($value)) {
-    return;
+  my $value = $class->parse_unit($data);
+
+  my $rc = do {
+       if (is_Zero($value))        { undef                              }
+    elsif (is_fundamental($value)) { +{ $name => {_ => 1, $name => 1} } }
+    else                           { +{ $name => $value               } }
+  };
+
+  unless( defined $rc ) {
+    warn "Parse error: $PARSE_ERROR.  Skipping.\n";
+    $rc = {};
   }
-  if (is_fundamental($value)) {
-    return $unittab{$name} = {_ => 1, $name => 1};
-  } else {
-    return $unittab{$name} = $value;
-  }
+
+  return $rc;
 }
 
 sub trim {
+  $_[0] =~ s/\#.*$//;;
   $_[0] =~ s/\s+$//;
   $_[0] =~ s/^\s+//;
 }
 
 sub Zero () { +{ _ => 0 } }
 
-sub is_Zero {
-  $_[0]{_} == 0;
-}
+sub is_Zero { $_[0]{_} == 0 }
 
 sub unit_lookup {
   my ($name) = @_;
-  print STDERR "Looking up unit `$name'\n" if $DEBUG_l;
+  debug_l( "Looking up unit `$name'" );
   return $unittab{$name} if exists $unittab{$name};
   if ($name =~ /s$/) {
     my $shortname = $name;
@@ -228,14 +289,14 @@ sub unit_lookup {
 
 sub unit_multiply {
   my ($a, $b) = @_;
-  print STDERR "Multiplying @{[%$a]} by @{[%$b]}: \n" if $DEBUG_o;
+  debug_o( "Multiplying @{[%$a]} by @{[%$b]}: " );
   my $r = {%$a};
   $r->{_} *= $b->{_};
   for my $u (keys %$b) {
     next if $u eq '_';
     $r->{$u} += $b->{$u};
   }
-  print STDERR "\tResult: @{[%$r]}\n" if $DEBUG_o;
+  debug_o( "\tResult: @{[%$r]}" );
   $r;
 }
 
@@ -253,28 +314,28 @@ sub unit_divide {
 
 sub unit_power {
   my ($p, $u) = @_;
-  print STDERR "Raising unit @{[%$u]} to power $p.\n" if $DEBUG_o;
+  debug_o( "Raising unit @{[%$u]} to power $p." );
   my $r = {%$u};
   $r->{_} **= $p;
   for my $d (keys %$r) {
     next if $d eq '_';
     $r->{$d} *= $p;
   }
-  print STDERR "\tResult: @{[%$r]}\n" if $DEBUG_o;
+  debug_o( "\tResult: @{[%$r]}" );
   $r;
 }
 
 sub unit_dimensionless {
-  print "Turning $_[0] into a dimensionless unit.\n" if $DEBUG_o;
+  debug_o( "Turning $_[0] into a dimensionless unit." );
   return +{_ => $_[0]};
 }
 
 sub con_multiply {
   my ($u, $c) = @_;
-  print STDERR "Multiplying unit @{[%$u]} by constant $c.\n" if $DEBUG_o;
+  debug_o( "Multiplying unit @{[%$u]} by constant $c." );
   my $r = {%$u};
   $r->{_} *= $c;
-  print STDERR "\tResult: @{[%$r]}\n" if $DEBUG_o;
+  debug_o( "\tResult: @{[%$r]}" );
   $r;
 }
 
@@ -293,7 +354,7 @@ sub new_fundamental_unit {
   return +{__ => 'new', _ => 1};
 }
 
-# Recognize this  bogus value when it appears again.
+# Recognize this bogus value when it appears again.
 sub is_fundamental {
   exists $_[0]{__};
 }
@@ -328,114 +389,138 @@ sub text_unit {
 # I'm the parser
 #
 
+our @actions;
 BEGIN {
   sub sh { ['shift', $_[0]]  };
   sub go { ['goto', $_[0]] };
+
+  my $eof_state = 98;
+
   @actions =
     (
      # Initial state
-     {PREFIX => sh(1),
-      NUMBER => sh(2),
-      NAME   => sh(3),
-      FUNDAMENTAL => sh(4),
-      FRACTION => sh(5),
-      '(' => sh(6),
-      'unit' => go(7),
-      'topunit' => go(17),
-      'constant' => go(8),
+     {
+     PREFIX      => sh(1),
+     NUMBER      => sh(2),
+     NAME        => sh(3),
+     FUNDAMENTAL => sh(4),
+     FRACTION    => sh(5),
+     POWER       => sh(17),
+     '('         => sh(6),
+     'unit'      => go(7),
+     'topunit'   => go($eof_state),
+     'constant'  => go(8),
      },
+
      # State 1:   constant -> PREFIX .
      { _ => ['reduce', 1, 'constant']},
+
      # State 2:   constant -> NUMBER .
      { _ => ['reduce', 1, 'constant']},
+
      # State 3:   unit -> NAME .
      { _ => ['reduce', 1, 'unit', \&unit_lookup ]},
+
      # State 4:   unit -> FUNDAMENTAL .
      { _ => ['reduce', 1, 'unit', \&new_fundamental_unit ]},
+
      # State 5:   constant -> FRACTION .
      { _ => ['reduce', 1, 'constant']},
+
      # State 6:   unit -> '(' . unit ')'
-     {PREFIX => sh(1),
-      NUMBER => sh(2),
-      NAME   => sh(3),
+     {PREFIX      => sh(1),
+      NUMBER      => sh(2),
+      NAME        => sh(3),
       FUNDAMENTAL => sh(4),
-      FRACTION => sh(5),
-      '(' => sh(6),
-      'unit' => go(9),
-      'constant' => go(8),
+      FRACTION    => sh(5),
+      '('         => sh(6),
+      'unit'      => go(9),
+      'constant'  => go(8),
      },
+
      # State 7:   topunit -> unit .
      #            unit  ->  unit . TIMES unit
      #            unit  ->  unit . DIVIDE unit
      #            unit  ->  unit . NUMBER
      {NUMBER => sh(10),
-      TIMES => sh(11),
+      TIMES  => sh(11),
       DIVIDE => sh(12),
-      _ =>  ['reduce', 1, 'topunit'],
+      POWER  => sh(17),
+      _      =>  ['reduce', 1, 'topunit'],
      },
+
      # State 8:   unit -> constant . unit
      #            unit -> constant .
-     {PREFIX => sh(1),
-      NUMBER => sh(2), # Shift-reduce conflict resolved in favor of shift
-      NAME   => sh(3),
+     {PREFIX      => sh(1),
+      NUMBER      => sh(2), # Shift-reduce conflict resolved in favor of shift
+      NAME        => sh(3),
       FUNDAMENTAL => sh(4),
-      FRACTION => sh(5),
-      '(' => sh(6),
-      _ =>   ['reduce', 1, 'unit', \&unit_dimensionless],
-      'unit' => go(13),
-      'constant' => go(8),
+      FRACTION    => sh(5),
+      '('         => sh(6),
+      _           => ['reduce', 1, 'unit', \&unit_dimensionless],
+      'unit'      => go(13),
+      'constant'  => go(8),
      },
+
      # State 9:   unit -> unit . TIMES unit
      #            unit -> unit . DIVIDE unit
      #            unit -> '(' unit . ')'
      #            unit -> unit . NUMBER
      {NUMBER => sh(10),
-      TIMES => sh(11),
+      TIMES  => sh(11),
       DIVIDE => sh(12),
-      ')' => sh(14),
+      POWER  => sh(17),
+      ')'    => sh(14),
      },
+
      # State 10:  unit -> unit NUMBER .
      { _ => ['reduce', 2, 'unit',
-	     sub {
-	       unless (int($_[1]) == $_[1]) {
-		 ABORT("Nonintegral power $_[1]");
-		 return Zero;
-	       }
-	       unit_power(@_);
-	     }
-	    ],
+         sub {
+           unless (int($_[1]) == $_[1]) {
+             ABORT("Nonintegral power $_[1]");
+             return Zero;
+           }
+           unit_power(@_);
+         }
+        ],
      },
+
      # State 11:  unit -> unit TIMES . unit
-     {PREFIX => sh(1),
-      NUMBER => sh(2),
-      NAME   => sh(3),
+     {PREFIX      => sh(1),
+      NUMBER      => sh(2),
+      NAME        => sh(3),
       FUNDAMENTAL => sh(4),
-      FRACTION => sh(5),
-      '(' => sh(6),
-      'unit' => go(15),
-      'constant' => go(8),
+      FRACTION    => sh(5),
+      '('         => sh(6),
+      'unit'      => go(15),
+      'constant'  => go(8),
      },
+
      # State 12:  unit -> unit DIVIDE . unit
-     {PREFIX => sh(1),
-      NUMBER => sh(2),
-      NAME   => sh(3),
+     {PREFIX      => sh(1),
+      NUMBER      => sh(2),
+      NAME        => sh(3),
       FUNDAMENTAL => sh(4),
-      FRACTION => sh(5),
-      '(' => sh(6),
-      'unit' => go(16),
-      'constant' => go(8),
+      FRACTION    => sh(5),
+      '('         => sh(6),
+      'unit'      => go(16),
+      'constant'  => go(8),
      },
+
      # State 13:  unit -> unit . TIMES unit
      #            unit -> unit . DIVIDE unit
      #            unit -> constant unit .
      #            unit -> unit . NUMBER
-     {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
-      TIMES => sh(11),  # Shift-reduce conflict resolved in favor of shift
-      DIVIDE => sh(12), # Shift-reduce conflict resolved in favor of shift
-      _ => ['reduce', 2, 'unit', \&con_multiply],
+     {NUMBER => sh(10),  # Shift-reduce conflict resolved in favor of shift
+      TIMES  => sh(11),  # Shift-reduce conflict resolved in favor of shift
+      DIVIDE => sh(12),  # Shift-reduce conflict resolved in favor of shift
+      POWER  => sh(17),
+      _      => ['reduce', 2, 'unit', \&con_multiply],
      },
+
      # State 14: unit => '(' unit ')' .
      { _ => ['reduce', 3, 'unit', sub {$_[1]}] },
+
      # State 15: unit  ->  unit . TIMES unit
      #           unit  ->  unit TIMES unit .
      #           unit  ->  unit . DIVIDE unit
@@ -443,6 +528,7 @@ BEGIN {
      {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
       _ => ['reduce', 3, 'unit', sub {unit_multiply($_[0], $_[2])}],
      },
+
      # State 16: unit  ->  unit . TIMES unit
      #           unit  ->  unit DIVIDE unit .
      #           unit  ->  unit . DIVIDE unit
@@ -450,11 +536,23 @@ BEGIN {
      {NUMBER => sh(10), # Shift-reduce conflict resolved in favor of shift
       _ => ['reduce', 3, 'unit', sub{unit_divide($_[2], $_[0])}],
      },
-     # State 17: Finishing path
-     {EOF => go(18),},
-     # State 18: Final state
-     {_ => ['accept']},
+
+     # State 17:  unit -> unit POWER . unit
+     {
+      NUMBER      => sh(2),
+      'constant'  => go(18),
+     },
+
+     # State 18: unit -> unit POWER
+     {
+     NUMBER => sh(2),
+     _ => ['reduce', 3, 'unit', sub{ unit_power($_[0], $_[2])}],
+     },
+
     );
+
+    $actions[98] = {EOF => go($eof_state + 1),};
+    $actions[99] = {_   => ['accept']};
 }
 
 sub ABORT {
@@ -462,19 +560,22 @@ sub ABORT {
 }
 
 sub parse_unit {
-  my ($s) = @_;
+  my ($class, $s) = @_;
   my $tokens = lex($s);
   my $STATE = 0;
   my (@state_st, @val_st);
 
   $PARSE_ERROR = undef;
 
+  debug_p(  '-' x 50 . "\n" );
   # Now let's run the parser
   for (;;) {
     return Zero if $PARSE_ERROR;
+
+    debug_p( "Tokens: " . join( ' ', map { "<$_>" } @$tokens ) );
     my $la = @$tokens ? token_type($tokens->[0]) : 'EOF';
-    print STDERR "Now in state $STATE.  Lookahead type is $la.\n" if $DEBUG_p;
-    print STDERR "State stack is (@state_st).\n" if $DEBUG_p;
+    debug_p( "Now in state $STATE.  Lookahead type is $la." );
+    debug_p( "State stack is (@state_st)." );
     my $actiontab = $actions[$STATE];
     my $action = $actiontab->{$la} || $actiontab->{_};
     unless ($action) {
@@ -483,37 +584,39 @@ sub parse_unit {
     }
 
     my ($primary, @actargs) = @$action;
-    print STDERR "  $primary (@actargs)\n" if $DEBUG_p;
+    debug_p( "Next thing: $primary (@actargs)" );
     if ($primary eq 'accept') {
-      return $val_st[0];	# Success!
+      return $val_st[0];    # Success!
     } elsif ($primary eq 'shift') {
       my $token = shift @$tokens;
       my $val = token_value($token);
+      debug_p( "shift: token: <$token> val: <$val>" );
       push @val_st, $val;
       push @state_st, $STATE;
       $STATE = $actargs[0];
+      debug_p( "shift: state: <$STATE>" );
     } elsif ($primary eq 'goto') {
       $STATE = $actargs[0];
     } elsif ($primary eq 'reduce') {
       my ($n_args, $result_type, $semantic) = @actargs;
       my @arglist;
-#      push @state_st, 'FAKE';	# So that we only really remove n-1 states
       while ($n_args--) {
-	push @arglist, pop @val_st;
-	$STATE = pop @state_st;
+        push @arglist, pop @val_st;
+        $STATE = pop @state_st;
       }
       my $result = $semantic ? &$semantic(@arglist) : $arglist[0];
       push @val_st, $result;
       push @state_st, $STATE;
-#      $STATE = $state_st[-1];
-      print STDERR "Post-reduction state is $STATE.\n" if $DEBUG_p;
+    debug_p( "reduce: Value stack is " . dumper( \@val_st ) );
+
+      debug_p( "Post-reduction state is $STATE." );
 
       # Now look for `goto' actions
       my $goto = $actions[$STATE]{$result_type};
       unless ($goto && $goto->[0] eq 'goto') {
-	die "No post-reduction goto in state $STATE for $result_type.\n";
+        die "No post-reduction goto in state $STATE for $result_type.\n";
       }
-      print STDERR "goto $goto->[1]\n" if $DEBUG_p;
+      debug_p( "goto $goto->[1]" );
       $STATE = $goto->[1];
     } else {
       die "Bad primary $primary";
@@ -524,49 +627,54 @@ sub parse_unit {
 
 sub lex {
   my ($s) = @_;
+  my $N = '(?:\d+\.\d+|\d+|\.\d+)(?:[eE][-+]?\d+)?';
+
   my @t = split /(
-                   \*{3}        # Special `new unit' symbol
-                |  [()*-]	# Symbol
+                   (?: \*{3} | \*.\* | !.! ) # Special `new unit' symbol
+                |  [()*-]                    # Symbol
                 |  \s*(?:\/|\bper\b)\s*      # Division
-	        |  \d*\.\d+(?:[eE]-?\d+)? # Decimal number
-                |  \d+\|\d+     # Fraction
-                |  \d+          # Integer
-#                |  (?:$PREF)-?  # Prefix (handle differently)
-		|  [A-Za-z_][A-Za-z_.]* # identifier
-	        |  \s+		# White space
+                |  ($N\|$N)                  # Fraction
+                |  $N    # Decimal number
+                |  \d+                       # Integer
+                |  [A-Za-z_][A-Za-z_.]*      # identifier
+                |  \s+                       # White space
                 )/ox, $s;
-  @t = grep {$_ ne ''} @t;	# Discard empty and all-white tokens
+  @t = grep {defined and $_ ne ''} @t;  # Discard empty and all-white tokens
+  debug_p( "Input: $s Tokens: @t" );
   \@t;
 }
 
 sub token_type {
   my ($token) = @_;
-  return $token->[0] if ref $token;
-  return $token if $token =~ /[()]/;
-  return TIMES if $token =~ /^\s+$/;
-  return FUNDAMENTAL if $token eq '***';
-  return DIVIDE if $token =~ /^\s*(\/|\bper\b)\s*$/;
-  return TIMES if $token eq '*' || $token eq '-';
-  return FRACTION if $token =~ /^\d+\|\d+$/;
-  return NUMBER if $token =~ /^[.\d]/;
-#  return PREFIX if $token =~ /^$PREF/o;
-  return NAME;
+  return $token->[0]   if ref $token;
+  return $token        if $token =~ /[()]/;
+  return 'TIMES'       if $token =~ /^\s+$/;
+  return 'FUNDAMENTAL' if $token =~ m/\A(!.!|\*.\*)\z/;
+  return 'DIVIDE'      if $token =~ /^\s*(\/|\bper\b)\s*$/;
+  return 'TIMES'       if $token eq '*' || $token eq '-';
+  return 'FRACTION'    if $token =~ /^\d+\|\d+$/;
+  return 'NUMBER'      if $token =~ /^[.\d]/;
+  return 'POWER'       if $token eq '^';
+  return 'NAME';
 }
 
 sub token_value {
   my ($token) = @_;
-  return $token if $token =~ /^([()*\/-]|\s*\bper\b\s*)$/;
-  if ($token =~ /(\d+)\|(\d+)/) {
-    if ($2 == 0) {
-      ABORT("Zero denominator in fraction `$token'");
-      return 0;
+  debug_p( "TOKEN VALUE: <$token>" );
+
+  my $rc = do {
+       if( $token =~ /^([()*\/-]|\s*\bper\b\s*)$/ ) { $token }
+    elsif( $token =~ /(\d+)\|(\d+)/ ) {
+      if( $2 == 0 ) {
+        ABORT("Zero denominator in fraction `$token'");
+        return 0;
+      }
+      $1/$2;
     }
-    return $1/$2;
-#  } elsif ($token =~ /$PREF/o) {
-#    $token =~ s/-$//;
-#    return 10**($PREF{$token});
-  }
-  return $token;		# Perl takes care of the others.
+    else { $token }
+  };
+
+  return $rc;        # Perl takes care of the others.
 }
 
 sub WARRANTY {
@@ -595,15 +703,15 @@ EOM
 
 sub COPYING {
   print <<EOM;
-		    GNU GENERAL PUBLIC LICENSE
-		       Version 2, June 1991
+            GNU GENERAL PUBLIC LICENSE
+               Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
                           675 Mass Ave, Cambridge, MA 02139, USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-			    Preamble
+                Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -653,7 +761,7 @@ patent must be licensed for everyone's free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-		    GNU GENERAL PUBLIC LICENSE
+            GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -866,7 +974,13 @@ units - conversion program
 
 =head1 SYNOPSIS
 
-    units [-f filename]
+    % units
+	You have: in
+	You want: cm
+		* 2.54
+		/ 0.393701
+
+	% units -f /path/to/unittab
 
 =head1 OPTIONS
 
@@ -878,17 +992,20 @@ units - conversion program
 
 =head1 DESCRIPTION
 
+NOTE: This does not handle the Gnu units format (https://www.gnu.org/software/units/).
+
 The units program converts quantities expressed in various scales to their
 equivalents in other scales.  The units program can only handle multiplicative
 or affine scale changes.  It works interactively by prompting the user for
 input:
 
+    % units
     You have: meters
     You want: feet
         * 3.2808399
         / 0.3048
 
-    You have: cm^3
+    You have: cm3
     You want: gallons
         * 0.00026417205
         / 3785.4118
@@ -909,15 +1026,18 @@ input:
 
 Powers of units can be specified using the '^' character as shown in the
 example, or by simple concatenation: 'cm3' is equivalent to 'cm^3'.
-Multiplication of units can be specified by using spaces, a dash or an
-asterisk.  Division of units is indicated by the slash ('/').  Note that
-multiplication has a higher precedence than division, so 'm/s/s' is the same as
-'m/s^2' or 'm/s s'.  Division of numbers must be indicated using the vertical
-bar ('|').  To convert half a meter, you would write '1|2 meter'.  If you write
-'1/2 meter' then the units program would interpret that as equivalent to
-'0.5/meter'.  If you enter incompatible unit types, the units program will
-print a message indicating that the units are not conformable and it will
-display the reduced form for each unit:
+
+Multiplication of units can be specified by using spaces, a dash or an asterisk.
+
+Division of units is indicated by the slash ('/').  Note that multiplication has
+a higher precedence than division, so 'm/s/s' is the same as 'm/s^2' or 'm/s s'.
+Division of numbers must be indicated using the vertical bar ('|').  To convert
+half a meter, you would write '1|2 meter'.  If you write '1/2 meter' then the
+units program would interpret that as equivalent to '0.5/meter'.
+
+If you enter incompatible unit types, the units program will print a message
+indicating that the units are not conformable and it will display the reduced
+form for each unit:
 
     You have: ergs/hour
     You want: fathoms kg^2 / day
@@ -948,12 +1068,18 @@ string does not appear exactly as a unit name, then units will try to remove a
 trailing 's' or a trailing 'es' and check again for a match.
 
 To find out what units are available read the standard units file.  If you want
-to add your own units you can supply your own file.  A unit is specified on a
-single line by giving its name and an equivalence.  Be careful to define new
-units in terms of old ones so that a reduction leads to the primitive units
-which are marked with '!' characters.  The units program will not detect
-infinite loops that could be caused by careless unit definitions.  Comments in
-the unit definition file begin with a '/' character at the beginning of a line.
+to add your own units you can supply your own file.  If no standard file
+exists and you do not supply your own file, this program uses internal
+data.
+
+A unit is specified on a single line by giving its name and an equivalence.  Be
+careful to define new units in terms of old ones so that a reduction leads to
+the primitive units which are marked with '!' characters.  The units program
+will not detect infinite loops that could be caused by careless unit
+definitions.
+
+Comments in the unit definition file begin with a '/' character at
+the beginning of a line.
 
 Prefixes are defined in the same was as standard units, but with a
 trailing dash at the end of the prefix name.  If a unit is not found even
@@ -976,15 +1102,9 @@ Here is an example of a short units file that defines some basic units.
 
 Mark-Jason Dominus, C<< <mjd-perl-units@plover.com> >>
 
+Currently maintained in https://github.com/briandfoy/PerlPowerTools
+
 =head1 BUGS
-
-=over 4
-
-=item *
-
-None noted.
-
-=back
 
 =head1 COPYRIGHT and LICENSE
 
@@ -999,3 +1119,409 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
+=cut
+
+__END__
+# dimensions
+m                     ***
+kg                    ***
+sec                   ***
+coul                  ***
+candela               ***
+radian                ***
+bit                   ***
+erlang                ***
+K                     ***
+
+# constants
+
+unity                 1
+pi                    3.14159265358979323846 unity
+c                     2.997925e+8 m/sec unity
+g                     9.80665 m/sec2
+au                    1.49597871e+11 m unity
+mole                  6.022169e+23 unity
+e                     1.6021917e-19 coul unity
+energy                c2
+force                 g
+mercury               1.33322e+5 kg/m2-sec2
+hg                    mercury
+
+# dimensionless
+
+degree                1|180 pi-radian
+circle                2 pi-radian
+turn                  2 pi-radian
+grade                 .9 degree
+arcdeg                1 degree
+arcmin                1|60 arcdeg
+ccs                   1|36 erlang
+arcsec                1|60 arcmin
+
+steradian             radian2
+sphere                4 pi-steradian
+sr                    steradian
+
+# Time
+
+second                sec
+s                     sec
+minute                60 sec
+min                   minute
+hour                  60 min
+hr                    hour
+day                   24 hr
+da                    day
+week                  7 day
+year                  365.24219879 day unity
+yr                    year
+month                 1|12 year
+ms                    millisec
+us                    microsec
+
+# Mass
+
+gram                  millikg
+gm                    gram
+mg                    milligram
+metricton             kilokg
+
+# Temperature
+# addition and subtraction doesn't work yet
+F                     K - 459.67
+degF                  F
+C                     K - 273.15
+degC                  C
+# The is U+004B and U+212A
+K                     K
+
+# Avoirdupois
+
+lb                    .45359237 kg
+lbf                   lb g
+ounce                 1|16 lb
+oz                    ounce
+dram                  1|16 oz
+dr                    dram
+grain                 1|7000 lb
+gr                    grain
+shortton              2000 lb
+ton                   shortton
+longton               2240 lb
+
+# Apothecary
+
+scruple               20 grain
+apdram                60 grain
+apounce               480 grain
+appound               5760 grain
+
+# Length
+
+meter                 m
+cm                    centimeter
+mm                    millimeter
+km                    kilometer
+nm                    nanometer
+micron                micrometer
+angstrom              decinanometer
+
+inch                  2.54 cm
+in                    inch
+foot                  12 in
+feet                  foot
+ft                    foot
+yard                  3 ft
+yd                    yard
+rod                   5.5 yd
+rd                    rod
+mile                  5280 ft
+mi                    mile
+
+british               1200|3937 m/ft
+nmile                 1852m
+
+acre                  4840 yd2
+
+cc                    cm3
+liter                 kilocc
+ml                    milliliter
+
+# US Liquid
+
+gallon                231 in3
+imperial              1.20095
+gal                   gallon
+quart                 1|4 gal
+qt                    quart
+pint                  1|2 qt
+pt                    pint
+
+floz                  1|16 pt
+fldr                  1|8 floz
+
+# US Dry
+
+dry                   268.8025 in3/gallon unity
+peck                  8 dry-quart
+pk                    peck
+bushel                4 peck
+bu                    bushel
+
+# British
+
+brgallon              277.420 in3 unity
+brquart               1|4 brgallon
+brpint                1|2 brquart
+brfloz                1|20 brpint
+brpeck                554.84 in3 unity
+brbushel              4 brpeck
+
+# Energy Work
+
+newton                kg-m/sec2
+nt                    newton
+joule                 nt-m
+cal                   4.1868 joule
+
+# Electrical
+
+coulomb               coul
+ampere                coul/sec
+amp                   ampere
+watt                  joule/sec
+volt                  watt/amp
+ohm                   volt/amp
+mho                   1/ohm
+siemens               mho
+farad                 coul/volt
+henry                 sec2/farad
+weber                 volt-sec
+
+# Light
+
+cd                    candela
+lumen                 cd sr
+lux                   cd sr/m2
+
+
+# Trivia
+
+%                     1|100
+admiraltyknot         6080 ft/hr
+apostilb              cd/pi-m2
+are                   1e+2 m2
+arpentcan             27.52 mi
+arpentlin             191.835 ft
+astronomicalunit      au
+atmosphere            1.01325e+5 nt/m2
+atm                   atmosphere
+atomicmassunit        1.66044e-27 kg unity
+amu                   atomicmassunit
+bag                   94 lb
+bakersdozen           13
+bar                   1e+5 nt/m2
+barie                 1e-1 nt/m2
+barleycorn            1|3 in
+barn                  1e-28 m2
+barrel                42 gal
+barye                 1e-1 nt/m2
+bev                   1e+9 e-volt
+biot                  10 amp
+blondel               cd/pi-m2
+boardfoot             144 in3
+bolt                  40 yd
+bottommeasure         1|40 in
+britishthermalunit    1.05506e+3 joule unity
+btu                   britishthermalunit
+refrigeration         12000 btu/ton-hour
+cable                 720 ft
+caliber               1e-2 in
+calorie               cal
+carat                 205 mg
+cental                100 lb
+centesimalminute      1e-2 grade
+centesimalsecond      1e-4 grade
+century               100 year
+cfs                   ft3/sec
+chain                 66 ft
+circularinch          1|4 pi-in2
+circularmil           1e-6|4 pi-in2
+clusec                1e-8 mm-hg m3/s
+coomb                 4 bu
+cord                  128 ft3
+cordfoot              cord
+crith                 9.06e-2 gm
+cubit                 18 in
+cup                   1|2 pt
+curie                 3.7e+10 /sec
+dalton                amu
+decade                10 yr
+dioptre               1/m
+displacementton       35 ft3
+doppelzentner         100 kg
+dozen                 12
+drop                  .03 cm3
+dyne                  cm-gm/sec2
+electronvolt          e-volt
+ell                   45 in
+engineerschain        100 ft
+engineerslink         100|100 ft
+equivalentfootcandle  lumen/pi-ft2
+equivalentlux         lumen/pi-m2
+equivalentphot        cd/pi-cm2
+erg                   cm2-gm/sec2
+ev                    e-volt
+faraday               9.652e+4 coul
+fathom                6 ft
+fermi                 1e-15 m
+fifth                 4|5 qt
+finger                7|8 in
+firkin                9 gal
+footcandle            lumen/ft2
+footlambert           cd/pi-ft2
+fortnight             14 da
+franklin              3.33564e-10 coul
+frigorie              kilocal
+furlong               220 yd
+galileo               1e-2 m/sec2
+gamma                 1e-9 weber/m2
+gauss                 1e-4 weber/m2
+geodeticfoot          british-ft
+geographicalmile      1852 m
+gilbert               7.95775e-1 amp
+gill                  1|4 pt
+gross                 144
+gunterschain          22 yd
+hand                  4 in
+hectare               1e+4 m2
+hefnercandle          .92 cd
+hertz                 1/sec
+hogshead              2 barrel
+hd                    hogshead
+homestead             1|4 mi2
+horsepower            550 ft-lb-g/sec
+hp                    horsepower
+hyl                   gm force sec2/m
+hz                    hertz
+imaginarycubicfoot    1.4 ft3
+jeroboam              4|5 gal
+karat                 1|24
+kcal                  kilocal
+kcalorie              kilocal
+kelvin                degC
+kev                   1e+3 e-volt
+key                   kg
+khz                   1e+3 /sec
+kilderkin             18 gal
+knot                  nmile/hr
+lambert               cd/pi-cm2
+langley               cal/cm2
+last                  80 bu
+league                3 mi
+lightyear             c-yr
+line                  1|12 in
+link                  66|100 ft
+longhundredweight     112 lb
+longquarter           28 lb
+lusec                 1-6 mm-hg m3/s
+mach                  331.46 m/sec
+magnum                2 qt
+marineleague          3 nmile
+maxwell               1e-8 weber
+metriccarat           200 mg
+mev                   1e+6 e-volt
+mgd                   megagal/day
+mh                    millihenry
+mhz                   1e+6 /sec
+mil                   1e-2 in
+millenium             1000 year
+minersinch            1.5 ft3/min
+minim                 1|60 fldr
+mo                    month
+mpg                   mile/gal
+mph                   mile/hr
+nail                  1|16 yd
+nauticalmile          nmile
+nit                   cd/m2
+noggin                1|8 qt
+nox                   1e-3 lux
+ns                    nanosec
+oersted               2.5e+2 pi-amp/m
+oe                    oersted
+pace                  36 in
+palm                  3 in
+parasang              3.5 mi
+parsec                au-radian/arcsec
+pascal                nt/m2
+pc                    parsec
+pennyweight           1|20 oz
+percent               %
+perch                 rd
+pf                    picofarad
+phot                  lumen/cm2
+pica                  1|6 in
+pieze                 1e+3 nt/m2
+pipe                  4 barrel
+point                 1|72 in
+poise                 gm/cm-sec
+pole                  rd
+poundal               ft-lb/sec2
+pdl                   poundal
+proof                 1|200
+psi                   lb-g/in2
+quarter               9 in
+quartersection        1|4 mi2
+quintal               100 kg
+quire                 25
+rad                   100 erg/gm
+rankine               1.8 kelvin
+ream                  500
+registerton           100 ft3
+rehoboam              156 floz
+rhe                   10 m2/nt-sec
+rontgen               2.58e-4 curie/kg
+rood                  1.21e+3 yd2
+rope                  20 ft
+rutherford            1e+6 /sec
+rydberg               1.36054e+1 ev
+sabin                 1 ft2
+sack                  3 bu
+seam                  8 bu
+section               mi2
+shippington           40 ft3
+shorthundredweight    100 lb
+shortquarter          25 lb
+sigma                 microsec
+skein                 120 yd
+skot                  1e-3 apostilb
+slug                  lb-g-sec2/ft
+span                  9 in
+spat                  4 pi sr
+spindle               14400 yd
+square                100 ft2
+stere                 m3
+sthene                1e+3 nt
+stilb                 cd/cm2
+stoke                 1e-4 m2/sec
+stone                 14 lb
+strike                2 bu
+surveyfoot            british-ft
+surveyorschain        66 ft
+surveyorslink         66|100 ft
+tablespoon            4 fldr
+teaspoon              4|3 fldr
+tesla                 weber/m2
+therm                 1e+5 btu
+thermie               1e+6 cal
+timberfoot            ft3
+tnt                   4.6e+6 m2/sec2
+tonne                 1e+6 gm
+torr                  mm hg
+township              36 mi2
+tun                   8 barrel
+water                 .22491|2.54 kg/m2-sec2
+wey                   40 bu
+weymass               252 lb
+Xunit                 1.00202e-13m
+k                     1.38047e-16 erg/degC
