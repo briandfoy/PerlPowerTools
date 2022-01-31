@@ -11,12 +11,9 @@ License: perl
 
 =cut
 
-
-$ARGV[0] ? sleep $ARGV[0] : do { print "arg count"; exit 1; };
-
 use strict;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.201';
 
 if (@ARGV) {
     if ($ARGV [0] eq '-?') {

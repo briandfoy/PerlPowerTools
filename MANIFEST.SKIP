@@ -86,3 +86,5 @@ bin/pmake
 \.icloud$
 \A\.github\b
 
+^util/
+output.txt

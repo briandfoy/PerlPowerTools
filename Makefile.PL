@@ -90,8 +90,6 @@ while( <$manifest_fh> ) {
 	push @exe_files, $_;
 	}
 
-print "EXE_FILES [@exe_files]\n";
-
 close $manifest_fh;
 
 my $module    = __PACKAGE__;
