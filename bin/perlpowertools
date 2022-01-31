@@ -43,7 +43,7 @@ my $tool = shift || '';
 die $usage if not grep { $tool eq $_ } @tools;
 
 my $file = defined $ENV{PAR_TEMP} ? "$ENV{PAR_TEMP}/inc/script/$tool" : dirname(abs_path($0)) . "/$tool";
-$0 = $file; # for correct usage/warning/error messages
+$0 = $tool; # for usage/warning/error messages
 my $return = do $file;
 die $@ if $@;
 die "$file: $!" unless defined $return;
