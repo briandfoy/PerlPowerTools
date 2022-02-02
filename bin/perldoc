@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+#
+# perldoc - perldoc for PerlPowerTools
+
+=begin metadata
+
+Name: perldoc
+Description: perldoc for perlpowertools
+Author: jul, kaldor@cpan.org
+License: Artistic License 2.0
+
+=end metadata
+
+=cut
+
+use strict;
+use warnings;
+use utf8;
+use File::Basename;
+use Cwd 'abs_path';
+
+# let perldoc also search in perlpowertools bin
+unshift @INC, dirname(abs_path(__FILE__));
+
+# copy-paste from the real perldoc
+require 5;
+BEGIN { $^W = 1 if $ENV{'PERLDOCDEBUG'} }
+use Pod::Perldoc;
+exit( Pod::Perldoc->run() );
