@@ -1,0 +1,4 @@
+# https://github.com/github/linguist/blob/master/docs/overrides.md#using-gitattributes
+*.t linguist-language=Perl
+*.pl linguist-language=Perl
+*.pm linguist-language=Perl
