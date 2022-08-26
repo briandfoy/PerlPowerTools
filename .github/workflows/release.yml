@@ -1,0 +1,69 @@
+# brian's standard GitHub Actions release config for Perl 5 modules
+# version 20220825.001
+# https://github.com/briandfoy/github_workflows
+# https://github.com/features/actions
+# This file is licensed under the Artistic License 2.0
+name: release
+
+on:
+    push:
+        tags:
+            - 'release-*'
+jobs:
+    perl:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os:
+                - ubuntu-20.04
+            perl-version:
+                - 'latest'
+        container:
+            image: perl:${{ matrix.perl-version }}
+        steps:
+            - uses: actions/checkout@v2
+# Some older versions of Perl have trouble with hostnames in certs. I
+# haven't figured out why.
+            - name: Setup environment
+              run: |
+                echo "PERL_LWP_SSL_VERIFY_HOSTNAME=0" >> $GITHUB_ENV
+# I had some problems with openssl on Ubuntu, so I punted by installing
+# cpanm first, which is easy. I can install IO::Socket::SSL with that,
+# then switch back to cpan. I didn't explore this further, but what you
+# see here hasn't caused problems for me.
+# Need HTTP::Tiny 0.055 or later.
+            - name: Install cpanm and multiple modules
+              run: |
+                curl -L https://cpanmin.us | perl - App::cpanminus
+                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny
+                cpan -M https://www.cpan.org -T ExtUtils::MakeMaker Test::Manifest
+# Install the dependencies, again not testing them. This installs the
+# module in the current directory, so we end up installing the module,
+# but that's not a big deal.
+            - name: Install dependencies
+              run: |
+                cpan -M https://www.cpan.org -T .
+            - name: Create distro
+              run: |
+                perl Makefile.PL
+                make disttest
+                make dist 2>/dev/null | grep Created | awk '{ print "ASSET_NAME=" $2 }' >> $GITHUB_ENV
+            - name: version
+              run: echo "::set-output name=version::$(perl -le 'print $ARGV[0] =~ m/(.*?).tar.gz/' *.tar.gz)"
+              id: version
+            - name: release
+              uses: actions/create-release@v1
+              id: create_release
+              env:
+                GITHUB_TOKEN: ${{ github.token }}
+              with:
+                draft: false
+                prerelease: false
+                release_name: ${{ steps.version.outputs.version }}
+                tag_name: ${{ github.ref }}
+                body_path: Changes
+            - name: upload
+              uses: softprops/action-gh-release@v1
+              if: startsWith(github.ref, 'refs/tags/')
+              with:
+                files: "*.tar.gz"
