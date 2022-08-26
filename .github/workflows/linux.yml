@@ -1,5 +1,6 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# https://github.com/briandfoy/github_actions
+# version 20220825.001
+# https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
 name: ubuntu
@@ -10,6 +11,7 @@ on:
             - '**'
             - '!**windows**'
             - '!**macos**'
+            - '!**release**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
@@ -17,8 +19,10 @@ on:
             # list all the files which are irrelevant to the tests
             # non-code, support files, docs, etc
             - '.appveyor.yml'
+            - '.gitattributes'
             - '.github/workflows/macos.yml'
             - '.github/workflows/windows.yml'
+            - '.github/workflows/release.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
@@ -32,8 +36,7 @@ jobs:
         strategy:
           matrix:
             os:
-                - ubuntu-18.04
-                - ubuntu-20.04
+                - ubuntu-22.04
             perl-version:
                 - '5.8'
                 - '5.10'
@@ -48,8 +51,8 @@ jobs:
                 - '5.28'
                 - '5.30'
                 - '5.32'
+                - '5.34'
                 - 'latest'
-
         container:
             image: perl:${{ matrix.perl-version }}
         steps:
@@ -81,11 +84,16 @@ jobs:
             - name: Install dependencies
               run: |
                 cpan -M https://www.cpan.org -T .
-                cpan -M https://www.cpan.org -T App::a2p App::find2perl MIME::Parser IPC::Run3
             - name: Run tests
               run: |
                 perl Makefile.PL
                 make test
+# Run author tests, but only if there's an xt/ directory
+            - name: Author tests
+              if: hashFiles('xt') != ''
+              run: |
+                cpan -M https://www.cpan.org -T Test::CPAN::Changes
+                prove -r -b xt
 # Running tests in parallel should be faster, but it's also more
 # tricky in cases where different tests share a feature, such as a
 # file they want to write to. Parallel tests can stomp on each other.
@@ -104,6 +112,7 @@ jobs:
               run: |
                 perl Makefile.PL
                 make disttest
+                make clean
 # And, coverage reports, but only under 5.10 and later since modern
 # Devel::Cover instances don't work with 5.8
             - name: Run coverage tests
@@ -112,4 +121,5 @@ jobs:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
+                perl Makefile.PL
                 cover -test -report coveralls
