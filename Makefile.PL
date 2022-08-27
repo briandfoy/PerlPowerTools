@@ -55,7 +55,7 @@ use File::Spec::Functions qw(catfile);
 my $home = home();
 unless( $has_install_base ) {
 	my $path = catfile($home, 'perlpowertools');
-	print <<"HERE";
+	print <<"HERE" unless caller();
 ----------------------------------------------------------------------
 Welcome to Perl Power Tools (http://www.perlpowertools.com).
 
