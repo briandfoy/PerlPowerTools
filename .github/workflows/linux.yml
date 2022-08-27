@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20220825.001
+# version 20220827.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -21,8 +21,8 @@ on:
             - '.appveyor.yml'
             - '.gitattributes'
             - '.github/workflows/macos.yml'
-            - '.github/workflows/windows.yml'
             - '.github/workflows/release.yml'
+            - '.github/workflows/windows.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
