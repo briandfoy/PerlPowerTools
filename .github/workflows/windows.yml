@@ -1,5 +1,6 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# https://github.com/briandfoy/github_actions
+# version 20220825.001
+# https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
 name: windows
@@ -10,6 +11,7 @@ on:
             - '**'
             - '!**linux**'
             - '!**macos**'
+            - '!**release**'
         tags-ignore:
             # I tag release pushes but those should have already been tested
             - 'release-*'
@@ -17,7 +19,8 @@ on:
             # list all the files which are irrelevant to the tests
             # non-code, support files, docs, etc
             - '.appveyor.yml'
-            - '.github/workflows/linux.yml'
+            - '.gitattributes'
+            - '.github/workflows/release.yml'
             - '.github/workflows/macos.yml'
             - '.github/workflows/ubuntu.yml'
             - '.gitignore'
@@ -30,6 +33,7 @@ on:
 jobs:
     perl:
         runs-on: ${{ matrix.os }}
+        # store any secrets in an environment named "testing"
         strategy:
           matrix:
             os:
@@ -44,10 +48,7 @@ jobs:
                 echo "C:\strawberry\perl\site\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
                 echo "C:\strawberry\perl\bin"      | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
             - name: Perl version
-              run: |
-                perl -V
-                echo $env:Path
-                gcm perl*
+              run: perl -V
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
@@ -59,6 +60,12 @@ jobs:
               run: |
                 perl Makefile.PL
                 make test
+# Run author tests, but only if there's an xt/ directory
+            - name: Author tests
+              if: hashFiles('xt') != ''
+              run: |
+                cpan -M https://www.cpan.org -T Test::CPAN::Changes
+                prove -r -b xt
 # Running tests in parallel should be faster, but it's also more
 # tricky in cases where different tests share a feature, such as a
 # file they want to write to. Parallel tests can stomp on each other.
@@ -79,10 +86,12 @@ jobs:
               run: |
                 perl Makefile.PL
                 make disttest
+                make clean
 # And, coverage reports
             - name: Run coverage tests
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
+                perl Makefile.PL
                 cover -test -report coveralls
