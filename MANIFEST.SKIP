@@ -93,3 +93,4 @@ output.txt
 bin/perldoc
 bin/perlpowertools
 packed/
+packer/
