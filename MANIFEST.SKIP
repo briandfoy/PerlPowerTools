@@ -89,3 +89,7 @@ bin/pmake
 ^util/
 output.txt
 .gitattributes
+
+bin/perldoc
+bin/perlpowertools
+packed/
