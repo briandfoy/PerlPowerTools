@@ -88,3 +88,4 @@ bin/pmake
 
 ^util/
 output.txt
+.gitattributes
