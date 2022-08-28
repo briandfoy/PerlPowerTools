@@ -149,3 +149,4 @@ t/uudecode.t
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc
+xt/pod.t
