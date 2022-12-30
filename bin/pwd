@@ -15,12 +15,30 @@ License: perl
 use strict;
 use Cwd;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
 my $dir;
+my $opt = pop @ARGV;
+
+if (not defined $opt)
+{
+	$dir = getcwd;
+}
+elsif ($opt eq '-L')
+{
+	$dir = cwd;
+}
+elsif ($opt eq '-P')
+{
+	$dir = getcwd;
+}
+else
+{
+	die "Usage: pwd [-L|-P]\n";
+}
 
 # Account for / and \ on Win32 and non-Win32 systems
-($^O=~/Win32/) ? ($dir = getcwd) =~s/\//\\/g : ($dir=getcwd);
+($^O=~/Win32/) ? ($dir) =~s/\//\\/g : ($dir);
 
 print $dir . "\n";
 
