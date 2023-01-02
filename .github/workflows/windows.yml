@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20220828.001
+# version 20220902.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -10,6 +10,7 @@ on:
         branches:
             - '**'
             - '!**appveyor**'
+            - '!**circleci**'
             - '!**linux**'
             - '!**macos**'
             - '!**notest**'
@@ -21,6 +22,7 @@ on:
             # list all the files which are irrelevant to the tests
             # non-code, support files, docs, etc
             - '.appveyor.yml'
+            - '.circleci'
             - '.gitattributes'
             - '.github/workflows/linux.yml'
             - '.github/workflows/macos.yml'
@@ -42,7 +44,7 @@ jobs:
                 - windows-2019
                 - windows-2022
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
             - name: Set up Perl
               run: |
                 choco install strawberryperl
