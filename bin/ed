@@ -136,7 +136,7 @@ $SupressCounts = 0;
 
 unless (getopts('d:v')) {
     $EXTENDED_MESSAGES = 1;
-    &edDie("Usgae: ed [-v] [-ddebugstring] [-] [filename]","\?",1)
+    &Usage;
 }
 
 if ($opt_v) {
@@ -144,8 +144,7 @@ if ($opt_v) {
 }
 
 print "@ARGV\n";
-&edDie("Usgae: ed [-v] [-ddebugstring] [-] [filename]","\?",1)
-    if ($#ARGV > 1);
+&Usage if ($#ARGV > 1);
 
 while ($_ = shift) {
     if (/-/) {
@@ -960,27 +959,18 @@ sub edSearchBackward {
 
 
 #
-# Exit with error
+# Print usage and exit
 #
-# edDie($msg,$status)
+# Usage()
 #
 
-sub edDie {
-    my($useful_msg,$original_ed_msg,$status) = @_;
-
-
-    if ($EXTENDED_MESSAGES) {
-        printf STDERR "$useful_msg\n";
-
-    } else {
-        print STDERR "$original_ed_msg\n";
-    }
-
-    exit $status;
+sub Usage {
+    &edWarn("Usage: ed [-v] [-ddebugstring] [-] [filename]", "\?");
+    exit 1;
 }
 
 #
-# Exit with error
+# Print message on stderr
 #
 # edWarn($msg,$original_ed_msg)
 #
@@ -990,9 +980,9 @@ sub edWarn {
 
 
     if ($EXTENDED_MESSAGES) {
-        printf STDERR "$useful_msg\n";
+        print {STDERR} "$useful_msg\n";
     } else {
-        print STDERR "$original_ed_msg\n";
+        print {STDERR} "$original_ed_msg\n";
     }
 }
 
