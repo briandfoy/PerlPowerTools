@@ -1615,7 +1615,6 @@ sub finish_stmt
 #
 
 my ($res, $val);
-my $res2;
 my $code;
 
 sub exec_print
@@ -1819,7 +1818,6 @@ $count++;
      my $i_incr = shift @stmt_s;
      my $i_body = shift @stmt_s;
 
-     my $r;
      my $val=1;
 
 #     debug { "cond: ".Dumper($i_cond) };
@@ -1888,7 +1886,6 @@ $count++;
 
        my $n;
 #       pop @backup_sym_table;    # The first is undef
-       my $entry;
        while($var = pop @backup_sym_table) {
 	 debug {"restoring var: ".Dumper($var)};
 	 if($var->{'type'} eq 'undef') {
