@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.031 2023-02-05T16:18:10Z
+	* remove t/pod.t from MANIFEST, since that is now in xt/
+
 1.029 2023-02-05T15:53:32Z
 	* several enhancements from Michael Mikonos to make exit values come
 	in line with the original tool. This one fixes up nl, cat, and whoami
