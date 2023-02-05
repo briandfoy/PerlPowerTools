@@ -114,7 +114,7 @@ sub print_number {
 	{
 		print ' ' x $width;
 	}
-	
+
 	print $sep;
 }
 
@@ -151,7 +151,7 @@ sub print_line {
 	{
 		die $usage;
 	}
-	
+
 	print $line;
 }
 
