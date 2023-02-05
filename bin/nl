@@ -40,7 +40,7 @@ Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l
     -d delim        characters (max 2) indicating new section (default : '\\:')
     -f type         same as -b but for footer lines (default : 'n')
     -h type         same as -b but for header lines (default : 'n')
-    -i incr         increment value (dafault : 1)
+    -i incr         increment value (default : 1)
     -n format       'ln'    left justified
                     'rn'    right justified without leading zeros (default)
                     'rz'    right justified with leading zeros
