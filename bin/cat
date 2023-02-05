@@ -38,17 +38,16 @@ $SIG {__WARN__} = 'DEFAULT';
 
 my ($tabs, $ends, $nonprinting);
 
-if (exists $options {e}) {$ends = $nonprinting = 1;}
-if (exists $options {t}) {$tabs = $nonprinting = 1;}
-if (exists $options {v}) {        $nonprinting = 1;}
+if (exists $options{'e'}) {$ends = $nonprinting = 1;}
+if (exists $options{'t'}) {$tabs = $nonprinting = 1;}
+if (exists $options{'v'}) {        $nonprinting = 1;}
 
-my $squeeze_empty     = exists $options {s};
-my $number_lines      = exists $options {n};
-my $number_non_blanks = exists $options {b};
+my $squeeze_empty     = exists $options{'s'};
+my $number_lines      = exists $options{'n'};
+my $number_non_blanks = exists $options{'b'};
 
 # Unbuffer output for -u.
-
-$| = exists $options {u};
+$| = exists $options{'u'};
 
 my $was_empty = 0;
 my $count     = 0;
