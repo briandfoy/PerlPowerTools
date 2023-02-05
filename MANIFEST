@@ -141,7 +141,6 @@ t/false.t
 t/find.t
 t/lib/utils.pm
 t/nl.t
-t/pod.t
 t/rot13.t
 t/sort.t
 t/true.t
