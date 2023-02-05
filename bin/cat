@@ -66,14 +66,14 @@ while (<>) {
     $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
                                              $number_non_blanks && /\S/;
 
-    $_ =~ s/$/\$/   if $ends;
+    s/$/\$/ if $ends;
     if ($nonprinting) {
-        $_ =~ s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
-        $_ =~ s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
-        $_ =~ s/\x7F/^?/g;
+        s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
+        s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
+        s/\x7F/^?/g;
     }
     if ($tabs) {
-        $_ =~ s/\x09/^I/g;
+        s/\x09/^I/g;
     }
 
     print;
