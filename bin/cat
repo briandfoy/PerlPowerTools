@@ -15,7 +15,7 @@ License: perl
 use strict;
 use Getopt::Std;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
 getopts ('benstuv?', \my %options)  or do {
 	$0 =~ s{.*/}{};
