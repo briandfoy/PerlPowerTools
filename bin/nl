@@ -25,7 +25,7 @@ use utf8;
 use Getopt::Std;
 use File::Basename;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 my $program  = basename($0);
 my $usage    = <<EOF;
 
