@@ -1,13 +1,10 @@
 Revision history for Perl module PerlPowerTools
 
-1.029 2023-02-05T16:14:11Z
-	* remove t/pod.t from MANIFEST, since that is now in xt/
-
 1.029 2023-02-05T15:53:32Z
 	* several enhancements from Michael Mikonos to make exit values come
 	in line with the original tool. This one fixes up nl, cat, and whoami
-	* Michael Mikonos also fixed a problem in ed where a command was 
-	doing the wrong thing. 
+	* Michael Mikonos also fixed a problem in ed where a command was
+	doing the wrong thing.
 
 1.028 2022-01-19T05:43:47Z
 	* Try to fix Windows's handling of %Z in date - GitHub #98
@@ -15,7 +12,7 @@ Revision history for Perl module PerlPowerTools
 	open an issue with your changes
 
 1.027 2021-10-11T14:15:02Z
-	* Add whoami, originally from Oğuz Ersen. Let me know if you find 
+	* Add whoami, originally from Oğuz Ersen. Let me know if you find
 	problems with this.
 	* Fix a problem with the - special filename in bc, from Michael Mikonos
 	* Various improvements to make date work better on Windows (but still
@@ -32,7 +29,7 @@ Revision history for Perl module PerlPowerTools
 	* A fix for `grep -v` from Ed Avis (#69)
 
 1.022 2021-01-11T06:59:31Z
-	* Remove the make program and its dependencies, which recently 
+	* Remove the make program and its dependencies, which recently
 	became much heavier. Strawberry Perl comes with gmake and it's
 	to find make tools for Windows.
 	https://github.com/graphviz-perl/Graph/issues/17
