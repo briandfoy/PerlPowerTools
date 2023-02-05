@@ -17,24 +17,15 @@ use Getopt::Std;
 
 my ($VERSION) = '1.2';
 
-# Get the options.
-
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {
-        $0 =~ s{.*/}{};
-        print <<EOF;
-$0 (Perl bin utils) $VERSION
+getopts ('benstuv?', \my %options)  or do {
+	$0 =~ s{.*/}{};
+	print <<EOF;
+$0 (PerlPowerTools) $VERSION
 $0 [-benstuv] [files ...]
 EOF
-        exit;
-    }
+
+	exit 1;
 };
-
-getopts ('benstuv?', \my %options);
-
-$SIG {__WARN__} = 'DEFAULT';
 
 my ($tabs, $ends, $nonprinting);
 
