@@ -20,7 +20,6 @@ my @coderefs = (
 	sub { require Win32; Win32::LoginName() },
 	sub { getlogin },
 	sub { defined $ENV{USER} ? $ENV{USER} : $ENV{USERNAME} },
-	sub { exit 1 },
 	);
 
 foreach my $coderef ( @coderefs ) {
