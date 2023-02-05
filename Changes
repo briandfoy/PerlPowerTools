@@ -1,5 +1,11 @@
 Revision history for Perl module PerlPowerTools
 
+1.029 2023-02-05T15:53:32Z
+	* several enhancements from Michael Mikonos to make exit values come
+	in line with the original tool. This one fixes up nl, cat, and whoami
+	* Michael Mikonos also fixed a problem in ed where a command was 
+	doing the wrong thing. 
+
 1.028 2022-01-19T05:43:47Z
 	* Try to fix Windows's handling of %Z in date - GitHub #98
 	* If you find problems, try adjusting the data in script/date and
