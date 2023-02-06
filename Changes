@@ -1,5 +1,9 @@
 Revision history for Perl module PerlPowerTools
 
+1.032 2023-02-06T15:39:43Z
+	* bc will immediately exit when it reads "quit", in line with
+	the GNU, and *BSD versions. From Michael Mikonos.
+
 1.031 2023-02-05T16:18:10Z
 	* remove t/pod.t from MANIFEST, since that is now in xt/
 
