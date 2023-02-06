@@ -1448,7 +1448,11 @@ sub yylex
 	  } elsif($yylval eq 'print') {
 	    $PRINT;
 	  } elsif($yylval eq 'quit') {
-	    $QUIT;
+	    # $QUIT;
+	    # GNU bc exits immediately when it encounters quit, even if
+	    # seen in unreachable code like "if (0 == 1) quit"
+	    # OpenBSD bc acts like this too but calls it a bug
+	    exit;
 	  } elsif($yylval eq 'return') {
 	    $RETURN;
 	  } elsif($yylval eq 'while') {
