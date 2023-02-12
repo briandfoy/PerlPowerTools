@@ -5,7 +5,7 @@
 Name: tee
 Description: pipe fitting
 Author: Tom Christiansen, tchrist@perl.com
-License:
+License: perl
 
 =end metadata
 
