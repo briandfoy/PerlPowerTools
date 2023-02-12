@@ -10,7 +10,7 @@ use open qw(:std :utf8);
 Name: units
 Description: conversion program
 Author: Mark-Jason Dominus, mjd-perl-units@plover.com
-License: GNU GPL
+License: gpl
 
 =end metadata
 
