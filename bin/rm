@@ -5,7 +5,7 @@
 Name: rm
 Description: remove directory entries
 Author: Steve Kemp, steve@steve.org.uk
-License: GNU GPL
+License: gpl
 
 =end metadata
 
