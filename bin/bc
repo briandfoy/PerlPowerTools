@@ -1722,7 +1722,10 @@ $count++;
 
    } elsif($_ eq 'P') {
 
-     push(@ope_stack, $instr->[1].'[]'.(pop(@ope_stack)));
+	 my $value = pop @ope_stack;
+	 my $index = pop @ope_stack;
+	 push @ope_stack, $value;
+     push @ope_stack, $instr->[1] . '[]' . $index;
      next INSTR;
 
    } elsif($_ eq 'v') {
