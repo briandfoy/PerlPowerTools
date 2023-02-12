@@ -5,7 +5,7 @@
 Name: man
 Description: format and display the on-line manual page
 Author: Tom Christiansen, tchrist@perl.com
-License:
+License: perl
 
 =end metadata
 

@@ -7,7 +7,7 @@ Description: decode a binary file
 Author: Nick Ing-Simmons, nick@ni-s.u-net.com
 Author: Tom Christiansen, tchrist@perl.com
 Author: brian d foy, brian.d.foy@gmail.com
-License:
+License: perl
 
 =end metadata
 
