@@ -5,7 +5,7 @@
 Name: asa
 Description: interpret ASA/FORTRAN carriage-controls
 Author: Jeffrey S. Haemer
-License:
+License: perl
 
 =end metadata
 

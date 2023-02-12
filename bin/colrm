@@ -5,7 +5,7 @@
 Name: colrm
 Description: remove columns from a file
 Author: Jeffrey S. Haemer
-License:
+License: perl
 
 =end metadata
 
