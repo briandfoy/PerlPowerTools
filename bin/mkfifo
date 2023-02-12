@@ -6,7 +6,7 @@ Name: mkfifo
 Description: make named pipes
 Author: Jeffrey S. Haemer
 Author: Louis Krupp
-License:
+License: perl
 
 =end metadata
 

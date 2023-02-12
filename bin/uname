@@ -5,7 +5,7 @@
 Name: uname
 Description: print system information
 Author: Jeffrey S. Haemer
-License:
+License: perl
 
 =end metadata
 
