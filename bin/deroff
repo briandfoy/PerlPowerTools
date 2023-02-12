@@ -5,7 +5,7 @@
 Name: deroff
 Description: strip troff, eqn and tbl sequences from text
 Author: Nathan Scott Thompson, quimby at city-net dot com
-License: GNU GPL
+License: gpl
 
 =end metadata
 
