@@ -101,7 +101,7 @@ use Getopt::Std;
 
 $maxline = 0;                # lines are numered internally starting at 1
 $CurrentLineNum = 0;        # default to before first line.
-$RememberedFilename = ""; # the default filename for writes, etc.
+$RememberedFilename = undef; # the default filename for writes, etc.
 $NeedToSave = 0;        # buffer modified
 $UserHasBeenWarned = 0; # has the user been warned about attempt
                         # to trash buffer/file?
@@ -389,8 +389,14 @@ sub edFilename {
 
     if (defined($args[0])) {
         $RememberedFilename = $args[0];
-    } elsif (defined($RememberedFilename)) {
+        return;
+    }
+
+    if (defined($RememberedFilename)) {
         print "$RememberedFilename\n";
+    }
+    else {
+        edWarn('No current filename', "\?");
     }
 }
 
@@ -409,11 +415,11 @@ sub edWrite {
 
     $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
 
-    if (defined($filename)) {
-        $RememberedFilename = $filename;
-    } else {
-        edWarn("no default filename","\?");
+    if (!defined($filename)) {
+        edWarn('No current filename', "\?");
+        return;
     }
+    $RememberedFilename = $filename;
 
     $NumLines = $adrs[1]-$adrs[0]+1;
 
