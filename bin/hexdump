@@ -1,0 +1,206 @@
+#!/usr/bin/perl
+
+use Getopt::Std qw(getopts);
+
+my (%opt, @chars, @cesc, $adr, $nread, $curf, $skip);
+
+sub getchar {
+    my $c;
+    my $n = read $curf, $c, 1;
+    unless (defined $n) {
+        die "$0: $!\n";
+    }
+    return unless $n;
+    $nread++;
+    return $c;
+}
+
+sub doskip {
+    if (seek $curf, $skip, 0) {
+        $adr = $skip;
+        undef $skip;
+        return;
+    }
+    while ($skip) {
+        my $c = getchar();
+        return unless (defined $c);
+        $adr++;
+        $nread--;
+        $skip--;
+    }
+}
+
+sub dumper {
+    return unless (@chars);
+    if ($opt{'c'}) {
+        printf '%07lx ', $adr;
+        foreach my $c (@chars) {
+            if ($c =~ m/[[:print:]]/) {
+                printf '%3s ', $c;
+            } else {
+                my $i = ord $c;
+                my $e = $cesc[$i];
+                $e ||= sprintf '%03o ', $i;
+                print $e;
+            }
+        }
+        print "\n";
+    } else {
+        printf '%08lx ', $adr;
+        my $str = join '', @chars;
+        my $hex = unpack 'H*', $str;
+        $hex =~ s/^(.{16})/$1 /;
+        $hex =~ s/(\S{2})/ $1/g;
+        $str =~ s/[^[:print:]]/./g;
+        printf "%-51s|%s|\n", $hex, $str;
+    }
+    $adr += 16;
+    undef @chars;
+}
+
+sub dofile {
+    doskip() if $skip;
+    my $c;
+    while (defined($c = getchar())) {
+        push @chars, $c;
+        dumper() if (scalar(@chars) == 16);
+        if ($opt{'n'} && $opt{'n'} == $nread) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+sub revert {
+    while (readline) {
+        my $start = index $_, ' '; # after offset
+        if ($start == -1) {
+            die "$0: parse error: $_";
+        }
+        my $end = index $_, '|';
+        if ($end == -1) {
+            $_ = substr $_, $start;
+        } else {
+            $_ = substr $_, $start, $end - $start;
+        }
+        s/\s//g;
+        if (m/[^[:xdigit:]]/) {
+            die "$0: non-hex digits: '$_'\n";
+        }
+        my $len = length;
+        next unless $len;
+        if ($len & 1) {
+            die "$0: odd digits: '$_'\n";
+        }
+        print pack('H*', $_);
+    }
+}
+
+sub xd {
+    $adr = $nread = 0;
+    if ($opt{'c'}) {
+        $cesc[0]  = ' \0 ';
+        $cesc[7]  = ' \a ';
+        $cesc[8]  = ' \b ';
+        $cesc[9]  = ' \t ';
+        $cesc[10] = ' \n ';
+        $cesc[11] = ' \v ';
+        $cesc[12] = ' \f ';
+        $cesc[13] = ' \r ';
+    }
+    if (@ARGV) {
+        while (my $path = shift @ARGV) {
+            unless (open $curf, '<', $path) {
+                die "$0: $path: $!\n";
+            }
+            last if (dofile() != 0);
+        }
+    } else {
+        $curf = *STDIN;
+        dofile();
+    }
+    dumper(); # odd bytes at end
+}
+
+getopts('cn:rs:u', \%opt)
+    or die("usage: $0 [-cru] [-n length] [-s skip] [file ...]\n");
+$| = 1 if $opt{'u'};
+foreach (qw(n s)) {
+    if ($opt{$_} && $opt{$_} =~ m/\D/) {
+        die "hexdump: bad -$_ argument";
+    }
+}
+$skip = $opt{'s'};
+$opt{'r'} ? revert() : xd();
+
+__END__
+
+=pod
+
+=head1 NAME
+
+hexdump - print input as hexadecimal
+
+=head1 SYNOPSIS
+
+hexdump [-cu] [-n NUMBER] [-s NUMBER] file ..
+
+hexdump [-ru] file ...
+
+=head1 DESCRIPTION
+
+Data is read from stdin if no input files are provided. The default output
+mode is canonical hex+ASCII. Each line begins with an offset number followed
+by a space-separated list of 16 hex bytes. Finally, printable input
+characters are listed between two '|' characters.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -c
+
+Output a space-separated list of ASCII characters. Non-print characters
+are listed in octal, or a C-escape code.
+
+=item -n NUMBER
+
+Terminate the process after reading a set NUMBER of input bytes.
+The number argument must be given in decimal. Input skipped by the -s
+option is not counted.
+
+=item -r
+
+Revert a hex dump back to binary. Input is expected to be formatted as
+canonical hex+ASCII. The initial offset address and the ASCII suffix of
+each line are ignored. Input lines may have zero or more hex bytes;
+running over 16 bytes  is supported. Spaces between hex digits are ignored.
+An odd number of hex digits on a line results in an error.
+
+Setting -r causes all other options to be ignored except -u. It is
+possible to specify multiple input files.
+
+=item -s NUMBER
+
+Skip a set NUMBER of bytes at the beginning of input. The number argument
+must be given in decimal. The offset number printed on output is advanced
+to reflect the skipped bytes. 
+
+=item -u
+
+Output runs in unbuffered mode.
+
+=back
+
+=head1 BUGS
+
+No option exists for setting an output filename, so the -r option will
+write binary data to a terminal if stdout is not redirected.
+
+No support for multi-byte hex display, or plain hex output.
+
+=head1 AUTHOR
+
+Written by Michael Mikonos.
