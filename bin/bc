@@ -1730,17 +1730,13 @@ $count++;
 
    } elsif($_ eq 'v') {
 
-# Variable value
+# Variable value : initialized to 0
 # '*' is reserved for internal variables
 
      my $name = $instr->[1];
      unless (defined($sym_table{$name})
 	     and $sym_table{$name}{'type'} eq 'var') {
-       print STDERR "$name: undefined variable\n";
-       $return = 3;
-       @ope_stack = ();
-       @stmt_list=();
-       YYERROR;
+       $sym_table{$name}{'value'} = 0;
      }
      push(@ope_stack, $sym_table{$name}{'value'});
      next INSTR;
