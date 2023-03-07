@@ -226,7 +226,7 @@ sub diffdata {
 }
 
 sub help {
-    print "od [-abcdfiloxv] [-A radix] filename\n";
+    print "usage: od [-bcdfiloxv] [-A radix] filename\n";
     exit 1;
 }
 __END__
