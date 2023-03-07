@@ -14,7 +14,7 @@ License: perl
 
 use strict;
 use Getopt::Std;
-use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_h $opt_i $opt_l $opt_o
+use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_l $opt_o
 $opt_v $opt_x $opt_s /;
 
 my ($offset1, $radix, $data, @arr, $len);
@@ -60,8 +60,7 @@ my %charescs = (
 $offset1 = 0;
 $lastline = '';
 
-getopts('A:bcdfhilovxs:');
-    defined $opt_h && &help;
+getopts('A:bcdfilovxs:') or help();
     defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
     defined $opt_s && ($offset1 = $opt_s);
 
@@ -227,8 +226,8 @@ sub diffdata {
 }
 
 sub help {
-    print "od [-abcdfhiloxv] [-A radix] filename\n";
-    exit 0;
+    print "od [-abcdfiloxv] [-A radix] filename\n";
+    exit 1;
 }
 __END__
 
@@ -238,7 +237,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od.pl> [ I<-abcdfhiloxv> ] [ I<-A radix> ]  F<filename>
+B<od.pl> [ I<-abcdfiloxv> ] [ I<-A radix> ]  F<filename>
 
 =head1 DESCRIPTION
 
