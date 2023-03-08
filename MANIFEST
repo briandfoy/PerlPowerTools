@@ -45,6 +45,7 @@ bin/glob
 bin/grep
 bin/hangman
 bin/head
+bin/hexdump
 bin/id
 bin/install
 bin/join
