@@ -12,9 +12,6 @@ apply:            system $command;
 
 awk:system 'a2p', @nargs;
 
-dc:     system $line  if $1 eq "!";
-
-
 find:system 'find2perl', @ARGV;
 
 install:        if (system "strip", $path) {

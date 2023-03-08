@@ -62,7 +62,7 @@ for (;;) {
     if (/\|\?(#|![^<>=])/) {
 	s/\|\?(.)([^\n~]*)/|?/;
 	($line = $2) =~ tr/\36\37/|~/;
-	system $line  if $1 eq "!";
+	warn("! command is deprecated\n") if $1 eq '!';
     }
     goto Binop  if /\|\?!*[-+*\/%^<>=]/;
     goto Binop  if /^\|.*\|\?[dpPfQXZvxkiosStT;:]/s;
