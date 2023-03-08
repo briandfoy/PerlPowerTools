@@ -118,6 +118,8 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item head - print the first lines of a file
 
+=item hexdump - dump a file in hex format
+
 =item id - show user information
 
 =item install - install files and directories
