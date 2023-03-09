@@ -14,12 +14,11 @@ License: perl
 
 use strict;
 use Getopt::Std;
-use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_l $opt_o
-$opt_v $opt_x $opt_s /;
+use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_o
+$opt_v $opt_x /;
 
 my ($offset1, $radix, $data, @arr, $len);
-my ($lastline, $upformat, $pffmt, $strfmt, $skip, $ml);
-my $retval;
+my ($lastline, $upformat, $pffmt, $strfmt, $ml);
 local *FH;
 
 my %charescs = (
@@ -60,14 +59,14 @@ my %charescs = (
 $offset1 = 0;
 $lastline = '';
 
-getopts('A:bcdfilovxs:') or help();
+getopts('A:bcdfij:lovx') or help();
     defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
-    defined $opt_s && ($offset1 = $opt_s);
+    defined $opt_j && ($offset1 = $opt_j);
 
 open(FH, '<', $ARGV[0]) || die "Can't open $ARGV[0] for read: $!";
 
 binmode(FH);
-seek(FH,$offset1,0);
+seek(FH, $offset1, 0) if $offset1;
 
 $opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
 		 $opt_l || $opt_o || $opt_x);
