@@ -560,7 +560,7 @@ $YYMAXTOKEN=294;
 "expr : ident PPP",
 "expr : ident MMM",
 "expr : '+' expr",
-"expr : '&' STRING",
+undef, # "expr : '&' STRING", # removed feature but we didn't want to disturb sequence
 "expr : IDENT '=' expr",
 "expr : IDENT '[' expr ']' '=' expr",
 "expr : ident",
