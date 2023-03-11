@@ -236,7 +236,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od.pl> [ I<-abcdfiloxv> ] [ I<-A radix> ]  F<filename>
+B<od.pl> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [ I<-A radix> ]  F<filename>
 
 =head1 DESCRIPTION
 
