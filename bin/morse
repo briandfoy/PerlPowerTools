@@ -11,48 +11,13 @@ License: perl
 
 =cut
 
-
 use strict;
-use File::Basename ();
 
-my ($VERSION) = '1.2';
+use Getopt::Std qw(getopts);
 
-my $warnings = 0;
+my ($VERSION) = '1.3';
 
-END {
-    close STDOUT || die "can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
-
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    $0 = File::Basename::basename ($0);
-    $warnings = 1;
-    warn "$0: @_";
-
-};
-
-$SIG {__DIE__} = sub {
-
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$0 (Perl game utils) $VERSION
-$0 [files ...]
-EOF
-    }
-    die "$0: @_";
-
-};
-
-if (@ARGV && $ARGV [0] =~ /^-(?=.)/ && ! -f $ARGV [0]) {
-    die "Usage";
-}
-
-my %translations = reverse (
+my %chartab = (
      0   => '-----',   1   => '.----',   2   => '..---',   3   => '...--',
      4   => '....-',   5   => '.....',   6   => '-....',   7   => '--...',
      8   => '---..',   9   => '----.',   a   => '.-',      b   => '-...',
@@ -63,37 +28,102 @@ my %translations = reverse (
      s   => '...',     t   => '-',       u   => '..-',     v   => '...-',
      w   => '.--',     x   => '-..-',    y   => '-.--',    z   => '--..',
 
-    # These aren't in the BSD source code...
     '.'  => '.-.-.-', ','  => '--..--', ':'  => '---...', '?'  => '..--..',
     "'"  => '.----.', '-'  => '-....-', '/'  => '-..-.',  '('  => '-.--.-',
-    ')'  => '-.--.-', '"'  => '.-..-.', ' '  => '-...-'
+    ')'  => '-.--.-', '"'  => '.-..-.', '='  => '-...-',  ';'  => '-.-.-.',
+    '+'  => '.-.-.', 
+);
+my %translations = reverse %chartab;
+
+my %wordtab = (
+    'dit'  => '.',
+    'daw'  => '-',
 );
 
-unshift @ARGV => "-" unless @ARGV;
-
-foreach my $file (@ARGV) {
-    local *FILE;
-    open FILE, '<', $file or die "$file: $!\n";
-    while (<FILE>) {
-        my $line;
-        s/^\s+//;                       # Leading space.
-        s/dit ?/./g; s/daw ?/-/g;       # Long to short.
-        while (/,\n/ && defined ($line = <FILE>)) {
-            $line =~ s/^\s+//;          # Leading space.
-            $line =~ s/dit ?/./g;       # Long to short.
-            $line =~ s/daw ?/-/g;       # Long to short.
-            s/,\n/ $line/;              # Combine lines.
-        }
-        my $comma = s/,$//;             # Trailing comma.
-        s/([-.]+) ?/exists $translations{$1} ?
-                           $translations{$1} : die "$1: unknown token"/ge;
-        print;
-        last if $comma;
+my %opt;
+getopts('ds', \%opt) or die("usage: $0 [-ds] [string ...]\n");
+if (@ARGV) {
+    if ($opt{'d'}) {
+        $opt{'s'} ? decode_dot_arg() : decode_word_arg();
+    } else {
+        $opt{'s'} ? encode_dot_arg() : encode_word_arg();
     }
-    close FILE or die "$file: $!\n";
+} else {
+    if ($opt{'d'}) {
+        $opt{'s'} ? decode_dot() : decode_word();
+    } else {
+        $opt{'s'} ? encode_dot() : encode_word();
+    }
 }
 
-exit $warnings;
+sub mors2txt {
+    my $line = shift;
+
+    foreach my $m (split /\s+/, $line) {
+        if (!exists($translations{$m})) {
+            die "$m: unknown token";
+        }
+        print $translations{$m};
+    }
+    print "\n" if (tell(*STDOUT) > 0);
+}
+
+sub txt2mors {
+    my $line = shift;
+
+    foreach my $c (split //, $line) {
+        if ($c eq "\n" || $c eq ' ') {
+            print "\n";
+        } elsif (exists $chartab{$c}) {
+            print ($chartab{$c}, "\n");
+        }
+    }
+}
+
+sub txt2word {
+    my $line = shift;
+
+    foreach my $c (split //, $line) {
+        if ($c eq "\n") {
+            print "\n";
+        } elsif (exists $chartab{$c}) {
+            my $w = $chartab{$c};
+            $w =~ s/\./dit /g;
+            $w =~ s/\-/daw /g;
+            print ($w, "\n");
+        }
+    }
+}
+
+sub word2txt {
+    my $line = shift;
+
+    foreach my $part (split /[,\n]/, $line) {
+        my $m = '';
+        foreach my $tok (split /\s+/, $part) {
+            next if (length($tok) == 0);
+            if (!exists($wordtab{$tok})) {
+                die "$tok: unknown token";
+            }
+            $m .= $wordtab{$tok};
+        }
+        next if (length($m) == 0);
+        if (!exists($translations{$m})) {
+            die "$m: unknown token";
+        }
+        print $translations{$m};
+    }
+    print "\n" if (tell(*STDOUT) > 0);
+}
+
+sub decode_dot_arg  { mors2txt(join "\n", @ARGV) }
+sub decode_dot      { mors2txt(join '', readline) }
+sub decode_word_arg { word2txt(join ' ', @ARGV) }
+sub decode_word     { word2txt(join "\n", readline) }
+sub encode_dot_arg  { txt2mors(join "\n", @ARGV) }
+sub encode_dot      { txt2mors(join '', readline) }
+sub encode_word_arg { txt2word(join "\n", @ARGV) }
+sub encode_word     { txt2word(join '', readline) }
 
 __END__
 
@@ -101,38 +131,45 @@ __END__
 
 =head1 NAME
 
-morse - read morse and translate it to text
+morse -  translate text to morse code
 
 =head1 SYNOPSIS
 
-morse [files ...]
+morse [-ds] [string ...]
 
 =head1 DESCRIPTION
 
-I<morse> reads morse from files, (or from standard input if no files
-are given), and translates it back to text. Morse can be given in either
+I<morse> reads input from its command line arguments, or from standard
+input, and produces a morse code document. 
+Morse can be given in either
 short (-- --- .-. ... .) or long form (daw daw, daw daw daw, dit daw dit,
-dit dit dit). In the short form, letters are separated by spaces, and
-words by 2 spaces (or the morse symbol for space). In the long form,
-letters are separated by 2 spaces, and words by 3. As a special features,
-I<morse> parses the output of I<morse(6)>, which writes each letter
-on a comma terminated line.
+dit dit dit).
+Long form is used by default.
 
-Short and long form can be mixed, as well as I<morse(6)> format and
-space separated letters.
+A morse code document may be translated back to text.
+The program will terminate if it encounters a series of dots and dashes
+that it cannot translate.
 
-Any characters that can't be interpreted as part of the morse
-sequence is copied untouched. The program will die when encountering
-a series of dots and dashes that it cannot translate.
+=head2 OPTIONS
+
+The following options are available:
+
+=over 2
+
+=item -d
+
+Decode input from morse to text.
+
+=item -s
+
+Short-form morse code will be processed instead of the default long-form.
+The argument '--' should precede any morse code provided as command arguments.
+
+=back
 
 =head1 ENVIRONMENT
 
 The working of I<morse> is not influenced by any environment variables.
-
-=head1 BUGS
-
-I<morse> will report an unknown sequence of dots and dashes in short
-form, even if the input was given in dits and daws.
 
 =head1 AUTHOR
 
@@ -148,4 +185,3 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others to do the same.
 
 =cut
-
