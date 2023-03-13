@@ -65,7 +65,10 @@ while (1) {
 	@args = ();
     }
     if ($o{t}) { local $" = "', '"; warn "exec '@run'\n"; }
-    system(@run) == 0 or exit($? >> 8);
+    if (system(@run) != 0) {
+	warn "$0: $run[0]: $!\n";
+	exit($? >> 8);
+    }
 }
 
 =encoding utf8
