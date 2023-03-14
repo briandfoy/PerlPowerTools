@@ -206,7 +206,7 @@ sub octal2 {
 }
 
 sub hex {
-    $upformat = 's*'; # for -x
+    $upformat = 'S*'; # for -x
     $pffmt = '%.4x ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
