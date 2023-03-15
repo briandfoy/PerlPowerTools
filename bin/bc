@@ -560,7 +560,7 @@ $YYMAXTOKEN=294;
 "expr : ident PPP",
 "expr : ident MMM",
 "expr : '+' expr",
-"expr : '&' STRING",
+undef, # "expr : '&' STRING", # removed feature but we didn't want to disturb sequence
 "expr : IDENT '=' expr",
 "expr : IDENT '[' expr ']' '=' expr",
 "expr : ident",
@@ -1148,14 +1148,6 @@ last switch;
 if ($yyn == 80) {
 #line 440 "bc.y"
 { $yyval = $yyvs[$yyvsp-0];
-last switch;
-} }
-if ($yyn == 81) {
-#line 442 "bc.y"
-{
-		  push_instr('&', $yyvs[$yyvsp-0]);
-		  $yyval = 1;
-
 last switch;
 } }
 if ($yyn == 82) {
@@ -2032,13 +2024,6 @@ $count++;
 				value => $code };
      $return = 3;
      push(@ope_stack, 1); # whatever
-     next INSTR;
-
-   } elsif($_ eq '&') {
-
-# Evaluating a Perl instruction
-     $res = eval $instr->[1];
-     push(@ope_stack, "\nresult of eval: $res");
      next INSTR;
 
    } elsif($_ eq 'S') {
