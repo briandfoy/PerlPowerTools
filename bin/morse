@@ -5,6 +5,7 @@
 Name: morse
 Description: read morse and translate it to text
 Author: Abigail, perlpowertools@abigail.be
+Author: Michael Mikonos
 License: perl
 
 =end metadata
@@ -174,7 +175,8 @@ The working of I<morse> is not influenced by any environment variables.
 =head1 AUTHOR
 
 The Perl implementation of I<morse> was written by Abigail,
-I<perlpowertools@abigail.be>.
+I<perlpowertools@abigail.be>. The prigram was extended by
+Michael Mikonos.
 
 =head1 COPYRIGHT and LICENSE
 
