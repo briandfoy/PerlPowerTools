@@ -339,7 +339,11 @@ FILE: while (defined ($file = shift(@_))) {
 
 	warn "$Me: checking $file\n" if $opt->{T};
 
-	unless ( open FILE, '<', $file ) {
+	my $fh;
+	if ($file eq '-') {
+	    $fh = *STDIN;
+	}
+	elsif (!open($fh, '<', $file)) {
 	    unless ($opt->{'q'}) {
 		warn "$Me: $file: $!\n";
 		$Errors++;
@@ -351,7 +355,7 @@ FILE: while (defined ($file = shift(@_))) {
 
 	$Matches = 0;
 
-LINE:  while (<FILE>) {
+LINE:  while (<$fh>) {
 	    $Matches = 0;
 
 	    ##############
