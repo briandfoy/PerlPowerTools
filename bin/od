@@ -192,7 +192,7 @@ sub long {
 }
 
 sub octal2 {
-    $upformat = 's*'; # for -o
+    $upformat = 'S*'; # for -o
     $pffmt = '%.6o ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
