@@ -51,6 +51,7 @@ while (1) {
 	last if $o{l} and $totlines >= $o{l};
     }
     my @run = @ARGV;
+    push @run, 'echo' unless (@run);
     if ($o{I}) {
 	exit(0) unless length $line;
 	for (@run) { s/\Q$o{I}\E/$line/g; }
