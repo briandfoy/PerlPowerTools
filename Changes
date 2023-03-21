@@ -1,19 +1,22 @@
 Revision history for Perl module PerlPowerTools
 
 1.033_01 2023-03-21T15:23:29Z
+	* Added license files for all licenses that appear in the repo
 	* lots of fixes from Michael Mikonos
-	* od - unpack bytes as unsigned in both hex and octal formats
+	* od
+		- unpack bytes as unsigned in both hex and octal formats
+		- -s is renamed to -j (skip offset)
+		- exit with error for bad options
+	* bc
+		- remove feature for evaling arbitrary Perl expressions (very dangerous)
+		- autoinit simple variables (instead of warning or dying)
+	* xargs
+		- make echo the default command if you don't specify one
+		- reports system failure in exit
 	* grep - support - to mean stdin
-	* xargs - make echo the default command if you don't specify one
-	* bc - remove feature for evaling arbitrary Perl expressions (very dangerous)
 	* head - support - to mean stdin
-	* xargs - reports system failure in exit
-	* od - -s is renamed to -j (skip offset)
 	* dc - remove ! command to run something in a shell
 	* hexdump - new tool!
-	* bc - autoinit simple variables (instead of warning or dying)
-	* od - exit with error for bad options
-	* I also added the license files for all licenses that appear in the repo
 
 1.032 2023-02-06T15:39:43Z
 	* bc will immediately exit when it reads "quit", in line with
