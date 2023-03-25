@@ -42,18 +42,21 @@ my %wordtab = (
 );
 
 my %opt;
-getopts('ds', \%opt) or die("usage: $0 [-ds] [string ...]\n");
-if (@ARGV) {
-    if ($opt{'d'}) {
-        $opt{'s'} ? decode_dot_arg() : decode_word_arg();
-    } else {
-        $opt{'s'} ? encode_dot_arg() : encode_word_arg();
-    }
-} else {
-    if ($opt{'d'}) {
+getopts('frs', \%opt) or die qq{Usage:
+ $0 [-frs] [file  ...]
+ $0 [-rs] [string ...]
+};
+if ($opt{'f'} || scalar(@ARGV) == 0) {
+    if ($opt{'r'}) {
         $opt{'s'} ? decode_dot() : decode_word();
     } else {
         $opt{'s'} ? encode_dot() : encode_word();
+    }
+} else {
+    if ($opt{'r'}) {
+        $opt{'s'} ? decode_dot_arg() : decode_word_arg();
+    } else {
+        $opt{'s'} ? encode_dot_arg() : encode_word_arg();
     }
 }
 
@@ -77,6 +80,8 @@ sub txt2mors {
             print "\n";
         } elsif (exists $chartab{$c}) {
             print ($chartab{$c}, "\n");
+        } elsif (exists $chartab{lc $c}) {
+            print ($chartab{lc $c}, "\n");
         }
     }
 }
@@ -132,20 +137,25 @@ __END__
 
 =head1 NAME
 
-morse -  translate text to morse code
+morse - translate text to morse code
 
 =head1 SYNOPSIS
 
-morse [-ds] [string ...]
+morse [-frs] [file  ...]
+
+morse [-rs] [string ...]
 
 =head1 DESCRIPTION
 
-I<morse> reads input from its command line arguments, or from standard
-input, and produces a morse code document. 
-Morse can be given in either
-short (-- --- .-. ... .) or long form (daw daw, daw daw daw, dit daw dit,
+I<morse> takes input from either a list of files, standard input or command line arguments.
+Morse code can be given in either
+short form (-- --- .-. ... .) or long form (daw daw, daw daw daw, dit daw dit,
 dit dit dit).
 Long form is used by default.
+
+Short-form morse uses both spaces and newline characters as a separator.
+Long-form morse requires a space between each 'dit' or 'daw'.
+Long-form also requires a comma or newline character as a separator for each morse code.
 
 A morse code document may be translated back to text.
 The program will terminate if it encounters a series of dots and dashes
@@ -155,15 +165,19 @@ that it cannot translate.
 
 The following options are available:
 
-=over 2
+=over 3
 
-=item -d
+=item -f
+
+Treat command arguments as files instead of morse code strings.
+
+=item -r
 
 Decode input from morse to text.
 
 =item -s
 
-Short-form morse code will be processed instead of the default long-form.
+Process short-form morse (dots and dashes) instead of the default long-form.
 The argument '--' should precede any morse code provided as command arguments.
 
 =back
@@ -172,10 +186,61 @@ The argument '--' should precede any morse code provided as command arguments.
 
 The working of I<morse> is not influenced by any environment variables.
 
+=head1 EXAMPLES
+
+Decode short-form morse from stdin.
+
+  echo - .- --- | morse -rs
+
+Decode long-form morse from stdin.
+
+  echo daw, dit daw, daw daw daw | morse -r
+
+Decode short-form morse from argument list.
+Note that '--' terminates the processing of command options, so the first morse code is '-'.
+
+  morse -rs -- - .- ---
+
+Decode long-form morse from argument list.
+
+  morse -r daw, dit daw, daw daw daw
+
+Encode short-form morse from stdin.
+
+  echo foo | morse -s
+
+Encode long-form morse from stdin.
+
+  echo foo | morse
+
+Encode short-form morse from argument list.
+
+  morse -s tst txt
+
+Encode long-form morse from argument list.
+
+  morse tst txt
+
+Decode short-form morse from files.
+
+  morse -frs file1 file2
+
+Decode long-form morse from files.
+
+  morse -fr file1 file2
+
+Encode short-form morse from files.
+
+  morse -fs file1 file2
+
+Encode long-form morse from files.
+
+  morse -f file1 file2
+
 =head1 AUTHOR
 
 The Perl implementation of I<morse> was written by Abigail,
-I<perlpowertools@abigail.be>. The prigram was extended by
+I<perlpowertools@abigail.be>. The program was extended by
 Michael Mikonos.
 
 =head1 COPYRIGHT and LICENSE
