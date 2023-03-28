@@ -17,9 +17,8 @@ use Getopt::Std;
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_o
 $opt_v $opt_x /;
 
-my ($offset1, $radix, $data, @arr, $len);
+my ($offset1, $radix, $data, @arr, $len, $fh);
 my ($lastline, $upformat, $pffmt, $strfmt, $ml);
-local *FH;
 
 my %charescs = (
     0  => ' \0',
@@ -63,15 +62,26 @@ getopts('A:bcdfij:lovx') or help();
     defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
     defined $opt_j && ($offset1 = $opt_j);
 
-open(FH, '<', $ARGV[0]) || die "Can't open $ARGV[0] for read: $!";
+if (defined $ARGV[0] && $ARGV[0] ne '-') {
+    open($fh, '<', $ARGV[0]) or die "$0: $ARGV[0]: $!\n";
+}
+else {
+    $fh = *STDIN;
+}
 
-binmode(FH);
-seek(FH, $offset1, 0) if $offset1;
+binmode $fh;
+if ($offset1 && !seek($fh, $offset1, 0)) {
+    foreach (1 .. $offset1) {
+	$len = read $fh, $data, 1;
+	die "$0: read error: $!\n" if $!;
+	undef $data;
+    }
+}
 
 $opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
 		 $opt_l || $opt_o || $opt_x);
 
-while ($len = read(FH,$data,16)) {
+while ($len = read($fh, $data, 16)) {
     $ml = ''; # multi-line indention
 
     if ( &diffdata || $opt_v) {
@@ -101,9 +111,10 @@ while ($len = read(FH,$data,16)) {
     $offset1 += $len;
     $lastline = $data . '|';
 }
+die "$0: read error: $!\n" if $!;
 
 printf("%.8$radix\n", $offset1);
-close FH;
+close $fh;
 exit 0;
 
 sub octal1 {
@@ -262,4 +273,3 @@ This program is copyright (c) Mark Kahn 1999.
 This program is free and open software. You may use, modify, distribute,
 and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
-
