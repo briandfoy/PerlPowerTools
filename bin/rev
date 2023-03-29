@@ -18,7 +18,7 @@ $|++;
 
 my ($VERSION) = '1.3';
 
-if (scalar(@ARGV) == 0 || $ARGV[0] !~ m/^\-/) {
+if (scalar(@ARGV) == 0 || ( $ARGV[0] ne '?' && $ARGV[0] !~ m/^-/ ) ) {
 	while (defined(my $line = readline)) {
 		chomp $line;
 		my $r = reverse($line);
