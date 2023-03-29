@@ -11,78 +11,39 @@ License: gpl
 
 =cut
 
-
-# packages used in this program
-use FileHandle;
 use strict;
-use Carp;
 
 # unbuffer output to make it look speedier
 $|++;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
-# set up some variables
-my $debug = 0;  # 0 for no anything else to debug
-my $file = 0;
-
-if ($ARGV[0] eq '--version') {
+if (scalar(@ARGV) == 0 || $ARGV[0] !~ m/^\-/) {
+	while (defined(my $line = readline)) {
+		chomp $line;
+		my $r = reverse($line);
+		print "$r\n";
+	}
+	die("$0: $!") if $!;
+}
+elsif ($ARGV[0] eq '--version') {
 	print " $0 $VERSION\n";
 }
-elsif (($ARGV[0] eq '--help') || ($ARGV[0] eq '?') || ($ARGV[0] eq '-h')) {
+else {
 	print <<EOF;
-
 Usage: $0 [OPTION] [FILE]
 
-Reverses lines of the named file or the text input on SDTIN
+Reverses lines of the named file or the text input on STDIN
 
 Options:
 	--version:  Print version number, then exit.
 	--help || -h || ? :     Print usage, then exit;
 
 EOF
-}
-elsif (-f $ARGV[0]) {
-
-	if ($debug) {print "\n\nthis is a file\n\n";}
-	my $fh = FileHandle->new("< $ARGV[0]");  # here is the file handle
-
-	# in case the file handle does not open
-    unless (defined ($fh)) {
-		croak "did not open file $ARGV[0] $!\n";
-	}
-
-	# iterate over the file and put each line into an
-	# array of charaters and print them out in reverse order.
-	while (<$fh>) {
-		my @a = split(//, $_);
-		print reverse @a;
-	}
-	print "\n";
-	$fh->close;  # close the file handle
-}
-else {
-	if ($debug) {print "\n\nthis is not a file\n\n";}
-
-	# here we start at the end of the array and work to
-	# the start.
-	my $len = @ARGV;
-	for (my $cnt = ($len - 1); $cnt >= 0; $cnt-- ) {
-		my @b = split(//, $ARGV[$cnt]);
-		print reverse @b;
-
-		# since each white space is denotes the next arg
-		# we have to put spaces back in.  $cnt is checked to
-		# see if we have reached the end yet.  If there are
-		# no more args we do not want to append an extra space
-		# that was not on the input.
-
-		if ($cnt) {print ' ';}
-	}
-	print "\n";
+	exit 1;
 }
 
-exit 1;
+exit;
 
 __END__
 
@@ -124,7 +85,7 @@ I<rev> has no known bugs.
 
 =head1 AUTHOR
 
-This Perl implmentation of I<rev> was written by Andy Murren,
+This Perl implementation of I<rev> was written by Andy Murren,
 I<andy@murren.org>.
 
 =head1 COPYRIGHT and LICENSE
@@ -133,4 +94,3 @@ This program is covered by the GNU Public License (GPL).
 See I<http://www.gnu.org/copyleft/gpl.html> for complete detail of the license.
 
 =cut
-
