@@ -251,7 +251,7 @@ while(<>) {
 sub edPrint {
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-    $adrs[1] = $CurrentLineNum unless (defined($adrs[1]));
+    $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
     unless ($adrs[1] >= $adrs[0]) {
         edWarn('Second address must be >= first');
