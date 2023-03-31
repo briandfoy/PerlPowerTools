@@ -275,20 +275,11 @@ sub install_files {
                 next;
             }
         }
-        elsif ($opt{c}) {
+        else { # default -c
             warn "$0: copy $file $targ\n" if $Debug;
 
             unless ( File::Copy::copy($file, $targ) ) {
                 warn "$0: copy $file $targ: $!\n";
-                $Errors++;
-                next;
-            }
-        }
-        else {
-            warn "$0: move $file $targ\n" if $Debug;
-
-            unless ( File::Copy::move($file, $targ) ) {
-                warn "$0: move $file $targ: $!\n";
                 $Errors++;
                 next;
             }
@@ -327,7 +318,7 @@ B<install> B<-d> [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<directory> 
 
 =head1 DESCRIPTION
 
-B<install> moves (or copies if B<-C> or B<-c> are specified) files to the
+B<install> copies files to the
 target path specified by I<file2> or I<directory>.  Alternatively, if
 B<-d> is specified, B<install> creates directories (also creating missing
 parent directories as necessary, similar to B<mkdir -p>).
@@ -339,12 +330,12 @@ B<install> accepts these options:
 =item B<-C>
 
 Copy the file only if it differs from the target (according to
-B<cmp -s>).  This option implies B<-c>.
+B<cmp>).
 
 =item B<-c>
 
-Copy the file instead of performing the default action of deleting
-the original.
+Copy the file. This option is provided for compatibility and is the
+default.
 
 =item B<-D>
 
@@ -432,4 +423,3 @@ you wish, provided you do not restrict others from doing the same.
 umask(2), chmod(1), mkdir(1), chown(8), chgrp(8), strip(1)
 
 =cut
-
