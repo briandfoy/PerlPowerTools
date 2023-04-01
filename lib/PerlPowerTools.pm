@@ -42,6 +42,8 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item banner - print large banner on printer
 
+=item base64 - base64 encode or decode
+
 =item basename -- print the basename of a file
 
 =item bc - An arbitrary precision calculator language
