@@ -6,6 +6,7 @@ bin/arithmetic
 bin/asa
 bin/awk
 bin/banner
+bin/base64
 bin/basename
 bin/bc
 bin/cal
