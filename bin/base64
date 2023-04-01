@@ -112,3 +112,11 @@ input validation.
 =head1 AUTHOR
 
 Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
