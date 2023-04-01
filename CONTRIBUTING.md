@@ -24,6 +24,15 @@ There's a Perl::Critic test is *xt/perlcritic.t*. Your new code or fixes
 should at least pass all those checks. Many are disabled because they are
 a problem across the code base (and there aren't tests).
 
+## Adding a new program
+
+New programs follow the same general rules, but there are some extra
+things you need to do:
+
+* Add the program name to *lib/PerlPowerTools.pm*
+* Add the program to the lists in *index.html*, *ru/index.html*, and *uk/index.html* in the gh-pages branch
+* Run `make manifest` and check that it adds your new command and tests
+
 For new programs, include tests with as high a coverage as you can
 stand.
 
