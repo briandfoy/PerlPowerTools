@@ -1,5 +1,15 @@
 Revision history for Perl module PerlPowerTools
 
+1.033_02 2023-04-01T20:42:05Z
+	* added tests for rev
+	* lots of fixes from Michael Mikonos
+	* install - now copies by default
+	* expr - fixed || bug
+	* ed - various fixes for error and value reporting
+	* od, rev, head can now read from STDIN
+	* rev - fix split before chomp bug
+	* morse - re-imagined by Michael Mikonos
+
 1.033_01 2023-03-21T15:23:29Z
 	* Added license files for all licenses that appear in the repo
 	* lots of fixes from Michael Mikonos
