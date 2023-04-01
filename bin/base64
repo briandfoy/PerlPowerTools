@@ -3,11 +3,16 @@
 use Getopt::Std qw(getopts);
 use MIME::Base64 qw(decode_base64 encode_base64);
 
+my $VERSION = '1.0';
+
 my (%opt, $bufsz, $in, $out);
-getopts('do:', \%opt) or usage();
+getopts('do:v', \%opt) or usage();
 if (scalar(@ARGV) > 1) {
     warn "$0 too many arguments\n";
     usage();
+}
+if ($opt{'v'}) {
+    die "$0 version $VERSION\n";
 }
 $bufsz = $opt{'d'} ? 76 : 57;
 $bufsz *= 20;
@@ -55,7 +60,7 @@ sub encode {
 }
 
 sub usage {
-    die "usage: $0 [-d] [-o FILE] [FILE]\n";
+    die "usage: $0 [-dv] [-o FILE] [FILE]\n";
 }
 
 __END__
@@ -68,7 +73,7 @@ base64 - encode and decode base64 data
 
 =head1 SYNOPSIS
 
-base64 [-d] [-o FILE] [FILE]
+base64 [-dv] [-o FILE] [FILE]
 
 =head1 DESCRIPTION
 
@@ -97,6 +102,10 @@ Decode data
 =item -o FILE
 
 Write output to the specified FILE
+
+=item -v
+
+Print version number and exit
 
 =back
 
