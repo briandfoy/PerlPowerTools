@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.033_03 2023-04-05T11:43:15Z
+	* echo with no arguments now emits a newline, from Michael Mikonos
+
 1.033_02 2023-04-01T20:42:05Z
 	* added tests for rev
 	* lots of fixes from Michael Mikonos
