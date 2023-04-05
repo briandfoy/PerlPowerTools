@@ -23,6 +23,7 @@ sub run {
     my ( $self, @args ) = @_;
 
     unless (@args) {
+        print "\n";
         exit 0;
     }
 
