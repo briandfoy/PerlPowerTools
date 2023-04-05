@@ -44,7 +44,7 @@ subtest no_input => sub {
 	do_trap { $class->run() };
 	is ( $did_exit, 1 );
 	is ( $exit_code, 0 );
-	is ( $stdout, '' );
+	is ( $stdout, "\n" );
 	is ( $stderr, '' );
 };
 
