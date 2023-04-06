@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+use Cwd qw(realpath);
+use Getopt::Std qw(getopts);
+
+my $VERSION = '1.0';
+
+my (%opt, $dst, $path);
+getopts('fnvV', \%opt) or usage();
+die("$0 version $VERSION\n") if $opt{'V'};
+if (scalar(@ARGV) != 1) {
+    warn "$0: one operand expected\n";
+    usage();
+}
+$path = $ARGV[0];
+
+my $ok = lstat $path;
+unless ($ok) {
+    die("$0: $path: $!\n") if $opt{'v'};
+    exit 1;
+}
+if ($opt{'f'}) {
+    $dst = realpath($path);
+    if (!defined($dst)) {
+        die "$0: $path: $!\n";
+    }
+} else {
+    if (! -l $path) {
+        die("$0: $path: invalid argument\n") if $opt{'v'};
+        exit 1; # expected symlink
+    }
+    $dst = readlink $path;
+    if (!defined($dst)) {
+        exit 1;
+    }
+}
+print $dst;
+print "\n" unless $opt{'n'};
+exit;
+
+sub usage {
+    die "usage: $0 [-fnVv] file\n";
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+readlink - show target of symbolic link
+
+=head1 SYNOPSIS
+
+readlink [-fnv] file
+
+readlink -V
+
+=head1 DESCRIPTION
+
+The readlink program will interpret the single file argument as a
+symbolic link and print the target of the link to standard output.
+Providing an argument that is not a symbolic link will result in
+an error, unless the -f option is used.
+Errors are indicated by a nonzero exit code.
+
+=head2 OPTIONS
+
+The supported options are:
+
+=over 4
+
+=item -f
+
+Find the canonical path of the input file. Relative and absolute paths
+may be given as an argument.
+Also, the argument may be a symbolic link, directory or regular file.
+The result is printed as an absolute path.
+
+=item -n
+
+Do not print a newline at end of output.
+
+=item -V
+
+Print version and exit.
+
+=item -v
+
+Display errors if the input file cannot be processed. Error messages
+are not printed by default.
+
+=back
+
+=head1 BUGS
+
+Certain platforms have limited support for symbolic links so
+readlink() may not perform as expected.
+
+=head1 AUTHOR
+
+Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
