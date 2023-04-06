@@ -78,6 +78,7 @@ bin/printf
 bin/pwd
 bin/rain
 bin/random
+bin/readlink
 bin/rev
 bin/rm
 bin/rmdir
