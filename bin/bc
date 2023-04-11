@@ -16,13 +16,6 @@ $yysccsid = "@(#)yaccpar 1.8 (Berkeley) 01/20/91 (Perl 2.0 12/31/92)";
 #define YYBYACC 1
 #line 49 "bc.y"
 
-
-;# I don't use BigFloat any more because they lack operators such as **,
-;# and they're very, very slow
-;## BigFloat calls a function it does not define
-;#sub Math::BigFloat::panic { die $_[0];  }
-;#use Math::BigFloat;
-
 ;# The symbol table : the keys are the identifiers, the value is in the
 ;# "var" field if it is a variable, in the "func" field if it is a
 ;# function.
@@ -32,6 +25,7 @@ my @ope_stack;
 my @backup_sym_table;
 my $input;
 my $cur_file = '-';
+my $bignum = 0;
 
 $debug = 0;
 sub debug(&) {
@@ -1259,7 +1253,10 @@ $mathlib=0;
 sub command_line()
 {
   while ($f = shift(@ARGV)) {
-    if ($f eq '-d') {
+    if ($f eq '-b') {
+      use Math::BigFloat;
+      $bignum = 1;
+    } elsif ($f eq '-d') {
       use Data::Dumper;
       $debug = 1;
     } elsif ($f eq '-y') {
@@ -1388,10 +1385,6 @@ sub yylex
 	} elsif ($char =~ /^[\dA-F]/ or
 		 ($char eq '.' and $line =~ /\d/)) {
 
-          # Bug: hexadecimal values are not supported, because they are
-          # not supported in Math::BigFloat
-	  # I should support them myself
-
 	  if($char =~ /[A-F]/) {
 	    &yyerror('Sorry, hexadecimal values are not supported');
 	  }
@@ -1400,16 +1393,16 @@ sub yylex
 
           # number, is it integer or float?
 	  if ($line =~ s/^(\d+)//) {
-#	      $yylval = Math::BigFloat->new($char . $1);
 	      $yylval = 0 + ($char.$1);
+	      $yylval = Math::BigFloat->new($yylval) if $bignum;
           } else {
-#	      $yylval = Math::BigFloat->new($char);
 	      $yylval = 0 + $char;
+	      $yylval = Math::BigFloat->new($yylval) if $bignum;
 	  }
 	  $type = $INT;
 
 	  if ($line =~ s/^(\.\d*)//) {
-	      $tmp = "0$1";
+	      $tmp = "0$1"; # ".1" -> "0.1"
 	      $yylval += $tmp;
 	      $type = $FLOAT;
 	  }
@@ -2395,4 +2388,3 @@ define j(n,x) {
 =head1 NAME
 
 bc - An arbitrary precision calculator language
-
