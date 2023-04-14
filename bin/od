@@ -118,7 +118,7 @@ close $fh;
 exit 0;
 
 sub octal1 {
-    $upformat = 'c*'; # for -b
+    $upformat = 'C*'; # for -b
     $pffmt = '%.3o ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x $len;
@@ -148,86 +148,52 @@ sub char1 {
 
 sub udecimal {
     $upformat = 'S*'; # for -d
+    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
     $pffmt = '%5u ';
     @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x ($len / 2);
-    my $remainder = $len - ((scalar @arr) * 2);
-    ($remainder) && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("N", pack("B32", substr($rest, -32)));
-	$strfmt .= '%5u';
-    };
+    $strfmt = $pffmt x (scalar @arr);
 }
 
 sub float {
     $upformat = 'f*'; # for -f
+    my $remain = $len % 4;
+    $data .= "\0" x $remain if ($remain); # zero-fill 32 bit input
     $pffmt = '%6.6e ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
-    my $remainder = $len - ((scalar @arr) * 4);
-    ($remainder) && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("f", pack("B32", substr($rest, -32)));
-	$strfmt .= '%6.6e';
-    };
 }
 
 sub decimal {
     $upformat = 's*'; # for -i
+    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
     $pffmt = '%5d ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
-    my $remainder = $len - ((scalar @arr) * 2);
-    ($remainder) && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("N", pack("B32", substr($rest, -32)));
-	$strfmt .= '%5d';
-    };
 }
 
 sub long {
     $upformat = 'L*'; # for -l
+    my $remain = $len % 4;
+    $data .= "\0" x $remain if ($remain); # zero-fill 32 bit input
     $pffmt = '%10ld ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
-    my $remainder = $len - ((scalar @arr) * 4);
-    $remainder && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("N", pack("B32", substr($rest, -32)));
-	$strfmt .= '%10ld';
-    };
 }
 
 sub octal2 {
     $upformat = 'S*'; # for -o
+    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
     $pffmt = '%.6o ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
-    my $remainder = $len - ((scalar @arr) * 2);
-    ($remainder) && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("N", pack("B32", substr($rest, -32)));
-	$strfmt .= '%.6o';
-    };
 }
 
 sub hex {
     $upformat = 'S*'; # for -x
+    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
     $pffmt = '%.4x ';
     @arr = unpack($upformat,$data);
     $strfmt = $pffmt x (scalar @arr);
-    my $remainder = $len - ((scalar @arr) * 2);
-    ($remainder) && do {
-	my $offset = $len - $remainder;
-	my $rest = "0" x 32 . substr($data, $offset, $remainder);
-	push @arr, unpack("N", pack("B32", substr($rest, -32)));
-	$strfmt .= '%.4x';
-    };
 }
 
 sub diffdata {
