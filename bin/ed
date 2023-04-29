@@ -554,13 +554,8 @@ sub edInsert {
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
 
-    if (defined($args[1])) {
-        edWarn('Too many addressses');
-        return;
-    }
-
-    if ($adrs[0] == 0 and ($Mode == $INSERT_MODE)) {
-        edWarn("Can't insert before line 0");
+    if (defined($adrs[1])) {
+        edWarn('Too many addresses');
         return;
     }
 
@@ -581,19 +576,17 @@ sub edInsert {
 
     if ($Mode == $INSERT_MODE) {
 
-        if ($adrs[0] == 1) {
-            shift(@lines); # get rid of undefined line
+        shift @lines; # get rid 0 line
+        if ($adrs[0] == 0 || $adrs[0] == 1) {
             unshift(@lines,@tmp_lines);
-            unshift(@lines,undef); # put 0 line back
             $CurrentLineNum = $tmp_maxline;
         } else {
-            shift(@lines); # get rid 0 line
             @tmp_lines2 = splice(@lines,0,$adrs[0]-1);
             unshift(@lines,@tmp_lines);
             unshift(@lines,@tmp_lines2);
             $CurrentLineNum = $adrs[0] + $tmp_maxline - 1;
-            unshift(@lines,undef); # put 0 line back
         }
+        unshift @lines, undef; # put 0 line back
 
     } elsif ($Mode == $APPEND_MODE) {
 
