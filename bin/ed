@@ -235,6 +235,8 @@ while(<>) {
             &edQuit($NO_QUESTIONS_MODE);
         } elsif ($command eq 'h') {
             print("$Error\n") if (defined $Error);
+        } elsif ($command eq 'n') {
+            edPrint(1);
         }
 
     } else {
@@ -249,6 +251,7 @@ while(<>) {
 #
 
 sub edPrint {
+    my $do_lineno = shift;
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
@@ -264,6 +267,7 @@ sub edPrint {
     }
 
     for my $i ($adrs[0]..$adrs[1]) {
+        print "$i\t" if $do_lineno;
         print "$lines[$i]";
     }
 
@@ -757,7 +761,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhipPqQrswW=])?        # command char
+                 ([acdeEfhinpPqQrswW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -1055,6 +1059,10 @@ Display last error
 =item i
 
 Insert text
+
+=item n
+
+Print from buffer with line number prefix
 
 =item P
 
