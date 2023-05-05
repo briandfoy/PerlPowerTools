@@ -96,6 +96,7 @@ sub crc32 {
 	my($crc) = my($len) = 0;
 	my($buf,$num,$i);
 	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
+	my $MASK32 = 0xffffffff;
 
 	# crctable/crc32 alg converted from openbsd's cksum program ...
 	my(@crctable) = (
@@ -154,18 +155,20 @@ sub crc32 {
 	);
 
 	while($num = sysread $fh, $buf, $buflen) {
-		for($len = ($len+$num)&0xffffffff, $i = 0; $i<$num; $i++) {
+		for($len = ($len + $num) & $MASK32, $i = 0; $i < $num; $i++) {
 			$crc = ($crc << 8 ^ $crctable[$crc >> 24 ^ ord(substr $buf, $i, 1)])
-					& 0xffffffff;
+					& $MASK32;
 		}
 	}
 
 	my($rlen) = $len; # for reporting ...
 	for(;$len!=0;$len>>=8) { # MSB first
 		$crc = (($crc << 8) ^ $crctable[($crc >> 24) ^ ($len&0xff)])
-				& 0xffffffff;
+				& $MASK32;
 	}
-	return $num,~$crc,$rlen;
+	$crc = ~$crc;
+	$crc &= $MASK32;
+	return $num, $crc, $rlen;
 }
 
 sub help {
