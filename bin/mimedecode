@@ -11,7 +11,7 @@ License:
 
 =cut
 
-
+use v5.12.0;
 use Getopt::Std;
 
 BEGIN {
