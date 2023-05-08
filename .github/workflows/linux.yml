@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20220902.001
+# version 20230503.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -80,14 +80,13 @@ jobs:
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny
-                cpan -M https://www.cpan.org -T ExtUtils::MakeMaker Test::Manifest
+                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpan -M https://www.cpan.org -T .
+                cpanm --notest -installdeps .
             - name: Run tests
               run: |
                 perl Makefile.PL
@@ -96,7 +95,7 @@ jobs:
             - name: Author tests
               if: hashFiles('xt') != ''
               run: |
-                cpan -M https://www.cpan.org -T Test::CPAN::Changes
+                cpanm --notest Test::CPAN::Changes
                 prove -r -b xt
 # Running tests in parallel should be faster, but it's also more
 # tricky in cases where different tests share a feature, such as a
@@ -117,13 +116,14 @@ jobs:
                 perl Makefile.PL
                 make disttest
                 make clean
-# And, coverage reports, but only under 5.10 and later since modern
-# Devel::Cover instances don't work with 5.8
+# And, coverage reports, but only under 5.12 and later since modern
+# Devel::Cover instances don't work with earlier versions as of
+# Devel::Cover 1.39
             - name: Run coverage tests
-              if: env.PERL_VERSION != 'v5.8'
+              if: env.PERL_VERSION != 'v5.8' && env.PERL_VERSION != 'v5.10'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
+                cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
                 cover -test -report coveralls

@@ -3,12 +3,21 @@
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
+#
+# This requires that you configure a repository secret named
+# RELEASE_ACTION_TOKEN with a GitHub Personal Access Token
+# that has "read and write" permissions on Repository/Contents
 name: release
+
+permissions:
+    contents: write
 
 on:
     push:
         tags:
             - 'release-*'
+    workflow_dispatch:
+
 jobs:
     perl:
         runs-on: ${{ matrix.os }}
@@ -51,19 +60,18 @@ jobs:
             - name: version
               run: echo "::set-output name=version::$(perl -le 'print $ARGV[0] =~ m/(.*?).tar.gz/' *.tar.gz)"
               id: version
-            - name: release
-              uses: actions/create-release@v1
-              id: create_release
-              env:
-                GITHUB_TOKEN: ${{ github.token }}
-              with:
-                draft: false
-                prerelease: false
-                release_name: ${{ steps.version.outputs.version }}
-                tag_name: ${{ github.ref }}
-                body_path: Changes
+            - name: Changes extract
+              run: |
+                perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; print; last' Changes > Changes-latest
+                cat Changes-latest
+              id: extract
             - name: upload
               uses: softprops/action-gh-release@v1
               if: startsWith(github.ref, 'refs/tags/')
               with:
+                body_path: Changes-latest
+                draft: false
+                prerelease: false
+                name: ${{ steps.version.outputs.version }}
                 files: "*.tar.gz"
+                token: ${{ secrets.RELEASE_ACTION_TOKEN }}
