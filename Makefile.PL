@@ -123,6 +123,8 @@ my %WriteMakefile = (
 		},
 
 	'PREREQ_PM'     => {
+		'App::a2p'       => '0',
+		'App::find2perl' => '0',
 		},
 
 	'META_MERGE' => {
@@ -143,6 +145,7 @@ my %WriteMakefile = (
 	clean => { FILES => "$dist-*" },
 	);
 
+$WriteMakefile{PREREQ_PM}{'MIME::Parser'} if $^V >= v5.12.0;
 
 sub arguments { \%WriteMakefile }
 
