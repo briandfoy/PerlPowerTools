@@ -1,5 +1,24 @@
 Revision history for Perl module PerlPowerTools
 
+1.033_04 2023-05-08T23:57:34Z
+	* mimedecoder now requires v5.12 since MIME::Tools uses Test::Deep,
+	which recently updated to v5.12
+	* Several enhancements from Michael Mikonos
+	* ed
+	- can report line numbers on print
+	- can insert empty buffer
+	- can no longer insert before line 0
+	* sum
+	- now correctly reports 32-bit checksums on 64-bit perls
+	- can read from standard input
+	* od
+	- zero fill input to required byte length
+	* bc
+	- use Math::BigFloat again
+	* echo
+	- emit newline by default
+
+
 1.033_03 2023-04-05T11:43:15Z
 	* echo with no arguments now emits a newline, from Michael Mikonos
 
