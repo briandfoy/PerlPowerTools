@@ -123,9 +123,6 @@ my %WriteMakefile = (
 		},
 
 	'PREREQ_PM'     => {
-		'App::a2p'       => '0',
-		'App::find2perl' => '0',
-		'MIME::Parser'   => '0',
 		},
 
 	'META_MERGE' => {
