@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20230503.001
+# version 20230508.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -86,7 +86,7 @@ jobs:
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest -installdeps .
+                cpanm --notest --installdeps .
             - name: Run tests
               run: |
                 perl Makefile.PL
