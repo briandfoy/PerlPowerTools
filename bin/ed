@@ -235,6 +235,11 @@ while(<>) {
             &edQuit($NO_QUESTIONS_MODE);
         } elsif ($command eq 'h') {
             print("$Error\n") if (defined $Error);
+        } elsif ($command eq 'H') {
+            $EXTENDED_MESSAGES ^= 1;
+            if ($EXTENDED_MESSAGES && defined $Error) {
+                print "$Error\n";
+            }
         } elsif ($command eq 'n') {
             edPrint(1);
         }
@@ -761,7 +766,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhinpPqQrswW=])?        # command char
+                 ([acdeEfhHinpPqQrswW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -956,10 +961,9 @@ sub edWarn {
     my $msg = shift;
 
     $Error = $msg;
+    print "?\n";
     if ($EXTENDED_MESSAGES) {
         print "$msg\n";
-    } else {
-        print "?\n";
     }
 }
 
