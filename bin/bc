@@ -11,8 +11,6 @@ License: gpl
 
 =cut
 
-
-$yysccsid = "@(#)yaccpar 1.8 (Berkeley) 01/20/91 (Perl 2.0 12/31/92)";
 #define YYBYACC 1
 #line 49 "bc.y"
 
@@ -712,11 +710,6 @@ if ($yyn == 5) {
 
 last switch;
 } }
-if ($yyn == 6) {
-#line 144 "bc.y"
-{ exit(0);
-last switch;
-} }
 if ($yyn == 7) {
 #line 147 "bc.y"
 {
@@ -1245,9 +1238,6 @@ last switch;
 } # yyparse
 #line 479 "bc.y"
 
-# Prompt the user on STDERR, but only prompt if STDERR and the input
-# file are both terminals.
-
 @file_list=();
 $mathlib=0;
 sub command_line()
@@ -1300,7 +1290,6 @@ sub next_file
       $input = IN;
     }
     $cur_file = $file;
-    $prompt = '';
     return 1;
 
   }
@@ -1308,12 +1297,6 @@ sub next_file
   debug { "no next file\n" };
 
   return 0;
-}
-
-# print the prompt
-sub prompt
-{
-    print STDERR $prompt if $prompt;
 }
 
 # print an error message
@@ -1335,7 +1318,6 @@ sub yylex
    # get a line of input, if we need it.
    if ($line eq '')
 	{
-	  &prompt;
 	  while(! ($line = <$input>)) {
 	      &next_file || do {
 		return(0); };
@@ -1495,15 +1477,6 @@ sub yylex
     }
 }
 
-# factorial
-sub fact
-{
-    local($n) = @_;
-    local($f) = 1;
-    $f *= $n-- while ($n > 1) ;
-    $f;
-}
-
 sub bi_length
 {
   my $stack = shift;
@@ -1598,29 +1571,16 @@ sub finish_stmt
   return $stmt;
 }
 
-
-#
-# Execution time
-#
-
 my ($res, $val);
 my $code;
-
-sub exec_print
-{
-  my $res = exec_stmt(@_);
-  print "$res\n" if(defined $res);
-}
 
 #
 # exec_stmt
 # Really executes a statement. Calls itself recursively when it
 # encounters sub-statements (in block, loops, functions...)
 #
-my $count = 0;
 sub exec_stmt
 {
-$count++;
   my $stmt = shift;
 
   my $return = 0; # 1 if a "return" statement is encountered
@@ -1785,7 +1745,6 @@ $count++;
 # IF statement
 
      my $cond = pop @ope_stack;
-     my $res = $cond;
      $val = 0;
      if($cond) {
        ($return, $val) = exec_stmt($instr->[1]);
@@ -2097,8 +2056,6 @@ select(STDOUT);
 start_stmt();
 
 main();
-
-print "count=$count\n";
 
 __END__
 
