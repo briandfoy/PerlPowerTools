@@ -85,6 +85,7 @@ $RememberedFilename = undef; # the default filename for writes, etc.
 $NeedToSave = 0;        # buffer modified
 $UserHasBeenWarned = 0; # has the user been warned about attempt
 $Error = undef;
+$Prompt = undef;
                         # to trash buffer/file?
 @lines = ();                # buffer for file being edited.
 $command = "";                # single letter command entered by user
@@ -115,8 +116,10 @@ $opt_v = 0;
 $opt_d = "";
 $SupressCounts = 0;
 
-getopts('d:v') or &Usage;
-
+getopts('d:p:v') or &Usage;
+if (defined $opt_p) {
+    $Prompt = $opt_p;
+}
 if ($opt_v) {
     $EXTENDED_MESSAGES = 1;
 }
@@ -141,8 +144,9 @@ if ($EXTENDED_MESSAGES) {
 # parse commands and execute them...
 #
 
-
-while(<>) {
+while (1) {
+    print $Prompt if defined $Prompt;
+    last unless ($_ = <>);
     chomp;
 
     if (&edParse) {
@@ -227,8 +231,14 @@ while(<>) {
 
         # misc commands
 
-        } elsif ($command =~ /^[pP]$/) {
+        } elsif ($command eq 'p') {
             &edPrint;
+        } elsif ($command eq 'P') {
+            if (defined $Prompt) {
+                $Prompt = undef;
+            } else {
+                $Prompt = defined $opt_p ? $opt_p : '*';
+            }
         } elsif ($command =~ /^q$/) {
             &edQuit($QUESTIONS_MODE);
         } elsif ($command =~ /^Q$/) {
@@ -948,7 +958,7 @@ sub edSearchBackward {
 #
 
 sub Usage {
-    die "Usage: ed [-v] [-ddebugstring] [file]\n";
+    die "Usage: ed [-p prompt] [-ddebugstring] [-v] [file]\n";
 }
 
 #
@@ -977,7 +987,7 @@ ed - text editor
 
 =head1 SYNOPSIS
 
-ed [-v] [-ddebugstring] [file]
+ed [-p prompt] [-ddebugstring] [-v] [file]
 
 =head1 DESCRIPTION
 
@@ -1004,7 +1014,7 @@ A command may operate on a range of addresses at once.
 An address range is entered as two numbers separated by a comma, e.g. "1,10".
 The numbers are included as the first and last number of the range.
 So "1,10" spans from line 1 to 10.
-A range is then used as a command prefix, e.g. "1,2p" will print 2 lines. 
+A range is then used as a command prefix, e.g. "1,2p" will print 2 lines.
 Addressing a line outside the scope of the buffer results in an error.
 
 The commands "a", "c" and "i" allow text to be entered into the buffer.
@@ -1021,6 +1031,11 @@ The following options are available:
 =item -ddebugstring
 
 Print debugging output. debugstring may be set to "parse".
+
+=item -p STRING
+
+Use the specified STRING as a command prompt.
+By default ed does not display a prompt.
 
 =item -v
 
@@ -1056,6 +1071,10 @@ Load and edit the named FILE argument
 
 Show/set a filename
 
+=item H
+
+Toggle help mode; this causes descriptive errors to be displayed
+
 =item h
 
 Display last error
@@ -1069,6 +1088,9 @@ Insert text
 Print from buffer with line number prefix
 
 =item P
+
+Toggle command prompt mode.
+A string provided by -p will be used; otherwise, the default is '*'
 
 =item p
 
