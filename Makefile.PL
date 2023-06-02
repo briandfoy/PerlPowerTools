@@ -145,7 +145,7 @@ my %WriteMakefile = (
 	clean => { FILES => "$dist-*" },
 	);
 
-$WriteMakefile{PREREQ_PM}{'MIME::Parser'} if $^V >= v5.12.0;
+$WriteMakefile{PREREQ_PM}{'MIME::Parser'} = 0 if $^V >= v5.12.0;
 
 sub arguments { \%WriteMakefile }
 
