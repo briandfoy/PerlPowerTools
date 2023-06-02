@@ -86,7 +86,7 @@ jobs:
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest --installdeps .
+                cpanm --notest --installdeps --with-suggests --with-recommends .
             - name: Run tests
               run: |
                 perl Makefile.PL

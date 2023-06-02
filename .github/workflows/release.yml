@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20220827.002
+# version 20230528.004
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -20,6 +20,7 @@ on:
 
 jobs:
     perl:
+        environment: release
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
@@ -58,7 +59,8 @@ jobs:
                 make disttest
                 make dist 2>/dev/null | grep Created | awk '{ print "ASSET_NAME=" $2 }' >> $GITHUB_ENV
             - name: version
-              run: echo "::set-output name=version::$(perl -le 'print $ARGV[0] =~ m/(.*?).tar.gz/' *.tar.gz)"
+              run: |
+                perl -le '($v) = $ARGV[0] =~ m/(.*?).tar.gz/; print qq(version=$v)' *.tar.gz >> $GITHUB_OUTPUT
               id: version
             - name: Changes extract
               run: |
@@ -67,7 +69,6 @@ jobs:
               id: extract
             - name: upload
               uses: softprops/action-gh-release@v1
-              if: startsWith(github.ref, 'refs/tags/')
               with:
                 body_path: Changes-latest
                 draft: false
