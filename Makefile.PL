@@ -145,7 +145,9 @@ my %WriteMakefile = (
 	clean => { FILES => "$dist-*" },
 	);
 
-$WriteMakefile{PREREQ_PM}{'MIME::Parser'} = 0 if $^V >= v5.12.0;
+# This module uses Test::Deep, which has a dependency that requires
+# v5.12.
+$WriteMakefile{PREREQ_PM}{'MIME::Parser'} = 0 if $] >= 5.012;
 
 sub arguments { \%WriteMakefile }
 
