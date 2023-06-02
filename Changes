@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.034 2023-06-02T14:19:44Z
+	* turn on the ed prompt (#160, Michael Mikonos)
+
 1.033_04 2023-05-08T23:57:34Z
 	* mimedecoder now requires v5.12 since MIME::Tools uses Test::Deep,
 	which recently updated to v5.12
