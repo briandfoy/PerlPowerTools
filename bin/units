@@ -633,8 +633,8 @@ sub lex {
                    (?: \*{3} | \*.\* | !.! ) # Special 'new unit' symbol
                 |  [()*-]                    # Symbol
                 |  \s*(?:\/|\bper\b)\s*      # Division
-                |  ($N\|$N)                  # Fraction
-                |  $N    # Decimal number
+                |  (?:$N\|$N)                # Fraction
+                |  $N                        # Decimal number
                 |  \d+                       # Integer
                 |  [A-Za-z_][A-Za-z_.]*      # identifier
                 |  \s+                       # White space
