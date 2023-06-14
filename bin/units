@@ -271,7 +271,7 @@ sub is_Zero { $_[0]{_} == 0 }
 
 sub unit_lookup {
   my ($name) = @_;
-  debug_l( "Looking up unit `$name'" );
+  debug_l( "Looking up unit '$name'" );
   return $unittab{$name} if exists $unittab{$name};
   if ($name =~ /s$/) {
     my $shortname = $name;
@@ -280,7 +280,7 @@ sub unit_lookup {
   }
   my ($prefix, $rest) = ($name =~ /^($PREF-?)(.*)/o);
   unless ($prefix) {
-    $PARSE_ERROR = "Unknown unit `$name'";
+    $PARSE_ERROR = "Unknown unit '$name'";
     return Zero;
   }
   my $base_unit = unit_lookup($rest); # Recursive
@@ -611,7 +611,7 @@ sub parse_unit {
 
       debug_p( "Post-reduction state is $STATE." );
 
-      # Now look for `goto' actions
+      # Now look for 'goto' actions
       my $goto = $actions[$STATE]{$result_type};
       unless ($goto && $goto->[0] eq 'goto') {
         die "No post-reduction goto in state $STATE for $result_type.\n";
@@ -630,7 +630,7 @@ sub lex {
   my $N = '(?:\d+\.\d+|\d+|\.\d+)(?:[eE][-+]?\d+)?';
 
   my @t = split /(
-                   (?: \*{3} | \*.\* | !.! ) # Special `new unit' symbol
+                   (?: \*{3} | \*.\* | !.! ) # Special 'new unit' symbol
                 |  [()*-]                    # Symbol
                 |  \s*(?:\/|\bper\b)\s*      # Division
                 |  ($N\|$N)                  # Fraction
@@ -666,7 +666,7 @@ sub token_value {
        if( $token =~ /^([()*\/-]|\s*\bper\b\s*)$/ ) { $token }
     elsif( $token =~ /(\d+)\|(\d+)/ ) {
       if( $2 == 0 ) {
-        ABORT("Zero denominator in fraction `$token'");
+        ABORT("Zero denominator in fraction '$token'");
         return 0;
       }
       $1/$2;
@@ -1113,7 +1113,7 @@ This program is copyright (c) M-J. Dominus (1996, 1999).
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
-version, or under Perl's `Artistic License'.
+version, or under Perl's 'Artistic License'.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
