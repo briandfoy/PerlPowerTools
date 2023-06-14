@@ -80,11 +80,45 @@ sub run {
   my( $class, @args ) = @_; local @ARGV;
 
   my $args = $class->process_args( @args );
+
   $class->read_unittab( $args->{unittabs}[0] );
 
-  $class->input_loop;
+  if (@{ $args->{args} }) {
+    my ($have, $want) = @{ $args->{args} };
+    my $have_hr = $class->unit_have($have);
+    my $want_hr = $class->unit_want($want);
+    my %r = $class->unit_convert($have_hr, $want_hr);
+    print_result(%r);
+  } else {
+    while (1) {
+      print "You have: ";
+      my $have = <>;
+      exit 0 unless $have =~ /\S/;
+      my $have_hr = $class->unit_have($have);
+      next if is_Zero($have_hr->{hu});
+
+      print "You want: ";
+      my $want = <>;
+      exit 0 unless $want =~ /\S/;
+      my $want_hr = $class->unit_want($want);
+      next if is_Zero($want_hr->{wu});
+
+      my %r = $class->unit_convert($have_hr, $want_hr);
+      print_result(%r);
+    }
+  }
 
   exit 0;
+}
+
+sub test {
+    my ($class, $have, $want) = @_;
+
+    $class->read_unittab();
+    my $have_hr = $class->unit_have($have);
+    my $want_hr = $class->unit_want($want);
+    my %r = $class->unit_convert($have_hr, $want_hr);
+    return %r;
 }
 
 sub default_unittabs {
@@ -121,12 +155,12 @@ sub process_args {
       }
     }
 
-    $class->usage() if $USAGE || @args;
+    $class->usage() if $USAGE || @args == 1 || @args > 2;
 
     @unittabs = $class->env_unittabs unless @unittabs;
     @unittabs = $class->default_unittabs unless @unittabs;
 
-    { unittabs => \@unittabs }
+    { unittabs => \@unittabs, args => \@args }
 }
 
 sub read_unittab {
@@ -152,54 +186,121 @@ sub read_unittab {
   $class->read_defs( $name, $fh );
 }
 
-sub input_loop {
-  my( $class ) = @_;
+sub unit_have {
+  my ($class, $have) = @_;
 
-  for (;;) {
-    print "You have: ";
-    my $have = <>;
-    trim($have);
-    if ($have =~ s/^\s*\#\s*//) {
-      if ($class->definition_line($have)) {
-        print "Defined.\n";
-      } else {
-        print "Error: $PARSE_ERROR.\n";
-      }
-      next;
+  trim($have);
+
+  # my $is_negative = 0;
+  # if ($have =~ /^[-]/) {
+    # $is_negative = 1;
+    # $have =~ s/^[-]//;  # remove minus sign
+  # }
+
+  # my $is_quantified = $have =~ /^[\d.]+/;
+
+  if ($have =~ s/^\s*\#\s*//) {
+    if ($class->definition_line($have)) {
+      print "Defined.\n";
+    } else {
+      print "Error: $PARSE_ERROR.\n";
     }
-    exit 0 unless $have =~ /\S/;
-    my $hu = $class->parse_unit($have);
-    if (is_Zero($hu)) {
+    return;
+  }
+  return unless $have =~ /\S/;
+
+  my $hu = $class->parse_unit($have);
+
+  if (is_Zero($hu)) {
+    print $PARSE_ERROR, "\n";
+    return;
+  }
+
+  # return { have => $have, hu => $hu, neg => $is_negative, quan => $is_quantified };
+  { have => $have, hu => $hu };
+}
+
+sub unit_want {
+    my ($class, $want) = @_;
+
+    trim($want);
+    return unless $want =~ /\S/;
+
+    my $wu = $class->parse_unit($want);
+
+    if (is_Zero($wu)) {
       print $PARSE_ERROR, "\n";
-      redo;
     }
-    my $wu;
-    my $want;
-    for (;;) {
-      print "You want: ";
-      $want = <>;
-      trim($want);
-      redo unless $want =~ /\S/;
-      $wu = $class->parse_unit($want);
-      if (is_Zero($wu)) {
-        print $PARSE_ERROR, "\n";
-      } else {
-        last;
-      }
-    }
+
+    { want => $want, wu => $wu };
+}
+
+sub unit_convert {
+    my ($class, $have_hr, $want_hr ) = @_;
+
+    my $have = $have_hr->{have};
+    my $hu = $have_hr->{hu};
+    # my $is_negative = $have_hr->{neg};
+    # my $is_quantified = $have_hr->{quan};
+
+    my $want = $want_hr->{want};
+    my $wu = $want_hr->{wu};
+
+    # debug_t('have unit', dumper($hu));
+    # debug_t('want unit', dumper($wu));
+
+    # my $is_temperature = 0;
+    # $is_temperature++ if $hu->{Temperature};
+    # $is_temperature++ if $wu->{Temperature};
+
+    # my $quot
+        # = $is_temperature == 2
+        # ? undef
+        # : unit_divide($hu, $wu);
+
     my $quot = unit_divide($hu, $wu);
+
+    my %retval;
+
+    # if ($is_temperature == 2) {
+        # # we have temperature units
+        # $have =~ s/^[-]?[\d.]*\s*//;
+        # my $v = $hu->{'_'};
+        # $v *= -1 if $is_negative;
+        # $v  =  0 if not $is_quantified;
+        # my $k
+            # = exists $hu->{hof}
+            # ? $hu->{hof}->{to}->($v)
+            # : $v;
+        # my $t
+            # = exists $wu->{hof}
+            # ? $wu->{hof}->{from}->($k)
+            # : $k;
+        # %retval = ( type => 'temperature', v => $v, have => $have, t => $t, want => $want );
+    # }
     if (is_dimensionless($quot)) {
       my $q = $quot->{_};
       my $p = 1/$q;
-      printf "\t* %.6g\n\t/ %.6g\n", $q, $p;
-    } else {
-      print
-        "conformability (Not the same dimension)\n",
-        "\t", $have, " is ", text_unit($hu), "\n",
-        "\t", $want, " is ", text_unit($wu), "\n",
-        ;
+      %retval = ( type => 'dimless', q => $q, p => $p);
     }
-  }
+    else {
+      %retval = ( type=> 'error', msg =>
+        "conformability (Not the same dimension)\n" .
+        "\t" . $have . " is " . text_unit($hu) . "\n" .
+        "\t" . $want . " is " . text_unit($wu) . "\n"
+        );
+    }
+
+    return %retval;
+}
+
+sub print_result {
+    my (%r) = @_;
+    printf "\t%.6g %s is %.6g %s\n", $r{v}, $r{have}, $r{t}, $r{want}
+        if $r{type} eq 'temperature';
+    printf "\t* %.6g\n\t/ %.6g\n", $r{q}, $r{p}
+        if $r{type} eq 'dimless';
+    print $r{msg} if $r{type} eq 'error';
 }
 
 ################################################################
@@ -302,8 +403,8 @@ sub unit_multiply {
 
 sub unit_divide {
   my ($a, $b) = @_;
-  die "Division by zero error" if $b->{_} == 0;
   my $r = {%$a};
+  die "Division by zero error" if $b->{_} == 0;
   $r->{_} /= $b->{_};
   for my $u (keys %$b) {
     next if $u eq '_';
