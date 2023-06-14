@@ -734,7 +734,7 @@ sub lex {
   my $N = '(?:\d+\.\d+|\d+|\.\d+)(?:[eE][-+]?\d+)?';
 
   my @t = split /(
-                   (?: \*{3} | \*.\* | !.! ) # Special 'new unit' symbol
+                   (?: \*.\* | !.! ) # Special 'new unit' symbol
                 |  [()*-]                    # Symbol
                 |  \s*(?:\/|\bper\b)\s*      # Division
                 |  (?:$N\|$N)                # Fraction
