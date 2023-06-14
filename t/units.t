@@ -51,6 +51,53 @@ sub run_tests {
     is rnd($got{q}), rnd(1/12);
     is rnd($got{p}), 12;
 
+    # affine dimension tests, returing type => 'temperature'
+
+    %got = PerlPowerTools::units::test($class, 'K','K');
+    is rnd($got{t}), 0;
+
+    %got = PerlPowerTools::units::test($class, 'K','C');
+    is rnd($got{t}), -273.15;
+
+    %got = PerlPowerTools::units::test($class, 'K','R');
+    is rnd($got{t}), 0;
+
+    %got = PerlPowerTools::units::test($class, 'C','K');
+    is rnd($got{t}), 273.15;
+
+    %got = PerlPowerTools::units::test($class, 'R','K');
+    is rnd($got{t}), 0;
+
+    %got = PerlPowerTools::units::test($class, 'C','K');
+    is rnd($got{t}), 273.15;
+
+    %got = PerlPowerTools::units::test($class, 'C','F');
+    is rnd($got{t}), 32;
+
+    %got = PerlPowerTools::units::test($class, '0C','F');
+    is rnd($got{t}), 32;
+
+    %got = PerlPowerTools::units::test($class, '100 C','F');
+    is rnd($got{t}), 212;
+
+    %got = PerlPowerTools::units::test($class, '-40 C','F');
+    is rnd($got{t}), -40;
+
+    %got = PerlPowerTools::units::test($class, '98.6F','C');
+    is rnd($got{t}), 37;
+
+    # ice/salt mixture
+
+    %got = PerlPowerTools::units::test($class, '255.37K','C');
+    is rnd($got{t}), -17.78;
+
+    %got = PerlPowerTools::units::test($class, '-17.78C','F');
+    ok rnd($got{t}) < 0.00001;
+
+    # water boils at STP
+    %got = PerlPowerTools::units::test($class, '99.9836 C','K');
+    is rnd($got{t}), 373.134;
+
     return;
 }
 

@@ -24,9 +24,9 @@ our $VERSION = '1.01';
 
 BEGIN {
     require Data::Dumper;
-	sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
+	sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Deparse(1)->Dump }
 
-	foreach my $letter ( qw( d p o l ) ) {
+	foreach my $letter ( qw( d p o l t ) ) {
 	  no strict 'refs';
 	  my $env_var = uc( "UNITS_DEBUG_$letter" );
 	  my( $debugging ) = grep { defined and length } ( $ENV{$env_var}, $ENV{UNITS_DEBUG}, 0 );
@@ -191,13 +191,13 @@ sub unit_have {
 
   trim($have);
 
-  # my $is_negative = 0;
-  # if ($have =~ /^[-]/) {
-    # $is_negative = 1;
-    # $have =~ s/^[-]//;  # remove minus sign
-  # }
+  my $is_negative = 0;
+  if ($have =~ /^[-]/) {
+    $is_negative = 1;
+    $have =~ s/^[-]//;  # remove minus sign
+  }
 
-  # my $is_quantified = $have =~ /^[\d.]+/;
+  my $is_quantified = $have =~ /^[\d.]+/;
 
   if ($have =~ s/^\s*\#\s*//) {
     if ($class->definition_line($have)) {
@@ -216,8 +216,7 @@ sub unit_have {
     return;
   }
 
-  # return { have => $have, hu => $hu, neg => $is_negative, quan => $is_quantified };
-  { have => $have, hu => $hu };
+  return { have => $have, hu => $hu, neg => $is_negative, quan => $is_quantified };
 }
 
 sub unit_want {
@@ -231,8 +230,7 @@ sub unit_want {
     if (is_Zero($wu)) {
       print $PARSE_ERROR, "\n";
     }
-
-    { want => $want, wu => $wu };
+    return { want => $want, wu => $wu };
 }
 
 sub unit_convert {
@@ -240,45 +238,43 @@ sub unit_convert {
 
     my $have = $have_hr->{have};
     my $hu = $have_hr->{hu};
-    # my $is_negative = $have_hr->{neg};
-    # my $is_quantified = $have_hr->{quan};
+    my $is_negative = $have_hr->{neg};
+    my $is_quantified = $have_hr->{quan};
 
     my $want = $want_hr->{want};
     my $wu = $want_hr->{wu};
 
-    # debug_t('have unit', dumper($hu));
-    # debug_t('want unit', dumper($wu));
+    debug_t('have unit', dumper($hu));
+    debug_t('want unit', dumper($wu));
 
-    # my $is_temperature = 0;
-    # $is_temperature++ if $hu->{Temperature};
-    # $is_temperature++ if $wu->{Temperature};
+    my $is_temperature = 0;
+    $is_temperature++ if $hu->{Temperature};
+    $is_temperature++ if $wu->{Temperature};
 
-    # my $quot
-        # = $is_temperature == 2
-        # ? undef
-        # : unit_divide($hu, $wu);
-
-    my $quot = unit_divide($hu, $wu);
+    my $quot
+        = $is_temperature == 2
+        ? undef
+        : unit_divide($hu, $wu);
 
     my %retval;
 
-    # if ($is_temperature == 2) {
-        # # we have temperature units
-        # $have =~ s/^[-]?[\d.]*\s*//;
-        # my $v = $hu->{'_'};
-        # $v *= -1 if $is_negative;
-        # $v  =  0 if not $is_quantified;
-        # my $k
-            # = exists $hu->{hof}
-            # ? $hu->{hof}->{to}->($v)
-            # : $v;
-        # my $t
-            # = exists $wu->{hof}
-            # ? $wu->{hof}->{from}->($k)
-            # : $k;
-        # %retval = ( type => 'temperature', v => $v, have => $have, t => $t, want => $want );
-    # }
-    if (is_dimensionless($quot)) {
+    if ($is_temperature == 2) {
+        # we have temperature units
+        $have =~ s/^[-]?[\d.]*\s*//;
+        my $v = $hu->{'_'};
+        $v *= -1 if $is_negative;
+        $v  =  0 if not $is_quantified;
+        my $k
+            = exists $hu->{hof}
+            ? $hu->{hof}->{to}->($v)
+            : $v;
+        my $t
+            = exists $wu->{hof}
+            ? $wu->{hof}->{from}->($k)
+            : $k;
+        %retval = ( type => 'temperature', v => $v, have => $have, t => $t, want => $want );
+    }
+    elsif (is_dimensionless($quot)) {
       my $q = $quot->{_};
       my $p = 1/$q;
       %retval = ( type => 'dimless', q => $q, p => $p);
@@ -345,22 +341,27 @@ sub definition_line {
   my ($class, $line) = @_;
   my ($name, $data) = split /\s+/, $line, 2;
   my $value = $class->parse_unit($data);
-
+  debug_t("$name => $data") if $data =~ /^\{\s/;
   my $rc = do {
-       if (is_Zero($value))        { undef                              }
+    if ($data =~ /^\{\s/) {
+        my $hof = eval $data;   # hash of functions
+        +{ $name => { _ => 1, hof => $hof, Temperature => 1 } }
+    }
+    elsif (is_Zero($value))        { undef                              }
     elsif (is_fundamental($value)) { +{ $name => {_ => 1, $name => 1} } }
     else                           { +{ $name => $value               } }
   };
 
   unless( defined $rc ) {
-    warn "Parse error: $PARSE_ERROR.  Skipping.\n";
+    $line =~ s/\s+/ => /;
+    warn "Parse error: $PARSE_ERROR in $line.  Skipping.\n";
     $rc = {};
   }
 
   return $rc;
 }
 
-sub trim {
+sub trim {              # note that trim() is a L-value sub
   $_[0] =~ s/\#.*$//;;
   $_[0] =~ s/\s+$//;
   $_[0] =~ s/^\s+//;
@@ -368,7 +369,9 @@ sub trim {
 
 sub Zero () { +{ _ => 0 } }
 
-sub is_Zero { $_[0]{_} == 0 }
+# here we guard the zero test by first checking to see
+# if we're dealing with a temperature
+sub is_Zero { !$_[0]{Temperature} && !$_[0]{_} }
 
 sub unit_lookup {
   my ($name) = @_;
@@ -465,7 +468,7 @@ sub text_unit {
   my (@pos, @neg);
   my $c = $u->{_};
   for my $k (sort keys %$u) {
-    next if $k eq '_';
+    next if $k eq '_' or $k eq 'hof';
     push @pos, $k if $u->{$k} > 0;
     push @neg, $k if $u->{$k} < 0;
   }
@@ -1097,8 +1100,10 @@ NOTE: This does not handle the Gnu units format (https://www.gnu.org/software/un
 
 The units program converts quantities expressed in various scales to their
 equivalents in other scales.  The units program can only handle multiplicative
-or affine scale changes.  It works interactively by prompting the user for
-input:
+or affine scale changes (except for temperature).  It works in one of
+two ways.  If given two units as command line arguments, it reports
+the conversion.  Otherwise, it operates interactively by prompting the user
+for inputs:
 
     % units
     You have: meters
@@ -1121,9 +1126,13 @@ input:
         * 1.27
         / 0.78740157
 
-    You have: 85 degF
-    You want: degC
-        29.444444
+    You have: 98.6 F
+    You want: C
+        98.6 F is 37 C
+
+    You have: -40 C
+    You want: F
+        -40 C is -40 F
 
 Powers of units can be specified using the '^' character as shown in the
 example, or by simple concatenation: 'cm3' is equivalent to 'cm^3'.
@@ -1174,15 +1183,18 @@ exists and you do not supply your own file, this program uses internal
 data.
 
 A unit is specified on a single line by giving its name and an equivalence.  Be
-careful to define new units in terms of old ones so that a reduction leads to
-the primitive units which are marked with '!' characters.  The units program
-will not detect infinite loops that could be caused by careless unit
-definitions.
+careful to define new units in terms of old ones so that reductions leads to
+primitive units.  Primitive (a.k.a. fundamental) units are defined
+with a string of three characters which begin and end with '*' or '!'.
+Note that the units program will not detect infinite loops that could be
+caused by careless unit definitions.
 
-Comments in the unit definition file begin with a '/' character at
-the beginning of a line.
+Comments in the unit definition file begin with a '/' or '#' character at
+the beginning of a line.  Once the parser has successfully parsed a
+unit name and it's definition, the remainder of the line is ignored.
+This makes it safe to incude in-line comments.
 
-Prefixes are defined in the same was as standard units, but with a
+Prefixes are defined in the same way as standard units, but with a
 trailing dash at the end of the prefix name.  If a unit is not found even
 after removing trailing 's' or 'es', then it will be checked against the
 list of prefixes.  Prefixes will be removed until a legal base unit is
@@ -1190,18 +1202,38 @@ identified.
 
 Here is an example of a short units file that defines some basic units.
 
-    m         !a!
-    sec       !b!
-    micro-    1e-6
-    minute    60 sec
-    hour      60 min
-    inch      0.0254 m
-    ft        12 inches
-    mile      5280 ft
+    m           !a!
+    sec         ***
+    Temperature ***
+    micro-      1e-6
+    minute      60 sec
+    hour        60 min
+    inch        0.0254 m
+    ft          12 inches
+    mile        5280 ft
+
+If a "Temperature" dimension is defined in the units table, then
+you can define various temperature scales as units by specifying
+the code needed to convert the unit to or from Kelvin.
+The built-in units table has definitions for Kelvin (K), Celsius (C),
+Fahrenheit (F) and Rankine (R).
+
+The code consists of a perl hash containing the keys 'to' and 'from'.
+The values are the subroutine definitions necessary to convert a
+value from Kelvin to the specified unit, or to Kelvin from the the
+specified unit.  See the built-in unit table for examples.
+
+A temperature unit entered at "You have" without any constant
+preceding it will default to zero units.  This is in contrast to
+non-temperature units, where a bare unit name is assumed to mean 1
+unit.  Also, for temperatures only, negative constants are allowed.
+This enables, for example, a conversation between -40C and F.
 
 =head1 AUTHOR
 
 Mark-Jason Dominus, C<< <mjd-perl-units@plover.com> >>
+
+Temperature support by Gary Puckering, C<< <jgpuckering@rogers.com> >>
 
 Currently maintained in https://github.com/briandfoy/PerlPowerTools
 
@@ -1223,6 +1255,15 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 =cut
 
 __END__
+
+# Notes (from Gary Puckering)
+#  1.  The comment indicator is "/" at the start of a line
+#  2.  However, the parser ignores trailing unrecognized trailing tokens
+#      and so # seems to be an effective in-line comment indicator
+#  3.  Temperature entries in version 1.034 and prior caused parsing errors
+#  4.  Temperature support has now been added, and the entries have been updated
+#  5.  If you have your own units file and it has temperatures, you'll need to update it
+
 # dimensions
 m                     ***
 kg                    ***
@@ -1232,7 +1273,7 @@ candela               ***
 radian                ***
 bit                   ***
 erlang                ***
-K                     ***
+Temperature           ***
 
 # constants
 
@@ -1288,13 +1329,18 @@ mg                    milligram
 metricton             kilokg
 
 # Temperature
-# addition and subtraction doesn't work yet
-F                     K - 459.67
-degF                  F
-C                     K - 273.15
-degC                  C
-# The is U+004B and U+212A
-K                     K
+C                     { to => sub { $_[0] + 273.15 }, from => sub { $_[0] - 273.15 } }
+F                     { to => sub { ( $_[0] + 459.67 ) * 5/9 }, from => sub { $_[0] * 9/5 - 459.67 } }
+R                     { to => sub { $_[0] * 5/9 }, from => sub { $_[0] * 9/5 } }
+K                     Temperature
+Celsius               C
+Fahrenheit            F
+Kelvin                K
+Rankine               R
+celsius               C
+fahrenheit            F
+kelvin                K
+rankine               R
 
 # Avoirdupois
 
@@ -1510,7 +1556,6 @@ jeroboam              4|5 gal
 karat                 1|24
 kcal                  kilocal
 kcalorie              kilocal
-kelvin                degC
 kev                   1e+3 e-volt
 key                   kg
 khz                   1e+3 /sec
@@ -1576,7 +1621,6 @@ quartersection        1|4 mi2
 quintal               100 kg
 quire                 25
 rad                   100 erg/gm
-rankine               1.8 kelvin
 ream                  500
 registerton           100 ft3
 rehoboam              156 floz
@@ -1625,4 +1669,10 @@ water                 .22491|2.54 kg/m2-sec2
 wey                   40 bu
 weymass               252 lb
 Xunit                 1.00202e-13m
-k                     1.38047e-16 erg/degC
+
+# The following entry looks like it might be the Boltzmann constant?
+# If so, then it is incorrect.  It should be 1.3807e-16 erg/degK.  In
+# any event, the temperature logic doesn't support mixed affine/linear 
+# reductions.
+# - Gary Puckering
+// k                     1.38047e-16 erg/degC
