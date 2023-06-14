@@ -1084,7 +1084,7 @@ units - conversion program
 		* 2.54
 		/ 0.393701
 
-	% units -f /path/to/unittab
+	% units [-f /path/to/unittab] [want_unit have_unit]
 
 =head1 OPTIONS
 
