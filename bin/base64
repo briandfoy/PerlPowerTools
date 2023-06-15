@@ -1,5 +1,19 @@
 #!/usr/bin/perl
 
+=begin metadata
+
+Name: base64
+Description: encode and decode base64 data
+Author: Michael Mikonos
+License: perl
+
+=end metadata
+
+=cut
+
+use strict;
+use warnings;
+
 use Getopt::Std qw(getopts);
 use MIME::Base64 qw(decode_base64 encode_base64);
 
