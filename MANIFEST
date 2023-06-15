@@ -150,6 +150,7 @@ t/rev.t
 t/rot13.t
 t/sort.t
 t/true.t
+t/units.t
 t/uudecode.t
 xt/changes.t
 xt/perlcritic.t
