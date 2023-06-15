@@ -27,10 +27,17 @@ these install into F<~/perlpowertools>.
 There are some other ways that might get you to the same thing (and
 are probably better supported):
 
-* With the [Windows Subsytem for Linux](https://docs.microsoft.com/en-us/windows/wsl/) (WSL), you can run a linux right in a console
-* The [GNU coreutils](https://www.gnu.org/software/coreutils)
-* [Cygwin](https://www.cygwin.com)
-* [GNUWin](http://gnuwin32.sourceforge.net/summary.html)
+=over 4
+
+=item * With the L<Windows Subsytem for Linux|https://docs.microsoft.com/en-us/windows/wsl/> (WSL), you can run a linux right in a console
+
+=item * The L<GNU coreutils|https://www.gnu.org/software/coreutils>
+
+=item * L<Cygwin|https://www.cygwin.com>
+
+=item * L<GNUWin|http://gnuwin32.sourceforge.net/summary.html>
+
+=back
 
 =head2 Documentation
 
