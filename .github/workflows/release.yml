@@ -1,8 +1,13 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20230528.004
+# version 20230604.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
+#
+# This action builds a Perl distribution and adds it as a release
+# on GitHub. This does not upload to PAUSE, but that wouldn't be
+# that hard, but that doesn't fit with my workflow since this part
+# happens after everything else has succeeded.
 #
 # This requires that you configure a repository secret named
 # RELEASE_ACTION_TOKEN with a GitHub Personal Access Token
@@ -14,12 +19,24 @@ permissions:
 
 on:
     push:
+# tag a release commit with "release-....". This workflow then runs
+# whenever it sees that tag, and doesn't run for other commits.
         tags:
             - 'release-*'
+# With workflow_dispatch, you can trigger this manually. This is
+# especially handy when you want to re-run a job that failed because
+# the token had expired. Update the GitHub secret and re-run on the
+# same commit.
     workflow_dispatch:
 
 jobs:
     perl:
+# We need a GitHub secret, so create an Environment named "release"
+# * Go to Settings > Environment (repo settings, not account settings)
+# * Make an environment named "release"
+# * Add a secret named "RELEASE_ACTION_TOKEN" with a GitHub token with repo permissions
+# If you use a different token name, update "RELEASE_ACTION_TOKEN" in the last
+# step in this job.
         environment: release
         runs-on: ${{ matrix.os }}
         strategy:
@@ -41,18 +58,24 @@ jobs:
 # cpanm first, which is easy. I can install IO::Socket::SSL with that,
 # then switch back to cpan. I didn't explore this further, but what you
 # see here hasn't caused problems for me.
-# Need HTTP::Tiny 0.055 or later.
+#
+# Need HTTP::Tiny 0.055 or later. Probably don't need it at all since I'm
+# not using cpan here.
+#
+# Test::Manifest is there because it's a thing I do. If you are writing
+# modules and don't know what it is, you don't need it.
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny
-                cpan -M https://www.cpan.org -T ExtUtils::MakeMaker Test::Manifest
+                cpanm --notest IO::Socket::SSL HTTP::Tiny ExtUtils::MakeMaker Test::Manifest
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpan -M https://www.cpan.org -T .
+                cpanm --notest --installdeps --with-suggests --with-recommends .
+# This makes the distribution and tests it, but assumes by the time we
+# got here, everything else was already tested.
             - name: Create distro
               run: |
                 perl Makefile.PL
@@ -60,7 +83,7 @@ jobs:
                 make dist 2>/dev/null | grep Created | awk '{ print "ASSET_NAME=" $2 }' >> $GITHUB_ENV
             - name: version
               run: |
-                perl -le '($v) = $ARGV[0] =~ m/(.*?).tar.gz/; print qq(version=$v)' *.tar.gz >> $GITHUB_OUTPUT
+                perl -le '($name) = $ARGV[0] =~ m/(.*?).tar.gz/; print qq(name=$name)' *.tar.gz >> $GITHUB_OUTPUT
               id: version
             - name: Changes extract
               run: |
@@ -73,6 +96,6 @@ jobs:
                 body_path: Changes-latest
                 draft: false
                 prerelease: false
-                name: ${{ steps.version.outputs.version }}
+                name: ${{ steps.version.outputs.name }}
                 files: "*.tar.gz"
                 token: ${{ secrets.RELEASE_ACTION_TOKEN }}
