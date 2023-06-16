@@ -519,6 +519,7 @@ t/xargs/990.pod.t
 t/yes/000.basic.t
 t/yes/910.meta.t
 t/yes/990.pod.t
+util/extract_metadata
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc

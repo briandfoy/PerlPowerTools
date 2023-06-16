@@ -86,7 +86,11 @@ bin/pmake
 \.icloud$
 \A\.github\b
 
-^util/
+util/create_tool_list
+util/date
+util/make_test_files
+util/test_templates
+
 output.txt
 \.gitattributes\b
 
