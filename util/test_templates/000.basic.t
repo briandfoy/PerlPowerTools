@@ -7,4 +7,4 @@ require './t/lib/common.pl';
 
 sanity_test();
 
-end_testing();
+done_testing();
