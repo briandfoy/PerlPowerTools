@@ -1,5 +1,19 @@
 #!/usr/bin/perl
 
+=begin metadata
+
+Name: hexdump
+Description: print input as hexadecimal
+Author: Michael Mikonos
+License: 
+
+=end metadata
+
+=cut
+
+use strict;
+use warnings;
+
 use Getopt::Std qw(getopts);
 
 my (%opt, @chars, @cesc, $adr, $nread, $curf, $skip);
