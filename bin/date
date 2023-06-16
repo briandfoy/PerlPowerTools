@@ -346,7 +346,7 @@ please open an issue: L<https://github.com/briandfoy/PerlPowerTools/issues>.
 If you look in the C<date> file, you'll see a simple text list at the end
 that we use for Windows.
 
-=se back
+=back
 
 =cut
 
