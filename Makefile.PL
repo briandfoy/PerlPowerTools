@@ -143,6 +143,7 @@ my %WriteMakefile = (
 		},
 
 	clean => { FILES => "$dist-*" },
+	test => {TESTS => 't/*.t t/*/*.t'}
 	);
 
 # This module uses Test::Deep, which has a dependency that requires
