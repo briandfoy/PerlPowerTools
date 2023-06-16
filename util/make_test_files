@@ -19,7 +19,6 @@ COMMAND: foreach my $bin ( map { basename($_) } @commands ) {
 	say "Processing $target_dir";
 	if( -d $target_dir ) {
 		say "\t$target_dir exists";
-		next COMMAND;
 		}
 
 	make_path $target_dir;
@@ -29,14 +28,12 @@ COMMAND: foreach my $bin ( map { basename($_) } @commands ) {
 sub populate_test_files {
 	state $template_dir = 'util/test_templates';
 	my( $target_dir ) = @_;
-say "Target dir is $target_dir";
 	my $mt = Mojo::Template->new->vars(1);
 
 	FILE: foreach my $file ( glob( "$template_dir/*.t" ) ) {
-
 		my $target_file = catfile( $target_dir, basename($file) );
 		if( -e $target_file ) {
-			warn "$target_file already exists. Skipping...";
+			say STDERR "\t$target_file already exists. Skipping...";
 			next FILE;
 			}
 
