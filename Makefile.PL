@@ -118,8 +118,10 @@ my %WriteMakefile = (
 		},
 
 	'TEST_REQUIRES' => {
-		'IPC::Run3'  => '0',
-		'Test::More' => '1',
+		'IPC::Run3'      => '0',
+		'JSON'           => '0',
+		'Test::More'     => '1',
+		'Test::Pod'      => '0',
 		'Test::Warnings' => '0',
 		},
 
