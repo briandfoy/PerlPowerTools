@@ -20,7 +20,7 @@ sub compile_test {
 
 sub program_name {
 	my( $file ) = defined $_[0] ? $_[0] : (caller(0))[1];
-	catfile 'bin', basename( dirname( $_[0] ) );
+	catfile 'bin', basename( dirname( $file ) );
 	}
 
 sub sanity_test {
