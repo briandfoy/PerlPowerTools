@@ -14,14 +14,14 @@ License:
 use v5.12.0;
 use Getopt::Std;
 
-BEGIN {
+SANITY: {
 	my $external_module = 'MIME::Parser';
 	my $rc = eval "require $external_module; $external_module->import; 1";
 	die "This program needs the $external_module module.\n" unless $rc;
 	}
 
 {package PerlPowerTools::MIME::Parser;
- use base 'MIME::Parser';
+push @INC, 'MIME::Parser'; # this is old school so -c doesn't complain
 
 sub new_body_for
  {

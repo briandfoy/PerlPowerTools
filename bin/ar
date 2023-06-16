@@ -7,6 +7,8 @@ Description: create and maintain library archives
 Author: dkulp
 License: perl
 
+=end metadata
+
 =cut
 
 use POSIX qw(strftime);
@@ -18,9 +20,6 @@ if ($ARGV[0] !~ /^\-/) { $ARGV[0] = '-' . $ARGV[0]; }
 
 require "getopts.pl";
 Getopts("dmpqrtxabciouv");
-=end metadata
-
-=cut
 
 # take only one of the following major opts
 if (($opt_d + $opt_m + $opt_p + $opt_q + $opt_r + $opt_t + $opt_x) != 1) {

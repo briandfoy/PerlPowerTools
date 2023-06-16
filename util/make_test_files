@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use utf8;
+use v5.16;
+
+use File::Basename        qw(basename);
+use File::Path            qw(make_path);
+use File::Spec::Functions qw(catfile);
+use Mojo::File;
+use Mojo::Template;
+
+my @commands = @ARGV;
+@commands = glob('bin/*') unless @commands;
+
+COMMAND: foreach my $bin ( map { basename($_) } @commands ) {
+	my $target_dir = catfile( 't', $bin );
+	say "Processing $target_dir";
+	if( -d $target_dir ) {
+		say "\t$target_dir exists";
+		}
+
+	make_path $target_dir;
+	populate_test_files( $target_dir );
+	}
+
+sub populate_test_files {
+	state $template_dir = 'util/test_templates';
+	my( $target_dir ) = @_;
+	my $mt = Mojo::Template->new->vars(1);
+
+	FILE: foreach my $file ( glob( "$template_dir/*.t" ) ) {
+		my $target_file = catfile( $target_dir, basename($file) );
+		if( -e $target_file ) {
+			say STDERR "\t$target_file already exists. Skipping...";
+			next FILE;
+			}
+		say "\tAdding $target_file";
+
+		my $template = Mojo::File->new($file)->slurp;
+		my $cooked = $mt->render($template);
+
+		Mojo::File->new($target_file)->spurt($cooked);
+		}
+	}
+
+__END__

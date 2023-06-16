@@ -17,7 +17,7 @@ License: perl
 
 use strict;
 
-BEGIN {
+SANITY: {
 	my $external_module = 'App::a2p';
 	my $rc = eval "require $external_module; $external_module->import; 1";
 	die "This program needs the $external_module module.\n" unless $rc;

@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+
+use v5.10;
+use open qw(:std :utf8);
+
+my @programs = @ARGV;
+
+my %grand;
+
+foreach my $program ( @programs ) {
+	open my $fh, '<:utf8', $program or do {
+		warn "Could not open <$file>: $!\n";
+		next PROGRAM;
+		};
+	my $data = do { local $/; <$fh> };
+
+	my( $extracted ) = $data =~ m/
+		^=begin \s+ metadata \s+
+			(.+)
+		^=end \s+ metadata
+		/xms;
+
+	my %hash;
+	foreach my $line ( split /\R/, $extracted ) {
+		my( $field, $value ) = split /:\s*/, $line, 2;
+		if( exists $hash{$field} and ! ref $hash{$field} ) {
+			$hash{$field} = [ $hash{$field}, $value ];
+			}
+		else {
+			$hash{$field} = $value;
+			}
+		}
+
+	if( exists $hash{'Author'} and ! ref $hash{'Author'} ) {
+		$hash{'Author'} = [ $hash{'Author'} ]
+		}
+
+	$grand{$program} = \%hash;
+	}
+
+use JSON;
+my $json = encode_json( \%grand );
+
+say $json;
