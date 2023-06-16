@@ -3,7 +3,7 @@ use File::Basename qw(basename dirname);
 use File::Spec::Functions qw(catfile);
 
 use Test::More;
-use Test::NoWarnings qw(had_no_warnings);
+use Test::Warnings qw(had_no_warnings);
 
 sub compile_test {
 	my( $program ) = @_;
@@ -16,11 +16,6 @@ sub compile_test {
 		like $output, qr/syntax OK/, "$program compiles"
 			or diag( $output );
 		};
-	}
-
-sub end_testing {
-	had_no_warnings();
-	done_testing();
 	}
 
 sub program_name {
@@ -38,7 +33,8 @@ sub sanity_test {
 
 	unless($rc) {
 		done_testing();
-		die "No sense continuing after sanity tests fail\n";
+		note "No sense continuing after sanity tests fail\n";
+		CORE::exit 255;
 		}
 
 	$rc;
