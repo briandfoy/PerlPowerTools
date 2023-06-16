@@ -2,6 +2,17 @@
 #
 # perlpowertools - helper script for PerlPowerTools
 
+=begin metadata
+
+Name: perlpowertools
+Description: a program launcher for Perl Power Tools
+Author: kal247, https://github.com/kal247
+License: artistic2
+
+=end metadata
+
+=cut
+
 use strict;
 use warnings;
 use utf8;
