@@ -1254,6 +1254,8 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 =cut
 
+__PACKAGE__
+
 __END__
 
 # Notes (from Gary Puckering)
@@ -1672,7 +1674,7 @@ Xunit                 1.00202e-13m
 
 # The following entry looks like it might be the Boltzmann constant?
 # If so, then it is incorrect.  It should be 1.3807e-16 erg/degK.  In
-# any event, the temperature logic doesn't support mixed affine/linear 
+# any event, the temperature logic doesn't support mixed affine/linear
 # reductions.
 # - Gary Puckering
 // k                     1.38047e-16 erg/degC
