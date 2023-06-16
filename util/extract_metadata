@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-use v5.10;
 use open qw(:std :utf8);
 
 my @programs = @ARGV;
@@ -21,7 +20,7 @@ foreach my $program ( @programs ) {
 		/xms;
 
 	my %hash;
-	foreach my $line ( split /\R/, $extracted ) {
+	foreach my $line ( split /[\n\r]/, $extracted ) {
 		my( $field, $value ) = split /:\s*/, $line, 2;
 		if( exists $hash{$field} and ! ref $hash{$field} ) {
 			$hash{$field} = [ $hash{$field}, $value ];
@@ -41,4 +40,4 @@ foreach my $program ( @programs ) {
 use JSON;
 my $json = encode_json( \%grand );
 
-say $json;
+print $json;
