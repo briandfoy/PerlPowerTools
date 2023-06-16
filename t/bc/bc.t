@@ -170,6 +170,15 @@ sub run_table {
     my $label = shift @$table;
 
     subtest $label => sub {
+
+        # To avoid the overhead of executing bc on every test, which
+        # greatly increases the runtime, we instead write a bunch
+        # of expressions to a tempfile and then have bc process them.
+        # Then we compare the output lines to the expected results
+        # in our table.
+        # Note that some expressions could generate multiple lines,
+        # so the expected result must account for that with newlines.
+        
         my ( $fh, $input ) = tempfile();
         foreach my $tuple (@$table) {
             my ( $expr, $expected, $desc ) = @$tuple;
@@ -178,7 +187,7 @@ sub run_table {
         close $fh or die;
 
         ## no critic [InputOutput::ProhibitBacktickOperators]
-        my $output = `perl $Script $input`;
+        my $output = `"$^X" $Script $input`;
         my @got    = split /\n/xms, $output;
 
         # get expected results
@@ -187,15 +196,15 @@ sub run_table {
         foreach my $t_ar (@$table) {
             my ( $expr, $exp, $desc ) = @{$t_ar};
 
-            # some operations generate multiple lines of output
-            my @lines = split /\n/xms, $exp;
+            my @lines = split /\n/, $exp;
             foreach my $ln (@lines) {
                 push @expected, $ln;
                 push @message,  $desc . ' : ' . $expr;
             }
         }
 
-        # is @got, @expected, 'count of results';
+        # This is sometimes useful, but generally not needed
+        #  is @got, @expected, 'count of results';
 
         foreach my $got (@got) {
             my $exp = shift @expected;
