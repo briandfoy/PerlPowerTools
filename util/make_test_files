@@ -36,6 +36,7 @@ sub populate_test_files {
 			say STDERR "\t$target_file already exists. Skipping...";
 			next FILE;
 			}
+		say "\tAdding $target_file";
 
 		my $template = Mojo::File->new($file)->slurp;
 		my $cooked = $mt->render($template);
