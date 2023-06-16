@@ -7,4 +7,4 @@ my $program = program_name(__FILE__);
 
 pod_file_ok( $program, "Valid POD in <$program>" );
 
-end_testing();
+done_testing();
