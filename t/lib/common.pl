@@ -12,7 +12,7 @@ sub compile_test {
 		return fail( "Program <$program> exists" )
 			unless -e $program;
 		pass( "Program <$program> exists" );
-		my $output = `$^X -c $program 2>&1`;
+		my $output = `"$^X" -c "$program" 2>&1`;
 		like $output, qr/syntax OK/, "$program compiles"
 			or diag( $output );
 		};
