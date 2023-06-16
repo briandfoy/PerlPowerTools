@@ -1,36 +1,29 @@
-use Test::More 0.94;
-use Config;
+use Test::More 1;
 
 use File::Basename;
 use File::Spec::Functions;
 
-diag(
-	join "\n\t", "Parent \@INC:", @INC, ''
-	);
+my @programs =
+	map { basename($_) }
+	grep { ! /\.bat\z/ }
+	glob( 'blib/script/*' );
 
-$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
-diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
-
-my @programs = grep { ! /\.bat\z/ } glob( 'blib/script/*' );
-
-my %NeedsExternalModule = map { $_ => 1 } qw(awk find mimedecode);
+my @expected_test_files =
+	map { basename($_) }
+	glob( catfile( qw(util test_templates *.t) ) );
 
 foreach my $program ( @programs ) {
-	my $command = qq("$^X" -c $program 2>&1);
-	my $test = sub {
-		my $output = `$command`;
-		like( $output, qr/syntax OK/, "$program compiles" );
-		};
-
-	if( exists $NeedsExternalModule{basename($program)} ) {
-		TODO: {
-			local $TODO = "The program <$program> requires an external module, so fresh environments may fail.";
-			subtest $program => $test;
-			}
-		next;
-		}
-
-	subtest $program => $test;
+	test_dir($program);
 	}
 
 done_testing();
+
+sub test_dir {
+	my( $program ) = @_;
+	ok -d catfile( 't', $program ), "t/$program is a directory";
+
+	foreach my $t_file ( @expected_test_files ) {
+		ok -e catfile( 't', $program, $t_file ), "Found test file $t_file";
+		}
+	}
+
