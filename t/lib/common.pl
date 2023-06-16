@@ -27,6 +27,9 @@ sub sanity_test {
 	my( $file ) = (caller(0))[1];
 	my $program = program_name($file);
 
+	$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+	diag( "PERL5LIB: $ENV{PERL5LIB}" ) if $ENV{DEBUG};
+
 	my $rc = subtest 'sanity_test' => sub {
 		compile_test($program);
 		};
