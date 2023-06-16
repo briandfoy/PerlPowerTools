@@ -16,51 +16,52 @@ sub run_tests {
 		can_ok $class, 'test'
 	};
 
-	calendar_test($class);
-	distance_test($class);
+	my @tables = (
+		calendar_table(),
+		distance_table(),
+		volume_table(),
+	);
+
+	run_table($class, $_) for @tables;
+
 	temp_test($class);
-	volume_test($class);
 
     return;
 }
 
 done_testing();
 
-sub calendar_test {
-	my($class) = @_;
-
-	subtest calendar => sub {
-		my @table = (
-			[qw(month year 12), round(1/12)]
-		);
-
-		inverse($class, $_) for @table;
-	};
+sub calendar_table {
+	my $table = [
+		"calendar",
+		[qw(month year 12), round(1/12)]
+	];
 }
 
-sub distance_test {
-	my($class) = @_;
-
-	subtest distance => sub {
-		my @table = (
-			# have want p q
-			[ qw( m m 1 1 ) ],
-			[ qw( m cm 0.01 100 ) ],
-			[ qw( meters feet 0.3048 3.28084 ) ],
-			[ qw( meters/s furlongs/fortnight 0.00016631 6012.88 ) ],
-			[ '1|2 in', 'cm', qw( 0.787402 1.27 ) ],
-		);
-
-		inverse($class, $_) for @table;
-	};
+sub distance_table {
+	my $table = [
+		"distance",
+		# have want p q
+		[ qw( m m 1 1 ) ],
+		[ qw( m cm 0.01 100 ) ],
+		[ qw( meters feet 0.3048 3.28084 ) ],
+		[ qw( meters/s furlongs/fortnight 0.00016631 6012.88 ) ],
+		[ '1|2 in', 'cm', qw( 0.787402 1.27 ) ],
+	];
 }
 
-sub inverse {
-	my( $class, $tuple ) = @_;
-	my( $have, $want, $expected, $inverse ) = @$tuple;
-	my %got = $class->test( $have, $want );
-	is round($got{'p'}), $expected, "$have -> $want";
-	is round($got{'q'}), $inverse, "$want -> $have"
+sub run_table {
+	my( $class, $table ) = @_;
+	my $label = shift @$table;
+
+	subtest $label => sub {
+		foreach my $tuple ( @$table ) {
+			my( $have, $want, $expected, $inverse ) = @$tuple;
+			my %got = $class->test( $have, $want );
+			is round($got{'p'}), $expected, "$have -> $want";
+			is round($got{'q'}), $inverse, "$want -> $have";
+		}
+	};
 }
 
 sub temp_test {
@@ -90,20 +91,14 @@ sub temp_test {
 
     	my %got = $class->test('-17.78C','F');
     	ok round($got{t}) < 0.00001;
-
 	};
 }
 
-sub volume_test {
-	my($class) = @_;
-
-	subtest volume => sub {
-		my @table = (
-			[qw(cm3 gallons 3785.41 0.000264172)]
-		);
-
-		inverse($class, $_) for @table;
-	};
+sub volume_table {
+	my $table = [
+		"volume",
+		[qw(cm3 gallons 3785.41 0.000264172)]
+	];
 }
 
 sub round {
