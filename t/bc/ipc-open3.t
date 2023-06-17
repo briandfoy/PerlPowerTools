@@ -31,7 +31,7 @@ sub run_bc {
 		require Win32API::File;
 		Win32API::File->import( qw(:Func :HANDLE_FLAG_) );
 		my $wh = FdGetOsFHandle(fileno $child_in);
-		SetHandleInformation($wh, HANDLE_FLAG_INHERIT, 0);
+		SetHandleInformation($wh, HANDLE_FLAG_INHERIT(), 0);
 		die "Can't turn off HANDLE_FLAG_INHERIT: $@";
 		}
 
