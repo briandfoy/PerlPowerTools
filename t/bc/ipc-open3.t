@@ -24,8 +24,17 @@ sub run_bc {
 	# https://www.perlmonks.org/?node_id=419919
 	my( $input ) = @_;
 
+	my $child_in = Symbol::gensym();
+	# https://github.com/perl/perl5/issues/14533
+	if ($^O eq 'MSWin32') {
+		use Win32API​::File qw(​:Func :HANDLE_FLAG_);
+		my $wh = FdGetOsFHandle(fileno $child_in);
+		SetHandleInformation($wh, HANDLE_FLAG_INHERIT, 0);
+		die "Can't turn off HANDLE_FLAG_INHERIT​: $@"​;
+		}
+
 	my $pid = IPC::Open3::open3(
-		my $child_in = Symbol::gensym(),
+		$child_in,
 		my $child_out,
 		my $child_err = Symbol::gensym(),
 		$^X, $program, '-'
