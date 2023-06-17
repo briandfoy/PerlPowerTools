@@ -40,7 +40,7 @@ sub run_bc {
 
 		# give the child process a chance to work, otherwise we
 		# will check its filehandles too soon.
-		select(undef,undef,undef,0.2);
+		select(undef,undef,undef,0.4);
 
 		if( $select_err->can_read(0) ) {
 			sysread $child_err, my $error, 4096;
