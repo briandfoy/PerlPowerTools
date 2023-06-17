@@ -26,6 +26,7 @@ my $cur_file = '-';
 my $bignum = 0;
 
 BEGIN {
+use IO::Handle;
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
 }
