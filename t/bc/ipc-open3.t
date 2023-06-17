@@ -10,7 +10,6 @@ use IO::Select;
 
 my $program = 'bin/bc';
 
-
 foreach my $table ( operator_table(), precedence_table(), special_expr_table(), statement_table() ) {
 	my $label = shift @$table;
 	subtest $label => sub {
@@ -38,6 +37,9 @@ sub run_bc {
 	my %hash;
 	foreach my $line ( split /\n/, $input ) {
 		print {$child_in} $line, "\n";
+
+		# give the child process a chance to work, otherwise we
+		# will check its filehandles too soon.
 		select(undef,undef,undef,0.2);
 
 		if( $select_err->can_read(0) ) {
