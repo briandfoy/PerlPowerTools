@@ -30,7 +30,7 @@ sub run_bc {
 		use Win32API​::File qw(​:Func :HANDLE_FLAG_);
 		my $wh = FdGetOsFHandle(fileno $child_in);
 		SetHandleInformation($wh, HANDLE_FLAG_INHERIT, 0);
-		die "Can't turn off HANDLE_FLAG_INHERIT​: $@"​;
+		die "Can't turn off HANDLE_FLAG_INHERIT​: $@";
 		}
 
 	my $pid = IPC::Open3::open3(
