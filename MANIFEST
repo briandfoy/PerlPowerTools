@@ -134,6 +134,7 @@ README.pod
 t/000.basic.t
 t/910.meta.t
 t/990.pod.t
+t/bc/ipc-open3.t
 t/cat/cat.t
 t/data/cat/cat-n-1.txt
 t/data/nl/nl.txt
