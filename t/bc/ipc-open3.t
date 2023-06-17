@@ -42,11 +42,11 @@ sub run_bc {
 		# will check its filehandles too soon.
 		select(undef,undef,undef,0.4);
 
-		if( $select_err->can_read(0) ) {
+		if( $select_err->can_read(0.1) ) {
 			sysread $child_err, my $error, 4096;
 			$hash{error} .= $error;
 			}
-		if( $select_out->can_read(0) ) {
+		if( $select_out->can_read(0.1) ) {
 			sysread $child_out, my $output, 4096;
 			$hash{output} .= $output;
 			}
