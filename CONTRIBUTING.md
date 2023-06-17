@@ -34,7 +34,7 @@ things you need to do:
 * Run `make manifest` and check that it adds your new command and tests
 
 For new programs, include tests with as high a coverage as you can
-stand.
+stand. Each program should have its own directory under *t/*.
 
 <a name="pull-requests"></a>
 ## Pull requests
