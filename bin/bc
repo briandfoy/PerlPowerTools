@@ -25,6 +25,11 @@ my $input;
 my $cur_file = '-';
 my $bignum = 0;
 
+BEGIN {
+STDOUT->autoflush(1);
+STDERR->autoflush(1);
+}
+
 $debug = 0;
 sub debug(&) {
   my $fn = shift;
