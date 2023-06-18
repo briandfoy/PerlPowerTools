@@ -45,16 +45,41 @@ STDOUT->autoflush(1);
 STDERR->autoflush(1);
 }
 
-$debug = 0;
+sub am_debugging { $debug }
+
+sub debug_message {
+	return unless am_debugging();
+	print { debug_fh() } @_;
+	}
+
+sub error_message {
+	return unless am_debugging();
+	print { error_fh() } @_;
+	}
+
+sub value_message {
+	return unless am_debugging();
+	print { value_fh() } @_;
+	}
+
+sub debug_fh { \*STDERR }
+sub info_fh { \*STDOUT }
+sub error_fh { \*STDERR }
+sub value_fh { \*STDOUT }
+
 sub debug(&) {
   my $fn = shift;
-  print STDERR "\t".&$fn()
-    if $debug;
+  debug_message( "\t".&$fn() );
 }
+
+sub yydebug_message {
+	return unless $yydebug;
+	print { info_fh() } "yydebug: ", @_;
+	}
 
 ;#$yydebug=1;
 
-#line 32 "y.tab.pl"
+# x line 32 "y.tab.pl"
 $INT=257;
 $FLOAT=258;
 $STRING=259;
@@ -602,8 +627,7 @@ sub yy_err_recover
           $yycheck[$yyn] == $YYERRCODE)
       {
 #if YYDEBUG
-       print "yydebug: state $yyss[$yyssp], error recovery shifting",
-             " to state $yytable[$yyn]\n" if $yydebug;
+       yydebug_message( "state $yyss[$yyssp], error recovery shifting to state $yytable[$yyn]\n" );
 #endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
@@ -612,8 +636,7 @@ sub yy_err_recover
       else
       {
 #if YYDEBUG
-        print "yydebug: error recovery discarding state ",
-              $yyss[$yyssp], "\n"  if $yydebug;
+        yydebug_message "yerror recovery discarding state $yyss[$yyssp]\n";
 #endif
         return(1) if $yyssp <= 0;
         --$yyssp;
@@ -630,8 +653,7 @@ sub yy_err_recover
       $yys = '';
       if ($yychar <= $YYMAXTOKEN) { $yys = $yyname[$yychar]; }
       if (!$yys) { $yys = 'illegal-symbol'; }
-      print "yydebug: state $yystate, error recovery discards ",
-            "token $yychar ($yys)\n";
+      yydebug_message "state $yystate, error recovery discards token $yychar ($yys)\n";
     }
 #endif
     $yychar = -1;
@@ -670,7 +692,7 @@ yyloop: while(1)
           $yys = '';
           if ($yychar <= $#yyname) { $yys = $yyname[$yychar]; }
           if (!$yys) { $yys = 'illegal-symbol'; };
-          print "yydebug: state $yystate, reading $yychar ($yys)\n";
+          yydebug_message "state $yystate, reading $yychar ($yys)\n";
         }
 #endif
       }
@@ -678,8 +700,7 @@ yyloop: while(1)
               $yycheck[$yyn] == $yychar)
       {
 #if YYDEBUG
-        print "yydebug: state $yystate, shifting to state ",
-              $yytable[$yyn], "\n"  if $yydebug;
+        yydebug_message "state $yystate, shifting to state $yytable[$yyn]\n";
 #endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
@@ -700,8 +721,7 @@ yyloop: while(1)
       return(1) if &yy_err_recover;
     } # yyreduce
 #if YYDEBUG
-    print "yydebug: state $yystate, reducing by rule ",
-          "$yyn ($yyrule[$yyn])\n"  if $yydebug;
+    yydebug_message "state $yystate, reducing by rule $yyn ($yyrule[$yyn])\n";
 #endif
     $yym = $yylen[$yyn];
     $yyval = $yyvs[$yyvsp+1-$yym];
@@ -1219,8 +1239,7 @@ last switch;
     if ($yystate == 0 && $yym == 0)
     {
 #if YYDEBUG
-      print "yydebug: after reduction, shifting from state 0 ",
-            "to state $YYFINAL\n" if $yydebug;
+      yydebug_message "after reduction, shifting from state 0 to state $YYFINAL\n";
 #endif
       $yystate = $YYFINAL;
       $yyss[++$yyssp] = $YYFINAL;
@@ -1234,7 +1253,7 @@ last switch;
           $yys = '';
           if ($yychar <= $#yyname) { $yys = $yyname[$yychar]; }
           if (!$yys) { $yys = 'illegal-symbol'; }
-          print "yydebug: state $YYFINAL, reading $yychar ($yys)\n";
+          yydebug_message "state $YYFINAL, reading $yychar ($yys)\n";
         }
 #endif
       }
@@ -1249,8 +1268,7 @@ last switch;
         $yystate = $yydgoto[$yym];
     }
 #if YYDEBUG
-    print "yydebug: after reduction, shifting from state ",
-        "$yyss[$yyssp] to state $yystate\n" if $yydebug;
+    yydebug_message "after reduction, shifting from state $yyss[$yyssp] to state $yystate\n";
 #endif
     $yyss[++$yyssp] = $yystate;
     $yyvs[++$yyvsp] = $yyval;
@@ -1323,10 +1341,10 @@ sub next_file
 # print an error message
 sub yyerror
 {
-    print STDERR "\"$cur_file\", " if $cur_file ne '-';
+    print { error_fh() }  "\"$cur_file\", " if $cur_file ne '-';
 #    debug { "yyerror-stmt_list : ".Dumper(\@stmt_list) };
 
-    print STDERR "line $.: ", @_, "\n";
+    print { error_fh() } "line $.: ", @_, "\n";
 
     @ope_stack = ();
     start_stmt();
@@ -1619,7 +1637,7 @@ sub exec_stmt
 
    $_ = $instr->[0];
 
-   print STDERR ("instruction: ".join(', ', @$instr)."\n" ) if $debug;
+   debug_message("instruction: ".join(', ', @$instr)."\n" );
 
 # remove the stack top value, and forget about it
    if($_ eq ',') {
@@ -1713,7 +1731,7 @@ sub exec_stmt
      my ($name, $idx) = ($instr->[1], pop(@ope_stack));
 
      if($idx !~ /^\d+$/) {
-       print STDERR "Non-integer index $idx for array\n";
+       error_message( "Non-integer index $idx for array\n" );
        $return = 3;
        @ope_stack = ();
        @stmt_list=();
@@ -1837,7 +1855,7 @@ sub exec_stmt
      $name .= '()';
 
      unless($sym_table{$name}) {
-       print STDERR "No function $name has been defined\n";
+       error_message "No function $name has been defined\n";
        @ope_stack = (0);
        $return = 3;
        YYERROR;
@@ -1872,7 +1890,7 @@ sub exec_stmt
      if($return == 1) {
        $return = 0; # so the result will be printed
      } elsif($return == 2) {
-       print STDERR "No enclosing while or for";
+       error_message "No enclosing while or for";
        YYERROR;
      } elsif($return == 3) {
        $return = 0;
@@ -1985,7 +2003,7 @@ sub exec_stmt
 
      $return = 3;
 
-     print $val;
+     value_message $val;
      next INSTR;
 
    } elsif($_ eq 'FUNCTION-DEF') {
