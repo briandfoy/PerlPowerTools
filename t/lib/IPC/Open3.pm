@@ -243,12 +243,12 @@ sub _open3 {
 	# getting that message on Windows the way it happens on *nix
 	if ($^O eq 'MSWin32') {
 		my $code= <<'HERE';
-		use Win32API​::File qw(​:Func :HANDLE_FLAG_);
+		use Win32API::File qw(:Func :HANDLE_FLAG_);
 		my $wh = FdGetOsFHandle(fileno $_->{parent});
 		SetHandleInformation($wh, HANDLE_FLAG_INHERIT, 0);
 HERE
 		eval($code);
-		croak "Can't turn off HANDLE_FLAG_INHERIT​: $@"​;
+		croak "Can't turn off HANDLE_FLAG_INHERIT: $@";
 	}
 #end SPK fix
 	} else {
