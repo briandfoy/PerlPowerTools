@@ -8,6 +8,8 @@ use Exporter 'import';
 use Carp;
 use Symbol qw(gensym qualify);
 
+BEGIN { print STDERR "Using patched version of IPC::Open3\n" }
+
 our $VERSION	= '1.22';
 our @EXPORT		= qw(open3);
 
