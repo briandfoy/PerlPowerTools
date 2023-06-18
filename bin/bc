@@ -2345,3 +2345,711 @@ define j(n,x) {
 =head1 NAME
 
 bc - An arbitrary precision calculator language
+
+=head1 SYNOPSIS
+
+bc [-b] [-d] [-y] [ FILE ... ]
+
+=head1 DESCRIPTION
+
+C<bc> is a language that supports arbitrary precision numbers with
+interactive execution of statements.  There are some similarities in
+the syntax to the C programming language.
+
+=begin comment      ### hidden because function support generate syntax errors
+
+A standard math library is
+available by command line option.  If requested, the math library is
+defined before processing any files.
+
+=end comment
+
+C<bc> starts by processing code from all the files listed on the
+command line in the order listed. If no files are listed, then stdin
+is read.  If a file contains a command to halt the processor,
+C<bc> will never read from the standard input.
+
+Dash ('-') is a pseudo-filename which represents stdin.  This makes
+it possible to do something like C<bc fileA - fileB> and have bc
+run commands from fileA before prompting for input, and then run
+commands from fileB after interactive input is finished.
+
+=begin comment      ### for accuracy, the following is superceded by the above
+
+C<bc> starts by processing code from all the files listed on the
+command line in the order listed. After all files have been
+processed, C<bc> reads from the standard input.  All code is executed
+as it is read.  (If a file contains a command to halt the processor,
+C<bc> will never read from the standard input.)
+
+=end comment
+
+C<bc> will terminate interactive input via stdin if you enter C<quit>
+or press C<CTRL-C>.
+
+Pressing C<CTRL-Z> will end stdin input and move on the the next
+filename on the command line (if there is one).  Otherwise, execution
+ends.
+
+
+=head1 OPTIONS
+
+C<bc> takes the following options from the command line:
+
+=over 4
+
+=item -b
+
+Use Math::BigFloat for arbitrarily large number support.
+
+=item -d
+
+Print debugging data (using Data::Dumper).
+
+=item -y
+
+Turn on parser debugging.
+
+=begin comment      ### -l hidden because it generate syntax errors
+
+=item -l
+
+Define the standard math library.
+
+=end comment
+
+=begin comment      ### -h and hidden because it's not supported
+
+=item -h
+
+Print the documentation.
+
+=end comment
+
+=back
+
+=head1 BASIC ELEMENTS
+
+=head2 Numbers
+
+The most basic element in C<bc> is the number.  Numbers are arbitrary
+precision numbers.  This precision is both in the integer part and the
+fractional part.  All numbers are represented internally in decimal and
+all computation is done in decimal.
+
+=begin comment      ### hidden because it doesn't seem to be true in this implementation
+
+(This version truncates results
+from divide and multiply operations.)
+
+=end comment
+
+
+There are two attributes of
+numbers, the length and the scale.  The length is the total number of
+significant decimal digits in a number and the scale is the total number
+of decimal digits after the decimal point.  For example, .000001 has a
+length of 6 and scale of 6, while 1935.000 has a length of 7 and a scale
+of 3.
+
+=head2 Variables
+
+Numbers are stored in two types of variables, simple variables and
+arrays.  Both simple variables and array variables are named.  Names
+begin with a letter followed by any number of letters, digits and
+underscores.  All letters must be lower case.
+
+=begin comment      ### hidden because it's not applicable and confusing
+
+(Full alphanumeric names
+are an extension. In POSIX C<bc> all names are a single lower case
+letter.)
+
+=end comment
+
+The type of variable is clear by the context because all
+array variable names will be followed by brackets ( [ ] ).
+
+=head2 Special Variables
+
+=over 8
+
+=item C<scale>
+
+Defines how some operations use digits after the decimal point.
+The default value is 0.
+
+=item C<ibase>
+
+Defines the conversion base for input numbers.  Defaults to 10.
+
+=item C<obase>
+
+Defines the conversion base for output numbers.  Defaults to 10.
+
+=back
+
+=head2 Comments
+
+Comments in C<bc> start with the characters '/*' and end with the 
+characters '*/'.  Comments may start anywhere and appear as a single 
+space in the input.  Note that this causes comments to delimit other 
+input items, therefore a comment cannot be included the middle of a 
+variable name.  Comments include any newlines (end of line) between 
+the start and the end of the comment.
+
+To support the use of scripts for C<bc>, a single line comment has
+been added as an extension.  A single line comment starts at a '#'
+character and continues to the next end of the line.  The end of line
+character is not part of the comment and is processed normally.
+
+=head1 EXPRESSIONS
+
+Numbers are manipulated by expressions and statements.  Since
+the language was designed to be interactive, statements and expressions
+are executed as soon as possible.  There is no main program.  Instead,
+code is executed as it is encountered.
+
+A simple expression is just a constant. C<bc> converts constants into
+internal decimal numbers using the current input base, specified by the
+variable C<ibase>.
+
+Full expressions are similar to many other high level languages. 
+Since there is only one kind of number, there are no rules for mixing 
+types.  Instead, there are rules on the scale of expressions.  Every 
+expression has a scale.  This is derived from the scale of original 
+numbers, the operation performed and in many cases, the value of the 
+variable C<scale>. 
+
+=begin comment          ### replace by the above for accurary w.r.t this implementation
+
+The numbers are manipulated by expressions and statements. Since the language was designed to be interactive, statements and expressions are executed as soon as possible. There is no main program. Instead, code is executed as it is encountered. (Functions, discussed in detail later, are defined when encountered.)
+
+A simple expression is just a constant. bc converts constants into internal decimal numbers using the current input base, specified by the variable ibase. (There is an exception in functions.) The legal values of ibase are 2 through 16. Assigning a value outside this range to ibase will result in a value of 2 or 16. Input numbers may contain the characters 0-9 and A-F. (Note: They must be capitals. Lower case letters are variable names.) Single digit numbers always have the value of the digit regardless of the value of ibase. (i.e. A = 10.) For multi-digit numbers, bc changes all input digits greater or equal to ibase to the value of ibase-1. This makes the number FFF always be the largest 3 digit number of the input base.
+
+Full expressions are similar to many other high level languages. Since there is only one kind of number, there are no rules for mixing types. Instead, there are rules on the scale of expressions. Every expression has a scale. This is derived from the scale of original numbers, the operation performed and in many cases, the value of the variable scale. Legal values of the variable scale are 0 to the maximum number representable by a C integer.
+
+=end comment
+
+=head2 Basic Expressions
+
+In the following descriptions of legal expressions, "expr" refers to
+a complete expression and "VAR" refers to a simple or an array variable.
+A simple variable is just a NAME and an array variable is specified as
+NAME[EXPR].
+
+Unless specifically mentioned the scale of the result is the maximum
+scale of the expressions involved.
+
+=over 4
+
+=item C<- expr>
+
+The result is the negation of the expression.
+
+=item C<++ VAR>
+
+The variable is incremented by one and the new value is the result
+of the expression.
+
+=item C<-- VAR>
+
+The variable is decremented by one and the new value is the result
+of the expression.
+
+=item C<VAR ++>
+
+The result of the expression is the value of the variable and then
+the variable is incremented by one.
+
+=item C<VAR -->
+
+The result of the expression is the value of the variable and then
+the variable is decremented by one.
+
+=item C<expr + expr>
+
+The result of the expression is the sum of the two expressions.
+
+=item C<expr - expr>
+
+The result of the expression is the difference of the two
+expressions.
+
+=item C<expr * expr>
+
+The result of the expression is the product of the two expressions.
+
+=item C<expr / expr>
+
+The result of the expression is the quotient of the two
+expressions.  The scale of the result is the value of the variable
+C<scale>
+
+=item C<expr % expr>
+
+The result of the expression is the "remainder" and it is computed
+in the following way.  To compute a%b, first a/b is computed to
+SCALE digits.  That result is used to compute a-(a/b)*b to the
+scale of the maximum of SCALE+scale(b) and scale(a).  If SCALE is
+set to zero and both expressions are integers this expression is
+the integer remainder function.
+
+=item C<expr ^ expr>
+
+The result of the expression is the value of the first raised to
+the second. 
+
+=begin comment      ### hidden because it doesn't seem to be true in the implementation
+
+The second expression must be an integer.  (If the
+second expression is not an integer, a warning is generated and the
+expression is truncated to get an integer value.)  
+
+=end comment
+
+The scale of the result is SCALE if the exponent is negative.  If the 
+exponent is positive the scale of the result is the minimum of the 
+scale of the first expression times the value of the exponent and the 
+maximum of SCALE and the scale of the first expression.  (e.g. 
+scale(a^b) = min(scale(a)*b, max(SCALE, scale(a))).)  It should be 
+noted that expr^0 will always return the value of 1.
+
+
+=item C<( expr )>
+
+This alters the standard precedence to force the evaluation of the
+expression.
+
+=item C<VAR = expr>
+
+The variable is assigned the value of the expression.
+
+=item C<VAR op= expr>
+
+This is equivalent to "VAR = VAR op expr" with the exception
+that the "VAR" part is evaluated only once.  This can make a
+difference if "VAR" is an array.
+
+=back
+
+=head2 Relational Expressions
+
+Relational expressions are a special kind of expression that always
+evaluate to 0 or 1, 0 if the relation is false and 1 if the relation is
+true.  These may appear in any legal expression.  (POSIX C<bc> requires
+that relational expressions are used only in C<if>, C<while>, and C<for>
+statements and that only one relational test may be done in them.)  The
+relational operators are
+
+=over 4
+
+=item expr1 < expr2
+
+The result is 1 if expr1 is strictly less than expr2.
+
+=item expr1 <= expr2
+
+The result is 1 if expr1 is less than or equal to expr2.
+
+=item expr1 > expr2
+
+The result is 1 if expr1 is strictly greater than expr2.
+
+=item expr1 >= expr2
+
+The result is 1 if expr1 is greater than or equal to expr2.
+
+=item expr1 == expr2
+
+The result is 1 if expr1 is equal to expr2.
+
+=item expr1 != expr2
+
+The result is 1 if expr1 is not equal to expr2.
+
+=back
+
+=head2 Boolean Expressions
+
+Boolean operations are also legal.  (POSIX C<bc> does NOT have
+boolean operations). The result of all boolean operations are 0 and 1
+(for false and true) as in relational expressions.  The boolean
+operators are:
+
+=over 4
+
+=item C<!expr>
+
+The result is 1 if expr is 0.
+
+=item C<expr && expr>
+
+The result is 1 if both expressions are non-zero.
+
+=item C<expr || expr>
+
+The result is 1 if either expression is non-zero.
+
+=back
+
+=head2 Precedence
+
+The expression precedence is as follows: (lowest to highest)
+
+    = += etc     operators (assigment)   right associative
+    ||           OR operator             left associative
+    &&           AND operator            left associative
+    !            NOT operator            nonassociative
+    < > etc      relational operators    left associative
+    + and -      operators               left associative
+    *, / and %   operators               left associative
+    ^            operator (power)        right associative
+    unary -      operator                nonassociative
+    ++ and --    operators               nonassociative
+
+This differs from POSIX-compliant C<bc>, which puts assignment between
+relational operators and addition/subtraction.  As a result, expressions
+behave more like they do in most languages (including perl and C).
+
+=head2 Special Expressions
+
+There are a few more special expressions that are provided in C<bc>.
+These have to do with user-defined functions and standard functions.
+These are:
+
+=over 4
+
+=item C<length ( expression )>
+
+The value of the C<length> function is the number of significant
+digits in the expression.
+
+=begin comment          ### hidden because it's not supported
+
+=item C<read ( )>
+
+The C<read> function (an extension) will read a number from the
+standard input, regardless of where the function occurs.  Beware,
+this can cause problems with the mixing of data and program in the
+standard input.  The best use for this function is in a previously
+written program that needs input from the user, but never allows
+program code to be input from the user.  The value of the `read'
+function is the number read from the standard input using the
+current value of the variable C<ibase> for the conversion base.
+
+=end comment
+
+=item C<scale ( expression )>
+
+The value of the C<scale> function is the number of digits after the
+decimal point in the expression.
+
+=item C<sqrt ( expression )>
+
+The value of the C<sqrt> function is the square root of the
+expression.  If the expression is negative, a run time error is
+generated.
+
+=back
+
+=head2 Statements
+
+Statements (as in most algebraic languages) provide the sequencing of
+expression evaluation.  In C<bc> statements are executed "as soon as
+possible."  Execution happens when a newline in encountered and there
+is one or more complete statements.  Due to this immediate execution,
+newlines are very important in C<bc>. In fact, both a semicolon and a
+newline are used as statement separators.  An improperly placed
+newline will cause a syntax error.
+
+Because newlines are statement separators, it is possible to hide a
+newline by using the backslash character.  The sequence "\<nl>" (where
+<nl> represents a newline your typed) appears to C<bc> as whitespace
+instead of an actual newline.
+
+A statement list is a series of statements separated by semicolons
+and newlines.
+
+The following is a list of C<bc> statements and what they do.  Things
+enclosed in brackets ( [ ] ) are optional parts of the statement.
+
+=over 4
+
+=item EXPRESSION
+
+This statement does one of two things.  If the expression starts
+with "<variable> <assignment> ...", it is considered to be an
+assignment statement.  If the expression is not an assignment
+statement, the expression is evaluated and printed to the output.
+After the number is printed, a newline is printed.
+
+For example, "a=1" is an assignment statement and "(a=1)" is an
+expression that has an embedded assignment.
+
+=begin comment          ### hidden because obase and last don't seem to work
+
+All numbers that are printed are printed in the base specified by the
+variable OBASE. The legal values for OBASE are 2 through BC_BASE_MAX
+(*note Environment Variables::).  For bases 2 through 16, the usual method of writing
+numbers is used.  For bases greater than 16, C<bc> uses a
+multi-character digit method of printing the numbers where each
+higher base digit is printed as a base 10 number.  The
+multi-character digits are separated by spaces.  Each digit
+contains the number of characters required to represent the base
+ten value of "OBASE -1".  Since numbers are of arbitrary
+precision, some numbers may not be printable on a single output
+line.  These long numbers will be split across lines using the "\"
+as the last character on a line.  The maximum number of characters
+printed per line is 70.  Due to the interactive nature of C<bc>,
+printing a number causes the side effect of assigning the printed
+value to the special variable LAST. This allows the user to
+recover the last value printed without having to retype the
+expression that printed the number.  Assigning to LAST is legal
+and will overwrite the last printed value with the assigned value.
+The newly assigned value will remain until the next number is
+printed or another value is assigned to LAST.  (Some installations
+may allow the use of a single period (.) which is not part of a
+number as a short hand notation for for LAST.)
+
+=end comment
+
+=item STRING
+
+The string is printed to the output.  Strings start with a double
+quote character and contain all characters until the next double
+quote character.  All characters are taken literally, including
+any newline.  No newline character is printed after the string.
+
+=item C<print> LIST
+
+The C<print> statement (an extension) provides another method of
+output.  The LIST is a list of strings and expressions separated by
+commas.  Each string or expression is printed in the order of the
+list.  No terminating newline is printed.  Expressions are
+evaluated and their value is printed and assigned to the variable
+C<last>. Strings in the print statement are printed to the output
+and may contain special characters.  Special characters start with
+the backslash character.  The special characters include:
+
+    \a  alert or bell
+    \b  backspace
+    \f  form feed
+    \n  newline
+    \r  carriage return
+    \q  double quote
+    \t  tab
+    \e  backslash.
+
+Any other character following a backslash will be ignored.
+
+=item { STATEMENT_LIST }
+
+This is the compound statement.  It allows multiple statements to
+be grouped together for execution.
+
+=item C<if> ( EXPRESSION ) STATEMENT
+
+The C<if> statement evaluates the expression and executes STATEMENT 
+depending on the value of the expression.  If the expression is 
+non-zero, STATEMENT is executed.  Otherwise it isn't.  (The statement 
+can be a block enclosed in { }.)
+
+=begin comment          ### if-else is not supported in this implementation
+
+If the expression is non-zero, statement1 is executed.  If statement2 
+is present and the value of the expression is 0, then statement2 is 
+executed.  (The C<else> clause is an extension.)
+
+=end comment
+
+=item C<while> ( EXPRESSION ) STATEMENT
+
+The while statement will execute the statement while the expression
+is non-zero.  It evaluates the expression before each execution of
+the statement.   Termination of the loop is caused by a zero
+expression value or the execution of a C<break> statement.
+
+=item C<for> ( [EXPRESSION1] ; [EXPRESSION2] ; [EXPRESSION3] ) STATEMENT
+
+The C<for> statement controls repeated execution of the statement.
+EXPRESSION1 is evaluated before the loop.  EXPRESSION2 is
+evaluated before each execution of the statement.  If it is
+non-zero, the statement is evaluated.  If it is zero, the loop is
+terminated.  
+
+After each execution of the statement, EXPRESSION3 is
+evaluated before the reevaluation of expression2.  If EXPRESSION1
+or EXPRESSION3 are missing, nothing is evaluated at the point they
+would be evaluated.  If EXPRESSION2 is missing, it is the same as
+substituting the value 1 for EXPRESSION2.  
+
+(The optional expressions are an extension. POSIX C<bc> requires all 
+three expressions.)  
+
+The following is equivalent code for the C<for>
+statement:
+
+    expression1;
+    while (expression2) {
+        statement;
+        expression3;
+    }
+
+=item C<break>
+
+This statement causes a forced exit of the most recent enclosing
+C<while> statement or C<for> statement.
+
+=item C<quit>
+
+When the C<quit> statement is read, the C<bc> processor is
+terminated, regardless of where the C<quit> statement is found.  For
+example, C<if (0 == 1) quit> will cause C<bc> to terminate.
+
+=back
+
+=begin comment      ### hidden because functions aren't working
+
+=head1 MATH LIBRARY FUNCTIONS
+
+If C<bc> is invoked with the C<-l> option, a math library is preloaded
+and the default SCALE is set to 20.  The math functions will calculate
+their results to the scale set at the time of their call.  The math
+library defines the following functions:
+
+=over 4
+
+=item C<s (X)>
+
+The sine of X, X is in radians.
+
+=item C<c (X)>
+
+The cosine of X, X is in radians.
+
+=item C<a (X)>
+
+The arctangent of X, arctangent returns radians.
+
+=item C<l (X)>
+
+The natural logarithm of X.
+
+=item C<E (X)>
+
+The exponential function of raising E to the value X.
+
+=item C<J (N,X)>
+
+The bessel function of integer order N of X.
+
+=back
+
+=end comment
+
+=head1 EXAMPLE
+
+The following illustrates how C<bc> expressions can be written in
+script form and fed to C<bc> via stdin.
+
+=begin comment
+
+Note that the /* and */ are necessary to around the C<bc> code example
+in order to prevent -l from processing these statements when reading <DATA>
+
+    /*
+
+=end comment
+
+    print "\nCompute balances after withdrawals\n"
+
+    bal = 100.00
+    withdrawal = 20.00;
+
+    while (1) {
+        print "Balance: ", "\t", bal, "\n"
+        print "Withdrawal: ", "\t", withdrawal, "\n"
+        if ( (bal - withdrawal) < 0 ) break;
+        bal -= withdrawal
+    }
+
+    print "Balance:", bal
+
+    quit
+
+=begin comment
+
+    */
+
+=end comment
+
+=head1 BUGS AND LIMITATIONS
+
+This implementation of C<bc> is mostly POSIX compliant and has similar
+extensions to GNU C<bc>.  However, some features and extensions are 
+either not supported or are not working.
+
+Perhaps the biggest non-working feature would be Function definitions 
+via the C<define> syntax, which if used generats syntax errors.  As a 
+consequence, the -l option (to load math library definitions) doesn't
+work either.  
+
+Setting the following variables don't seem to have the intended effects:
+
+    scale
+    ibase
+    obase
+
+Hexadecimal values, for use when ibase is > 10, are not supported.
+
+Old style assignment operators (=+, =-, =*, =/, =%, =^) are not
+required to be supported by the POSIX standard, and they are not
+supported by this implementation.  However, they will not generate
+any errors.  Instead you will get a result you don't expect.
+For example:
+
+    v=3; v += 2  # v is 5 as you would expect
+    v=3; v =+ 2  # v is 2 because the 2nd expression is seen as v = +2
+
+=head1 COMPARISON TO GNU C<bc> AND OTHERS
+
+The following C<bc> features are not supported in this implementation.
+(Some are syntactically accepted, but simply return zero).
+
+    * -w, --warn option
+    * -s, --standard option
+    * -q, --quiet option
+    * -v, --version option
+    * long options (e.g. --help)
+    * LC_ language and NLSPATH environment variables
+    * "last" special variable
+    * "if" statement: "else" clause
+    * "read" function
+    * "continue" statement
+    * "halt" statement
+    * "limits" pseudo statement
+    * "warranty" pseudo statement
+    * function definitions
+
+In addition, the GNU implementation set the precedence of assignent 
+below + and - and above relational operators (< > etc).  This 
+implementation seems to make it the lowest precedence (i.e. below ||),
+as most perl (and C) users would expect.
+
+=head1 REFERENCES
+
+POSIX C<bc> L<https://pubs.opengroup.org/onlinepubs/9699919799/utilities/bc.html>
+
+GNU C<bc> L<https://www.gnu.org/software/bc/manual/html_mono/bc.html>
+
+=head1 AUTHOR
+
+Philip A. Nelson, phil@cs.wwu.edu
+
+=head1 COPYRIGHT and LICENSE
+
+You may use this according to the GNU Public License (GPL).
+See http://www.gnu.org
+
+=cut
