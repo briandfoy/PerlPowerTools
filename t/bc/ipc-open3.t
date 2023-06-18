@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+use lib qw(./t/lib);
+
 use Test::More;
 use IPC::Open3 ();
 use Symbol ();
