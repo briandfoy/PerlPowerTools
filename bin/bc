@@ -1246,9 +1246,10 @@ last switch;
 
 @file_list=();
 $mathlib=0;
-sub command_line()
+sub command_line
 {
-  while ($f = shift(@ARGV)) {
+  my @args = @_;
+  while ($f = shift(@args)) {
     if ($f eq '-b') {
       use Math::BigFloat;
       $bignum = 1;
@@ -2035,33 +2036,27 @@ sub catch
 }
 
 # main program
-sub main
+sub run
 {
-# outer:
-  while(1)
-    {
-      $line = '';
-      eval '$status = &yyparse;';
-#      debug { "yyparse returned $status" } if !$@;
-      exit $status if ! $@;
-      &yyerror($@);
-    }
-}
+	init_table();
+	command_line(@_);
 
-init_table();
+	$SIG{'INT'} = 'catch';
+	$SIG{'FPE'} = 'catch';
 
-command_line();
+	next_file();
 
-$SIG{'INT'} = 'catch';
-$SIG{'FPE'} = 'catch';
+	start_stmt();
 
-select(STDERR); $| = 1;
-select(STDOUT);
-&next_file;
+	while(1) {
+		$line = '';
+		$status = eval { &yyparse };
+		exit $status if ! $@;
+		&yyerror($@);
+		}
+	}
 
-start_stmt();
-
-main();
+run(@ARGV) unless caller;
 
 __END__
 
