@@ -18,12 +18,26 @@ License: gpl
 ;# "var" field if it is a variable, in the "func" field if it is a
 ;# function.
 my %sym_table;
-my @stmt_list = ();
+my @stmt_list;
 my @ope_stack;
 my @backup_sym_table;
 my $input;
-my $cur_file = '-';
+my $cur_file;
 my $bignum = 0;
+
+# when we convert to a modulino and allow a program to execute `run`
+# more than once, we need to reinit everything.
+sub init_vars {
+	%sym_table = ();
+	@stmt_list = ();
+	@ope_stack = ();
+	@backup_sym_table = ();
+	$input = undef;
+	$cur_file = '-';
+	$bignum = 0;
+	$debug = 0;
+	$yydebug = 0;
+	}
 
 BEGIN {
 use IO::Handle;
