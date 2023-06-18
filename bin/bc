@@ -2062,14 +2062,24 @@ sub catch
 {
   local($signum) = @_;
   print STDERR "\n" if (-t STDERR && -t STDIN);
-  &yyerror("Floating point exception") if $signum == 8;
+  yyerror("Floating point exception") if $signum == 8;
 #  next outer;
-  main();
+  loop();
 }
+
+sub loop {
+	while(1) {
+		$line = '';
+		$status = eval { &yyparse };
+		exit $status if ! $@;
+		yyerror($@);
+		}
+	}
 
 # main program
 sub run
 {
+	init_vars();
 	init_table();
 	command_line(@_);
 
@@ -2080,12 +2090,7 @@ sub run
 
 	start_stmt();
 
-	while(1) {
-		$line = '';
-		$status = eval { &yyparse };
-		exit $status if ! $@;
-		&yyerror($@);
-		}
+	loop();
 	}
 
 run(@ARGV) unless caller;
