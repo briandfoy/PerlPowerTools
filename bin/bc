@@ -12,7 +12,7 @@ License: gpl
 =cut
 
 #define YYBYACC 1
-#line 49 "bc.y"
+# x line 49 "bc.y"
 
 ;# The symbol table : the keys are the identifiers, the value is in the
 ;# "var" field if it is a variable, in the "func" field if it is a
@@ -694,7 +694,7 @@ yyloop: while(1)
     switch:
     {
 if ($yyn == 4) {
-#line 126 "bc.y"
+# x line 126 "bc.y"
 {
 
 		  my ($res, $val) = exec_stmt(shift @stmt_list);
@@ -707,7 +707,7 @@ if ($yyn == 4) {
 last switch;
 } }
 if ($yyn == 5) {
-#line 136 "bc.y"
+# x line 136 "bc.y"
 {
 		  @ope_stack = ();
 		  @stmt_list = ();
@@ -717,14 +717,14 @@ if ($yyn == 5) {
 last switch;
 } }
 if ($yyn == 7) {
-#line 147 "bc.y"
+# x line 147 "bc.y"
 {
 		  start_stmt();
 
 last switch;
 } }
 if ($yyn == 8) {
-#line 153 "bc.y"
+# x line 153 "bc.y"
 {
 		  start_stmt();
 		  start_stmt();
@@ -732,7 +732,7 @@ if ($yyn == 8) {
 last switch;
 } }
 if ($yyn == 9) {
-#line 159 "bc.y"
+# x line 159 "bc.y"
 {
 		  finish_stmt();    # The last one is empty
 		  push_instr('RETURN', 0);
@@ -744,12 +744,12 @@ if ($yyn == 9) {
 last switch;
 } }
 if ($yyn == 11) {
-#line 170 "bc.y"
+# x line 170 "bc.y"
 { push_instr('BREAK');
 last switch;
 } }
 if ($yyn == 12) {
-#line 173 "bc.y"
+# x line 173 "bc.y"
 {
 		  push_instr(',');
 		  start_stmt();
@@ -758,7 +758,7 @@ if ($yyn == 12) {
 last switch;
 } }
 if ($yyn == 13) {
-#line 179 "bc.y"
+# x line 179 "bc.y"
 {
 		  finish_stmt();  # The last one is empty
 		  my $stmt = finish_stmt();
@@ -767,7 +767,7 @@ if ($yyn == 13) {
 last switch;
 } }
 if ($yyn == 14) {
-#line 186 "bc.y"
+# x line 186 "bc.y"
 {
 		  start_stmt();
 		  start_stmt();
@@ -775,7 +775,7 @@ if ($yyn == 14) {
 last switch;
 } }
 if ($yyn == 15) {
-#line 191 "bc.y"
+# x line 191 "bc.y"
 {
 		  finish_stmt();  # The last one is empty
 		  my $stmt = finish_stmt();
@@ -784,12 +784,12 @@ if ($yyn == 15) {
 last switch;
 } }
 if ($yyn == 16) {
-#line 197 "bc.y"
+# x line 197 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 17) {
-#line 200 "bc.y"
+# x line 200 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('IF', $stmt);
@@ -797,12 +797,12 @@ if ($yyn == 17) {
 last switch;
 } }
 if ($yyn == 18) {
-#line 205 "bc.y"
+# x line 205 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 19) {
-#line 207 "bc.y"
+# x line 207 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-COND', $stmt);
@@ -811,7 +811,7 @@ if ($yyn == 19) {
 last switch;
 } }
 if ($yyn == 20) {
-#line 213 "bc.y"
+# x line 213 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-INCR', []);
@@ -820,12 +820,12 @@ if ($yyn == 20) {
 last switch;
 } }
 if ($yyn == 21) {
-#line 219 "bc.y"
+# x line 219 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 22) {
-#line 221 "bc.y"
+# x line 221 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-COND', $stmt);
@@ -834,7 +834,7 @@ if ($yyn == 22) {
 last switch;
 } }
 if ($yyn == 23) {
-#line 227 "bc.y"
+# x line 227 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-INCR', $stmt);
@@ -843,7 +843,7 @@ if ($yyn == 23) {
 last switch;
 } }
 if ($yyn == 24) {
-#line 232 "bc.y"
+# x line 232 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-BODY', $stmt);
@@ -851,17 +851,17 @@ if ($yyn == 24) {
 last switch;
 } }
 if ($yyn == 26) {
-#line 241 "bc.y"
+# x line 241 "bc.y"
 { push_instr('RETURN', 0);
 last switch;
 } }
 if ($yyn == 27) {
-#line 242 "bc.y"
+# x line 242 "bc.y"
 { push_instr('RETURN', 1);
 last switch;
 } }
 if ($yyn == 30) {
-#line 250 "bc.y"
+# x line 250 "bc.y"
 {
 		   my $stmt = finish_stmt();
 		   if(scalar(@$stmt) > 0) {
@@ -872,7 +872,7 @@ if ($yyn == 30) {
 last switch;
 } }
 if ($yyn == 31) {
-#line 258 "bc.y"
+# x line 258 "bc.y"
 {
 		   my $stmt = finish_stmt();
 		   if(scalar(@$stmt) > 0) {
@@ -883,27 +883,27 @@ if ($yyn == 31) {
 last switch;
 } }
 if ($yyn == 38) {
-#line 281 "bc.y"
+# x line 281 "bc.y"
 { push_instr('a', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 39) {
-#line 282 "bc.y"
+# x line 282 "bc.y"
 { push_instr('a', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 46) {
-#line 299 "bc.y"
+# x line 299 "bc.y"
 { push_instr('A', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 47) {
-#line 300 "bc.y"
+# x line 300 "bc.y"
 { push_instr('A', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 48) {
-#line 305 "bc.y"
+# x line 305 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('PRINT-STMT', $stmt);
@@ -912,7 +912,7 @@ if ($yyn == 48) {
 last switch;
 } }
 if ($yyn == 49) {
-#line 311 "bc.y"
+# x line 311 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('PRINT-STMT', $stmt);
@@ -921,99 +921,99 @@ if ($yyn == 49) {
 last switch;
 } }
 if ($yyn == 50) {
-#line 320 "bc.y"
+# x line 320 "bc.y"
 {
 		  push_instr('FUNCTION-CALL', $yyvs[$yyvsp-3]);
 
 last switch;
 } }
 if ($yyn == 51) {
-#line 324 "bc.y"
+# x line 324 "bc.y"
 {
 last switch;
 } }
 if ($yyn == 52) {
-#line 326 "bc.y"
+# x line 326 "bc.y"
 { push_instr('||_');
 last switch;
 } }
 if ($yyn == 53) {
-#line 327 "bc.y"
+# x line 327 "bc.y"
 { push_instr('&&_');
 last switch;
 } }
 if ($yyn == 54) {
-#line 329 "bc.y"
+# x line 329 "bc.y"
 { push_instr('==_');
 last switch;
 } }
 if ($yyn == 55) {
-#line 330 "bc.y"
+# x line 330 "bc.y"
 { push_instr('!=_');
 last switch;
 } }
 if ($yyn == 56) {
-#line 331 "bc.y"
+# x line 331 "bc.y"
 { push_instr('>_');
 last switch;
 } }
 if ($yyn == 57) {
-#line 332 "bc.y"
+# x line 332 "bc.y"
 { push_instr('>=_');
 last switch;
 } }
 if ($yyn == 58) {
-#line 333 "bc.y"
+# x line 333 "bc.y"
 { push_instr('<_');
 last switch;
 } }
 if ($yyn == 59) {
-#line 334 "bc.y"
+# x line 334 "bc.y"
 { push_instr('<=_');
 last switch;
 } }
 if ($yyn == 60) {
-#line 335 "bc.y"
+# x line 335 "bc.y"
 { push_instr('<<_');
 last switch;
 } }
 if ($yyn == 61) {
-#line 336 "bc.y"
+# x line 336 "bc.y"
 { push_instr('>>_');
 last switch;
 } }
 if ($yyn == 62) {
-#line 338 "bc.y"
+# x line 338 "bc.y"
 { push_instr('+_');
 last switch;
 } }
 if ($yyn == 63) {
-#line 339 "bc.y"
+# x line 339 "bc.y"
 { push_instr('-_');
 last switch;
 } }
 if ($yyn == 64) {
-#line 340 "bc.y"
+# x line 340 "bc.y"
 { push_instr('*_');
 last switch;
 } }
 if ($yyn == 65) {
-#line 341 "bc.y"
+# x line 341 "bc.y"
 { push_instr('/_');
 last switch;
 } }
 if ($yyn == 66) {
-#line 342 "bc.y"
+# x line 342 "bc.y"
 { push_instr('^_');
 last switch;
 } }
 if ($yyn == 67) {
-#line 343 "bc.y"
+# x line 343 "bc.y"
 { push_instr('%_');
 last switch;
 } }
 if ($yyn == 68) {
-#line 347 "bc.y"
+# x line 347 "bc.y"
 {
 		  push_instr('+_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1022,7 +1022,7 @@ if ($yyn == 68) {
 last switch;
 } }
 if ($yyn == 69) {
-#line 353 "bc.y"
+# x line 353 "bc.y"
 {
 		  push_instr('-_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1031,7 +1031,7 @@ if ($yyn == 69) {
 last switch;
 } }
 if ($yyn == 70) {
-#line 359 "bc.y"
+# x line 359 "bc.y"
 {
 		  push_instr('*_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1040,7 +1040,7 @@ if ($yyn == 70) {
 last switch;
 } }
 if ($yyn == 71) {
-#line 365 "bc.y"
+# x line 365 "bc.y"
 {
 		  push_instr('/_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1049,7 +1049,7 @@ if ($yyn == 71) {
 last switch;
 } }
 if ($yyn == 72) {
-#line 371 "bc.y"
+# x line 371 "bc.y"
 {
 		  push_instr('^_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1058,7 +1058,7 @@ if ($yyn == 72) {
 last switch;
 } }
 if ($yyn == 73) {
-#line 377 "bc.y"
+# x line 377 "bc.y"
 {
 		  push_instr('%_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1067,21 +1067,21 @@ if ($yyn == 73) {
 last switch;
 } }
 if ($yyn == 74) {
-#line 386 "bc.y"
+# x line 386 "bc.y"
 {
 		  push_instr('m_');
 
 last switch;
 } }
 if ($yyn == 75) {
-#line 390 "bc.y"
+# x line 390 "bc.y"
 {
 		  push_instr('!_');
 
 last switch;
 } }
 if ($yyn == 76) {
-#line 394 "bc.y"
+# x line 394 "bc.y"
 {
 		  # 'v'.$2 has already been pushed in the 'ident' rule
 		  push_instr('N', 1);
@@ -1092,7 +1092,7 @@ if ($yyn == 76) {
 last switch;
 } }
 if ($yyn == 77) {
-#line 402 "bc.y"
+# x line 402 "bc.y"
 {
 		  push_instr('N', 1);
 		  push_instr('-_');
@@ -1102,7 +1102,7 @@ if ($yyn == 77) {
 last switch;
 } }
 if ($yyn == 78) {
-#line 409 "bc.y"
+# x line 409 "bc.y"
 {
 		  # $1 is already on the stack (see the "ident:" rule)
 		  push_instr('v', $yyvs[$yyvsp-1])     ;
@@ -1122,7 +1122,7 @@ if ($yyn == 78) {
 last switch;
 } }
 if ($yyn == 79) {
-#line 426 "bc.y"
+# x line 426 "bc.y"
 {
 		  # See PPP for comments
 		  push_instr('v', $yyvs[$yyvsp-1]);
@@ -1139,12 +1139,12 @@ if ($yyn == 79) {
 last switch;
 } }
 if ($yyn == 80) {
-#line 440 "bc.y"
+# x line 440 "bc.y"
 { $yyval = $yyvs[$yyvsp-0];
 last switch;
 } }
 if ($yyn == 82) {
-#line 448 "bc.y"
+# x line 448 "bc.y"
 {
 		  push_instr('V', $yyvs[$yyvsp-2]);
 		  push_instr('=V');
@@ -1153,7 +1153,7 @@ if ($yyn == 82) {
 last switch;
 } }
 if ($yyn == 83) {
-#line 454 "bc.y"
+# x line 454 "bc.y"
 {
 		  # Add [] to the name in order to allow the same name
 		  # for an array and a scalar
@@ -1164,39 +1164,39 @@ if ($yyn == 83) {
 last switch;
 } }
 if ($yyn == 84) {
-#line 462 "bc.y"
+# x line 462 "bc.y"
 { $yyval = $yyvs[$yyvsp-0]->{"value"};
 last switch;
 } }
 if ($yyn == 85) {
-#line 464 "bc.y"
+# x line 464 "bc.y"
 { push_instr('N', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 86) {
-#line 465 "bc.y"
+# x line 465 "bc.y"
 { push_instr('N', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 87) {
-#line 466 "bc.y"
+# x line 466 "bc.y"
 { push_instr('S', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 88) {
-#line 470 "bc.y"
+# x line 470 "bc.y"
 { push_instr('v', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 89) {
-#line 473 "bc.y"
+# x line 473 "bc.y"
 {
 		  push_instr('p', $yyvs[$yyvsp-3]);
 		  $yyval = $yyvs[$yyvsp-3].'[]'.$yyvs[$yyvsp-1];
 
 last switch;
 } }
-#line 1201 "y.tab.pl"
+# x line 1201 "y.tab.pl"
     } # switch
     $yyssp -= $yym;
     $yystate = $yyss[$yyssp];
@@ -1242,7 +1242,7 @@ last switch;
     $yyvs[++$yyvsp] = $yyval;
   } # yyloop
 } # yyparse
-#line 479 "bc.y"
+# x line 479 "bc.y"
 
 @file_list=();
 $mathlib=0;
@@ -2339,7 +2339,7 @@ define j(n,x) {
     v += e;
   }
 }
-#line 2391 "y.tab.pl"
+# x line 2391 "y.tab.pl"
 
 =pod
 
