@@ -2179,6 +2179,17 @@ sub run
 	init_table();
 	command_line(@_);
 
+	if( $show_help ) {
+		require Pod::Usage;
+		Pod::Usage::pod2usage(
+			-verbose => 2,
+			-exitval => 0,
+			);
+
+		}
+
+	$class->show_welcome unless $quiet;
+
 	$SIG{'INT'} = 'catch';
 	$SIG{'FPE'} = 'catch';
 
