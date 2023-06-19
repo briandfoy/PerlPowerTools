@@ -132,6 +132,14 @@ STDOUT->autoflush(1);
 STDERR->autoflush(1);
 }
 
+my %default_filehandles = (
+	debug => \*STDERR,
+	info  => \*STDOUT,
+	error => \*STDERR,
+	value => \*STDOUT,
+	input => \*STDIN,
+	);
+
 sub am_debugging { $debug }
 
 sub debug_message {
@@ -140,24 +148,24 @@ sub debug_message {
 	}
 
 sub error_message {
-	return unless am_debugging();
 	print { error_fh() } @_;
 	}
 
 sub value_message {
-	return unless am_debugging();
 	print { value_fh() } @_;
 	}
 
-sub debug_fh { \*STDERR }
-sub info_fh { \*STDOUT }
-sub error_fh { \*STDERR }
-sub value_fh { \*STDOUT }
+sub filehandle_for {
+	no strict 'refs';
+	my( $env_key, $label ) = @_;
+	defined $PerlPowerTools::bc::{$env_key} ? $ENV{$env_key} : $default_filehandles{$label};
+	}
 
-sub debug(&) {
-  my $fn = shift;
-  debug_message( "\t".&$fn() );
-}
+sub debug_fh { filehandle_for(qw(BC_DEBUG_FH debug)) }
+sub info_fh  { filehandle_for(qw(BC_INFO_FH  info )) }
+sub error_fh { filehandle_for(qw(BC_ERROR_FH error)) }
+sub value_fh { filehandle_for(qw(BC_VALUE_FH value)) }
+sub input_fh { filehandle_for(qw(BC_INPUT_FH input)) }
 
 sub yydebug_message {
 	return unless $yydebug;
