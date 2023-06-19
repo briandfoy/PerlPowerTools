@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 package PerlPowerTools::bc;
+our $VERSION = '1.001';
 
 =begin metadata
 
@@ -92,7 +93,10 @@ The library provides these functions:
 
 =head1 AUTHOR
 
-Philip A. Nelson
+Philip A. Nelson originally translated GNU bc to Perl for the PerlPowerTools
+project.
+
+https://github.com/briandfoy/PerlPowerTools
 
 =head1 LICENSE
 
@@ -2218,6 +2222,24 @@ sub run
 
 	loop();
 	}
+
+sub show_welcome {
+
+=pod
+
+bc 1.06
+Copyright 1991-1994, 1997, 1998, 2000 Free Software Foundation, Inc.
+This is free software with ABSOLUTELY NO WARRANTY.
+For details type `warranty'.
+
+=cut
+
+	info_message(<<"HERE");
+bc $VERSION (PerlPowerTools)
+Copyright 1991-2023 Free Software Foundation, Inc., Philip A. Nelson, and PerlPowerTools
+This is free software with ABSOLUTELY NO WARRANTY
+HERE
+}
 
 __PACKAGE__->run(@ARGV) unless caller;
 
