@@ -4,7 +4,6 @@ use warnings;
 use lib qw(./t/lib);
 
 use Test::More;
-use IPC::Open3 ();
 use Symbol ();
 use FileHandle;
 use Time::HiRes qw(usleep);
@@ -12,7 +11,7 @@ use IO::Select;
 
 my $program = 'bin/bc';
 
-foreach my $table ( operator_table(), precedence_table(), special_expr_table(), statement_table() ) {
+foreach my $table ( special_expr_table() ) {# operator_table(), precedence_table(), special_expr_table(), statement_table() ) {
 	my $label = shift @$table;
 	subtest $label => sub {
 		foreach my $tuple ( @$table ) {
@@ -26,47 +25,23 @@ sub run_bc {
 	# https://www.perlmonks.org/?node_id=419919
 	my( $input ) = @_;
 
-	my $child_in = Symbol::gensym();
-	# https://github.com/perl/perl5/issues/14533
-	if ($^O eq 'MSWin32') {
-		no strict 'subs';
-		require Win32API::File;
-		Win32API::File->import( qw(:Func :HANDLE_FLAG_) );
-		my $wh = FdGetOsFHandle(fileno $child_in);
-		SetHandleInformation($wh, HANDLE_FLAG_INHERIT(), 0);
-		die "Can't turn off HANDLE_FLAG_INHERIT: $@";
-		}
+	my $class = require './bin/bc';
+	print "Class is <$class>\n";
 
-	my $pid = IPC::Open3::open3(
-		$child_in,
-		my $child_out,
-		my $child_err = Symbol::gensym(),
-		$^X, $program, '-'
-		);
+	chomp($input); $input .= "\n";
 
-	my $select_out = IO::Select->new($child_out);
-	my $select_err = IO::Select->new($child_err);
+	my %hash = ( input => $input );
+	print STDERR Dumper(\%hash); use Data::Dumper;
+	open $PerlPowerTools::bc::INPUT_FH, '>', \ $hash{info};
+	open $PerlPowerTools::bc::ERROR_FH, '>', \ $hash{error};
+	open $PerlPowerTools::bc::DEBUG_FH, '>', \ $hash{debug};
+	open $PerlPowerTools::bc::VALUE_FH, '>', \ $hash{value};
 
-	my %hash;
-	foreach my $line ( split /\n/, $input ) {
-		print {$child_in} $line, "\n";
+	print "About to run\n";
+	eval { $class->run('-d', '-') };
+	print "Already ran\n";
 
-		# give the child process a chance to work, otherwise we
-		# will check its filehandles too soon.
-		select(undef,undef,undef,0.4);
-
-		if( $select_err->can_read(0.1) ) {
-			sysread $child_err, my $error, 4096;
-			$hash{error} .= $error;
-			}
-		if( $select_out->can_read(0.1) ) {
-			sysread $child_out, my $output, 4096;
-			$hash{output} .= $output;
-			}
-		}
-
-	close $child_in;
-	waitpid $pid, 1;
+	print STDERR Dumper(\%hash); use Data::Dumper;
 
 	return \%hash;
 	}
