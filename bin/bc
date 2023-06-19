@@ -1385,24 +1385,33 @@ last switch;
 $mathlib=0;
 sub command_line
 {
-  my @args = @_;
-  while ($f = shift(@args)) {
-    if ($f eq '-b') {
-      use Math::BigFloat;
-      $bignum = 1;
-    } elsif ($f eq '-d') {
-      use Data::Dumper;
-      $debug = 1;
-    } elsif ($f eq '-y') {
-      $yydebug = 1;
-    } elsif ($f eq '-l') {
-      $mathlib = 1;
-    } else {
-      push(@file_list, $f);
-    }
-  }
-# read from STDIN if no files are named on the command line
-  @file_list = ('-') if $#file_list < 0;
+	require Getopt::Long;
+	my @args = @_;
+
+	$bignum         = 0;
+	$debug          = 0;
+	$show_help      = 0;
+	$noop           = 0;
+	$mathlib        = 0;
+	$quiet          = 0;
+	$silent         = 0;
+	$posix_warnings = 0;
+	$yydebug        = 0;
+
+	my $ret = Getopt::Long::GetOptionsFromArray(\@args,
+		'b' => \$bignum,
+		'd' => \$debug,
+		'h' => \$show_help,
+		'i' => \$noop,
+		'l' => \$mathlib,
+		'q' => \$quiet,
+		's' => \$silent,
+		'w' => \$posix_warnings,
+		'y' => \$yydebug,
+		);
+
+	@file_list = @args;
+	@file_list = ('-') if $#file_list < 0;
 }
 
 
