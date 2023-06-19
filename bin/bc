@@ -1406,7 +1406,7 @@ sub next_file
 
   if($mathlib) {
 
-    debug { "reading the math library\n" };
+    debug_message "reading the math library\n";
 
     $input = \*main::DATA;
     $mathlib=0;
@@ -1415,10 +1415,10 @@ sub next_file
 
   } elsif($file = shift(@file_list)) {
 
-    debug { "reading from $file\n" };
+    debug_message "reading from $file\n";
 
     if ($file eq '-') {
-      $input = STDIN;
+      $input = $ENV{BC_INPUT_FH} || \*STDIN;
     } else {
       open(IN, '<', $file) or die("$file: cannot open file: $!\n");
       $input = IN;
@@ -1428,7 +1428,7 @@ sub next_file
 
   }
 
-  debug { "no next file\n" };
+  debug_message "no next file\n";
 
   return 0;
 }
@@ -1963,12 +1963,12 @@ sub exec_stmt
        ($return, $val) = exec_stmt($sym_table{$name}{'value'});
 
 # Restore the symbols temporarily pushed in 'a' and 'A' instructions
-       debug {"restoring backup: ".Dumper(\@backup_sym_table)};
+       debug_message "restoring backup: ".Dumper(\@backup_sym_table);
 
        my $n;
 #       pop @backup_sym_table;    # The first is undef
        while($var = pop @backup_sym_table) {
-	 debug {"restoring var: ".Dumper($var)};
+	 debug_message "restoring var: ".Dumper($var);
 	 if($var->{'type'} eq 'undef') {
 	   delete $sym_table{$var->{'name'}};;
 	 } else {
@@ -2000,11 +2000,11 @@ sub exec_stmt
      my ($where, $name) = ($_, $instr->[1]);
 
      if(defined $sym_table{$name}) {
-       debug { "backup $name, $sym_table{$name}\n" };
+       debug_message "backup $name, $sym_table{$name}\n";
        push @backup_sym_table,  { name => $name,
 				    entry => $sym_table{$name} };
      } else {
-       debug { "backup $name, undef \n" };
+       debug_message "backup $name, undef\n";
        push @backup_sym_table,  { name => $name,
 				    type => 'undef' };
      }
