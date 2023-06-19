@@ -31,31 +31,9 @@ bc - an arbitrary precision calculator language
 =head1 DESCRIPTION
 
 This is the PerlPowerTools implementations of GNU version of bc, a
-souped-up calculator language.
+souped-up calculator language. This is documented at:
 
-=head2 GNU's mathlib
-
-Load the GNU math extensions with the C<-l> switch:
-
-	% bc -l FILE
-
-The library provides these functions:
-
-=over 4
-
-=item * a(x) - the arctangent of X, where X is expressed in radians
-
-=item * c(x) - the cosine of X, where X is expressed in radians
-
-=item * e(X) - the natural base, e, raised to the X power
-
-=item * j(X) - the Bessel function of order X, where X is an integer
-
-=item * l(X) - the natural logarithm of X
-
-=item * s(x) - the sine of X, where X is expressed in radians
-
-=back
+https://www.gnu.org/software/bc/manual/html_mono/bc.html
 
 =head2 Options
 
@@ -83,6 +61,31 @@ The library provides these functions:
 
 =head2 Environment
 
+There are no environment variables that affect this program.
+
+=head2 GNU's mathlib
+
+Load the GNU math extensions with the C<-l> switch:
+
+	% bc -l FILE
+
+The library provides these functions:
+
+=over 4
+
+=item * a(x) - the arctangent of X, where X is expressed in radians
+
+=item * c(x) - the cosine of X, where X is expressed in radians
+
+=item * e(X) - the natural base, e, raised to the X power
+
+=item * j(X) - the Bessel function of order X, where X is an integer
+
+=item * l(X) - the natural logarithm of X
+
+=item * s(x) - the sine of X, where X is expressed in radians
+
+=back
 
 =head1 AUTHOR
 
@@ -148,6 +151,10 @@ sub debug_message {
 	}
 
 sub error_message {
+	print { error_fh() } @_;
+	}
+
+sub info_message {
 	print { error_fh() } @_;
 	}
 
