@@ -19,13 +19,16 @@ bc - an arbitrary precision calculator language
 
 =head1 SYNOPSIS
 
-	# show a help message
-	bc -h
+Show a help message
 
-	# run a bc program from FILE
+	% bc -h
+
+Run a bc program from FILE
+
 	bc [-bdiqswy] FILE
 
-	# run a bc program from standard input
+Run a bc program from standard input
+
 	bc [-bdiqswy] -
 
 =head1 DESCRIPTION
