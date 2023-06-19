@@ -2198,7 +2198,7 @@ sub loop {
 sub run
 {
 	my $class = shift;
-	$class->init_vars();
+	$class->init_vars;
 	init_table();
 	command_line(@_);
 
