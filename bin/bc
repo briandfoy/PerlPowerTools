@@ -162,7 +162,7 @@ sub error_message {
 	}
 
 sub info_message {
-	print { error_fh() } @_;
+	print { info_fh() } @_;
 	}
 
 sub value_message {
