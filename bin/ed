@@ -841,17 +841,14 @@ sub CalculateLine {
         } elsif (defined($searchadr)) {
 
             $pattern = $searchadr;
-            $pattern =~ s/\/$//;
-            $pattern =~ s/^\///;
+            $pattern =~ s/[\?\/]$//;
+            $pattern =~ s/^[\?\/]//;
 
-
-            if ($wholesearch =~ /^\/.*\/$/) {
+            if ($wholesearch =~ /^\?/) {
+                $myline = edSearchBackward($pattern);
+            } else {
                 $myline = edSearchForward($pattern);
-                } else {
-                    $myline = edSearchBackward($pattern);
-                }
-
-#            $command = "";
+            }
         }
     }
 
