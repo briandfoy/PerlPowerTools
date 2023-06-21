@@ -64,16 +64,7 @@ if ($^O =~ /Win32/i)
 #    $cp::BINMODE = 0;
 #}
 
-## default is that OS is case sensitive (file a.txt ne A.txt)
-if ($^O =~ /(Win32|VMS|OS2)/i) ## OS is not case sensitive.. normalize path
-{
-    $cp::CASE_SENSITIVE = 0;
-    $cp::CWD = uc $cp::CWD;
-}
-else
-{
     $cp::CASE_SENSITIVE = 1;
-}
 $cp::CWD =~ s|\\|/|g; ## normalize for compares
 
 #######   C H E C K   P A T H S   &    C L E A N   U P  I F  N E E D E D  ######
