@@ -35,6 +35,7 @@ close $fh;
 my $second_filename = 'b.txt';
 
 subtest 'starting files' => sub {
+	ok -e $program_path, "$program_path exists";
 	ok -e $filename, "$filename exists";
 	ok ! -e $second_filename, "$second_filename does not exist";
 	};
