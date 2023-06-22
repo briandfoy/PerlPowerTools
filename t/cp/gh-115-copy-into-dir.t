@@ -35,6 +35,7 @@ close $fh;
 my $second_filename = 'b.txt';
 
 subtest 'starting files' => sub {
+	ok -e $program_path, "$program_path exists";
 	ok -e $filename, "$filename exists";
 	ok ! -e $second_filename, "$second_filename does not exist";
 	};
@@ -46,9 +47,20 @@ On Windows, cp a.txt b.txt fails at line 252 with message "cp: can not access B.
 =cut
 
 subtest 'same directory' => sub {
+	ok -e $filename, "$filename exists";
+	ok -e $^X, "$^X exists";
+	ok ! -e $second_filename, "$second_filename does not exist at start";
+
 	my $rc = system $^X, $program_path, $filename, $second_filename;
-	is $rc, 0, 'system exited with 0';
+	is $rc, 0, 'system exited with 0' or diag(
+		"system failed:\n\t$!\n\t$^E"
+		);
 	ok -e $second_filename, "$second_filename exists";
+	my @files = glob '*';
+	diag( "Files in current working dir are <@files>" );
+
+	unlink $second_filename;
+	ok ! -e $second_filename, "$second_filename removed at end of test";
 	};
 
 =pod
@@ -58,9 +70,20 @@ Overall, this script has problems with case sensitivity, for example cp a.txt di
 =cut
 
 subtest 'into directory' => sub {
+	ok ! -e $second_filename, "$second_filename does not exist at start";
+
 	my $rc = system $^X, $program_path, $filename, $subdir;
-	is $rc, 0, 'system exited with 0';
-	ok -e catfile( $subdir, $filename ), "$subdir/$second_filename exists";
+	is $rc, 0, 'system exited with 0' or diag(
+		"system failed:\n\t$!\n\t$^E"
+		);
+
+	my $target = catfile( $subdir, $filename );
+	ok -e $target, "$target exists";
+	my @files = glob '* */*';
+	diag( "Files in current working dir are <@files>" );
+
+	unlink $target;
+	ok ! -e $target, "$target removed at end of test";
 	};
 
 done_testing();
