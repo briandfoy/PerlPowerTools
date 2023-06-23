@@ -77,6 +77,89 @@ sub operator_table {
         [ '5 <= 5',       '1',       'less than or equal' ],
         [ '7 > 5',        '1',       'greater than' ],
         [ '7 >= 7',       '1',       'greater than or equal' ],
+        [ '7 >= 7',       '1',       'greater than or equal' ],
+        [
+        	"x = 3\nx *= 4",
+        	"3\n12",
+        	'binary assignment (multiplication)'
+        ],
+        [
+        	"x = 16\nx /= 4",
+        	"16\n4",
+        	'binary assignment (division)'
+        ],
+        [
+        	"x = 16\nx /= 0.5",
+        	"16\n32",
+        	'binary assignment (division by fraction)',
+        ],
+        [
+        	"x = 16\nx /= 0",
+        	"16",
+        	'binary assignment (division)',
+        	'Runtime error (func=(main), adr=4): Divide by zero'
+        ],
+        [
+        	"x = 56\nx %= 17",
+        	"56\n5",
+        	'binary assignment (modulo)'
+        ],
+        [
+        	"x = 56\nx %= 0.5",
+        	"56",
+        	'binary assignment (modulo fraction 0.5)',
+        	'Runtime error (func=(main), adr=4): Modulo by zero',
+        ],
+        [
+        	"x = 56\nx %= 1.9",
+        	"56",
+        	'binary assignment (modulo fraction 1.9)',
+        	'Runtime error (func=(main), adr=4): Modulo by zero',
+        	'Need to investigate fractional modulo'
+        ],
+		[
+        	"x = 56\nx %= 0",
+        	"56",
+        	'binary assignment (modulo zero)',
+        	'Runtime error (func=(main), adr=4): Modulo by zero',
+        ],
+		[
+        	"x = 56\nx %= -2",
+        	"56",
+        	'binary assignment (modulo negative number)',
+        	'Runtime error (func=(main), adr=4): Modulo by zero',
+        	'todo'
+        ],
+		[
+        	"x = 5\nx ^= 4",
+        	"5\n625",
+        	'binary assignment (exponentiation)'
+        ],
+        [
+        	"x = 5\nx ^= 0",
+        	"5\n1",
+        	'binary assignment (exponentiation - 0 power)'
+        ],
+        [
+        	"x = 5\nx ^= -1",
+        	"5\n0.2",
+        	'binary assignment (exponentiation - negative power)'
+        ],
+        [
+        	"x = 5\nx ^= 0.5",
+        	qr/5\n2\.23606/,
+        	'binary assignment (exponentiation - fractional power)'
+        ],
+        [
+        	"x = 5\ny = 2\nx ^= y",
+        	"5\n2\n25",
+        	'binary assignment (exponentiation - two variables)'
+        ],
+        [
+        	"x = -1\ny = 0.5\nx ^= y",
+        	qr/\A-1\n0.5\n-?NaN$/i, # NaN might be -nan
+        	'binary assignment (exponentiation - square root of -1)'
+        ],
     ];
 	}
 
@@ -168,12 +251,23 @@ sub run_table {
 
     subtest $label => sub {
         foreach my $tuple (@$table) {
-            my( $input, $expected, $description ) = @$tuple;
-            $expected .= "\n";
+            my( $input, $expected, $description, $error, $todo ) = @$tuple;
+            $expected .= "\n" unless ref $expected;
+
             my ( $fh, $temp_filename ) = tempfile();
 			print {$fh} $input, "\n";
+
 			my $output = `"$^X" $Script $temp_filename`;
-			is $output, $expected, $description;
+
+			TODO: {
+				local $TODO = $todo;
+				if( ! ref $expected ) {
+					is $output, $expected, $description;
+					}
+				elsif( ref $expected eq ref qr// ) {
+					like $output, $expected, $description;
+					}
+				}
             }
         };
 
