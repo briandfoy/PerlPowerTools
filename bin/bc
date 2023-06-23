@@ -11,6 +11,100 @@ License: gpl
 
 =cut
 
+=head1 NAME
+
+bc - an arbitrary precision calculator language
+
+=head1 SYNOPSIS
+
+Show a help message
+
+	% bc -h
+
+Run a bc program from FILE
+
+	bc [-bdiqswy] FILE
+
+Run a bc program from standard input
+
+	bc [-bdiqswy] -
+
+=head1 DESCRIPTION
+
+This is the PerlPowerTools implementations of GNU version of bc, a
+souped-up calculator language. This is documented at:
+
+https://www.gnu.org/software/bc/manual/html_mono/bc.html
+
+=head2 Options
+
+=over
+
+=item * -b - use Math::BigFloat
+
+=item * -d - turn on debugging output
+
+=item * -h - show a help message and exit
+
+=item * -i - force interactive mode (a no-op for compatibility)
+
+=item * -l - use mathlib
+
+=item * -q - suppress the welcome message
+
+=item * -s - process the POSIX bc language (a no-op for compatibility)
+
+=item * -w - give warnings for POSIX bc extensions (a no-op for compatibility)
+
+=item * -y - turn on parsing debugging output
+
+=back
+
+=head2 Environment
+
+There are no environment variables that affect this program.
+
+=head2 GNU's mathlib
+
+Load the GNU math extensions with the C<-l> switch:
+
+	% bc -l FILE
+
+The library provides these functions:
+
+=over 4
+
+=item * a(x) - the arctangent of X, where X is expressed in radians
+
+=item * c(x) - the cosine of X, where X is expressed in radians
+
+=item * e(X) - the natural base, e, raised to the X power
+
+=item * j(X) - the Bessel function of order X, where X is an integer
+
+=item * l(X) - the natural logarithm of X
+
+=item * s(x) - the sine of X, where X is expressed in radians
+
+=back
+
+=head1 AUTHOR
+
+Philip A. Nelson originally translated GNU bc to Perl for the PerlPowerTools
+project.
+
+https://github.com/briandfoy/PerlPowerTools
+
+=head1 LICENSE
+
+You can use and modify this program under the terms of the GNU Public
+License version 2. A copy of this license is in the PerlPowerTools
+repository:
+
+	https://github.com/briandfoy/PerlPowerTools/
+
+=cut
+
 #define YYBYACC 1
 #line 49 "bc.y"
 
