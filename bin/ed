@@ -56,7 +56,6 @@ License: gpl
 # Todo:
 #        - Implement the following commands from the v7 docs:
 #                g - global command
-#                j - join
 #                k - mark
 #                l - "list" lines, show special chars
 #                m - move
@@ -250,6 +249,8 @@ while (1) {
             if ($EXTENDED_MESSAGES && defined $Error) {
                 print "$Error\n";
             }
+        } elsif ($command eq 'j') {
+            &edJoin;
         } elsif ($command eq 'n') {
             edPrint(1);
         }
@@ -287,6 +288,31 @@ sub edPrint {
     }
 
     $CurrentLineNum = $adrs[1];
+}
+
+# merge lines back into $lines[$adrs[0]]
+sub edJoin {
+    if (!defined($adrs[0])) { # no currentLine inference
+        edWarn('invalid address');
+        return;
+    }
+    if (!defined($adrs[1])) { # expect range
+        return;
+    }
+    if ($adrs[0] == $adrs[1]) { # nop
+        return;
+    }
+
+    my $buf = $lines[$adrs[0]];
+    my $start = $adrs[0] + 1;
+    for my $i ($start .. $adrs[1]) {
+        chomp $buf;
+        $buf .= $lines[$i];
+    }
+    $lines[$adrs[0]] = $buf;
+    splice @lines, $start, $adrs[1] - $adrs[0];
+    $NeedToSave = 1;
+    $UserHasBeenWarned = 0;
 }
 
 #
@@ -776,7 +802,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhHinpPqQrswW=])?        # command char
+                 ([acdeEfhHijnpPqQrswW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -1079,6 +1105,10 @@ Display last error
 =item i
 
 Insert text
+
+=item j
+
+Join a range of lines into a single line
 
 =item n
 
