@@ -17,22 +17,18 @@ bc - an arbitrary precision calculator language
 
 =head1 SYNOPSIS
 
-Show a help message
-
-	% bc -h
-
 Run a bc program from FILE
 
-	bc [-bdiqswy] FILE
+	bc [-bdly] FILE...
 
-Run a bc program from standard input
+Start an interactive bc session
 
-	bc [-bdiqswy] -
+	bc [-bdly]
 
 =head1 DESCRIPTION
 
-This is the PerlPowerTools implementations of GNU version of bc, a
-souped-up calculator language. This is documented at:
+This is the PerlPowerTools implementation of the GNU version of bc, a
+standard calculator language. This is documented at:
 
 https://www.gnu.org/software/bc/manual/html_mono/bc.html
 
@@ -44,19 +40,9 @@ https://www.gnu.org/software/bc/manual/html_mono/bc.html
 
 =item * -d - turn on debugging output
 
-=item * -h - show a help message and exit
-
-=item * -i - force interactive mode (a no-op for compatibility)
-
 =item * -l - use mathlib
 
-=item * -q - suppress the welcome message
-
-=item * -s - process the POSIX bc language (a no-op for compatibility)
-
-=item * -w - give warnings for POSIX bc extensions (a no-op for compatibility)
-
-=item * -y - turn on parsing debugging output
+=item * -y - turn on parser debugging output
 
 =back
 
@@ -103,11 +89,6 @@ C<bc> will never read from the standard input.)
 
 C<bc> will terminate interactive input via stdin if you enter C<quit>
 or press C<CTRL-C>.
-
-Pressing C<CTRL-Z> will end stdin input and move on the the next
-filename on the command line (if there is one). Otherwise, execution
-ends.
-
 
 =head1 OPTIONS
 
@@ -474,7 +455,7 @@ generated.
 
 Statements (as in most algebraic languages) provide the sequencing of
 expression evaluation. In C<bc> statements are executed "as soon as
-possible." Execution happens when a newline in encountered and there
+possible." Execution happens when a newline is encountered and there
 is one or more complete statements. Due to this immediate execution,
 newlines are very important in C<bc>. In fact, both a semicolon and a
 newline are used as statement separators. An improperly placed
