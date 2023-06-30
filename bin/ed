@@ -510,6 +510,11 @@ sub edEdit {
 
     # suck the file into a temp array
 
+    if (-d $filename) {
+        warn "$filename: is a directory\n";
+        edWarn('cannot read input file');
+        return 0;
+    }
     unless (open(SOURCE, '<', $filename)) {
         edWarn("unable to open $filename: $!");
         return 0;
