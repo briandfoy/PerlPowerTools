@@ -258,6 +258,12 @@ sub install_files {
             }
         }
 
+        if (-d $file) {
+            warn "$0: ignoring directory '$file'\n";
+            $Errors++;
+            next;
+        }
+
         if ($opt{C}) {
             if (system "cmp", "-s", $file, $targ) {
                 warn "$0: copy $file $targ\n" if $Debug;
