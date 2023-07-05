@@ -229,7 +229,6 @@ sub parse_args {
     $opt{1}   += $opt{'s'} && !$opt{c};     # that's a one
 
     @ARGV = ($opt{r} ? '.' : '-') unless @ARGV;
-    $opt{r} = 1 if !$opt{r} && grep(-d, @ARGV) == @ARGV;
 
     $match_code  = '';
     $match_code .= 'study;' if @patterns > 5; # might speed things up a bit
@@ -283,8 +282,7 @@ FILE: while (defined ($file = shift(@_))) {
 
 	    }
 	    if (!$opt->{r}) {
-		warn "$Me: \"$file\" is a directory, but no -r given\n"
-		    if $opt->{T};
+		warn "$Me: \"$file\" is a directory\n";
 		next FILE;
 	    }
 	    unless (opendir(DIR, $file)) {
