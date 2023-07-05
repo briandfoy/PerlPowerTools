@@ -18,7 +18,7 @@ platform: x64
 branches:
   only:
     - master
-    - appveyor
+    - /appveyor/
 
 skip_tags: true
 
