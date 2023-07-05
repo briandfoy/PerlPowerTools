@@ -14,15 +14,14 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+use Getopt::Std qw(getopts);
 
-my $warnings = 0;
+my ($VERSION) = '1.3';
 
 $SIG {__WARN__} = sub {
     if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
     require File::Basename;
     $0 = File::Basename::basename ($0);
-    $warnings = 1;
     warn "$0: @_";
 };
 
@@ -38,22 +37,8 @@ EOF
     die "$0: @_";
 };
 
-# Get the options.
-# We might be able to use Getopts, but the mode might be difficult.
 my %options;
-while (@ARGV && $ARGV [0] =~ /^-/) {
-    local $_ = shift;
-
-    /^-p$/ && do {$options {p} = 1; next;};
-    /^-m$/ && do {
-        die "Usage" unless @ARGV > 1;
-        $options {m} = shift;
-        next;
-    };
-
-    die "Usage";
-}
-
+getopts('m:p', \%options) or die('Usage');
 die "Usage" unless @ARGV;
 
 my $symbolic = 0;
@@ -84,6 +69,7 @@ else {
     @ARGV = map {[$_ => 0]} @ARGV;
 }
 
+my $err = 0;
 foreach my $directory (@ARGV) {
     my ($dir, $intermediate) = @$directory;
 
@@ -93,6 +79,7 @@ foreach my $directory (@ARGV) {
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
         warn qq 'cannot create make directory "$dir": $!\n';
+        $err++;
         next;
     };
 
@@ -106,6 +93,7 @@ foreach my $directory (@ARGV) {
             shift while @ARGV && $ARGV [0] -> [1];
             shift if    @ARGV;
             warn "stat on $dir failed: $!\n";
+            $err++;
             next;
         }
         # Individual parts.
@@ -120,6 +108,7 @@ foreach my $directory (@ARGV) {
         # Mode is an oct, remember?
         chmod oct ($mode) => $dir or do {
             warn "stat on $dir failed: $!\n";
+            $err++;
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
             shift while @ARGV && $ARGV [0] -> [1];
@@ -140,6 +129,7 @@ foreach my $directory (@ARGV) {
     }
     chmod oct ($realmode) => $dir or warn "$!\n";
 }
+exit($err ? 1 : 0);
 
 __END__
 
@@ -207,4 +197,3 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
 
 =cut
-
