@@ -26,6 +26,7 @@ unless (@ARGV) {
 }
 
 my $format = shift;
+$format =~ s/\\v/\x0b/g; # escape \v not available in printf()
 eval qq(printf "$format", \@ARGV);
 die if $@;
 
@@ -43,8 +44,7 @@ B<printf> I<format> [ I<argument> ... ]
 
 The B<printf> command uses the first argument as the format that describes
 how to print the remaining arguments.  Unlike the standard
-printf(1) command, this one uses the Perl version, which means
-that the C<\v> escape is not supported, but various other things are.
+printf(1) command, this one uses the Perl version.
 See L<perlfunc/sprintf> for details.
 
 =head1 RESTRICTIONS
