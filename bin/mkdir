@@ -17,29 +17,28 @@ use strict;
 use Getopt::Std qw(getopts);
 
 my ($VERSION) = '1.3';
+my $Program;
+BEGIN { $Program = do { require File::Basename; File::Basename::basename($0) }; }
 
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    warn "$0: @_";
-};
-
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-p] [-m mode] directory [directories ...]
-EOF
-    }
-    die "$0: @_";
-};
+$SIG{__WARN__} = sub { warn "$Program: @_\n" };
+$SIG{__DIE__} =  sub { die  "$Program: @_\n" };
 
 my %options;
-getopts('m:p', \%options) or die('Usage');
-die "Usage" unless @ARGV;
+getopts('m:p', \%options) or usage();
+
+usage() unless @ARGV;
+
+use constant EX_SUCCESS => 0;
+use constant EX_ERROR   => 1;
+use constant EX_USAGE   => 2;
+
+sub usage {
+	require Pod::Usage;
+	Pod::Usage::pod2usage({
+		-exitval => EX_USAGE,
+		-verbose => 2,
+		});
+	}
 
 my $symbolic = 0;
 if (exists $options {m} && $options {m} =~ /[^0-7]/) {
@@ -129,7 +128,7 @@ foreach my $directory (@ARGV) {
     }
     chmod oct ($realmode) => $dir or warn "$!\n";
 }
-exit($err ? 1 : 0);
+exit($err ? EX_ERROR : EX_SUCCESS);
 
 __END__
 
@@ -168,7 +167,7 @@ Create the directory with permissions as indicated by I<mode>. I<mode>
 can be of any form accepted by I<chmod(1)>. Symbolic I<mode>s are
 relative to an initial mode of I<a=rwx>.
 
-=back 
+=back
 
 =head1 ENVIRONMENT
 
