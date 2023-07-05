@@ -119,11 +119,11 @@ foreach my $directory (@ARGV) {
         next;
     }
 
-    next unless exists $options {m};
+    next unless exists $options{'m'};
 
-    my $realmode = $options {m};
+    my $realmode = $options{'m'};
     if ($symbolic) {
-        $realmode = SymbolicMode::mod ($options {m}, $dir) or
+        $realmode = SymbolicMode::mod ($options{'m'}, $dir) or
                        die "invalid mode: $options{m}\n";
     }
     chmod oct ($realmode) => $dir or warn "$!\n";
