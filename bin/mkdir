@@ -41,7 +41,7 @@ sub usage {
 	}
 
 my $symbolic = 0;
-if (exists $options {m} && $options {m} =~ /[^0-7]/) {
+if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
     require SymbolicMode;
     $symbolic = 1;
 }
@@ -51,15 +51,15 @@ if (exists $options {m} && $options {m} =~ /[^0-7]/) {
 # name, and a flag to indicate whether it's an "intermediate" directory
 # or not. "intermediate" directories are the directories interfered by
 # -p, but not given on the command line.
-if (exists $options {p}) {
+if (exists $options{'p'}) {
     require File::Basename;
     my @ARGV2;
     while (@ARGV) {
         my $dir = pop @ARGV;
         my $intermediate = 0;
-        while ($dir ne File::Basename::dirname ($dir)) {
+        while( $dir ne File::Basename::dirname($dir) ) {
             push @ARGV2 => [$dir, $intermediate ++];
-            $dir = File::Basename::dirname ($dir);
+            $dir = File::Basename::dirname($dir);
         }
     }
     @ARGV = reverse @ARGV2;
@@ -70,10 +70,10 @@ else {
 
 my $err = 0;
 foreach my $directory (@ARGV) {
-    my ($dir, $intermediate) = @$directory;
+    my($dir, $intermediate) = @$directory;
 
     # Existing directories don't create a warning when -p is in effect.
-    next if -d $dir && exists $options {p};
+    next if -d $dir && exists $options{'p'};
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
@@ -85,11 +85,11 @@ foreach my $directory (@ARGV) {
     # Special case the intermediate directories.
     if ($intermediate) {
         # Get the current permissions of the directory; in oct.
-        my $mode = sprintf "%03o" => (stat $dir) [2];
+        my $mode = sprintf "%03o" => (stat $dir)[2];
         unless (defined $mode) {
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
-            shift while @ARGV && $ARGV [0] -> [1];
+            shift while @ARGV && $ARGV[0][1];
             shift if    @ARGV;
             warn "stat on $dir failed: $!\n";
             $err++;
@@ -99,18 +99,18 @@ foreach my $directory (@ARGV) {
         my @modes   = split // => substr $mode => -3;
 
         # Turn on write and search permission for the user.
-        $modes [0] |= 3;
+        $modes[0] |= 3;
 
         # Reassemble.
         $mode       = join "" => @modes;
 
         # Mode is an oct, remember?
-        chmod oct ($mode) => $dir or do {
+        chmod oct($mode) => $dir or do {
             warn "stat on $dir failed: $!\n";
             $err++;
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
-            shift while @ARGV && $ARGV [0] -> [1];
+            shift while @ARGV && $ARGV[0][1];
             shift if    @ARGV;
             next;
         };
@@ -123,10 +123,10 @@ foreach my $directory (@ARGV) {
 
     my $realmode = $options{'m'};
     if ($symbolic) {
-        $realmode = SymbolicMode::mod ($options{'m'}, $dir) or
+        $realmode = SymbolicMode::mod($options{'m'}, $dir) or
                        die "invalid mode: $options{m}\n";
     }
-    chmod oct ($realmode) => $dir or warn "$!\n";
+    chmod oct($realmode) => $dir or warn "$!\n";
 }
 exit($err ? EX_ERROR : EX_SUCCESS);
 
