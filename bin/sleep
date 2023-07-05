@@ -13,7 +13,7 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.201';
+my ($VERSION) = '1.202';
 
 if (@ARGV) {
     if ($ARGV [0] eq '-?') {
@@ -29,10 +29,11 @@ EOF
     } elsif ($ARGV[0] =~ /^\d+$/) {
 	sleep $ARGV[0];
     } else {
-        print "bad character\n";
+        warn "$0: invalid time interval\n";
+        exit 1;
     }
 } else {
-    print "arg count\n";
+    warn "$0: missing operand\n";
     exit 1;
 }
 
@@ -88,5 +89,4 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others to do the same.
 
 =cut
-
 
