@@ -147,6 +147,7 @@ sub parse_args {
     my $no_re = $opt{F} || ($Me =~ /\bfgrep\b/);
 
     if ($opt{f}) {                # -f patfile
+	die("$Me: $opt{f}: is a directory\n") if (-d $opt{f});
 	open PATFILE, '<', $opt{f} or die qq($Me: Can't open '$opt{f}': $!);
 
 				  # make sure each pattern in file is valid
