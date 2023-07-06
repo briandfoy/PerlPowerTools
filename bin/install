@@ -235,6 +235,9 @@ sub install_files {
     my $dst = pop @ARGV;
     my $dir = -d $dst;
 
+    if (scalar(@ARGV) == 0) {
+        die "$0: missing destination file operand after '$dst'\n";
+    }
     if (!$dir and @ARGV > 1) {
         die "$0: $dst is not a directory\n", usage;
     }
