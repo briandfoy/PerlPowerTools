@@ -153,6 +153,7 @@ t/lib/utils.pm
 t/mimedecode/000.basic.t
 t/nl/nl.t
 t/rev/rev.t
+t/robots/000.basic.t
 t/rot13/rot13.t
 t/sort/sort.t
 t/true/true.t
