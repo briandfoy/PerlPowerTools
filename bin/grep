@@ -277,13 +277,13 @@ FILE: while (defined ($file = shift(@_))) {
 
 	if (-d $file) {
 	    if (-l $file && @ARGV != 1) {
-		warn "$Me: \"$file\" is a symlink to a directory\n"
+		warn qq($Me: "$file" is a symlink to a directory\n" )
 		    if $opt->{T};
 		next FILE;
 
 	    }
 	    if (!$opt->{r}) {
-		warn "$Me: \"$file\" is a directory\n";
+		warn qq($Me: "$file" is a directory\n");
 		next FILE;
 	    }
 	    unless (opendir(DIR, $file)) {
@@ -317,7 +317,7 @@ FILE: while (defined ($file = shift(@_))) {
 	else {
 	    $name = $file;
 	    unless (-e $file) {
-		warn qq($Me: file "$file" does not exist\n) unless $opt->{'q'};
+		warn qq($Me: "$file" does not exist\n) unless $opt->{'q'};
 		$Errors++;
 		next FILE;
 	    }
