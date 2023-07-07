@@ -5,7 +5,7 @@
 Name: hexdump
 Description: print input as hexadecimal
 Author: Michael Mikonos
-License: 
+License:
 
 =end metadata
 
@@ -14,7 +14,14 @@ License:
 use strict;
 use warnings;
 
+use File::Basename;
 use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant EX_USAGE   => 2;
+
+my $Program = basename($0);
 
 my (%opt, @chars, @cesc, $adr, $nread, $curf, $skip);
 
@@ -22,7 +29,8 @@ sub getchar {
     my $c;
     my $n = read $curf, $c, 1;
     unless (defined $n) {
-        die "$0: $!\n";
+        warn "$Program: $!\n";
+        exit EX_FAILURE;
     }
     return unless $n;
     $nread++;
@@ -89,7 +97,8 @@ sub revert {
     while (readline) {
         my $start = index $_, ' '; # after offset
         if ($start == -1) {
-            die "$0: parse error: $_";
+            warn "$Program: parse error: $_";
+            exit EX_FAILURE;
         }
         my $end = index $_, '|';
         if ($end == -1) {
@@ -99,12 +108,14 @@ sub revert {
         }
         s/\s//g;
         if (m/[^[:xdigit:]]/) {
-            die "$0: non-hex digits: '$_'\n";
+            warn "$Program: non-hex digits '$_'\n";
+            exit EX_FAILURE;
         }
         my $len = length;
         next unless $len;
         if ($len & 1) {
-            die "$0: odd digits: '$_'\n";
+            warn "$Program: odd digits '$_'\n";
+            exit EX_FAILURE;
         }
         print pack('H*', $_);
     }
@@ -125,7 +136,8 @@ sub xd {
     if (@ARGV) {
         while (my $path = shift @ARGV) {
             unless (open $curf, '<', $path) {
-                die "$0: $path: $!\n";
+                warn "$Program: $path: $!\n";
+                exit EX_USAGE;
             }
             last if (dofile() != 0);
         }
@@ -143,11 +155,16 @@ sub xd {
 }
 
 getopts('cn:rs:u', \%opt)
-    or die("usage: $0 [-cru] [-n length] [-s skip] [file ...]\n");
+    or do {
+    	warn("usage: $Program [-cru] [-n length] [-s skip] [file ...]\n");
+    	exit EX_USAGE;
+    	};
+
 $| = 1 if $opt{'u'};
 foreach (qw(n s)) {
     if ($opt{$_} && $opt{$_} =~ m/\D/) {
-        die "hexdump: bad -$_ argument";
+        warn "hexdump: bad -$_ argument\n";
+        exit EX_USAGE;
     }
 }
 $skip = $opt{'s'};
@@ -206,7 +223,7 @@ possible to specify multiple input files.
 
 Skip a set NUMBER of bytes at the beginning of input. The number argument
 must be given in decimal. The offset number printed on output is advanced
-to reflect the skipped bytes. 
+to reflect the skipped bytes.
 
 =item -u
 
