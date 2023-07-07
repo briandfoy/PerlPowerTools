@@ -68,7 +68,7 @@ sub dumper {
         $str =~ s/[^[:print:]]/./g;
         printf "%-51s|%s|\n", $hex, $str;
     }
-    $adr += 16;
+    $adr += scalar @chars;
     undef @chars;
 }
 
@@ -134,6 +134,12 @@ sub xd {
         dofile();
     }
     dumper(); # odd bytes at end
+
+    if ($opt{'c'}) {
+        printf "%07lx\n", $adr;
+    } else {
+        printf "%08lx\n", $adr;
+    }
 }
 
 getopts('cn:rs:u', \%opt)
