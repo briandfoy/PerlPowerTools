@@ -46,7 +46,7 @@ use File::Basename;
 my $Program = basename($0);
 
 END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
+    close STDOUT || die "$Program: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
 }
 
