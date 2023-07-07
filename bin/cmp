@@ -42,6 +42,8 @@ END {
     $? = 1 if $? == 255;  # from die
 }
 
+$SIG{__DIE__} = sub { warn @_; exit 2 };
+
 my $chunk_size = 10_000;     # how many bytes in a gulp
 
 my $volume=1;                # controlled by -s and -l
@@ -118,6 +120,9 @@ if (@ARGV) {
 
 $skip1 = eval "$skip1" if defined $skip1;
 $skip2 = eval "$skip2" if defined $skip2;
+
+die("$0: $file1: is a directory\n") if (-d $file1);
+die("$0: $file2: is a directory\n") if (-d $file2);
 
 open FILE1, '<', $file1 || die "$0: cannot open $file1\n";
 open FILE2, '<', $file2 || die "$0: cannot open $file2\n";
@@ -271,5 +276,4 @@ This program is copyright (c) D Roland Walker 1999.
 This program is free and open software. You may use, modify, distribute,
 and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
-
 
