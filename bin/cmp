@@ -37,12 +37,15 @@ License: perl
 
 use strict;
 
+use constant EX_SUCCESS   => 0;
+use constant EX_FAILURE   => 1;
+use constant EX_DIFFERENT => 1;
+use constant EX_USAGE     => 2;
+
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
 }
-
-$SIG{__DIE__} = sub { warn @_; exit 2 };
 
 my $chunk_size = 10_000;     # how many bytes in a gulp
 
@@ -87,13 +90,13 @@ $file2 = shift;
 (undef,$ino1,undef,undef,undef,undef,undef,$size1) = stat $file1;
 (undef,$ino2,undef,undef,undef,undef,undef,$size2) = stat $file2;
 
-exit 0 if defined $ino1 && $ino1 == $ino2;  # hopefully, on platforms where
+exit EX_SUCCESS if defined $ino1 && $ino1 == $ino2;  # hopefully, on platforms where
                                             # inode is meaningless, stat
                                             # returns undef.
 
 if ($size1 == 0 || $size2 == 0) {       # special handling for zero-length
     if ($size2+$size1 == 0) {           # files.
-        exit 0;
+        exit EX_SUCCESS;
     } else {                            # Can't we say 'differ at byte zero'
                                         # and so on here?  That might make
                                         # more sense than this behavior.
@@ -121,10 +124,20 @@ if (@ARGV) {
 $skip1 = eval "$skip1" if defined $skip1;
 $skip2 = eval "$skip2" if defined $skip2;
 
-die("$0: $file1: is a directory\n") if (-d $file1);
-die("$0: $file2: is a directory\n") if (-d $file2);
+if( -d $file1 ) {
+	warn( "$0: $file1: is a directory\n" );
+	exit EX_USAGE;
+}
+if( -d $file2 ) {
+	warn( "$0: $file2: is a directory\n" );
+	exit EX_USAGE;
+}
 
-open FILE1, '<', $file1 || die "$0: cannot open $file1\n";
+unless(  open FILE1, '<', $file1 ) {
+	warn "$0: cannot open $file1\n";
+	exit EX_FAILURE
+	};
+
 open FILE2, '<', $file2 || die "$0: cannot open $file2\n";
 
 sysseek FILE1, $skip1, 0 if $skip1;
@@ -165,12 +178,12 @@ READ: while (defined ($read_in1 = sysread FILE1, $buffer1, $chunk_size)) {
 
     if ($read_in1 < $read_in2) {
         warn "$0: EOF on $file1\n" unless $saw_difference or !$volume;
-        exit 1;
+        exit EX_DIFFERENT;
     } elsif ($read_in1 > $read_in2) {
         warn "$0: EOF on $file2\n" unless $saw_difference or !$volume;
-        exit 1;
+        exit EX_DIFFERENT;
     } elsif ($read_in1 == 0) {
-        exit $saw_difference;
+        exit EX_DIFFERENT;
     }
 }
 
@@ -180,23 +193,17 @@ close FILE2;
 exit $saw_difference;
 
 sub usage {
-    die "usage: $0 [-l] [-s] file1 file2 [skip1 [skip2]]\n";
+    warn "usage: $0 [-l] [-s] file1 file2 [skip1 [skip2]]\n";
+    exit EX_USAGE;
 }
 
 sub manual {
+	require Pod::Usage;
 
-    # I thought using inline docs like this was a natural extension
-    # of perlishness, like better regular expressions, but tchrist
-    # disapproves.
-
-    # why is pod2text the only reasonable way to feed pod in
-    # on STDIN ?  Would rather use "|perldoc -", as it already
-    # knows about pager, etc.
-
-    open  MAN, '|-', "pod2text" or die "$0: Cannot open pod2text converter\n";
-    print MAN  <DATA>;
-    close MAN;
-    exit;
+	Pod::Usage::pod2usage({
+		-exitval => EX_SUCCESS,
+		-verbose => 2,
+	});
 }
 
 __END__
