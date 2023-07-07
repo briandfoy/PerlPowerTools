@@ -11,6 +11,69 @@ make changes.
 
 So far we don't have a perltidy setup for this.
 
+## Convert to modulinos when you can
+
+A modulino is a program file that can act both as a library and a program. Essentially, this re-adds the implicit `main` back, and only
+calls that `main` if the file wasn't loaded as a library. In this case, `main` is named `run` instead:
+
+	run(@ARGV) unless caller;
+
+	sub run {
+		my @args = @_;
+		...
+	}
+
+This allows for easy testing since we can call `run` with the right arguments to see what the program will do.
+
+Even better, allow for a hash reference as the first argument so that a calling program (e.g. a test) can specify options:
+
+	run( {}, @ARGV ) unless caller;
+
+	sub run {
+		my $options = {};
+		if( ref $_[0] eq ref {} ) {
+			$options = shift;
+		}
+
+		my @args = @_;
+		...
+	}
+
+## Use Getopt::Std or Getopt::Long
+
+In general, the PerlPowerTools program should only have the options from the original unix tools version. Don't add extra options for features that don't exist in the original.
+
+In the modulino case where the arguments are not in `@ARGV`, use `Getopt::Long::GetOptionsFromArray`:
+
+	sub run {
+		my $run_options = {};
+		if( ref $_[0] eq ref {} ) {
+			$run_options = shift;
+		}
+
+		my( $switches, @files) = process_arguments(@args);
+		...
+	}
+
+	sub process_arguments {
+		my @args = @_;
+		my %opts;
+
+		require Getopt::Long;
+		my $ret = Getopt::Long::GetOptionsFromArray(
+			\@args,
+			'f' => \$opts{'f'},
+			'i' => \$opts{'i'},
+			'n' => \$opts{'n'},
+			'p' => \$opts{'p'},
+			'v' => \$opts{'v'},
+			);
+
+		return unless $ret;
+
+		return ( \%opts, @args )
+		}
+
 ## Don't output extra info from die or warn
 
 End the `die` and `warn` messages with a newline to suppress file and line number messages.
