@@ -52,7 +52,7 @@ subtest 'same directory' => sub {
 	ok ! -e $second_filename, "$second_filename does not exist at start";
 
 	my @command = ( $^X, $program_path, $filename, $second_filename );
-	diag( "Command is [@command]" );
+
 	my $rc = system $^X, $program_path, $filename, $second_filename;
 	is $rc, 0, 'system exited with 0' or diag(
 		"system failed:\n\t$!\n\t$^E"
