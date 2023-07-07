@@ -27,6 +27,7 @@ unless (@ARGV) {
 
 my $format = shift;
 $format =~ s/\\v/\x0b/g; # escape \v not available in printf()
+$format =~ s/\%c/\%\.1s/g; # standard printf: %c == 1st char
 eval qq(printf "$format", \@ARGV);
 die if $@;
 
