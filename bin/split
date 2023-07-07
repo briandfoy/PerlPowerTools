@@ -96,15 +96,19 @@ exit 1;
 
 #### Main program starts here. ####
 
-## Grab options
-getopts ('b:l:p:?', \my %opt);
+getopts('b:l:p:', \my %opt) or clue;
 
-clue if $opt{"?"};    # heeeeeeeeeeelp!
+my $infile = shift;
+my $prefix = shift;
+die("$me: extra operand: $ARGV[0]\n") if @ARGV;
+unless (defined $infile) {
+    $infile = '-';
+}
+unless (defined $prefix && length $prefix) {
+    $prefix = 'x';
+}
 
-## Open whatever needs opening
-my $infile = (defined $ARGV[0] ? $ARGV[0] : "-");
-my $prefix = ($ARGV[1] ? "$ARGV[1]" : "x");
-
+die("$me: $infile: is a directory\n") if (-d $infile);
 open (INFILE, '<', $infile) || die "$me: Can't open $infile: $!\n";
 binmode(INFILE);
 ## Byte operations.
@@ -239,5 +243,4 @@ distribute and sell this program (and any modified variants) in any
 way you wish, provided you do not restrict others to do the same.
 
 =cut
-
 
