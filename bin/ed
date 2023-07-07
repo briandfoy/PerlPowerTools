@@ -123,15 +123,12 @@ if ($opt_v) {
     $EXTENDED_MESSAGES = 1;
 }
 
-print("@ARGV\n") if @ARGV;
-&Usage if ($#ARGV > 1);
-
-while ($_ = shift) {
-    if (/-/) {
-        $SupressCounts = 1;
-    } else {
-        $args[0] = $_;
-    }
+&Usage if scalar(@ARGV) > 1;
+my $fname = shift;
+if ($fname eq '-') {
+    $SupressCounts = 1;
+} else {
+    $args[0] = $fname;
 }
 
 if ($EXTENDED_MESSAGES) {
