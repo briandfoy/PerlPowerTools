@@ -49,6 +49,7 @@ if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
 }
 
 $opt{C}++ if $opt{p};
+$Debug = 1 if $opt{D};
 
 # these probably won't make sense elsewhere
 if ($Unix) {
@@ -228,9 +229,7 @@ sub install_files {
                 }
             }
             else {
-                if ($Debug >= 2) {
-                    warn "$0: $file not copied to $targ\n";
-                }
+                warn("$0: $file not copied to $targ\n") if $Debug;
                 next;
             }
         }
