@@ -14,7 +14,9 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+use Getopt::Std qw(getopts);
+
+my ($VERSION) = '1.3';
 
 sub usage () {
     <<EOUsage;
@@ -39,59 +41,7 @@ my $Errors = 0;
 
 # process options
 my %opt;
-
-while (@ARGV and $ARGV[0] =~ /^-/) {
-    my $opt = shift;
-
-    last if $opt eq '--';
-
-    if ($opt =~ s/^-C//) {
-        $opt{C}++;
-    }
-    elsif ($opt =~ s/^-c//) {
-        $opt{c}++;
-    }
-    elsif ($opt =~ s/^-D//) {
-        $Debug++;
-    }
-    elsif ($opt =~ s/^-d//) {
-        $opt{d}++;
-    }
-    elsif ($opt =~ s/^-f(.*)//) {  # compat
-        $opt{f} = $1 || shift;
-    }
-    elsif ($opt =~ s/^-g(.*)//) {
-        $opt{g} = $1 || shift;
-    }
-    elsif ($opt =~ s/^-M//) {  # compat
-        $opt{M}++;
-    }
-    elsif ($opt =~ s/^-m(.*)//) {
-        $opt{m} = $1 || shift;
-    }
-    elsif ($opt =~ s/^-o(.*)//) {
-        $opt{o} = $1 || shift;
-    }
-    elsif ($opt =~ s/^-p//) {
-        $opt{p}++;
-    }
-    elsif ($opt =~ s/^-s//) {
-        $opt{s}++;
-    }
-    elsif ($opt =~ s/^-\?//) {
-        warn usage;
-        exit 0;
-    }
-    else {
-        $opt =~ s/^-//;
-        die "$0: illegal option -- $opt\n", usage;
-    }
-
-    if ($opt) {
-        unshift @ARGV, "-$opt";
-    }
-}
-
+getopts('CcDdf:g:Mm:o:ps', \%opt) or die usage;
 die usage unless @ARGV;
 
 if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
