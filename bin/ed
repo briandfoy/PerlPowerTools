@@ -68,7 +68,6 @@ License: gpl
 #        - Create regression test suite...test against "real" ed.
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
 #        - add buffer size limitations for strict compatability
-#        - Save buffer on SIGHUP (meaningless on Windoz ?)
 #        - discard NULS, chars after \n
 #        - refuse to read non-ascii files
 #        - Add BSD/GNU extentions
@@ -106,6 +105,17 @@ $NO_QUESTIONS_MODE = 0;
 
 $VERSION = "0.2";
 
+$SIG{HUP} = sub {
+    if ($NeedToSave) {
+        my $fh;
+        if (open $fh, '>', 'ed.hup') {
+            shift @lines;
+            print {$fh} join('', @lines);
+            close $fh;
+        }
+    }
+    exit 1;
+};
 #
 # Parse command line ...
 #
