@@ -109,8 +109,14 @@ unless (defined $prefix && length $prefix) {
 }
 
 die("$me: $infile: is a directory\n") if (-d $infile);
-open (INFILE, '<', $infile) || die "$me: Can't open $infile: $!\n";
-binmode(INFILE);
+my $in;
+if ($infile eq '-') {
+    $in = *STDIN;
+}
+else {
+    open($in, '<', $infile) or die("$me: Can't open $infile: $!\n");
+}
+binmode $in;
 ## Byte operations.
 if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {
 
@@ -119,16 +125,16 @@ if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {
 
     unless ($count) { die qq($me: "$opt{b}" is invalid number of bytes.\n) }
 
-    while (read (INFILE, $chunk, $count) == $count) {
+    while (read ($in, $chunk, $count) == $count) {
 	$fh = nextfile ($prefix);
-	print $fh $chunk;
+	print {$fh} $chunk;
     }
 
     # leftover bit. Last file will be >= $count.
     # There's gotta be something more elegant than this, too.
     if (length($chunk)) {
 	$fh = nextfile ($prefix);
-        print $fh $chunk;
+        print {$fh} $chunk;
     }
 }
 
@@ -138,9 +144,9 @@ elsif ($opt{p} and (! $opt{b}) and (! $opt{l}) and (! $opt{"?"})) {
     my $regex = $opt{p};
     my $fh = nextfile ($prefix);
 
-    while (<INFILE>) {
+    while (<$in>) {
 	$fh = nextfile ($prefix) if /$regex/;
-	print $fh $_;
+	print {$fh} $_;
     }
 }
 
@@ -154,15 +160,18 @@ elsif ((! $opt{p}) and (! $opt{b}) and (! $opt{"?"})) {
 
     unless ($count) { die qq($me: "$opt{l}" is invalid number of lines.\n) }
 
-    while (<INFILE>) {
+    while (<$in>) {
 	$fh = nextfile ($prefix) if $line % $count == 0;
-	print $fh $_;
+	print {$fh} $_;
 	$line++;
     }
 
 }
 
 else { clue };
+
+close $in;
+exit;
 
 # (Thanks to Abigail for the pod template.)
 
@@ -243,4 +252,3 @@ distribute and sell this program (and any modified variants) in any
 way you wish, provided you do not restrict others to do the same.
 
 =cut
-
