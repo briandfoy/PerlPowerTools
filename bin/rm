@@ -46,7 +46,6 @@ use Getopt::Std;
 
 # Command line arguments, and other variables.
 use vars qw( $opt_i $opt_f $opt_r $opt_R $opt_P );
-my $arg = 0;
 
 # Get the options.
 getOptions();
@@ -64,17 +63,16 @@ sub processFile()
 {
     my  ( $fileName )= @_;
 
-    # See if the file is a directory.
-    if ( ( -d $fileName ) && ( $opt_r || $opt_R ))
+    if (-d $fileName)
     {
-	# Remove a directory recursively.
+	if (!$opt_r && !$opt_R)
+	{
+	    warn "$0: cannot remove '$fileName': is a directory\n";
+	    return;
+	}
 	removeDirectory( $fileName );
     }
-    elsif ( ( -d $fileName ) && !( $opt_r || $opt_R ) && (!$opt_i ))
-    {
-	rmdir( $fileName );
-    }
-    elsif( -f $fileName )
+    else
     {
 	removeFile( $fileName );
     }
