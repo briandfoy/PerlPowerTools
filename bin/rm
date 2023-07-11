@@ -45,17 +45,20 @@ use strict;
 use Getopt::Std;
 
 # Command line arguments, and other variables.
-use vars qw( $opt_i $opt_f $opt_r $opt_R $opt_P );
+use vars qw( $opt_i $opt_f $opt_r $opt_R );
 
-# Get the options.
-getOptions();
-
-#
-# Process each file named on the command line.
+getopts('ifrR') or showUsage();
+unless (@ARGV)
+{
+    warn "$0: missing argument\n";
+    exit 1;
+}
+my $Err = 0;
 for my $arg ( @ARGV )
 {
     processFile( $arg );
 }
+exit($Err ? 1 : 0);
 
 #
 #  Attempt to process each file / directory named on the command line.
@@ -68,6 +71,7 @@ sub processFile()
 	if (!$opt_r && !$opt_R)
 	{
 	    warn "$0: cannot remove '$fileName': is a directory\n";
+	    $Err++;
 	    return;
 	}
 	removeDirectory( $fileName );
@@ -87,8 +91,8 @@ sub removeDirectory( )
 
     unless (opendir(DIR, $dirName))
     {
-	warn "Can't open $dirName\n";
-	closedir(DIR);
+	warn "$0: cannot open '$dirName': $!\n";
+	$Err++;
 	return;
     }
 
@@ -101,14 +105,18 @@ sub removeDirectory( )
 	{
 	    &removeDirectory($path);
 	}
-	elsif (-f _)
+	else
 	{
 	    removeFile( $path );
 	}
     }
     closedir(DIR);
 
-    rmdir( $dirName );
+    unless (rmdir $dirName)
+    {
+	warn "$0: cannot remove directory '$dirName': $!\n";
+	$Err++;
+    }
 }
 
 #
@@ -147,76 +155,12 @@ sub removeFile( $fileName )
 	chmod $mode, $fileName;
     }
 
-    # Overwrite the file with rubbish before deleting.
-    if ( $opt_P )
-    {
-	overWriteFile( $fileName );
-    }
-
     # Delete the file.
-    unlink( $fileName );
-}
-
-#
-# Overwrite the file specified, first with x00, the xFF, then x00
-sub overWriteFile( )
-{
-    my ( $fileName ) = @_;
-    # Info returned from stat
-    my ( $dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size );
-    # Text we print to the file to overwrite its contents
-    my ( $text, $FILEHANDLE, $ff );
-
-    # We only want the size
-    ( $dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size ) = stat $fileName;
-
-    $ff = "\0xFF";
-
-    # Change mode if the file is readonly.
-    if ( !-w $fileName )
+    unless (unlink $fileName)
     {
-	my ( $mode ) = "0777";
-	chmod $mode, $fileName;
+	warn "$0: cannot remove '$fileName': $!\n";
+	$Err++;
     }
-
-    ## First pass at overwrite
-    if ( open (FILEHANDLE, '>', $fileName ) )
-    {
-	$text = $ff x $size;
-	print FILEHANDLE $text;
-	close ( FILEHANDLE );
-    }
-
-    ## Second pass at overwrite
-    if ( open (FILEHANDLE, '>', $fileName ) )
-    {
-	$text = "\0" x $size;
-	print $text;
-	print FILEHANDLE $text;
-	close ( FILEHANDLE );
-    }
-
-    ## Third  pass at overwrite
-    if ( open (FILEHANDLE, '>', $fileName ) )
-    {
-	$text = $ff x $size;
-	print FILEHANDLE $text;
-	close ( FILEHANDLE );
-    }
-}
-
-#
-#  Read the options from the command line.
-sub getOptions()
-{
-     # Process options, if any.
-     # Make sure defaults are set before returning!
-     return unless @ARGV > 0;
-
-     if ( !getopts( 'ifPrR' )  )
-     {
-	 showUsage();
-     }
 }
 
 #
@@ -224,7 +168,7 @@ sub getOptions()
 sub showUsage()
 {
     print << "E-O-F";
-Usage: rm [-fiPrR] file ...
+Usage: rm [-firR] file ...
      The options are as follows:
 
      -f    Attempt to remove the files without prompting for confirmation, re-
@@ -236,10 +180,6 @@ Usage: rm [-fiPrR] file ...
            less of the file's permissions, or whether or not the standard in-
            put device is a terminal.  The -i option overrides any previous -f
            options.
-
-     -P    Overwrite regular files before deleting them.  Files are overwrit-
-           ten three times, first with the byte pattern 0xff, then 0x00, and
-           then 0xff again, before they are deleted.
 
      -R    Attempt to remove the file hierarchy rooted in each file argument.
            The -R option implies the -d option.  If the -i option is speci-
