@@ -81,29 +81,44 @@ if ($offset1 && !seek($fh, $offset1, 0)) {
 $opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
 		 $opt_l || $opt_o || $opt_x);
 
+my $fmt;
+if ($opt_b) {
+    $fmt = \&octal1;
+}
+elsif ($opt_c) {
+    $fmt = \&char1;
+}
+elsif ($opt_d) {
+    $fmt = \&udecimal;
+}
+elsif ($opt_f) {
+    $fmt = \&float;
+}
+elsif ($opt_i) {
+    $fmt = \&decimal;
+}
+elsif ($opt_l) {
+    $fmt = \&long;
+}
+elsif ($opt_o) {
+    $fmt = \&octal2;
+}
+elsif ($opt_x) {
+    $fmt = \&hex;
+}
+else {
+    help();
+}
+
 while ($len = read($fh, $data, 16)) {
     $ml = ''; # multi-line indention
 
     if ( &diffdata || $opt_v) {
 	printf("%.8$radix ", $offset1);
-	defined $opt_b && do { &octal1; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_c && do { &char1; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_d && do { &udecimal; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_f && do { &float; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_i && do { &decimal; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_l && do { &long; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_o && do { &octal2; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_x && do { &hex; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-   }
-
+	&$fmt;
+	printf("%s$strfmt\n", $ml, @arr);
+	$ml = ' ' x 9;
+    }
     else {
 	print "*\n";
     }
