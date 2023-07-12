@@ -47,7 +47,7 @@ use Getopt::Std;
 # Command line arguments, and other variables.
 use vars qw( $opt_i $opt_f $opt_r $opt_R );
 
-getopts('ifrR') or showUsage();
+getopts('fiPrR') or showUsage();
 unless (@ARGV)
 {
     warn "$0: missing argument\n";
@@ -180,6 +180,8 @@ Usage: rm [-firR] file ...
            less of the file's permissions, or whether or not the standard in-
            put device is a terminal.  The -i option overrides any previous -f
            options.
+
+     -P    This flag is for backwards compatibility and has no effect.
 
      -R    Attempt to remove the file hierarchy rooted in each file argument.
            The -R option implies the -d option.  If the -i option is speci-
