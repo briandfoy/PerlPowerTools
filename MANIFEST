@@ -105,6 +105,7 @@ bin/uname
 bin/unexpand
 bin/uniq
 bin/units
+bin/unlink
 bin/unpar
 bin/unshar
 bin/uudecode
