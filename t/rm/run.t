@@ -131,6 +131,17 @@ my @table = (
 		[],
 		"recursive with -r"
 	],
+	[
+		{
+			'a'   => { mode => 0755, type => 'file' },
+		},
+		[qw(-P)],
+		[qw(a)],
+		0,
+		[],
+		[qr/-P ignored/],
+		"with -P"
+	],
 
 	);
 
