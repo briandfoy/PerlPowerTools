@@ -100,3 +100,4 @@ packed/
 packer/
 
 PROGRAMMING_STYLE.md
+.perltidyrc
