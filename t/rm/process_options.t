@@ -27,7 +27,7 @@ subtest preprocess_options => sub {
 		);
 
 	foreach my $row ( @table ) {
-		my $instance = $class->new( args => $row->[0] )->$method();
+		my $instance = $class->new( {args => $row->[0]} )->$method();
 		isa_ok $instance, $class;
 		is_deeply $instance->{preprocessed_args}, $row->[1],
 			qq(preprocessed_args match for <@{$row->[0]}> -> <@{$row->[1]}>);
@@ -54,7 +54,7 @@ subtest process_options => sub {
 
 	my %defaults = map { $_ => 0 } qw(i f R r P v);
 	foreach my $row ( @table ) {
-		my $instance = $class->new( args => $row->[0] )->$method();
+		my $instance = $class->new( { args => $row->[0] } )->$method();
 		isa_ok $instance, $class;
 		my $options = { %defaults, %{ $row->[1] } };
 		is_deeply $instance->options, $options,
