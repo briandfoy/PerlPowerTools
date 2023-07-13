@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+
+=encoding utf8
+
+=begin metadata
+
+Name: unlink
+Description: simpler than rm
+Author: Michael Mikonos
+License: artistic2
+
+=end metadata
+
+=cut
+
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+unless (getopts('')) {
+    warn "usage: $Program FILE\n";
+    exit EX_FAILURE;
+}
+unless (@ARGV) {
+    warn "$Program: missing operand\n";
+    exit EX_FAILURE;
+}
+my $file = shift;
+if (@ARGV) {
+    warn "$Program: extra operand: '$ARGV[0]'\n";
+    exit EX_FAILURE;
+}
+if (-d $file) {
+    warn "$Program: cannot unlink '$file': is a directory\n";
+    exit EX_FAILURE;
+}
+unless (unlink $file) {
+    warn "$Program: cannot unlink '$file': $!\n";
+    exit EX_FAILURE;
+}
+exit EX_SUCCESS;
+
+__END__
+
+=head1 NAME
+
+unlink - remove a file
+
+=head1 SYNOPSIS
+
+unlink [--] file
+
+=head1 DESCRIPTION
+
+A single file is removed by calling the unlink function.
+If the argument is a symbolic link, the link is removed instead of the file it refers to.
+It is not possible to remove a directory with this program.
+
+=head2 OPTIONS
+
+None.
+
+=head1 EXIT STATUS
+
+This command exits 0 if the named file was removed successfully.
+If an error occurs, unlink exits with a value >0.
+
+=head1 AUTHOR
+
+Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This code is licensed under the Artistic License 2.
