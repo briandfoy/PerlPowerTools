@@ -70,14 +70,18 @@ use constant OP_FAILED    => 1;
 
 my $Program = basename($0);
 
-__PACKAGE__->run unless caller;
+__PACKAGE__->run( args => \@ARGV ) unless caller;
 
 sub run {
 	my $class = shift;
-	my @args = @_;
+	my %args = @_;
 
-	my $self = $class->new( \@args );
-	$self->process_options;
+	my $args = delete $args{args};
+
+	# This looks funny because the other args are filehandles, which
+	# we can't dupe. We want to play with the command-line args such
+	# that we don't mess up anything that called us.
+	my $self = $class->new( { args => dclone($args), %args } )->process_options;
 
 	$self->error( "$Program: -P ignored\n" ) if $self->is_overwrite;
 
@@ -87,14 +91,14 @@ sub run {
 	}
 
 	my $errors = grep { $self->process_file( $_ ) } $self->files;
-	exit( $errors ? EX_FAILURE : EX_SUCCESS );
+	$self->exit( $errors ? EX_FAILURE : EX_SUCCESS );
 }
 
 sub new {
-	my( $class, %args ) = @_;
+	my( $class, $args ) = @_;
 	bless {
 		$class->defaults,
-		%args
+		%$args
 		}, $class;
 	}
 
@@ -106,7 +110,9 @@ sub defaults {
 		);
 }
 
-sub files { my $self = shift;  @{ $self->{files} } }
+sub exit  { my $self = shift; exit(shift) }
+
+sub files { my $self = shift; @{ $self->{files} } }
 
 sub is_force       { my $self = shift; $self->{options}{f} }
 sub is_interactive { my $self = shift; $self->{options}{i} }
@@ -196,8 +202,8 @@ sub process_file {
 	my $method = do {
 		if( -d $filename ) {
 			if( ! $self->is_recursive ) {
-				$self->error( "$Program: '$filename': is a directory\n" );
-				return OP_FAILED;
+				$self->error( "$Program: '$filename': is a directory\n" ) unless $self->is_force;
+				return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
 			}
 			'remove_directory';
 		}
@@ -206,7 +212,8 @@ sub process_file {
 		}
 	};
 
-    return $self->$method( $filename );
+    my $result = $self->$method( $filename );
+	return $self->is_force ? OP_SUCCEEDED : $result;
 }
 
 sub remove_directory {
@@ -214,12 +221,12 @@ sub remove_directory {
 
 	my $dh;
     unless( opendir( $dh, $dirname ) ) {
-		$self->error( "$Program: cannot open '$dirname': $!\n" );
-		return OP_FAILED;
+		$self->error( "$Program: cannot open '$dirname': $!\n" ) unless $self->is_force;
+		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     	}
 
     foreach my $file ( readdir($dh) ) {
-		next if $_ eq '.' || $_ eq '..';
+		next if $file eq '.' || $file eq '..';
 		my $path = catfile( $dirname, $file );
 
 		my $method = -d $path ? 'remove_directory' : 'remove_file';
@@ -229,8 +236,8 @@ sub remove_directory {
     closedir $dh;
 
     unless( rmdir $dirname ) {
-		$self->error( "$Program: cannot remove directory '$dirname': $!\n" );
-		return OP_FAILED;
+		$self->error( "$Program: cannot remove directory '$dirname': $!\n" ) unless $self->is_force;
+		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     }
 
     return OP_SUCCEEDED;
@@ -252,8 +259,8 @@ sub remove_file {
     chmod '0777', $filename if $self->is_force;
 
     unless( unlink $filename ) {
-		$self->error( "$Program: cannot remove '$filename': $!\n" );
-		return OP_FAILED
+		$self->error( "$Program: cannot remove '$filename': $!\n" ) unless $self->is_force;
+		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     }
 
     return OP_SUCCEEDED;
