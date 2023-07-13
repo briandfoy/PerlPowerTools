@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
+=encoding utf8
+
 =begin metadata
 
 Name: unlink
 Description: simpler than rm
 Author: Michael Mikonos
-License:
+License: artistic2
 
 =end metadata
 
@@ -46,8 +48,6 @@ exit EX_SUCCESS;
 
 __END__
 
-=pod
-
 =head1 NAME
 
 unlink - remove a file
@@ -59,11 +59,17 @@ unlink [--] file
 =head1 DESCRIPTION
 
 A single file is removed by calling the unlink function.
+If the argument is a symbolic link, the link is removed instead of the file it refers to.
 It is not possible to remove a directory with this program.
 
 =head2 OPTIONS
 
 None.
+
+=head1 EXIT STATUS
+
+This command exits 0 if the named file was removed successfully.
+If an error occurs, unlink exits with a value >0.
 
 =head1 AUTHOR
 
@@ -73,5 +79,4 @@ Written by Michael Mikonos.
 
 Copyright (c) 2023 Michael Mikonos.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This code is licensed under the Artistic License 2.
