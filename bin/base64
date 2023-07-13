@@ -82,8 +82,6 @@ sub usage {
 
 __END__
 
-=pod
-
 =head1 NAME
 
 base64 - encode and decode base64 data
