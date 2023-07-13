@@ -16,33 +16,45 @@ License: artistic2
 use strict;
 use warnings;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 use MIME::Base64 qw(decode_base64 encode_base64);
 
 my $VERSION = '1.0';
 
+my $Program = basename($0);
+
 my (%opt, $bufsz, $in, $out);
 getopts('do:v', \%opt) or usage();
 if (scalar(@ARGV) > 1) {
-    warn "$0 too many arguments\n";
+    warn "$Program: too many arguments\n";
     usage();
 }
 if ($opt{'v'}) {
-    die "$0 version $VERSION\n";
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
 }
 $bufsz = $opt{'d'} ? 76 : 57;
 $bufsz *= 20;
 if (defined $opt{'o'}) {
     unless (open $out, '>', $opt{'o'}) {
-        die "$0: $opt{o}: $!\n";
+        warn "$Program: cannot open '$opt{o}': $!\n";
+        exit EX_FAILURE;
     }
 } else {
     $out = *STDOUT;
 }
 if (defined $ARGV[0] && $ARGV[0] ne '-') {
-    die "$0: '$ARGV[0]' is a directory\n" if (-d $ARGV[0]);
+    if (-d $ARGV[0]) {
+        warn "$Program: '$ARGV[0]' is a directory\n";
+        exit EX_FAILURE;
+    }
     unless (open $in, '<', $ARGV[0]) {
-        die "$0: $ARGV[0]: $!\n";
+        warn "$Program: cannot open '$ARGV[0]': $!\n";
+        exit EX_FAILURE;
     }
 } else {
     $in = *STDIN;
@@ -51,12 +63,16 @@ if (defined $ARGV[0] && $ARGV[0] ne '-') {
 $opt{'d'} ? decode() : encode();
 close $in;
 close $out;
+exit EX_SUCCESS;
 
 sub decode {
     my $buf = '';
     while (readline $in) {
         s/\s//g;
-        die("$0: bad input\n") if m/[^A-Za-z0-9\+\/\=]/;
+        if (m/[^A-Za-z0-9\+\/\=]/) {
+            warn "$Program: bad input\n";
+            exit EX_FAILURE;
+        }
         $buf .= $_;
         if (length($buf) >= $bufsz) {
             my $chunk = substr($buf, 0, $bufsz);
@@ -77,10 +93,13 @@ sub encode {
 }
 
 sub usage {
-    die "usage: $0 [-dv] [-o FILE] [FILE]\n";
+    warn "usage: $Program [-dv] [-o FILE] [FILE]\n";
+    exit EX_FAILURE;
 }
 
 __END__
+
+=pod
 
 =head1 NAME
 
