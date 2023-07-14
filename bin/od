@@ -19,6 +19,7 @@ use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
+use constant LINESZ => 16;
 
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_N
 $opt_o $opt_v $opt_x /;
@@ -94,10 +95,17 @@ else {
 }
 
 binmode $fh;
-if ($offset1 && !seek($fh, $offset1, 0)) {
+if ($offset1) {
     foreach (1 .. $offset1) {
 	$len = read $fh, $data, 1;
-	die "$0: read error: $!\n" if $!;
+	if ($len == 0) {
+	    warn "$Program: cannot skip past end of input\n";
+	    exit EX_FAILURE;
+	}
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    exit EX_FAILURE;
+	}
 	undef $data;
     }
 }
@@ -134,31 +142,32 @@ else {
     help();
 }
 
-while ($len = read($fh, $data, 16)) {
-    if (defined $lim) {
-	$lim -= $len;
-	if ($lim < 0) {
-	    $len -= abs $lim;
-	    $data = substr $data, 0, $len;
+my $buf;
+my $nread = 0;
+while ($len = read($fh, $buf, 1)) {
+    $data .= $buf;
+    $nread++;
+
+    my $is_limit = defined($lim) && $nread == $lim;
+    if (length($data) == LINESZ || $is_limit || eof($fh)) {
+	$ml = ''; # multi-line indention
+	if (&diffdata || $opt_v) {
+	    printf("%.8$radix ", $offset1);
+	    &$fmt;
+	    printf("%s$strfmt\n", $ml, @arr);
+	    $ml = ' ' x 9;
 	}
-    }
-    $ml = ''; # multi-line indention
-
-    if ( &diffdata || $opt_v) {
-	printf("%.8$radix ", $offset1);
-	&$fmt;
-	printf("%s$strfmt\n", $ml, @arr);
-	$ml = ' ' x 9;
-    }
-    else {
-	print "*\n";
+	else {
+	    print "*\n";
+	}
+	$lastline = $data . '|';
+	undef $data;
     }
 
-    $offset1 += $len;
-    $lastline = $data . '|';
-    last if (defined($lim) && $lim <= 0);
+    $offset1++;
+    last if $is_limit;
 }
-if ($!) {
+unless (defined $len) {
     warn "$Program: read error: $!\n";
     exit EX_FAILURE;
 }
