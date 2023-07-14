@@ -109,6 +109,11 @@ if ($offset1) {
 	undef $data;
     }
 }
+if (defined($lim) && $lim == 0) {
+    printf("%.8$radix\n", $offset1);
+    close $fh;
+    exit EX_SUCCESS;
+}
 
 $opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
 		 $opt_l || $opt_o || $opt_x);
