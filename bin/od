@@ -13,11 +13,18 @@ License: perl
 
 
 use strict;
-use Getopt::Std;
-use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_o
-$opt_v $opt_x /;
 
-my ($offset1, $radix, $data, @arr, $len, $fh);
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant LINESZ => 16;
+
+use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_N
+$opt_o $opt_v $opt_x /;
+
+my ($offset1, $radix, $data, @arr, $len, $fh, $lim);
 my ($lastline, $upformat, $pffmt, $strfmt, $ml);
 
 my %charescs = (
@@ -58,24 +65,54 @@ my %charescs = (
 $offset1 = 0;
 $lastline = '';
 
-getopts('A:bcdfij:lovx') or help();
+my $Program = basename($0);
+
+getopts('A:bcdfij:lN:ovx') or help();
     defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
-    defined $opt_j && ($offset1 = $opt_j);
+if (defined $opt_j) {
+    if ($opt_j =~ m/\D/) {
+	warn "$Program: bad argument to -j: '$opt_j'\n";
+	exit EX_FAILURE;
+    }
+    $offset1 = $opt_j;
+}
+if (defined $opt_N) {
+    if ($opt_N =~ m/\D/) {
+	warn "$Program: bad argument to -N: '$opt_N'\n";
+	exit EX_FAILURE;
+    }
+    $lim = $opt_N;
+}
 
 if (defined $ARGV[0] && $ARGV[0] ne '-') {
-    open($fh, '<', $ARGV[0]) or die "$0: $ARGV[0]: $!\n";
+    unless (open $fh, '<', $ARGV[0]) {
+	warn "$Program: cannot open '$ARGV[0]': $!\n";
+	exit EX_FAILURE;
+    }
 }
 else {
     $fh = *STDIN;
 }
 
 binmode $fh;
-if ($offset1 && !seek($fh, $offset1, 0)) {
+if ($offset1) {
     foreach (1 .. $offset1) {
 	$len = read $fh, $data, 1;
-	die "$0: read error: $!\n" if $!;
+	if ($len == 0) {
+	    warn "$Program: cannot skip past end of input\n";
+	    exit EX_FAILURE;
+	}
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    exit EX_FAILURE;
+	}
 	undef $data;
     }
+}
+if (defined($lim) && $lim == 0) {
+    printf("%.8$radix\n", $offset1);
+    close $fh;
+    exit EX_SUCCESS;
 }
 
 $opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
@@ -110,27 +147,39 @@ else {
     help();
 }
 
-while ($len = read($fh, $data, 16)) {
-    $ml = ''; # multi-line indention
+my $buf;
+my $nread = 0;
+while ($len = read($fh, $buf, 1)) {
+    $data .= $buf;
+    $nread++;
 
-    if ( &diffdata || $opt_v) {
-	printf("%.8$radix ", $offset1);
-	&$fmt;
-	printf("%s$strfmt\n", $ml, @arr);
-	$ml = ' ' x 9;
-    }
-    else {
-	print "*\n";
+    my $is_limit = defined($lim) && $nread == $lim;
+    if (length($data) == LINESZ || $is_limit || eof($fh)) {
+	$ml = ''; # multi-line indention
+	if (&diffdata || $opt_v) {
+	    printf("%.8$radix ", $offset1);
+	    &$fmt;
+	    printf("%s$strfmt\n", $ml, @arr);
+	    $ml = ' ' x 9;
+	}
+	else {
+	    print "*\n";
+	}
+	$lastline = $data . '|';
+	undef $data;
     }
 
-    $offset1 += $len;
-    $lastline = $data . '|';
+    $offset1++;
+    last if $is_limit;
 }
-die "$0: read error: $!\n" if $!;
+unless (defined $len) {
+    warn "$Program: read error: $!\n";
+    exit EX_FAILURE;
+}
 
 printf("%.8$radix\n", $offset1);
 close $fh;
-exit 0;
+exit EX_SUCCESS;
 
 sub octal1 {
     $upformat = 'C*'; # for -b
@@ -217,8 +266,8 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-bcdfiloxv] [-A radix] filename\n";
-    exit 1;
+    print "usage: od [-bcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] filename\n";
+    exit EX_FAILURE;
 }
 __END__
 
@@ -228,7 +277,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od.pl> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [ I<-A radix> ]  F<filename>
+B<od> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ]  F<filename>
 
 =head1 DESCRIPTION
 
