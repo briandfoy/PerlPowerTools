@@ -267,7 +267,7 @@ sub diffdata {
 
 sub help {
     print "usage: od [-bcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] filename\n";
-    exit 1;
+    exit EX_FAILURE;
 }
 __END__
 
