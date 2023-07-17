@@ -68,7 +68,19 @@ $lastline = '';
 my $Program = basename($0);
 
 getopts('A:bcdfij:lN:ovx') or help();
-    defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
+if (defined $opt_A) {
+    if ($opt_A !~ m/\A[doxn]\z/) {
+	warn "$Program: unexpected radix: '$opt_A'\n";
+	exit EX_FAILURE;
+    }
+    if ($opt_A ne 'n') {
+	$radix = $opt_A;
+    }
+}
+else {
+    $radix = 'o';
+}
+
 if (defined $opt_j) {
     if ($opt_j =~ m/\D/) {
 	warn "$Program: bad argument to -j: '$opt_j'\n";
@@ -110,7 +122,7 @@ if ($offset1) {
     }
 }
 if (defined($lim) && $lim == 0) {
-    printf("%.8$radix\n", $offset1);
+    printf("%.8$radix\n", $offset1) if $radix;
     close $fh;
     exit EX_SUCCESS;
 }
@@ -157,7 +169,7 @@ while ($len = read($fh, $buf, 1)) {
     if (length($data) == LINESZ || $is_limit || eof($fh)) {
 	$ml = ''; # multi-line indention
 	if (&diffdata || $opt_v) {
-	    printf("%.8$radix ", $offset1);
+	    printf("%.8$radix ", $offset1) if $radix;
 	    &$fmt;
 	    printf("%s$strfmt\n", $ml, @arr);
 	    $ml = ' ' x 9;
@@ -177,7 +189,7 @@ unless (defined $len) {
     exit EX_FAILURE;
 }
 
-printf("%.8$radix\n", $offset1);
+printf("%.8$radix\n", $offset1) if $radix;
 close $fh;
 exit EX_SUCCESS;
 
