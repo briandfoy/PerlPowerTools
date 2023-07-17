@@ -69,7 +69,7 @@ my $Program = basename($0);
 
 getopts('A:bcdfij:lN:ovx') or help();
 if (defined $opt_A) {
-    if ($opt_A !~ m/^[doxn]$/) {
+    if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
 	exit EX_FAILURE;
     }
