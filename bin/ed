@@ -58,7 +58,6 @@ License: gpl
 #                g - global command
 #                k - mark
 #                l - "list" lines, show special chars
-#                m - move
 #                t - move/apend
 #                u - undo
 #                v - global command "inVerted"
@@ -258,6 +257,8 @@ while (1) {
             }
         } elsif ($command eq 'j') {
             &edJoin;
+        } elsif ($command eq 'm') {
+            &edMove;
         } elsif ($command eq 'n') {
             edPrint(1);
         }
@@ -318,6 +319,44 @@ sub edJoin {
     }
     $lines[$adrs[0]] = $buf;
     splice @lines, $start, $adrs[1] - $adrs[0];
+    $NeedToSave = 1;
+    $UserHasBeenWarned = 0;
+}
+
+sub edMove {
+    my $start = $adrs[0];
+    my $end = $adrs[1];
+    unless (defined $start) {
+        $start = $end = $CurrentLineNum;
+    }
+    unless (defined $end) {
+        $end = $start;
+    }
+    if ($start == 0 || $end == 0) { # allowed for $dst only
+        edWarn('invalid address');
+        return;
+    }
+    my $dst = $args[0];
+    unless (defined $dst) {
+        $dst = $CurrentLineNum;
+    }
+    my $count = $end - $start + 1;
+
+    if ($start > $dst && $end > $dst) {
+        my @sel = splice @lines, $start, $count;
+        splice @lines, $dst + 1, 0, @sel;
+    } else {
+        # avoid $dst referring to the wrong line
+        my @copy;
+        if ($count == 1) {
+            push @copy, $lines[$start];
+        } else {
+            @copy = @lines[$start .. $end];
+        }
+        splice @lines, $dst + 1, 0, @copy;
+        splice @lines, $start, $count;
+    }
+
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
 }
@@ -814,7 +853,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhHijnpPqQrswW=])?        # command char
+                 ([acdeEfhHijmnpPqQrswW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -1121,6 +1160,10 @@ Insert text
 =item j
 
 Join a range of lines into a single line
+
+=item m
+
+Move a range of lines to a new address
 
 =item n
 
