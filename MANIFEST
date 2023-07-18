@@ -9,6 +9,7 @@ bin/banner
 bin/base64
 bin/basename
 bin/bc
+bin/bcd
 bin/cal
 bin/cat
 bin/chgrp
