@@ -85,7 +85,7 @@ sub printonecard {
 	my $ustr = uc $str;
 
 	# top of card
-	print q{ }, '_' x $Cols, "\n";	
+	print q{ }, '_' x $Cols, "\n";
 
 	# line of text.  Leave a blank if the character doesn't have
 	# a hole pattern.
@@ -100,7 +100,7 @@ sub printonecard {
 	}
 
 	my $remain = $Cols - scalar(@chars);
-	print q{ } x $remain, "|\n";	
+	print q{ } x $remain, "|\n";
 
 	# 12 rows of potential holes; output a ']', which looks kind of
 	# like a hole, if the appropriate bit is set in the Holes[] table.
@@ -167,6 +167,8 @@ The following options are available:
 =item -l
 
 Create punch cards with 80 columns. The default is 48 columns.
+
+=back
 
 =head1 AUTHOR
 
