@@ -58,7 +58,6 @@ License: gpl
 #                g - global command
 #                k - mark
 #                l - "list" lines, show special chars
-#                t - move/apend
 #                u - undo
 #                v - global command "inVerted"
 #                x - get encryption key
@@ -258,9 +257,11 @@ while (1) {
         } elsif ($command eq 'j') {
             &edJoin;
         } elsif ($command eq 'm') {
-            &edMove;
+            edMove(1);
         } elsif ($command eq 'n') {
             edPrint(1);
+        } elsif ($command eq 't') {
+            &edMove;
         }
 
     } else {
@@ -324,6 +325,8 @@ sub edJoin {
 }
 
 sub edMove {
+    my $delete = shift;
+
     my $start = $adrs[0];
     my $end = $adrs[1];
     unless (defined $start) {
@@ -340,21 +343,32 @@ sub edMove {
     unless (defined $dst) {
         $dst = $CurrentLineNum;
     }
-    my $count = $end - $start + 1;
+    if ($delete) {
+        # move a line to itself
+        if ($start == $dst && $end == $dst) {
+            return;
+        }
+        # move a range into itself
+        if ($dst >= $start && $dst <= $end) {
+            edWarn('invalid destination');
+            return;
+        }
+    }
 
+    my $count = $end - $start + 1;
+    my @copy;
+    if ($count == 1) {
+        push @copy, $lines[$start];
+    } else {
+        @copy = @lines[$start .. $end];
+    }
     if ($start > $dst && $end > $dst) {
-        my @sel = splice @lines, $start, $count;
-        splice @lines, $dst + 1, 0, @sel;
+        splice(@lines, $start, $count) if $delete;
+        splice @lines, $dst + 1, 0, @copy;
     } else {
         # avoid $dst referring to the wrong line
-        my @copy;
-        if ($count == 1) {
-            push @copy, $lines[$start];
-        } else {
-            @copy = @lines[$start .. $end];
-        }
         splice @lines, $dst + 1, 0, @copy;
-        splice @lines, $start, $count;
+        splice(@lines, $start, $count) if $delete;
     }
 
     $NeedToSave = 1;
@@ -853,7 +867,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhHijmnpPqQrswW=])?        # command char
+                 ([acdeEfhHijmnpPqQrstwW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -1193,6 +1207,10 @@ Read named FILE into buffer
 =item s///
 
 Substitute text with a regular expression
+
+=item t
+
+Copy a range of lines to a destination address
 
 =item W [FILE]
 
