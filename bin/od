@@ -20,6 +20,7 @@ use Getopt::Std qw(getopts);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 use constant LINESZ => 16;
+use constant PRINTMAX => 126;
 
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_N
 $opt_o $opt_v $opt_x /;
@@ -29,12 +30,6 @@ my ($lastline, $upformat, $pffmt, $strfmt, $ml);
 
 my %charescs = (
     0  => ' \0',
-    1  => '001',
-    2  => '002',
-    3  => '003',
-    4  => '004',
-    5  => '005',
-    6  => '006',
     7  => ' \a',
     8  => ' \b',
     9  => ' \t',
@@ -42,24 +37,7 @@ my %charescs = (
     11 => ' \v',
     12 => ' \f',
     13 => ' \r',
-    14 => '014',
-    15 => '015',
-    16 => '016',
-    17 => '017',
-    18 => '018',
-    19 => '019',
-    20 => '020',
-    21 => '021',
-    22 => '022',
-    23 => '023',
-    24 => '024',
-    25 => '025',
-    26 => '026',
-    27 => '027',
-    28 => '028',
-    29 => '029',
-    30 => '030',
-    31 => '031',
+    92 => ' \\\\',
 );
 
 $offset1 = 0;
@@ -201,23 +179,21 @@ sub octal1 {
 }
 
 sub char1 {
-    $upformat = 'c*'; # for -c
+    $upformat = 'C*'; # for -c
     $pffmt = '%s';
     $strfmt = $pffmt;
 
     @arr = ();
-    my $val = undef;
-    my $val1 = undef;
-
     my @arr1 = unpack($upformat,$data);
     for my $val (@arr1) {
         if (exists $charescs{$val}) {
 	    $arr[0] .= $charescs{$val} . " ";
 	}
-
+	elsif ($val > PRINTMAX || chr($val) !~ m/[[:print:]]/) {
+	    $arr[0] .= sprintf(' %03o', $val);
+	}
 	else {
-	    $val1 = "  " . chr($val) . " " ;
-	    $arr[0] .=  $val1;
+	    $arr[0] .= "  " . chr($val) . " ";
 	}
     }
 }
