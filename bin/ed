@@ -508,12 +508,14 @@ sub edWrite {
 
     if ($AppendMode) {
         unless (open(FILE, '>>', $filename)) {
-            edWarn("Unable to open $filename for writing: $!");
+            warn "$filename: $!\n";
+            edWarn('cannot open output file');
             return;
         }
     } else {
         unless (open(FILE, '>', $filename)) {
-            edWarn("Unable to open $filename for writing: $!");
+            warn "$filename: $!\n";
+            edWarn('cannot open output file');
             return;
         }
     }
@@ -576,7 +578,8 @@ sub edEdit {
         return 0;
     }
     unless (open(SOURCE, '<', $filename)) {
-        edWarn("unable to open $filename: $!");
+        warn "$filename: $!\n";
+        edWarn('cannot open input file');
         return 0;
     }
 
