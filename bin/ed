@@ -71,37 +71,37 @@ License: gpl
 #        - Add BSD/GNU extentions
 #
 
-use Getopt::Std;
+use strict;
+
+use Getopt::Std qw(getopts);
 
 # important globals
 
-$maxline = 0;                # lines are numered internally starting at 1
-$CurrentLineNum = 0;        # default to before first line.
-$RememberedFilename = undef; # the default filename for writes, etc.
-$NeedToSave = 0;        # buffer modified
-$UserHasBeenWarned = 0; # has the user been warned about attempt
-$Error = undef;
-$Prompt = undef;
-                        # to trash buffer/file?
-@lines = ();                # buffer for file being edited.
-$command = "";                # single letter command entered by user
-@adrs = ();                # array of line numbers (1 or 2) for command to operate on
-@args = ();                # command arguments (filenames, search patterns...)
+my $maxline = 0;                # lines are numered internally starting at 1
+my $CurrentLineNum = 0;         # default to before first line.
+my $RememberedFilename = undef; # the default filename for writes, etc.
+my $NeedToSave = 0;             # buffer modified
+my $UserHasBeenWarned = 0;      # warning given regarding modified buffer
+my $Error = undef;              # saved error string for h command
+my $Prompt = undef;             # saved prompt string for -p option
+my $SupressCounts = 0;          # TODO: flag for -s option
+my @lines;                      # buffer for file being edited.
+my $command = "";               # single letter command entered by user
+my @adrs;                       # 1 or 2 line numbers for commands to operate on
+my @args;                       # command arguments (filenames, search patterns...)
 
-# configuration vars
-
-$EXTENDED_MESSAGES = 0; # use useful error messages, not ed compatability messages
+my $EXTENDED_MESSAGES = 0;
 
 # constants
 
-$NO_APPEND_MODE = 0;
-$NO_INSERT_MODE = 0;
-$INSERT_MODE = 1;
-$APPEND_MODE = 2;
-$QUESTIONS_MODE = 1;
-$NO_QUESTIONS_MODE = 0;
+my $NO_APPEND_MODE = 0;
+my $NO_INSERT_MODE = 0;
+my $INSERT_MODE = 1;
+my $APPEND_MODE = 2;
+my $QUESTIONS_MODE = 1;
+my $NO_QUESTIONS_MODE = 0;
 
-$VERSION = "0.2";
+my $VERSION = '0.2';
 
 $SIG{HUP} = sub {
     if ($NeedToSave) {
@@ -119,15 +119,13 @@ $SIG{HUP} = sub {
 #
 #
 
-$opt_v = 0;
-$opt_d = "";
-$SupressCounts = 0;
 
-getopts('d:p:v') or &Usage;
-if (defined $opt_p) {
-    $Prompt = $opt_p;
+my %opt;
+getopts('d:p:v', \%opt) or &Usage;
+if (defined $opt{'p'}) {
+    $Prompt = $opt{'p'};
 }
-if ($opt_v) {
+if ($opt{'v'}) {
     $EXTENDED_MESSAGES = 1;
 }
 
@@ -155,7 +153,7 @@ while (1) {
 
     if (&edParse) {
 
-        if ($opt_d =~ /parse/) {
+        if ($opt{'d'} =~ /parse/) {
             print "command: /$command/ ";
             print "adrs[0]: /$adrs[0]/ " if defined($adrs[0]);
             print "adrs[1]: /$adrs[1]/ " if defined($adrs[1]);
@@ -241,7 +239,7 @@ while (1) {
             if (defined $Prompt) {
                 $Prompt = undef;
             } else {
-                $Prompt = defined $opt_p ? $opt_p : '*';
+                $Prompt = defined $opt{'p'} ? $opt{'p'} : '*';
             }
         } elsif ($command =~ /^q$/) {
             &edQuit($QUESTIONS_MODE);
@@ -280,11 +278,6 @@ sub edPrint {
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
-
-    unless ($adrs[1] >= $adrs[0]) {
-        edWarn('Second address must be >= first');
-        return;
-    }
 
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
@@ -389,13 +382,6 @@ sub edSubstitute {
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $CurrentLineNum unless (defined($adrs[1]));
 
-    $NumLines = $adrs[1]-$adrs[0]+1;
-
-    unless ($adrs[1] >= $adrs[0]) {
-        edWarn('Second address must be >= first');
-        return;
-    }
-
     unless (defined($args[0])) {
         edWarn('Need a substitution string');
         return;
@@ -419,7 +405,7 @@ sub edSubstitute {
     $LastMatch = $CurrentLineNum;
 
     for my $lineno ($adrs[0]..$adrs[1]) {
-        $evalstring = "\$lines[\$lineno] =~ s$args[0]";
+        my $evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
         if (eval $evalstring) {
             $LastMatch = $lineno;
@@ -445,12 +431,7 @@ sub edDelete {
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
-    $NumLines = $adrs[1]-$adrs[0]+1;
-
-    unless ($adrs[1] >= $adrs[0]) {
-        edWarn('Second address must be >= first');
-        return;
-    }
+    my $NumLines = $adrs[1]-$adrs[0]+1;
 
     splice(@lines,$adrs[0],$NumLines);
 
@@ -544,7 +525,7 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_maxline,$tmp_chars);
+    my(@tmp_lines,@tmp_lines2,$tmp_maxline,$tmp_chars,$chars);
 
     if ($InsertMode) {
         $adrs[0] = $maxline unless (defined($adrs[0]));
@@ -561,7 +542,7 @@ sub edEdit {
         }
     }
 
-    $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
+    my $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
     $RememberedFilename = $filename;
 
     if ($filename eq "" ) {
@@ -586,6 +567,7 @@ sub edEdit {
     @tmp_lines = ();
     $tmp_maxline = 0;
     $tmp_chars = 0;
+    $chars = 0;
 
     while(<SOURCE>) {
         push(@tmp_lines,$_);
@@ -856,7 +838,7 @@ sub edParse {
 
     @adrs = ();
 
-    @fields =
+    my @fields =
              (/^(
                  (
                   ((\d+)|(\.)|(\$)|([\/\?]([^\/\?+-]+)[\/\?]?))?
@@ -908,7 +890,7 @@ sub CalculateLine {
 
     my($myline);
 
-    if ($opt_d =~ /parse/) {
+    if ($opt{'d'} =~ /parse/) {
         print "expr1=/$expr1/\n" if (defined($expr1));
         print "decimaladr=/$decimaladr/\n" if (defined($decimaladr));
         print "dotadr=/$dotadr/\n" if (defined($dotadr));
@@ -933,8 +915,7 @@ sub CalculateLine {
         } elsif (defined($dollaradr)) {
             $myline = $maxline;
         } elsif (defined($searchadr)) {
-
-            $pattern = $searchadr;
+            my $pattern = $searchadr;
             $pattern =~ s/[\?\/]$//;
             $pattern =~ s/^[\?\/]//;
 
