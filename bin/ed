@@ -1110,7 +1110,7 @@ Print debugging output. debugstring may be set to "parse".
 =item -p STRING
 
 Use the specified STRING as a command prompt.
-By default ed no prompt is displayed.
+By default no prompt is displayed.
 
 =item -s
 
