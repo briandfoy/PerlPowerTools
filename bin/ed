@@ -84,7 +84,7 @@ my $NeedToSave = 0;             # buffer modified
 my $UserHasBeenWarned = 0;      # warning given regarding modified buffer
 my $Error = undef;              # saved error string for h command
 my $Prompt = undef;             # saved prompt string for -p option
-my $SupressCounts = 0;          # TODO: flag for -s option
+my $SupressCounts = 0;          # byte counts are printed by default
 my @lines;                      # buffer for file being edited.
 my $command = "";               # single letter command entered by user
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
@@ -121,17 +121,20 @@ $SIG{HUP} = sub {
 
 
 my %opt;
-getopts('d:p:v', \%opt) or &Usage;
+getopts('d:p:sv', \%opt) or &Usage;
 if (defined $opt{'p'}) {
     $Prompt = $opt{'p'};
 }
 if ($opt{'v'}) {
     $EXTENDED_MESSAGES = 1;
 }
+if ($opt{'s'}) {
+    $SupressCounts = 1;
+}
 
 &Usage if scalar(@ARGV) > 1;
 my $fname = shift;
-if ($fname eq '-') {
+if (!defined($fname) || $fname eq '-') {
     $SupressCounts = 1;
 } else {
     $args[0] = $fname;
@@ -1059,7 +1062,7 @@ ed - text editor
 
 =head1 SYNOPSIS
 
-ed [-p prompt] [-ddebugstring] [-v] [file]
+ed [-p prompt] [-ddebugstring] [-sv] [file]
 
 =head1 DESCRIPTION
 
@@ -1107,11 +1110,15 @@ Print debugging output. debugstring may be set to "parse".
 =item -p STRING
 
 Use the specified STRING as a command prompt.
-By default ed does not display a prompt.
+By default ed no prompt is displayed.
+
+=item -s
+
+Suppress byte counts
 
 =item -v
 
-Enable verbose errors. Print full error messages instead of "?".
+Print full error messages; equivalent to the "H" command
 
 =back
 
