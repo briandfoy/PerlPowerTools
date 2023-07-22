@@ -1033,7 +1033,7 @@ sub edSearchBackward {
 #
 
 sub Usage {
-    die "Usage: ed [-p prompt] [-ddebugstring] [-v] [file]\n";
+    die "Usage: ed [-p prompt] [-ddebugstring] [-sv] [file]\n";
 }
 
 #
