@@ -150,7 +150,9 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item moo - play a game of MOO
 
-=item demorse - read morse and translate it to text
+=item morse - read morse and translate it to text
+
+=item nl - line numbering filter
 
 =item od - dump files in octal and other formats
 
@@ -189,6 +191,8 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 =item rmdir - remove directories
 
 =item robots - fight off villainous robots
+
+=item rot13 - rotate text 13 ASCII characters
 
 =item shar - create a shell archive of files
 
@@ -234,11 +238,11 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item units - conversion program
 
+=item unlink - one file rm
+
 =item unpar - extract files from a Perl archive
 
 =item unshar - extract files from a shell archive
-
-=item uudecode, uuencode - encode/decode a binary file
 
 =item uudecode, uuencode - encode/decode a binary file
 
