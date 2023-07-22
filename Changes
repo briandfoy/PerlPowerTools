@@ -1,5 +1,68 @@
 Revision history for Perl module PerlPowerTools
 
+1.036 2023-07-22T02:55:31Z
+	* arithmetic
+	- fix a disappearing prompt #183
+
+	* base64
+	- improve detection of bad file arguments #202
+
+	* bc
+	- various fixes and more intensive testing (Gary Puckering) #167
+
+	* bcd
+	- new program #206
+	- 	* cp
+	- handle many files at one #180
+	- completely rewritten by brian d foy
+	- 	* All contributions are from Michael Mikonos unless otherwise
+	noted.
+
+	* ed 
+	- implement t command (for copy) #207
+	- implement m command (move) #205
+	- save buffer on SIGHUP #197
+	- allow filenames that include a dash #188
+	- make opening a directory an error #178
+	- implement join command #176
+	- fix ed search direction #170
+
+	* expr
+	- fix broken >= #181
+
+	* grep 
+	- disallow directories as argument to -f #192
+	- don't implicitly set -r #185
+
+	* install
+	- ignore directory is source file list #179
+	- 	* od
+	- handles non-printables better #208
+	- validates radix argument from -A #204
+	- add -N switch to limit the input bytes #203
+	- 	* printf
+	- support \v #186
+	- use the standard meaning of %c, not Perl's meaning.
+	- This is now the first character of the string #194
+
+	* rm
+	- exit with right error code on failure #200
+	- ignore directories with no -r #198
+	- 
+	* sleep
+	- non-zero exit code on error #182
+
+	* split 
+	- support reading from standard input #195
+
+	* test
+	- improved error messages #184
+
+	* unlink
+	- new command #201
+
+
+
 1.035 2023-06-15T09:57:49Z
 	* Gary Puckering fixed several issues with the units program. These
 	were GitHub #161, #162, and #163.
