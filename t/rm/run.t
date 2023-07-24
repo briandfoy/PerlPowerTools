@@ -9,7 +9,6 @@ is( $class, 'PerlPowerTools::rm' );
 
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
-diag( "temp dir is $dir" );
 chdir $dir or BAIL_OUT( "Could not change to $dir: $!" );
 
 
