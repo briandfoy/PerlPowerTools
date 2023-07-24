@@ -179,22 +179,18 @@ sub precedence_table {
 	}
 
 sub special_expr_table {
-    my $sqrt2 = qr/\A
-    	1 \. 414213562373
-    	(?:
-    		1
-    		|
-    		09505
-    	)
-    	\Z  # possible newline
-    	/x;
+	# 1.41421 35623 73095 04880 16887 24209 7 USE_QUADMATH
+	# 1.41421 35623 73095 04                  USE_LONG_DOUBLE
+	# 1.41421 35623 731                       -
 
+	my $perl_sqrt_2 = sqrt(2);
+	diag( "Perl sqrt(2) is <$perl_sqrt_2>" );
 
     my $table = [
         'special expressions',
-        [ 'sqrt(2)',          $sqrt2,        'sqrt(2) returns appropriate value' ],
-        [ 'length(sqrt(2))',  qr/\A1[48]\Z/, 'length(sqrt(2)) has the expected value' ],
-        [ 'scale(sqrt(2))',   qr/\A1[37]\Z/, 'precision digits' ],
+        [ 'sqrt(2)',          $perl_sqrt_2,             'sqrt(2) returns appropriate value'      ],
+        [ 'length(sqrt(2))',  length($perl_sqrt_2) - 1, 'length(sqrt(2)) has the expected value' ],
+        [ 'scale(sqrt(2))',   length($perl_sqrt_2) - 2, 'precision digits' ],
     ];
 	}
 
