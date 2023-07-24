@@ -23,6 +23,10 @@ use constant REMAINS  => $n++;
 use constant WARNINGS => $n++;
 use constant LABEL    => $n++;
 
+unlink 't/x/y/bn/6/7/8/goo/txt/$$';
+my $no_such_error = "$!";  # No such file
+diag( "Missing file error text is <$no_such_error>" );
+
 my @table = (
 	[
 		{},
@@ -40,8 +44,8 @@ my @table = (
 		1,
 		[qw()],
 		[
-		 qr/cannot remove 'foo': No such file or directory/,
-		 qr/cannot remove 'bar': No such file or directory/,
+		 qr/cannot remove 'foo': \Q$no_such_error\E/,
+		 qr/cannot remove 'bar': \Q$no_such_error\E/,
 		],
 		"files don't exist"
 	],
