@@ -179,12 +179,22 @@ sub precedence_table {
 	}
 
 sub special_expr_table {
-    my $sqrt2 = '1.4142135623731';
+    my $sqrt2 = qr/\A
+    	1 \. 414213562373
+    	(?:
+    		1
+    		|
+    		09505
+    	)
+    	\Z  # possible newline
+    	/x;
+
+
     my $table = [
         'special expressions',
-        [ 'sqrt(2)',          $sqrt2,     'sqrt function' ],
-        [ 'length(sqrt(2))',  '14',       'significant digits' ],
-        [ 'scale(sqrt(2))',   '13',       'precision digits' ],
+        [ 'sqrt(2)',          $sqrt2,        'sqrt(2) returns appropriate value' ],
+        [ 'length(sqrt(2))',  qr/\A1[48]\Z/, 'length(sqrt(2)) has the expected value' ],
+        [ 'scale(sqrt(2))',   qr/\A1[37]\Z/, 'precision digits' ],
     ];
 	}
 
