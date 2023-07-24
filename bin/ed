@@ -282,6 +282,10 @@ sub edPrint {
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
+    if ($adrs[0] == 0 || $adrs[1] == 0) {
+        edWarn('invalid address');
+        return;
+    }
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
         return;
@@ -297,11 +301,27 @@ sub edPrint {
 
 # merge lines back into $lines[$adrs[0]]
 sub edJoin {
-    if (!defined($adrs[0])) { # no currentLine inference
+    if (defined($args[0])) {
+        edWarn('Extra arguments detected');
+        return;
+    }
+    if (defined($adrs[0]) && $adrs[0] == 0) {
         edWarn('invalid address');
         return;
     }
-    if (!defined($adrs[1])) { # expect range
+    if (defined($adrs[1]) && $adrs[1] == 0) {
+        edWarn('invalid address');
+        return;
+    }
+    if (!defined($adrs[0]) && !defined($adrs[1])) {
+        if ($CurrentLineNum == $maxline) {
+            edWarn('invalid address');
+            return;
+        }
+        $adrs[0] = $CurrentLineNum;
+        $adrs[1] = $CurrentLineNum + 1;
+    }
+    elsif (defined($adrs[0]) && !defined($adrs[1])) { # nop
         return;
     }
     if ($adrs[0] == $adrs[1]) { # nop
