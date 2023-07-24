@@ -161,7 +161,7 @@ subtest 'table' => sub {
 			open my $error_fh, '>:utf8', \$error;
 
 			my $exit = do {
-				no warnings 'once';
+				no warnings qw(once redefine);
 				local *PerlPowerTools::rm::exit = sub { return $_[1] };
 				$class->run( args => \@run_args, error_fh => $error_fh );
 				};
