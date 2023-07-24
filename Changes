@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.036_001 2023-07-24T22:11:32Z
+	* Clean up some test oddities that CPAN Testers found: #214, #215, #216
+
 1.036 2023-07-22T02:55:31Z
 	* arithmetic
 	- fix a disappearing prompt #183
