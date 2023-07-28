@@ -57,7 +57,6 @@ License: gpl
 #        - Implement the following commands from the v7 docs:
 #                g - global command
 #                k - mark
-#                l - "list" lines, show special chars
 #                u - undo
 #                v - global command "inVerted"
 #                x - get encryption key
@@ -101,8 +100,21 @@ my $INSERT_MODE = 1;
 my $APPEND_MODE = 2;
 my $QUESTIONS_MODE = 1;
 my $NO_QUESTIONS_MODE = 0;
+my $PRINT_NUM = 1;
+my $PRINT_BIN = 2;
 
-my $VERSION = '0.2';
+my $VERSION = '0.3';
+
+my %ESC = (
+    7  => '\a',
+    8  => '\b',
+    9  => '\t',
+    10 => "\$\n",
+    11 => '\v',
+    12 => '\f',
+    13 => '\r',
+    92 => '\\\\',
+);
 
 $SIG{HUP} = sub {
     if ($NeedToSave) {
@@ -200,39 +212,39 @@ while (1) {
 
         # navigation operations
 
-        if ($command =~ /^$/) {
+        if (!length($command)) {
             &edSetCurrentLine;
-        } elsif ($command =~ /^=$/) {
+        } elsif ($command eq '=') {
             &edPrintLineNum;
 
         # file operations
 
-        } elsif ($command =~ /^[w]$/) {
+        } elsif ($command eq 'w') {
             &edWrite($NO_APPEND_MODE);
-        } elsif ($command =~ /^[W]$/) {
+        } elsif ($command eq 'W') {
             &edWrite($APPEND_MODE);
-        } elsif ($command =~ /^e$/) {
+        } elsif ($command eq 'e') {
             &edEdit($QUESTIONS_MODE,$NO_INSERT_MODE);
-        } elsif ($command =~ /^E$/) {
+        } elsif ($command eq 'E') {
             &edEdit($NO_QUESTIONS_MODE,$NO_INSERT_MODE);
-        } elsif ($command =~ /^r$/) {
+        } elsif ($command eq 'r') {
             &edEdit($QUESTIONS_MODE,$INSERT_MODE);
-        } elsif ($command =~ /^f$/) {
+        } elsif ($command eq 'f') {
             &edFilename;
 
         # text manipulation commands
 
-        } elsif ($command =~ /^[d]$/) {
+        } elsif ($command eq 'd') {
             &edDelete;
-        } elsif ($command =~ /^i$/) {
+        } elsif ($command eq 'i') {
             &edInsert($INSERT_MODE);
-        } elsif ($command =~ /^a$/) {
+        } elsif ($command eq 'a') {
             &edInsert($APPEND_MODE);
-        } elsif ($command =~ /^c$/) {
+        } elsif ($command eq 'c') {
             &edDelete;
             $adrs[1] = undef;
             &edInsert($INSERT_MODE);
-        } elsif ($command =~ /^s$/) {
+        } elsif ($command eq 's') {
             &edSubstitute;
 
         # misc commands
@@ -258,10 +270,12 @@ while (1) {
             }
         } elsif ($command eq 'j') {
             &edJoin;
+        } elsif ($command eq 'l') {
+            edPrint($PRINT_BIN);
         } elsif ($command eq 'm') {
             edMove(1);
         } elsif ($command eq 'n') {
-            edPrint(1);
+            edPrint($PRINT_NUM);
         } elsif ($command eq 't') {
             &edMove;
         }
@@ -278,7 +292,7 @@ while (1) {
 #
 
 sub edPrint {
-    my $do_lineno = shift;
+    my $mode = shift;
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
@@ -292,12 +306,41 @@ sub edPrint {
         return;
     }
 
-    for my $i ($adrs[0]..$adrs[1]) {
-        print "$i\t" if $do_lineno;
-        print "$lines[$i]";
+    if ($mode == $PRINT_NUM) {
+        for my $i ($adrs[0] .. $adrs[1]) {
+            print $i, "\t", $lines[$i];
+        }
+    } elsif ($mode == $PRINT_BIN) {
+        for my $i ($adrs[0] .. $adrs[1]) {
+            print escape_line($i);
+        }
+    } else {
+        for my $i ($adrs[0] .. $adrs[1]) {
+            print $lines[$i];
+        }
     }
 
     $CurrentLineNum = $adrs[1];
+}
+
+sub escape_line {
+    my $idx = shift;
+
+    my @chars = unpack 'C*', $lines[$idx];
+    if (scalar(@chars) == 0) {
+        die 'internal error: unpack';
+    }
+    my $s = '';
+    foreach my $c (@chars) {
+        if (exists $ESC{$c}) {
+            $s .= $ESC{$c};
+        } elsif (chr($c) !~ m/[[:print:]]/) {
+            $s .= sprintf '\%03o', $c;
+        } else {
+            $s .= chr($c);
+        }
+    }
+    return $s;
 }
 
 # merge lines back into $lines[$adrs[0]]
@@ -892,7 +935,7 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhHijmnpPqQrstwW=])?        # command char
+                 ([acdeEfhHijlmnpPqQrstwW=])?        # command char
                  \s*(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -1204,6 +1247,10 @@ Insert text
 =item j
 
 Join a range of lines into a single line
+
+=item l
+
+Print lines with escape sequences for non-printable characters
 
 =item m
 
