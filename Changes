@@ -1,5 +1,10 @@
 Revision history for Perl module PerlPowerTools
 
+1.036_002 2023-07-29T20:26:25Z
+	* Improve the find.t test to not mistakenly use a non-existent
+	path for find2perl
+	#220
+
 1.036_001 2023-07-24T22:11:32Z
 	* Clean up some test oddities that CPAN Testers found: #214, #215, #216
 
