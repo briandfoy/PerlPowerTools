@@ -2,74 +2,58 @@ Revision history for Perl module PerlPowerTools
 
 1.036_002 2023-07-29T20:26:25Z
 	* Improve the find.t test to not mistakenly use a non-existent
-	path for find2perl
-	#220
+	path for find2perl #220
 
 1.036_001 2023-07-24T22:11:32Z
 	* Clean up some test oddities that CPAN Testers found: #214, #215, #216
 
 1.036 2023-07-22T02:55:31Z
+	* All contributions are from Michael Mikonos unless otherwise noted.
 	* arithmetic
-	- fix a disappearing prompt #183
-
+		- fix a disappearing prompt #183
 	* base64
-	- improve detection of bad file arguments #202
-
+		- improve detection of bad file arguments #202
 	* bc
-	- various fixes and more intensive testing (Gary Puckering) #167
-
+		- various fixes and more intensive testing (Gary Puckering) #167
 	* bcd
-	- new program #206
-	- 	* cp
-	- handle many files at one #180
-	- completely rewritten by brian d foy
-	- 	* All contributions are from Michael Mikonos unless otherwise
-	noted.
-
-	* ed 
-	- implement t command (for copy) #207
-	- implement m command (move) #205
-	- save buffer on SIGHUP #197
-	- allow filenames that include a dash #188
-	- make opening a directory an error #178
-	- implement join command #176
-	- fix ed search direction #170
-
+		- new program #206
+	* cp
+		- handle many files at one #180
+		- completely rewritten by brian d foy
+	* ed
+		- implement t command (for copy) #207
+		- implement m command (move) #205
+		- save buffer on SIGHUP #197
+		- allow filenames that include a dash #188
+		- make opening a directory an error #178
+		- implement join command #176
+		- fix ed search direction #170
 	* expr
-	- fix broken >= #181
-
-	* grep 
-	- disallow directories as argument to -f #192
-	- don't implicitly set -r #185
-
+		- fix broken >= #181
+	* grep
+		- disallow directories as argument to -f #192
+		- don't implicitly set -r #185
 	* install
-	- ignore directory is source file list #179
-	- 	* od
-	- handles non-printables better #208
-	- validates radix argument from -A #204
-	- add -N switch to limit the input bytes #203
-	- 	* printf
-	- support \v #186
-	- use the standard meaning of %c, not Perl's meaning.
-	- This is now the first character of the string #194
-
+		- ignore directory is source file list #179
+	* od
+		- handles non-printables better #208
+		- validates radix argument from -A #204
+		- add -N switch to limit the input bytes #203
+	* printf
+		- support \v #186
+		- use the standard meaning of %c, not Perl's meaning.
+		- This is now the first character of the string #194
 	* rm
-	- exit with right error code on failure #200
-	- ignore directories with no -r #198
-	- 
+		- exit with right error code on failure #200
+		- ignore directories with no -r #198
 	* sleep
-	- non-zero exit code on error #182
-
-	* split 
-	- support reading from standard input #195
-
+		- non-zero exit code on error #182
+	* split
+		- support reading from standard input #195
 	* test
-	- improved error messages #184
-
+		- improved error messages #184
 	* unlink
-	- new command #201
-
-
+		- new command #201
 
 1.035 2023-06-15T09:57:49Z
 	* Gary Puckering fixed several issues with the units program. These
@@ -83,18 +67,18 @@ Revision history for Perl module PerlPowerTools
 	which recently updated to v5.12
 	* Several enhancements from Michael Mikonos
 	* ed
-	- can report line numbers on print
-	- can insert empty buffer
-	- can no longer insert before line 0
+		- can report line numbers on print
+		- can insert empty buffer
+		- can no longer insert before line 0
 	* sum
-	- now correctly reports 32-bit checksums on 64-bit perls
-	- can read from standard input
+		- now correctly reports 32-bit checksums on 64-bit perls
+		- can read from standard input
 	* od
-	- zero fill input to required byte length
+		- zero fill input to required byte length
 	* bc
-	- use Math::BigFloat again
+		- use Math::BigFloat again
 	* echo
-	- emit newline by default
+		- emit newline by default
 
 
 1.033_03 2023-04-05T11:43:15Z
