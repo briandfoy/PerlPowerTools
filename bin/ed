@@ -664,7 +664,7 @@ sub edEdit {
 
     if ($InsertMode) {
 
-        if ($adrs[0] == $maxline) {
+        if ($maxline != 0 && $adrs[0] == $maxline) {
             push(@lines,@tmp_lines);
             $CurrentLineNum += $tmp_maxline;
         } elsif ($adrs[0] == 0) {
