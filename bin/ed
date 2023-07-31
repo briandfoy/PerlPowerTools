@@ -86,7 +86,6 @@ my $Prompt = undef;             # saved prompt string for -p option
 my $SupressCounts = 0;          # byte counts are printed by default
 my @lines;                      # buffer for file being edited.
 my $command = "";               # single letter command entered by user
-my $commandsuf = "";            # suffix string attached to command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
 
@@ -114,6 +113,15 @@ my %ESC = (
     12 => '\f',
     13 => '\r',
     92 => '\\\\',
+);
+
+my %WANT_FILE = (
+    'e' => 1,
+    'E' => 1,
+    'f' => 1,
+    'r' => 1,
+    'w' => 1,
+    'W' => 1,
 );
 
 $SIG{HUP} = sub {
@@ -517,11 +525,6 @@ sub edDelete {
 #
 
 sub edFilename {
-    if (length $commandsuf) {
-        edWarn('unexpected command suffix');
-        return;
-    }
-
     if (defined($adrs[0]) or defined($adrs[1])) {
         edWarn("too many addresses for command: $#adrs (@adrs)");
         return;
@@ -546,16 +549,16 @@ sub edFilename {
 
 sub edWrite {
     my($AppendMode) = @_;
-    my($filename,$chars);
+    my($fh, $filename, $chars);
 
-    if (length $commandsuf) {
-        edWarn('unexpected command suffix');
-        return;
-    }
     $chars = 0;
 
-    $adrs[0] = 1 unless (defined($adrs[0]));
-    $adrs[1] = $maxline unless (defined($adrs[1]));
+    if (!defined($adrs[0]) && !defined($adrs[1])) {
+        $adrs[0] = 1;
+        $adrs[1] = $maxline;
+    } elsif (defined($adrs[0]) && !defined($adrs[1])) {
+        $adrs[1] = $adrs[0];
+    }
 
     $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
 
@@ -566,13 +569,13 @@ sub edWrite {
     $RememberedFilename = $filename;
 
     if ($AppendMode) {
-        unless (open(FILE, '>>', $filename)) {
+        unless (open $fh, '>>', $filename) {
             warn "$filename: $!\n";
             edWarn('cannot open output file');
             return;
         }
     } else {
-        unless (open(FILE, '>', $filename)) {
+        unless (open $fh, '>', $filename) {
             warn "$filename: $!\n";
             edWarn('cannot open output file');
             return;
@@ -580,14 +583,14 @@ sub edWrite {
     }
 
     for my $line (@lines[$adrs[0]..$adrs[1]]) {
-        print FILE $line;
+        print {$fh} $line;
         $chars += length($line);
     }
 
     $NeedToSave = 0;
     $UserHasBeenWarned = 0;
     print "$chars\n" unless ($SupressCounts);
-    close(FILE);
+    close $fh;
 
     # v7 docs say to chmod 666 the file ... we're not going to
     # follow the docs *that* closely today (6/16/99 ---gmj)
@@ -604,11 +607,6 @@ sub edWrite {
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
     my(@tmp_lines,@tmp_lines2,$tmp_maxline,$tmp_chars,$chars);
-
-    if (length $commandsuf) {
-        edWarn('unexpected command suffix');
-        return;
-    }
 
     if ($InsertMode) {
         $adrs[0] = $maxline unless (defined($adrs[0]));
@@ -936,7 +934,7 @@ sub edParse {
                   (([\+]+)|([-^]+))?        # + | -
                 )?
                  ([acdeEfhHijlmnpPqQrstwW=])?        # command char
-                 \s*(\S+)?                # argument (filename, etc.)
+                 (\s*)(\S+)?                # argument (filename, etc.)
                  )$/x);
 
 
@@ -949,13 +947,15 @@ sub edParse {
 
     }
 
-    $args[0] = $fields[28];
+    my $space_sep = length $fields[28];
+    $args[0] = $fields[29];
 
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
 
-    my @cmd = split /\s+/, $fields[0];
-    $commandsuf = substr $cmd[0], 1;
+    if (defined($args[0]) && $WANT_FILE{$command} && !$space_sep) {
+        return 0;
+    }
 
     return 1;
 }
