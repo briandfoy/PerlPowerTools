@@ -1,5 +1,22 @@
 Revision history for Perl module PerlPowerTools
 
+1.037 2023-07-31T17:09:18Z
+	* adjusted several tests 
+	- find.t checks that its local::lib guess actually exists
+	- #220
+	- rm tests squash a warning about a redefined exit #216
+	- bc tests checked for English error messages, which is
+	- not always the case #215
+	- bc tests allow for different levels of perl precision
+	- (long double and quadmath) #214
+	* Michael Mikonos enhanced ed is many ways:
+	- Add -s for quieter operation #212
+	- Make -j act like the real ed #213
+	- better argument checking #217
+	- add list (l) command #218
+	- fix an edge case with "r file" #219
+	- fix range-specific write #221
+
 1.036_002 2023-07-29T20:26:25Z
 	* Improve the find.t test to not mistakenly use a non-existent
 	path for find2perl #220
