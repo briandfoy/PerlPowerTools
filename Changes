@@ -2,8 +2,7 @@ Revision history for Perl module PerlPowerTools
 
 1.037 2023-07-31T17:09:18Z
 	* adjusted several tests
-		- find.t checks that its local::lib guess actually exists
-		- #220
+		- find.t checks that its local::lib guess actually exists #220
 		- rm tests squash a warning about a redefined exit #216
 		- bc tests checked for English error messages, which is
 		- not always the case #215
