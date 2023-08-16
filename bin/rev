@@ -18,7 +18,7 @@ $|++;
 
 my ($VERSION) = '1.3';
 
-if (scalar(@ARGV) == 0 || ( $ARGV[0] ne '?' && $ARGV[0] !~ m/^-/ ) ) {
+if (scalar(@ARGV) == 0 || $ARGV[0] !~ m/^-/) {
 	while (<>) {
 		chomp;
 		my $r = reverse($_);
@@ -37,7 +37,7 @@ Reverses lines of the named file or the text input on STDIN
 
 Options:
 	--version:  Print version number, then exit.
-	--help || -h || ? :     Print usage, then exit;
+	--help || -h:     Print usage, then exit;
 
 EOF
 	exit 1;
@@ -69,7 +69,7 @@ I<rev> accepts the following options:
 
 =over 4
 
-=item  --help || -h || ?
+=item  --help || -h
 
 Print a short help message, then exits.
 
