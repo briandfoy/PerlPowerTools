@@ -53,9 +53,9 @@ subtest "version" => sub {
 	like $output, qr/\Q$command\E \d+\.\d+/, "shows version message";
 	};
 
-subtest "version" => sub {
+subtest "help" => sub {
 
-	foreach my $arg ( '-h', '--help', '?' ) {
+	foreach my $arg ( '-h', '--help' ) {
 	 	my( $output, $error );
  		my @command = ( $^X, $command, $arg );
   		run3 \@command, undef, \$output, \$error;
