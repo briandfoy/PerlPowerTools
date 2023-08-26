@@ -11,28 +11,30 @@ License: perl
 
 =cut
 
-
 use strict;
-use Getopt::Std;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 my ($VERSION) = '1.3';
 
+my $Program = basename($0);
+
 getopts ('benstuv?', \my %options)  or do {
-	$0 =~ s{.*/}{};
 	print <<EOF;
-$0 (PerlPowerTools) $VERSION
-$0 [-benstuv] [files ...]
+$Program version $VERSION
+$Program [-benstuv] [file ...]
 EOF
 
-	exit 1;
+	exit EX_FAILURE;
 };
 
-my ($tabs, $ends, $nonprinting);
-
-if (exists $options{'e'}) {$ends = $nonprinting = 1;}
-if (exists $options{'t'}) {$tabs = $nonprinting = 1;}
-if (exists $options{'v'}) {        $nonprinting = 1;}
-
+my $ends              = exists $options{'e'};
+my $tabs              = exists $options{'t'};
+my $nonprinting       = exists $options{'v'} || $ends || $tabs;
 my $squeeze_empty     = exists $options{'s'};
 my $number_lines      = exists $options{'n'};
 my $number_non_blanks = exists $options{'b'};
@@ -43,30 +45,58 @@ $| = exists $options{'u'};
 my $was_empty = 0;
 my $count     = 0;
 
-while (<>) {
+if (scalar(@ARGV) == 0) {
+    push @ARGV, '-';
+}
+my $err = 0;
+foreach my $f (@ARGV) {
+    $err |= do_file($f);
+}
+exit ($err ? EX_FAILURE : EX_SUCCESS);
 
-    if ($squeeze_empty) {
-        my $is_empty = /^$/;
-        if ($is_empty && $was_empty) {
-            next;
+sub do_file {
+    my $name = shift;
+
+    my $fh;
+    if ($name eq '-') {
+        $fh = *STDIN;
+    } else {
+        if (-d $name) {
+            warn "$Program: $name: is a directory\n";
+            return 1;
         }
-        $was_empty = $is_empty;
+        if (!open($fh, '<', $name)) {
+            warn "$Program: $name: $!\n";
+            return 1;
+        }
     }
 
-    $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
-                                             $number_non_blanks && /\S/;
+    while (<$fh>) {
 
-    s/$/\$/ if $ends;
-    if ($nonprinting) {
-        s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
-        s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
-        s/\x7F/^?/g;
-    }
-    if ($tabs) {
-        s/\x09/^I/g;
-    }
+        if ($squeeze_empty) {
+            my $is_empty = /^$/;
+            if ($is_empty && $was_empty) {
+                next;
+            }
+            $was_empty = $is_empty;
+        }
 
-    print;
+        $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
+                                                 $number_non_blanks && /\S/;
+
+        s/$/\$/ if $ends;
+        if ($nonprinting) {
+            s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
+            s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
+            s/\x7F/^?/g;
+        }
+        if ($tabs) {
+            s/\x09/^I/g;
+        }
+
+        print;
+    }
+    return 0;
 }
 
 __END__
