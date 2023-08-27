@@ -76,7 +76,6 @@ use Getopt::Std qw(getopts);
 
 # important globals
 
-my $maxline = 0;                # lines are numered internally starting at 1
 my $CurrentLineNum = 0;         # default to before first line.
 my $RememberedFilename = undef; # the default filename for writes, etc.
 my $NeedToSave = 0;             # buffer modified
@@ -188,14 +187,14 @@ while (1) {
         # sanity check addresses
 
         if (defined($adrs[0])) {
-            if ($adrs[0] > $maxline || $adrs[0] < 0) {
+            if ($adrs[0] > maxline() || $adrs[0] < 0) {
                 edWarn('address out of range');
                 next;
             }
         }
 
         if (defined($adrs[1])) {
-            if ($adrs[1] > $maxline || $adrs[1] < 0) {
+            if ($adrs[1] > maxline() || $adrs[1] < 0) {
                 edWarn('address out of range');
                 next;
             }
@@ -215,7 +214,7 @@ while (1) {
         #   - add a new routine to implement the command
         #   - do command specific checks of adrs and args in the routine
         #   - have command operate on important globals (see top of file),
-        #     such as @lines, $CurrentLineNum, $maxline, $NeedToSave...
+        #     such as @lines, $CurrentLineNum, $NeedToSave...
         #
 
         # navigation operations
@@ -295,6 +294,14 @@ while (1) {
 
 }
 
+sub maxline {
+    my $n = $#lines;
+    if ($n < 0) {
+        $n = 0;
+    }
+    return $n;
+}
+
 #
 # Print contents of requested lines
 #
@@ -366,7 +373,7 @@ sub edJoin {
         return;
     }
     if (!defined($adrs[0]) && !defined($adrs[1])) {
-        if ($CurrentLineNum == $maxline) {
+        if ($CurrentLineNum == maxline()) {
             edWarn('invalid address');
             return;
         }
@@ -516,8 +523,11 @@ sub edDelete {
 
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
-    $maxline -= $NumLines;
-    $CurrentLineNum = $adrs[0] >= $maxline ? $maxline : $adrs[0]+1;
+
+    $CurrentLineNum = $adrs[0];
+    if ($CurrentLineNum > maxline()) {
+        $CurrentLineNum = maxline();
+    }
 }
 
 #
@@ -555,7 +565,7 @@ sub edWrite {
 
     if (!defined($adrs[0]) && !defined($adrs[1])) {
         $adrs[0] = 1;
-        $adrs[1] = $maxline;
+        $adrs[1] = maxline();
     } elsif (defined($adrs[0]) && !defined($adrs[1])) {
         $adrs[1] = $adrs[0];
     }
@@ -606,11 +616,12 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_maxline,$tmp_chars,$chars);
+    my(@tmp_lines,@tmp_lines2,$tmp_chars,$chars);
 
     if ($InsertMode) {
-        $adrs[0] = $maxline unless (defined($adrs[0]));
-
+        if (!defined($adrs[0])) {
+            $adrs[0] = maxline();
+        }
         if (defined($args[1])) {
             edWarn('Too many addressses');
             return;
@@ -628,7 +639,6 @@ sub edEdit {
 
     if ($filename eq "" ) {
         $CurrentLineNum = 0;
-        $maxline = 0;
         return 1;
     }
 
@@ -646,15 +656,13 @@ sub edEdit {
     }
 
     @tmp_lines = ();
-    $tmp_maxline = 0;
     $tmp_chars = 0;
     $chars = 0;
 
-    while(<SOURCE>) {
+    while (<SOURCE>) {
         push(@tmp_lines,$_);
         $tmp_chars += length;
-        $tmp_maxline++;
-        }
+    }
 
     close(SOURCE);
 
@@ -662,56 +670,50 @@ sub edEdit {
 
     if ($InsertMode) {
 
-        if ($maxline != 0 && $adrs[0] == $maxline) {
+        if (maxline() != 0 && $adrs[0] == maxline()) {
             push(@lines,@tmp_lines);
-            $CurrentLineNum += $tmp_maxline;
+            $CurrentLineNum = maxline();
         } elsif ($adrs[0] == 0) {
             shift(@lines); # get rid of undefined line
             unshift(@lines,@tmp_lines);
             unshift(@lines,undef); # put 0 line back
-            $CurrentLineNum = $tmp_maxline;
+            $CurrentLineNum = scalar(@tmp_lines);
         } else {
             shift(@lines); # get rid 0 line
             @tmp_lines2 = splice(@lines,0,$adrs[0]);
             unshift(@lines,@tmp_lines);
             unshift(@lines,@tmp_lines2);
-            $CurrentLineNum += ($tmp_maxline);
             unshift(@lines,undef); # put 0 line back
+            $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
 
-        $maxline += $tmp_maxline;
         $chars = $tmp_chars;
         $NeedToSave = 1;
         $UserHasBeenWarned = 0;
 
 
     } else {
-        if ($NeedToSave) {
-            if ($QuestionsMode) {
-                unless ($UserHasBeenWarned) {
-                    $UserHasBeenWarned = 1;
-                    edWarn('file modified');
-                    return;
-                }
-            }
+        if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
+            $UserHasBeenWarned = 1;
+            edWarn('file modified');
+            return;
         }
 
         @lines = @tmp_lines;
         unshift(@lines,undef); # line 0 is not used
-        $maxline = $tmp_maxline;
         $chars = $tmp_chars;
         $NeedToSave = 0;
         $UserHasBeenWarned = 0;
-        $CurrentLineNum = $maxline;
+        $CurrentLineNum = maxline();
     }
 
-    unless ($lines[$maxline] =~ /\n$/) {
-        $lines[$maxline] .= "\n";
+    if ($lines[maxline()] !~ /\n$/) {
+        $lines[maxline()] .= "\n";
+        $chars++;
         print "Newline appended\n";
     }
 
     print "$chars\n" unless ($SupressCounts);
-
     return 1;
 }
 
@@ -721,7 +723,7 @@ sub edEdit {
 
 sub edInsert {
     my($Mode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_maxline,$tmp_chars);
+    my(@tmp_lines,@tmp_lines2,$tmp_chars);
 
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
@@ -738,51 +740,45 @@ sub edInsert {
     # suck the text into a temp array
 
     @tmp_lines = ();
-    $tmp_maxline = 0;
     $tmp_chars = 0;
 
-    while(<>) {
+    while (<>) {
         last if (/^\.$/);
         push(@tmp_lines,$_);
         $tmp_chars += length;
-        $tmp_maxline++;
-        }
+    }
 
     # now that we've got it, figure out what to do with it
 
     if ($Mode == $INSERT_MODE) {
 
-        shift @lines; # get rid 0 line
+        shift @lines; # get rid of 0 line
         if ($adrs[0] == 0 || $adrs[0] == 1) {
             unshift(@lines,@tmp_lines);
-            $CurrentLineNum = $tmp_maxline;
+            $CurrentLineNum = scalar(@tmp_lines);
         } else {
             @tmp_lines2 = splice(@lines,0,$adrs[0]-1);
             unshift(@lines,@tmp_lines);
             unshift(@lines,@tmp_lines2);
-            $CurrentLineNum = $adrs[0] + $tmp_maxline - 1;
+            $CurrentLineNum = $adrs[0] + scalar(@tmp_lines) - 1;
         }
         unshift @lines, undef; # put 0 line back
 
     } elsif ($Mode == $APPEND_MODE) {
 
+        shift(@lines); # get rid of 0 line
         if ($adrs[0] == 0) {
-            shift(@lines); # get rid of undefined line
             unshift(@lines,@tmp_lines);
-            unshift(@lines,undef); # put 0 line back
-            $CurrentLineNum = $tmp_maxline;
+            $CurrentLineNum = scalar(@tmp_lines);
         } else {
-            shift(@lines); # get rid 0 line
             @tmp_lines2 = splice(@lines,0,$adrs[0]);
             unshift(@lines,@tmp_lines);
             unshift(@lines,@tmp_lines2);
-            $CurrentLineNum = $adrs[0] + $tmp_maxline;
-            unshift(@lines,undef); # put 0 line back
+            $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
+        unshift(@lines,undef); # put 0 line back
 
     }
-
-    $maxline += $tmp_maxline;
 
     if ($tmp_chars) {
         $NeedToSave = 1;
@@ -798,19 +794,18 @@ sub edInsert {
 #
 
 sub edPrintLineNum {
-    my($adr);
-
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
         return;
     }
 
-    for my $i (0..1) {
-        $adr = $adrs[$i] if (defined($adrs[$i]));
+    my $adr = $adrs[1];
+    if (!defined($adr)) {
+        $adr = $adrs[0];
     }
-
-    $adr = $maxline unless (defined($adr));
-
+    if (!defined($adr)) {
+        $adr = maxline();
+    }
     print "$adr\n";
 
     # v7 docs say this does not affect current line.  GNU ed sets the line.
@@ -844,11 +839,10 @@ sub edQuit {
 }
 
 #
-# Set cuurent line
+# Set current line
 #
 # Input:
 #        $adrs[0] - the requested new current line
-#        $maxline - the maxline
 #        @lines - the buffer
 #
 # Side effects:
@@ -856,34 +850,29 @@ sub edQuit {
 #        2. The new current line is printed.
 
 sub edSetCurrentLine {
-
-    my $adr;
-
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
         return;
     }
 
-    for my $i (0..1) {
-        $adr = $adrs[$i] if (defined($adrs[$i]));
+    my $adr = $adrs[1];
+    if (!defined($adr)) {
+        $adr = $adrs[0];
     }
-
     if (defined($adr)) {
 
         # user gave us a line, go to it
-
-        if (($adr <= $maxline) && ($adr > 0) && ($maxline > 0)) {
+        if ($adr <= maxline() && $adr > 0 && maxline() != 0) {
             $CurrentLineNum = $adr;
         } else {
-            edWarn("requested line ($adr) out of range: 1-$maxline");
+            edWarn("requested line ($adr) out of range: 1-" . maxline());
             return 0;
         }
 
     } else {
 
         # simply increment the line
-
-        if ($CurrentLineNum < $maxline) {
+        if ($CurrentLineNum < maxline()) {
             $CurrentLineNum++;
         } else {
             edWarn('already at end of file');
@@ -998,7 +987,7 @@ sub CalculateLine {
         } elsif (defined($dotadr)) {
             $myline = $CurrentLineNum;
         } elsif (defined($dollaradr)) {
-            $myline = $maxline;
+            $myline = maxline();
         } elsif (defined($searchadr)) {
             my $pattern = $searchadr;
             $pattern =~ s/[\?\/]$//;
@@ -1042,7 +1031,6 @@ sub CalculateLine {
 # Inputs:
 #        pattern                - via argument
 #        CurrentLineNum        - global
-#        maxline                - global
 #        lines                - global
 #
 # Return:
@@ -1053,9 +1041,9 @@ sub CalculateLine {
 sub edSearchForward {
     my($pattern) = @_;
 
-    my $start = $CurrentLineNum < $maxline ? $CurrentLineNum : 1;
+    my $start = $CurrentLineNum < maxline() ? $CurrentLineNum : 1;
 
-    for my $line ($start..$maxline,1..$CurrentLineNum) {
+    for my $line ($start .. maxline() , 1 .. $CurrentLineNum) {
 
         if ($lines[$line] =~ /$pattern/) {
             return $line;
@@ -1071,7 +1059,6 @@ sub edSearchForward {
 # Inputs:
 #        pattern                - via argument
 #        CurrentLineNum        - global
-#        maxline                - global
 #        lines                - global
 #
 # Return:
@@ -1085,7 +1072,7 @@ sub edSearchBackward {
 
     # brute force search...
 
-    $start = $CurrentLineNum > 1 ? $CurrentLineNum-1 : $maxline;
+    $start = $CurrentLineNum > 1 ? $CurrentLineNum - 1 : maxline();
 
     $line = $start;
 
@@ -1096,7 +1083,7 @@ sub edSearchBackward {
         $line--;
     }
 
-    $line = $maxline;
+    $line = maxline();
     while ($line >= $CurrentLineNum) {
         if ($lines[$line] =~ /$pattern/) {
             return $line;
