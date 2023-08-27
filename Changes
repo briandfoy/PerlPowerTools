@@ -1,5 +1,11 @@
 Revision history for Perl module PerlPowerTools
 
+1.038 2023-08-27T11:36:25Z
+	* All updates are from Michael Mikonos
+	* rev - accept ? as a file (#222)
+	* cat - exit 1 for bad argments (#223)
+	* ed - fix range-specific write (#221) and better handling of maxline (#224)
+
 1.037 2023-07-31T17:09:18Z
 	* adjusted several tests
 		- find.t checks that its local::lib guess actually exists #220
