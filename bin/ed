@@ -397,6 +397,7 @@ sub edJoin {
     splice @lines, $start, $adrs[1] - $adrs[0];
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
+    $CurrentLineNum = $adrs[0];
 }
 
 sub edMove {
@@ -448,6 +449,7 @@ sub edMove {
 
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
+    $CurrentLineNum = $dst + scalar(@copy)
 }
 
 #
@@ -1233,7 +1235,8 @@ Insert text
 
 =item j
 
-Join a range of lines into a single line
+Join a range of lines into a single line.
+The current address is set to the destination address.
 
 =item l
 
@@ -1241,7 +1244,8 @@ Print lines with escape sequences for non-printable characters
 
 =item m
 
-Move a range of lines to a new address
+Move a range of lines to a new address.
+The current address is set to the last line moved.
 
 =item n
 
@@ -1274,7 +1278,8 @@ Substitute text with a regular expression
 
 =item t
 
-Copy a range of lines to a destination address
+Copy (transfer) lines to a destination address.
+The current address is set to the last line copied.
 
 =item W [FILE]
 
