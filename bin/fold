@@ -27,6 +27,13 @@ License: perl
 use strict;
 use locale;             # for what a space is.
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my(
     $Byte_Only,         # if they said -b, ignore tabs etc
     $Space_Break,       # they said -s, so look for white space breaks
@@ -34,23 +41,19 @@ my(
     $Tabstop,           # tab stops are every Tabstop
 );
 
-END {
-    close STDOUT            || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;    # from die
-}
-
 $Tabstop  =  8;   # sane tab stops
 $Width    = 80;   # default screen size
 
 sub usage {
-    warn "$0: @_\n" if @_;
-    die <<USAGE
-$0 [-bs] [-w I<width> | -<width>] args
+    warn "$Program: @_\n" if @_;
+    warn qq[
+$Program [-bs] [-w I<width> | -<width>] [file ...]
     -s         split lines on whitespace where possible
     -b         count bytes, not characters
     -w WIDTH   maximum length of lines on output
     -WIDTH     maximum length of lines on output (archaic form)
-USAGE
+];
+    exit EX_FAILURE;
 }
 
 # do this by hand, because we don't like $opt_80, $opt_132, etc.
@@ -87,11 +90,11 @@ if ($Space_Break && $Width < $Tabstop) {
 }
 
 unshift(@ARGV, '-') unless @ARGV;
+my $err = 0;
 for (@ARGV) {
-    fold_file($_);
+    $err |= fold_file($_);
 }
-
-exit;
+exit ($err ? EX_FAILURE : EX_SUCCESS);
 
 ########
 
@@ -114,10 +117,21 @@ sub adj_col {
 # run fold on a given file
 sub fold_file {
     my($filename) = @_;
-    my($column, $char, $output);
+    my($column, $char, $input, $output);
 
     $column = 0;
-    open INPUT, '<', $filename or die "Cannot open $filename: $!\n";
+    if (-d $filename) {
+        warn "$Program: $filename: is a directory\n";
+        return 1;
+    }
+    if ($filename eq '-') {
+        $input = *STDIN;
+    } else {
+        unless (open $input, '<', $filename) {
+            warn "$Program: $filename: $!\n";
+            return 1;
+        }
+    }
 
     # the following hack allows us to dispense with the
     # slow getc() and the hairy adj_col() code because we
@@ -129,19 +143,22 @@ sub fold_file {
         my $soft  = "(.{0,$Width})(?=\b.)";   # XXX: \b != \s
         my $hard  = "(.{$Width})(?=.)";
         if ($Space_Break) {
-            while (<INPUT>) {
+            while (<$input>) {
               (s/$soft//o || s/$hard//o), print "$1\n" while length > $Width;
               print;
             }
         } else {
-            s/$hard/$1\n/go, print while <INPUT>;   # SCREAM
+            s/$hard/$1\n/go, print while <$input>;   # SCREAM
         }
-        close(INPUT) || die "can't close $filename: $!";
-        return;
+        unless (close $input) {
+            warn "$Program: $filename: failed to close input\n";
+            return 1;
+        }
+        return 0;
     }
 
 CHAR:   # bytewise processing.  The horror! The horror!
-    while (defined($char = getc(INPUT))) {
+    while (defined($char = getc($input))) {
 
         if ($char eq "\n") {
             print $output, "\n";
@@ -178,7 +195,11 @@ ADJUST: {
         }
       }  # ADJUST goto
     }
-    close(INPUT) || die "can't close $filename: $!";
+    unless (close $input) {
+        warn "$Program: $filename: failed to close input\n";
+        return 1;
+    }
+    return 0;
 }
 
 __END__
