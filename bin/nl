@@ -22,14 +22,19 @@ License: artistic2
 use strict;
 use warnings;
 use utf8;
-use Getopt::Std;
-use File::Basename;
+
+use Getopt::Std qw(getopts);
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 our $VERSION = '1.01';
 my $program  = basename($0);
 my $usage    = <<EOF;
 
-Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
+Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
+          [-n format] [-s sep] [-v startnum] [-w width] [file ...]
 
     -V              version
     -b type         'a'     all lines
@@ -53,9 +58,12 @@ EOF
 # options
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
-getopts("Vb:d:f:h:i:n:ps:v:w:", \%options) or die $usage;
+unless (getopts("Vb:d:f:h:i:n:ps:v:w:", \%options)) {
+	warn $usage;
+	exit EX_FAILURE;
+}
 
-my $version     = $options{V} || 0;
+my $version     = $options{V};
 my $type_b      = $options{b} || "t";
 my $delim       = $options{d} || '\:';
 my $type_f      = $options{f} || "n";
@@ -64,10 +72,33 @@ my $incr        = $options{i} || 1;
 my $format      = $options{n} || "rn";
 my $single_page = $options{p} || 0;
 my $sep         = $options{s} || "\t";
-my $startnum    = $options{v} || 1;
-my $width       = $options{w} || 6;
+my $startnum    = $options{v};
+my $width       = $options{w};
+if (defined $width) {
+	if ($width !~ m/\A\+?\d+\Z/a || $width == 0) {
+		warn "$program: invalid line number field width: '$width'\n";
+		exit EX_FAILURE;
+	}
+	$width = int $width; # strip '+'
+}
+else {
+	$width = 6;
+}
 
-die $VERSION . "\n" if $version;
+if (defined $startnum) {
+	if ($startnum !~ m/\A[\+\-]?\d+\Z/a) {
+		warn "$program: invalid starting line number: '$startnum'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$startnum = 1;
+}
+
+if ($version) {
+	print "$program $VERSION\n";
+	exit EX_SUCCESS;
+}
 
 # options -b -f -h
 my $regex_b = "";
@@ -149,7 +180,8 @@ sub print_line {
 	}
 	else
 	{
-		die $usage;
+		warn $usage;
+		exit EX_FAILURE;
 	}
 
 	print $line;
@@ -191,11 +223,21 @@ __END__
 
 =head1 NAME
 
-nl - line numbering filter.
+nl - line numbering filter
 
 =head1 SYNOPSIS
 
-    $ nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
+    nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
+       [-n format] [-s sep] [-v startnum] [-w width] [file ...]
+
+=head1 DESCRIPTION
+
+nl reads files sequentially and writes them to STDOUT, with line numbers added.
+If file is a dash "-" or if no file is given as argument, nl reads from STDIN.
+
+=head1 OPTIONS
+
+The following options are supported.
 
     -V              version
     -b type         'a'     all lines
@@ -214,12 +256,6 @@ nl - line numbering filter.
     -s sep          characters between number and text line (default : TAB)
     -v startnum     initial value to number pages (default : 1)
     -w width        line number width (default : 6)
-
-=head1 DESCRIPTION
-
-nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
-files sequentially, and writes them to STDOUT, with lines numbered. If file
-is a dash "-" or if no file is given as argument, nl reads from STDIN.
 
 =head1 BUGS
 
