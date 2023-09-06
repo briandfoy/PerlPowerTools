@@ -31,7 +31,7 @@ unless (getopts('n:', \%opt)) {
 my $count;
 if (defined $opt{'n'}) {
     $count = $opt{'n'};
-    if ($count =~ m/\D/) {
+    if ($count =~ m/\D/a) {
         warn "$Program: invalid number '$count'\n";
         exit EX_FAILURE;
     }
