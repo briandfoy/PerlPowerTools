@@ -86,7 +86,7 @@ else {
 }
 
 if (defined $startnum) {
-	if ($startnum !~ m/\A[\+\-]?\d+\Z/a) {
+	if ($startnum !~ m/\A[\+\-]?[0-9]+\Z/) {
 		warn "$program: invalid starting line number: '$startnum'\n";
 		exit EX_FAILURE;
 	}
