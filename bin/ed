@@ -85,6 +85,7 @@ my $Prompt = undef;             # saved prompt string for -p option
 my $SupressCounts = 0;          # byte counts are printed by default
 my @lines;                      # buffer for file being edited.
 my $command = "";               # single letter command entered by user
+my $commandsuf = "";            # single letter modifier of command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
 
@@ -561,7 +562,7 @@ sub edFilename {
 
 sub edWrite {
     my($AppendMode) = @_;
-    my($fh, $filename, $chars);
+    my($fh, $filename, $chars, $qflag);
 
     $chars = 0;
 
@@ -570,6 +571,14 @@ sub edWrite {
         $adrs[1] = maxline();
     } elsif (defined($adrs[0]) && !defined($adrs[1])) {
         $adrs[1] = $adrs[0];
+    }
+    if (length $commandsuf) {
+        if ($commandsuf eq 'q') {
+            $qflag = 1;
+        } else {
+            edWarn('Invalid command suffix');
+            return;
+        }
     }
 
     $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
@@ -606,6 +615,10 @@ sub edWrite {
 
     # v7 docs say to chmod 666 the file ... we're not going to
     # follow the docs *that* closely today (6/16/99 ---gmj)
+
+    if ($qflag) {
+        exit 0;
+    }
 }
 
 
@@ -925,6 +938,7 @@ sub edParse {
                   (([\+]+)|([-^]+))?        # + | -
                 )?
                  ([acdeEfhHijlmnpPqQrstwW=])?        # command char
+                 ([a-z])?                # command suffix
                  (\s*)(\S+)?                # argument (filename, etc.)
                  )$/x);
 
@@ -937,9 +951,17 @@ sub edParse {
         $command = "";
 
     }
+    if (defined $fields[28]) {
+        $commandsuf = $fields[28];
+        if (lc($command) ne 'w') {
+            return 0;
+        }
+    } else {
+        $commandsuf = '';
+    }
 
-    my $space_sep = length $fields[28];
-    $args[0] = $fields[29];
+    my $space_sep = length $fields[29];
+    $args[0] = $fields[30];
 
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
