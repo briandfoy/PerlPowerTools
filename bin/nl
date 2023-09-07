@@ -29,7 +29,7 @@ use File::Basename qw(basename);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-our $VERSION = '1.01';
+our $VERSION = '1.2';
 my $program  = basename($0);
 my $usage    = <<EOF;
 
@@ -68,9 +68,9 @@ my $type_b      = $options{b} || "t";
 my $delim       = $options{d} || '\:';
 my $type_f      = $options{f} || "n";
 my $type_h      = $options{h} || "n";
-my $incr        = $options{i} || 1;
+my $incr        = $options{i};
 my $format      = $options{n} || "rn";
-my $single_page = $options{p} || 0;
+my $single_page = $options{p};
 my $sep         = $options{s} || "\t";
 my $startnum    = $options{v};
 my $width       = $options{w};
@@ -93,6 +93,16 @@ if (defined $startnum) {
 }
 else {
 	$startnum = 1;
+}
+
+if (defined $incr) {
+	if ($incr !~ m/\A[\+\-]?[0-9]+\Z/) {
+		warn "$program: invalid line number increment: '$incr'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$incr = 1;
 }
 
 if ($version) {
@@ -127,6 +137,8 @@ $format_str .= 'd';
 # options -v
 my $number = $startnum;
 
+my $section = 1;
+my $new_section = 1;
 
 ###############
 # SUBROUTINES #
@@ -187,37 +199,66 @@ sub print_line {
 	print $line;
 }
 
+sub do_file {
+	my $name = shift;
+	my ($fh, $line);
+
+	if ($name eq '-')
+	{
+		$fh = *STDIN;
+	}
+	else
+	{
+		if (-d $name)
+		{
+			warn "$program: '$name': is a directory\n";
+			return 1;
+		}
+		unless (open $fh, '<', $name)
+		{
+			warn "$program: '$name': $!\n";
+			return 1;
+		}
+	}
+
+	while ($line = <$fh>)
+	{
+		if ($line =~ /^($delim)($delim)?($delim)?$/)
+		{
+			if    ($3) {$new_section = 0} # header
+			elsif ($2) {$new_section = 1} # body
+			else       {$new_section = 2} # footer
+
+			# change page
+			if ($new_section <= $section)
+			{
+				$number = $startnum unless $single_page;
+			}
+
+			$section = $new_section;
+		}
+		else
+		{
+			print_line($line, $type[$section], $regex[$section]);
+		}
+	}
+	return 0;
+}
 
 ########
 # MAIN #
 ########
 
-my $section = 1;
-my $new_section = 1;
-
-while (<>)
+my $err = 0;
+if (scalar(@ARGV) == 0)
 {
-	my $line = $_;
-
-	if ( $line =~ /^($delim)($delim)?($delim)?$/ )
-	{
-		if    ($3) {$new_section = 0} # header
-		elsif ($2) {$new_section = 1} # body
-		else       {$new_section = 2} # footer
-
-		# change page
-		if ($new_section <= $section)
-		{
-			$number = $startnum unless $single_page;
-		}
-
-		$section = $new_section;
-	}
-	else
-	{
-		print_line($_, $type[$section], $regex[$section]);
-	}
+	@ARGV = ('-');
 }
+foreach (@ARGV)
+{
+	$err |= do_file($_);
+}
+exit ($err ? EX_FAILURE : EX_SUCCESS);
 
 __END__
 
