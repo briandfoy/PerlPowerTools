@@ -67,12 +67,15 @@ else {
 }
 
 # check message
+my $char_error;
 while ($message =~ /(.)/g) {
   unless ($ascii_to_table{$1}) {
     warn "$Program: The character `$1' is not in my character set\n";
-    exit EX_FAILURE;
+    $char_error++;
   }
 }
+
+exit EX_FAILURE if $char_error;
 
 # print banner
 while ($message =~ /(.)/g) {
