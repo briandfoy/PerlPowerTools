@@ -40,13 +40,11 @@ while (@ARGV && $ARGV[0] =~ s/^-//) {
   if (s/^w//) {
     if    (length) { $width = $_ }
     elsif (@ARGV)  { $width = shift }
-    else           { warn "$Program: option requires an integer argument -- w\n";
+    else           { warn "$Program: illegal argument for -w option\n";
                      exit EX_FAILURE; }
-    if ($width =~ /\D/ || $width == 0) {
-      # the original source silently defaults to 80 cols.
-      # I think that's rude.
-      warn "Don't understand -w argument `$width'.  Using 80 columns.\n";
-      $width = 80;
+    if ($width =~ /[^0-9]/ || $width == 0) {
+       warn "$Program: illegal argument for -w option\n";
+       exit EX_FAILURE;
     }
     next;
   }
