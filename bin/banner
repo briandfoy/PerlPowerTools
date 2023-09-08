@@ -1088,8 +1088,8 @@ banner [-w width] [message ...]
 Banner prints a large, high quality banner on the standard
 output.  If the message is omitted,  it  prompts  for  and
 reads one line of its standard input.  If B<-w> is given, the
-output is scrunched down from a width of 132 to I<n> ,  suit-
-able  for a narrow terminal.
+output is scrunched down from a width of 132 to I<n> ,  suitable  f
+or a narrow terminal.
 
 The output should be printed on a hard-copy device, up  to
 132  columns  wide,  with no breaks between the pages. The
