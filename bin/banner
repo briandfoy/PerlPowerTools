@@ -48,7 +48,7 @@ while (@ARGV && $ARGV[0] =~ s/^-//) {
     }
     next;
   }
-  warn "$0: illegal option -- $_\n";
+  warn "$Program: illegal option -- $_\n";
   usage();
 }
 
