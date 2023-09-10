@@ -15,33 +15,23 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
 my ($VERSION) = '1.3';
+my (@fh, @sep, %opt);
 
-my @fh;
-
-my @sep = ( "\t" );
-my $dash_ess = 0;
-
-while ($ARGV[0] =~ /^-.+$/) {
-	$_ = shift @ARGV;
-	/^-\?$/ and do { print <<EOF;
-Usage: $0 [-s] [-d list] [file...]
-
-Merges the corresponding lines of files.
-EOF
-		exit;
-	};
-	/^-d$/ and do {
-		my $arg = shift;
-		@sep = split(//, eval qq{sprintf("$arg")});
-		next;
-	};
-	/^-s$/ and do { $dash_ess = 1; next; }
+unless (getopts('d:s', \%opt)) {
+	print "usage: $Program [-s] [-d list] [file ...]\n";
+	exit EX_FAILURE;
+}
+if (defined $opt{'d'}) {
+	@sep = split //, eval { "$opt{d}" };
+} else {
+	@sep = ("\t");
 }
 
 if (scalar(@ARGV) == 0) {
@@ -64,7 +54,7 @@ foreach my $f (@ARGV) {
 	}
 }
 
-if ($dash_ess) {
+if ($opt{'s'}) {
 	for my $i (0..$#fh) {
 		my $fh;
 		$fh = $fh[$i];
@@ -116,7 +106,7 @@ paste - merge corresponding or subsequent lines of files
 
 =head1 SYNOPSIS
 
-paste [-s] [-d list] [file...]
+paste [-s] [-d list] [file ...]
 
 =head1 DESCRIPTION
 
