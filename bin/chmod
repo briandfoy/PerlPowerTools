@@ -64,7 +64,7 @@ my $mode = shift;
 
 my $symbolic = 0;
 if ($mode =~ /[^0-7]/) {
-    require SymbolicMode;
+    require PerlPowerTools::SymbolicMode;
     $symbolic = 1;
 }
 elsif ($mode !~ /^[0-7]{1,4}$/) {
@@ -113,7 +113,7 @@ sub modify_file {
     }
     my $realmode = $mode;
     if ($symbolic) {
-        $realmode = SymbolicMode::mod ($mode, $file) or
+        $realmode = PerlPowerTools::SymbolicMode::mod ($mode, $file) or
                        die "invalid mode: $mode\n";
     }
     chmod oct ($realmode), $file or warn "$!\n";
@@ -385,7 +385,7 @@ The OpenBSD documentation does not match the OpenBSD implementation.
 Furthermore, the implementations of Solaris, SunOS, HP, and GNU all differ
 from each other, and from OpenBSD.
 
-This manual page needs work. The module I<SymbolicMode> needs to be
+This manual page needs work. The module I<PerlPowerTools::SymbolicMode> needs to be
 documented.
 
 B<chmod> parses a symbolic mode once for each file. That is too much

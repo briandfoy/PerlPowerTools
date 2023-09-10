@@ -42,7 +42,7 @@ sub usage {
 
 my $symbolic = 0;
 if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
-    require SymbolicMode;
+    require PerlPowerTools::SymbolicMode;
     $symbolic = 1;
 }
 
@@ -123,7 +123,7 @@ foreach my $directory (@ARGV) {
 
     my $realmode = $options{'m'};
     if ($symbolic) {
-        $realmode = SymbolicMode::mod($options{'m'}, $dir) or
+        $realmode = PerlPowerTools::SymbolicMode::mod($options{'m'}, $dir) or
                        die "invalid mode: $options{m}\n";
     }
     chmod oct($realmode) => $dir or warn "$!\n";
