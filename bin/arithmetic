@@ -118,7 +118,11 @@ while ($questions < QUESTIONS) {
     # Keep trying till we get something that's a number.
     LOOP: {
         print "$left $operator $right = ";
-        chomp ($guess = <>);
+        $guess = <>;
+        if (!defined($guess)) {
+            report();
+        }
+        chomp $guess;
         if ($guess =~ /\D/) {
             print "Please type a number.\n";
             redo;
@@ -143,7 +147,7 @@ while ($questions < QUESTIONS) {
     $questions ++;
 }
 
-$SIG {INT} -> ();  # Terminates.
+report();
 
 sub report {
     my $seconds = time - $start;
@@ -182,8 +186,8 @@ If B<arithmetic> thinks your answer is not a number, it will
 respond with B<Please type a number!> and repeat the exercise.
 
 After 20 questions, B<arithmetic> will tell you how many exercises you
-answered correctly, and how much time it took. Interrupting the game
-triggers the same reports; the game is then terminated.
+answered correctly, and how much time it took.
+You can quit at any time by typing the interrupt or end-of-file character.
 
 If you answer an exercise incorrectly, B<arithmetic> will remember the
 numbers involved, and favour those over others.
@@ -216,8 +220,7 @@ The working of B<arithmetic> is not influenced by any environment variables.
 
 =head1 BUGS
 
-This implementation of B<arithmetic> does not respect the end of file
-character.
+None known.
 
 =head1 REVISION HISTORY
 
