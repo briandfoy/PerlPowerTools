@@ -2164,11 +2164,10 @@ sub yylex
 
           # number, is it integer or float?
 	  if ($line =~ s/^(\d+)//) {
-	      $yylval = 0 + ($char.$1);
-	      $yylval = Math::BigFloat->new($yylval) if $bignum;
+	      my $str = $char . $1;
+	      $yylval = $bignum ? Math::BigFloat->new($str) : int($str);
           } else {
-	      $yylval = 0 + $char;
-	      $yylval = Math::BigFloat->new($yylval) if $bignum;
+	      $yylval = $bignum ? Math::BigFloat->new($char) : int($char);
 	  }
 	  $type = $INT;
 
