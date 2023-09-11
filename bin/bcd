@@ -125,11 +125,65 @@ sub printonecard {
 	print '|', '_' x $Cols, "|\n";
 }
 
+sub decode {
+	my (@buf, @lines, $line);
+
+	# ignore top of card and text line
+	foreach (1 .. 2) {
+		$line = readline;
+		return 1 unless (defined $line);
+	}
+	# twelve lines of data
+	foreach (1 .. 12) {
+		$line = readline;
+		return 1 unless (defined $line);
+		chomp $line;
+		return 1 unless ($line =~ s/\A\|//);
+		return 1 unless ($line =~ s/\|\Z//);
+		push @lines, $line;
+	}
+	# ignore bottom of card
+	$line = readline;
+	return 1 unless (defined $line);
+
+	foreach my $col (0 .. ($Cols - 1)) {
+		my $val = 0;
+		foreach my $i (0 .. $#lines) {
+			if (substr($lines[$i], $col, 1) eq ']') {
+				$val |= 1 << (11 - $i);
+			}
+		}
+		$buf[$col] = ' ';
+		foreach my $i (0 .. 255) {
+			if ($Holes[$i] == $val && $Holes[$i]) {
+				$buf[$col] = chr $i;
+				last;
+			}
+		}
+	}
+	foreach my $col (reverse 0 .. ($Cols - 1)) {
+		if ($buf[$col] eq ' ') {
+			$buf[$col] = "\0";
+		} else {
+			last;
+		}
+	}
+	print join('', @buf), "\n";
+	return 0;
+}
+
 MAIN: {
 	my %opt;
-	getopts('l', \%opt) or usage();
+	getopts('dl', \%opt) or usage();
 	$Cols = 80 if $opt{'l'};
 
+	if ($opt{'d'}) {
+		while (decode() == 0) {
+			next;
+		}
+		exit EX_SUCCESS;
+
+	}
 	if (@ARGV) {
 		while (my $str = shift) {
 			printcard($str);
@@ -150,7 +204,8 @@ bcd - format input as punch cards
 
 =head1 SYNOPSIS
 
-bcd [-l] [string ...]
+    bcd [-l] [string ...]
+    bcd -d [-l]
 
 =head1 DESCRIPTION
 
@@ -162,7 +217,11 @@ is produced.
 
 The following options are available:
 
-=over 1
+=over 2
+
+=item -d
+
+Decode punch card data from standard input
 
 =item -l
 
