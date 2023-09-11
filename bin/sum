@@ -18,11 +18,17 @@ License:
 
 use strict;
 use integer;
-use Getopt::Std;
-use vars qw($opt_h $opt_o);
 
-&help unless getopts('ho:');
-&help if ( $opt_h );
+use Getopt::Std qw(getopts);
+
+use vars qw($opt_o);
+
+use constant BUFLEN => 4096;
+use constant MASK32 => 0xffffffff;
+use constant MASK16 => 0xffff;
+use constant MASK8  => 0xff;
+
+&help unless getopts('o:');
 
 # default to bsd unless spec.
 $opt_o = 1 unless ( $0 =~ /cksum$/ || defined($opt_o) );
@@ -60,12 +66,17 @@ sub sum1 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
 	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
+	my @chars;
 
-	while($num = sysread $fh, $buf, $buflen) {
-		for($len = ($len+$num), $i = 0; $i<$num; $i++) {
-			$crc |= 0x10000 if ( $crc & 1 ); # get ready for rotating the 1 below
-			$crc = (($crc>>1)+ord(substr $buf, $i, 1)) & 0xffff; # keep to 16-bit
+	while($num = sysread $fh, $buf, BUFLEN) {
+		$len += $num;
+		@chars = unpack 'C*', $buf;
+		foreach $i (@chars) {
+			if ($crc & 1) {
+				$crc |= 0x10000; # get ready for rotating the 1 below
+			}
+			$crc = ($crc >> 1) + $i;
+			$crc &= MASK16; # keep to 16-bit
 		}
 	}
 
@@ -75,17 +86,16 @@ sub sum1 {
 sub sum2 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
-	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
+	my($buf,$num);
 
-	while($num = sysread $fh, $buf, $buflen) {
+	while($num = sysread $fh, $buf, BUFLEN) {
 		$len += $num;
 		$crc += unpack("%32C*", $buf);
 	}
 
 	# crc = s (total of bytes)
-	$crc = ($crc & 0xffff) + ($crc & 0xffffffff) / 0x10000; # r
-	$crc = ($crc & 0xffff) + ($crc / 0x10000); # cksum
+	$crc = ($crc & MASK16) + ($crc & MASK32) / 0x10000; # r
+	$crc = ($crc & MASK16) + ($crc / 0x10000); # cksum
 
 	return $num,$crc,($len+511)/512; # round # of blocks up ...
 }
@@ -95,8 +105,7 @@ sub crc32 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
 	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
-	my $MASK32 = 0xffffffff;
+	my @chars;
 
 	# crctable/crc32 alg converted from openbsd's cksum program ...
 	my(@crctable) = (
@@ -154,30 +163,33 @@ sub crc32 {
 		0xa2f33668, 0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 	);
 
-	while($num = sysread $fh, $buf, $buflen) {
-		for($len = ($len + $num) & $MASK32, $i = 0; $i < $num; $i++) {
-			$crc = ($crc << 8 ^ $crctable[$crc >> 24 ^ ord(substr $buf, $i, 1)])
-					& $MASK32;
+	while($num = sysread $fh, $buf, BUFLEN) {
+		$len = ($len + $num) & MASK32;
+		@chars = unpack 'C*', $buf;
+		foreach $i (@chars) {
+			my $j = $crc >> 24 ^ $i;
+			$crc = $crc << 8 ^ $crctable[$j];
+			$crc &= MASK32;
 		}
 	}
 
 	my($rlen) = $len; # for reporting ...
 	for(;$len!=0;$len>>=8) { # MSB first
-		$crc = (($crc << 8) ^ $crctable[($crc >> 24) ^ ($len&0xff)])
-				& $MASK32;
+		$i = ($crc >> 24) ^ ($len & MASK8);
+		$crc = ($crc << 8) ^ $crctable[$i];
+		$crc &= MASK32;
 	}
 	$crc = ~$crc;
-	$crc &= $MASK32;
+	$crc &= MASK32;
 	return $num, $crc, $rlen;
 }
 
 sub help {
 	print "
-usage: $0 [-o 0|1|2] [-h] [file ...]
+usage: $0 [-o 0|1|2] [file ...]
 
 -o	Specifies algorithm to use ... 0 is CRC32 (default), 1 is BSD
 	Algorithm 1, 2 is SYSV Algorithm 2.
--h	Help!  (this display)
 
 Note: If this program is launched with a name other than 'cksum', the default
       of BSD Algorithm 1 is used unless otherwise specified via switch.
@@ -195,12 +207,11 @@ sum - display file checksums and block counts
 
 B<sum>
 [ B<-o> I<0|1|2> ]
-[ B<-h> ]
 [ I<filename ...> ]
 
 =head1 DESCRIPTION
 
-sum outputs three space seperated values:  file CRC, file size, and
+sum outputs three space separated values:  file CRC, file size, and
 file name.  Can be used to find errors in transmitted files.  You should
 not use sum for security checks as they are easily fooled.  Look into
 md5sum for something a bit more secure.  If no file names are specified,
@@ -209,8 +220,6 @@ stdin is used and no file name will displayed in the output.
 =head1 OPTIONS AND ARGUMENTS
 
 =over 4
-
-=item I<-h>	Display the usage help message.
 
 =item I<-o>	Specify the output type for file CRC and size.
 C<0>--CRC is computed using the CRC 32 algorithm, the default unless
