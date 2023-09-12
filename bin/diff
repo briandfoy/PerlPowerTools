@@ -36,19 +36,22 @@ License: perl
 # means "line number". But theoretically the code could be used more generally
 use strict;
 
+use File::Basename qw(basename);
+
 Algorithm::Diff->import('diff');
 
 # GLOBAL VARIABLES  ####
 # After we've read up to a certain point in each file, the number of items
 # we've read from each file will differ by $FLD (could be 0)
 my $File_Length_Difference = 0;
+my $Program = basename($0);
 
 #ed diff outputs hunks *backwards*, so we need to save hunks when doing ed diff
 my @Ed_Hunks = ();
 ########################
 
 my $usage = << "ENDUSAGE";
-Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
+Usage: $Program [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
     -c do a context diff with 3 lines of context
     -C do a context diff with 'lines' lines of context (implies -c)
     -e create a script for the ed editor to change oldfile to newfile
@@ -57,7 +60,6 @@ Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
     -U do a unified diff with 'lines' lines of context (implies -u)
     -q report only whether or not the files differ
 
-By default it will do an "old-style" diff, with output like UNIX diff
 ENDUSAGE
 
 my $Context_Lines = 0; # lines of context to print. 0 for old-style diff
@@ -95,7 +97,7 @@ while ($ARGV[0] =~ /^-/) {
     $Diff_Type = "ED";
   } else {
     $opt =~ s/^-//;
-    bag("Illegal option -- $opt");
+    bag("Illegal option -- $opt\n$usage");
   }
 }
 
@@ -107,7 +109,9 @@ if (grep($_,($opt_c, $opt_e, $opt_f, $opt_u)) > 1) {
     bag("Only one of -c, -u, -f, -e are allowed");
 }
 
-bag($usage) unless @ARGV == 2;
+if (scalar(@ARGV) != 2) {
+    bag("Missing argument\n$usage");
+}
 
 ######## DO THE DIFF!
 my ($file1, $file2) = @ARGV;
@@ -119,8 +123,16 @@ if ($Diff_Type eq "CONTEXT") {
     $char1 = '-' x 3; $char2 = '+' x 3;
 }
 
-open (F1, '<', $file1) or bag("Couldn't open $file1: $!");
-open (F2, '<', $file2) or bag("Couldn't open $file2: $!");
+if (-d $file1) {
+    bag("'$file1': is a directory");
+}
+open(F1, '<', $file1) or bag("Couldn't open '$file1': $!");
+if (-d $file2) {
+    my $path = join('/', $file2, basename($file1));
+    open(F2, '<', $path) or bag("Couldn't open '$path': $!");
+} else {
+    open(F2, '<', $file2) or bag("Couldn't open '$file2': $!");
+}
 my (@f1, @f2);
 chomp(@f1 = <F1>);
 close F1;
@@ -173,8 +185,7 @@ exit 1;
 
 sub bag {
   my $msg = shift;
-  $msg .= "\n";
-  warn $msg;
+  warn "$Program: $msg\n";
   exit 2;
 }
 
@@ -719,21 +730,58 @@ sub usage {
 
 =head1 NAME
 
-diff - Perl Power Tools to compute `intelligent' differences between two files / lists
+diff - compute `intelligent' differences between two files
 
 =head1 SYNOPSIS
 
-Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
+diff [{-c | -C lines -e | -f | -u | -U lines}] file1 file2
 
-    -c do a context diff with 3 lines of context
-    -C do a context diff with 'lines' lines of context (implies -c)
-    -e create a script for the ed editor to change oldfile to newfile
-    -f like -e but in reverse order
-    -u do a unified diff with 3 lines of context
-    -U do a unified diff with 'lines' lines of context (implies -u)
-    -q report only whether or not the files differ
+=head1 DESCRIPTION
 
-By default it will do an "old-style" diff, with output like UNIX diff
+The diff command compares file1 and file2, producing a listing on
+standard output describing how to convert one file to the other.
+Various formats are available for representing the file changes.
+By default the output is in the traditional UNIX diff format.
+
+Directories cannot be compared. If file1 is a regular file and file2
+is a directory, diff is applied to file1 and a file of the same name
+within the directory.
+
+=head1 OPTIONS
+
+The following options are supported.
+
+=over 8
+
+=item -c
+
+Produce a context diff with 3 lines of context
+
+=item -C NUM
+
+Produce a context diff with NUM lines of context
+
+=item -e
+
+Create a script for the ed editor
+
+=item -f
+
+Like -e but in reverse order (output cannot be processed by ed)
+
+=item -u
+
+Output a unified diff with 3 lines of context
+
+=item -U NUM
+
+Output a unified diff with NUM lines of context
+
+=item -q
+
+Report only whether or not the files differ
+
+=back
 
 =head1 AUTHOR
 
