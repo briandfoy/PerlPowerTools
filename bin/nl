@@ -173,7 +173,7 @@ sub print_line {
 	}
 	elsif ($type eq 't')
 	{
-		my $match = /^$/ ? 0 : 1;
+		my $match = $line =~ /\A\Z/ ? 0 : 1;
 		print_number($match);
 	}
 	elsif ($type eq 'n')
@@ -182,12 +182,12 @@ sub print_line {
 	}
 	elsif ($type eq 'p')
 	{
-		my $match = /$regex/ ? 1 : 0;
+		my $match = $line =~ /$regex/ ? 1 : 0;
 		print_number($match);
 	}
 	elsif ($type eq 'e')
 	{
-		my $match = /$regex/ ? 0 : 1;
+		my $match = $line =~ /$regex/ ? 0 : 1;
 		print_number($match);
 	}
 	else
