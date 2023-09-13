@@ -65,7 +65,41 @@ if( $cal::num_args == 0 ) {
 if( $cal::year && $cal::month ) {
 	print fmt_month($cal::year, $cal::month, 1);
 } else {
-	my $margin = int((65 / 2) - (length("$cal::year") / 2));
+	if ($cal::jd) {
+		print_year_jd();
+	} else {
+		print_year();
+	}
+
+}
+
+sub box_width {
+	return $cal::jd ? 28 : 21;
+}
+
+sub print_year_jd {
+	my $w = box_width();
+	my $width = 2 * $w + 1;
+	my $margin = int(($width / 2) - (length("$cal::year") / 2));
+	print ' ' x $margin, $cal::year, "\n\n";
+
+	my @month = (1 .. 12);
+	while (@month) {
+		my @mon = splice @month, 0, 2;
+		my @txt = map { fmt_month($cal::year, $_, 0) } @mon;
+		my @m0 = split /\n/, $txt[0];
+		my @m1 = split /\n/, $txt[1];
+
+		foreach my $i (0 .. 7) {
+			printf "%-${w}s %-${w}s\n", $m0[$i], $m1[$i];
+		}
+	}
+}
+
+sub print_year {
+	my $w = box_width();
+	my $width = 3 * $w + 2;
+	my $margin = int(($width / 2) - (length("$cal::year") / 2));
 	print ' ' x $margin, $cal::year, "\n\n";
 
 	my @month = (1 .. 12);
@@ -77,7 +111,7 @@ if( $cal::year && $cal::month ) {
 		my @m2 = split /\n/, $txt[2];
 
 		foreach my $i (0 .. 7) {
-			printf "%-21s %-21s %-21s\n", $m0[$i], $m1[$i], $m2[$i];
+			printf "%-${w}s %-${w}s %-${w}s\n", $m0[$i], $m1[$i], $m2[$i];
 		}
 	}
 }
@@ -85,29 +119,37 @@ if( $cal::year && $cal::month ) {
 sub fmt_month {
 	my( $year, $month, $titleyr ) = @_;
 	my( @month ) = &make_month_array( $year, $month );
-	my( $title, $length, $diff, $left, $right ) = ();
-	my( $end, $x, $size, $buf, $width ) = ();
+	my( $title, $margin, $end, $x, $buf ) = ();
 	my( @months ) = ( '', 'January', 'February', 'March', 'April', 'May',
 					  'June', 'July', 'August', 'September', 'October',
 					  'November', 'December' );
-	my( @days ) = ( ' Su', ' Mo' , ' Tu', ' We', ' Th', ' Fr', ' Sa' );
-	$width = 21;
-	$size = scalar( @month );
+	my( @days ) = ('Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa' );
+
 	$title = $months[$month];
 	$title .= " $year" if $titleyr;
-	$length = length( $title );
-	$diff = $width - $length;
-	$right = int($diff / 2);
-	$left = $diff - $right;
-	$title = ' ' x $left."$title".' ' x $right;
+	$margin = int((box_width() / 2) - (length($title) / 2));
 
-	$buf = "$title\n";
-	$buf .= join '', @days;
+	$buf = ' ' x $margin;
+	$buf .= "$title\n";
+
+	foreach my $day (@days) {
+		if ($cal::jd) {
+			$buf .= sprintf '%3s ', $day;
+		} else {
+			$buf .= sprintf '%2s ', $day;
+		}
+	}
 
 	$end = 0;
-	for( $x = 0; $x < $size; $x++ ) {
-		if( $end == 0 ) { $buf .= "\n"; }
-		$buf .= $month[$x];
+	for( $x = 0; $x < scalar(@month); $x++ ) {
+		if ($end == 0) {
+			$buf .= "\n";
+		}
+		if ($cal::jd) {
+			$buf .= sprintf '%3s ', $month[$x];
+		} else {
+			$buf .= sprintf '%2s ', $month[$x];
+		}
 		$end++;
 		if( $end > 6 ) {
 			$end = 0;
@@ -122,18 +164,21 @@ sub make_month_array {
 	my( @month_array, $numdays, $remain, $x, $y ) = ();
 	my( $firstweekday ) = &day_of_week_num( $year, $month, 1 );
 	$numdays = &days_in_month( $year, $month );
-	$y = 1;
-	if( $cal::jd ) {
+	if ($cal::jd) {
 		$y = &day_of_year( $year, $month, 1 );
+	} else {
+		$y = 1;
 	}
-	for( $x = 0; $x < $firstweekday; $x++ ) { $month_array[$x] = ' ' x 3; }
+	for ($x = 0; $x < $firstweekday; $x++) {
+		$month_array[$x] = '';
+	}
 	if( !(($year == 1752) && ($month == 9)) ) {
 		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
-			$month_array[$x + $firstweekday - 1] = sprintf('%3d', $y);
+			$month_array[$x + $firstweekday - 1] = $y;
 		}
 	} else {
 		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
-			$month_array[$x + $firstweekday - 1] = sprintf('%3d', $y);
+			$month_array[$x + $firstweekday - 1] = $y;
 			if( $y == 2 ) {
 				$y = 13;
 			}
