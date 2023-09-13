@@ -13,60 +13,42 @@ License: perl
 
 
 use strict;
-use Getopt::Std;
+
+use File::Basename qw(basename dirname);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 my ($VERSION) = '1.2';
+my $Program = basename($0);
 
 my $warnings = 0;
-
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0, 14) eq "Unknown option" ||
-        substr ($_ [0], 0,  5) eq "Usage") {
-        warn <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-p] directory [directories ...]
-EOF
-        exit 1;
-    }
-    else {
-        $warnings = 1;
-        warn "$0: @_";
-    }
-};
-
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    die "$0: @_";
-};
-
-# Get the options.
-getopts ('p', \my %options);
-
-warn "Unknown option" unless @ARGV;   # This will actually die.
-
-my $parent = exists $options {p};
-
+my %opt;
+if (!getopts('p', \%opt) || scalar(@ARGV) == 0) {
+    warn "usage: $Program [-p] directory ...\n";
+    exit EX_FAILURE;
+}
 foreach my $directory (@ARGV) {
-
-    rmdir $directory or do {
-        warn "$!\n";
+    unless (rmdir $directory) {
+        warn "$Program: failed to remove '$directory': $!\n";
+        $warnings = 1;
         next;
     };
-
-    if ($parent) {
-        require File::Basename;
+    if ($opt{'p'}) {
         # Errors are ignored once in recursion.
-        1 while ($directory = File::Basename::dirname ($directory)) &&
-                 $directory && rmdir $directory;
+        while (1) {
+            $directory = dirname($directory);
+            last if ($directory eq '.' || $directory eq '/');
+
+            unless (rmdir $directory) {
+                warn "$Program: failed to remove '$directory': $!\n";
+                $warnings = 1;
+                last;
+            }
+        }
     }
 }
-
-
 exit $warnings;
 
 __END__
@@ -79,7 +61,7 @@ rmdir - remove directories
 
 =head1 SYNOPSIS
 
-rmdir [-p] directory [directories ...]
+    rmdir [-p] directory ...
 
 =head1 DESCRIPTION
 
@@ -110,7 +92,7 @@ I<rmdir> does not have any known bugs.
 
 =head1 STANDARDS
 
-This I<head> implementation is compatible with the B<OpenBSD> implementation,
+This I<rmdir> implementation is compatible with the B<OpenBSD> implementation,
 which is expected to be compatible with the B<IEEE Std1003.2-1992>
 (aka B<POSIX.2>) standard.
 
