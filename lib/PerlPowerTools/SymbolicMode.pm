@@ -1,133 +1,4 @@
-#!/usr/bin/perl
-
-=begin metadata
-
-Name: mkdir
-Description: create directories
-Author: Abigail, perlpowertools@abigail.be
-License: perl
-
-=end metadata
-
-=cut
-
-
-use strict;
-
-use Getopt::Std qw(getopts);
-
-my ($VERSION) = '1.3';
-my $Program;
-BEGIN { $Program = do { require File::Basename; File::Basename::basename($0) }; }
-
-$SIG{__WARN__} = sub { warn "$Program: @_\n" };
-$SIG{__DIE__} =  sub { die  "$Program: @_\n" };
-
-my %options;
-getopts('m:p', \%options) or usage();
-
-usage() unless @ARGV;
-
-use constant EX_SUCCESS => 0;
-use constant EX_ERROR   => 1;
-use constant EX_USAGE   => 2;
-
-sub usage {
-	require Pod::Usage;
-	Pod::Usage::pod2usage({
-		-exitval => EX_USAGE,
-		-verbose => 2,
-		});
-	}
-
-my $symbolic = 0;
-if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
-    $symbolic = 1;
-}
-
-# Pay attention before you get lost. The argument list will be turned
-# into a list of anon arrays. Each anon array has 2 elements, a directory
-# name, and a flag to indicate whether it's an "intermediate" directory
-# or not. "intermediate" directories are the directories interfered by
-# -p, but not given on the command line.
-if (exists $options{'p'}) {
-    require File::Basename;
-    my @ARGV2;
-    while (@ARGV) {
-        my $dir = pop @ARGV;
-        my $intermediate = 0;
-        while( $dir ne File::Basename::dirname($dir) ) {
-            push @ARGV2 => [$dir, $intermediate ++];
-            $dir = File::Basename::dirname($dir);
-        }
-    }
-    @ARGV = reverse @ARGV2;
-}
-else {
-    @ARGV = map {[$_ => 0]} @ARGV;
-}
-
-my $err = 0;
-foreach my $directory (@ARGV) {
-    my($dir, $intermediate) = @$directory;
-
-    # Existing directories don't create a warning when -p is in effect.
-    next if -d $dir && exists $options{'p'};
-
-    # Umask is applied on mkdir.
-    mkdir $dir => 0777 or do {
-        warn qq 'cannot create make directory "$dir": $!\n';
-        $err++;
-        next;
-    };
-
-    # Special case the intermediate directories.
-    if ($intermediate) {
-        # Get the current permissions of the directory; in oct.
-        my $mode = sprintf "%03o" => (stat $dir)[2];
-        unless (defined $mode) {
-            # Skip to next directory of arg list.
-            # The tests for @ARGV aren't really necessary.
-            shift while @ARGV && $ARGV[0][1];
-            shift if    @ARGV;
-            warn "stat on $dir failed: $!\n";
-            $err++;
-            next;
-        }
-        # Individual parts.
-        my @modes   = split // => substr $mode => -3;
-
-        # Turn on write and search permission for the user.
-        $modes[0] |= 3;
-
-        # Reassemble.
-        $mode       = join "" => @modes;
-
-        # Mode is an oct, remember?
-        chmod oct($mode) => $dir or do {
-            warn "stat on $dir failed: $!\n";
-            $err++;
-            # Skip to next directory of arg list.
-            # The tests for @ARGV aren't really necessary.
-            shift while @ARGV && $ARGV[0][1];
-            shift if    @ARGV;
-            next;
-        };
-
-        # -m has no effect on intermediate directories created due to -p.
-        next;
-    }
-
-    next unless exists $options{'m'};
-
-    my $realmode = $options{'m'};
-    if ($symbolic) {
-        $realmode = mod($options{'m'}, $dir) or
-                       die "invalid mode: $options{m}\n";
-    }
-    chmod oct($realmode) => $dir or warn "$!\n";
-}
-exit($err ? EX_ERROR : EX_SUCCESS);
+package PerlPowerTools::SymbolicMode;
 
 #
 # $Id: SymbolicMode.pm,v 1.1 2004/07/23 20:10:01 cwest Exp $
@@ -140,6 +11,8 @@ exit($err ? EX_ERROR : EX_SUCCESS);
 # Initial revision
 #
 #
+
+use strict;
 
 sub mod ($$) {
     my $symbolic     = shift;
@@ -331,69 +204,7 @@ sub mod ($$) {
     join "" => $first, @perms {@ugo};
 }
 
+1;
+
+
 __END__
-
-=pod
-
-=head1 NAME
-
-mkdir - create directories
-
-=head1 SYNOPSIS
-
-B<mkdir> [B<-p>] [B<-m> I<mode>] I<directory> [I<directories> ...]
-
-=head1 DESCRIPTION
-
-B<mkdir> creates directories, giving it permission B<0777>, as modified
-by the current I<umask>. Directories created in the order they are given.
-
-=head2 OPTIONS
-
-B<mkdir> accepts the options described below.
-
-=over 4
-
-=item B<-p>
-
-Create any required intermediate directories. Such directories will be
-created with permission B<0777>, as modified by the current I<umask>.
-In addition, the I<write> and I<execute> bits for the I<owner> of the
-directory will be set. If the B<-p> option is given, existing directories
-will not trigger an error.
-
-=item B<-m> I<mode>
-
-Create the directory with permissions as indicated by I<mode>. I<mode>
-can be of any form accepted by I<chmod(1)>. Symbolic I<mode>s are
-relative to an initial mode of I<a=rwx>.
-
-=back
-
-=head1 ENVIRONMENT
-
-The working of B<mkdir> is not influenced by any environment variables.
-
-=head1 BUGS
-
-I<mkdir> does not have any known bugs.
-
-=head1 STANDARDS
-
-This implementation of I<mkdir> is compatible with the B<OpenBSD>
-implementation, and is expected to be compatible with the
-B<IEEE Std1003.2> aka B<POSIX.2> implementation.
-
-=head1 AUTHOR
-
-The Perl implementation of B<mkdir> was written by Abigail, I<perlpowertools@abigail.be>.
-
-=head1 COPYRIGHT and LICENSE
-
-This program is copyright by Abigail 1999.
-
-This program is free and open software. You may use, copy, modify, distribute,
-and sell this program (and any modified variants) in any way you wish,
-provided you do not restrict others from doing the same.
-
-=cut
