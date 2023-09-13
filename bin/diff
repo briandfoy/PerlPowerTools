@@ -124,10 +124,14 @@ if ($Diff_Type eq "CONTEXT") {
 }
 
 if (-d $file1) {
-    bag("'$file1': is a directory");
+    bag("'$file2': is a directory") if (-d $file2);
+    my $path = join('/', $file1, basename($file2));
+    open(F1, '<', $path) or bag("Couldn't open '$path': $!");
+} else {
+    open(F1, '<', $file1) or bag("Couldn't open '$file1': $!");
 }
-open(F1, '<', $file1) or bag("Couldn't open '$file1': $!");
 if (-d $file2) {
+    bag("'$file1': is a directory") if (-d $file1);
     my $path = join('/', $file2, basename($file1));
     open(F2, '<', $path) or bag("Couldn't open '$path': $!");
 } else {
@@ -743,9 +747,9 @@ standard output describing how to convert one file to the other.
 Various formats are available for representing the file changes.
 By default the output is in the traditional UNIX diff format.
 
-Directories cannot be compared. If file1 is a regular file and file2
-is a directory, diff is applied to file1 and a file of the same name
-within the directory.
+Two directories cannot be compared. If either file1 or file2 is a
+directory, diff is applied to the non-directory file and a file of
+the same name within the directory.
 
 =head1 OPTIONS
 
