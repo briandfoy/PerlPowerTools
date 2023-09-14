@@ -14,6 +14,7 @@ License: perl
 
 # Perl Power Tool - ls(1)
 
+use File::Basename qw(basename);
 use File::stat;
 use Getopt::Std;
 use File::Spec;
@@ -30,6 +31,11 @@ use File::Spec;
 # (mjd-perl-lsmode@plover.com)
 #
 # You may distribute this module under the same terms as Perl itself.
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
 my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
@@ -112,7 +118,7 @@ sub DirEntries {
 			push(@Entries, \%Attributes);
 			return @Entries;
 		}
-		print "pls: can't access '$_[0]': $!\n";
+		warn "$Program: can't access '$_[0]': $!\n";
 		return ();
 	}
 	while ($Name = readdir(DH)) {
@@ -201,8 +207,6 @@ UNDEFSTAT
 			$Mode =
 			 format_mode($Attributes->{$Entry}->mode);
 			print "$Mode ";
-			#printf("%8o ",
-			# $Attributes->{$Entry}->mode);
 			printf("%3d ",
 			  $Attributes->{$Entry}->nlink);
 			if (exists($Options->{'n'})) {
@@ -445,7 +449,13 @@ sub Order {
 }
 
 # ------ process arguments
-getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options);
+unless (getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options)) {
+	warn "usage: $Program [-1RSacdfiklnrstu] [file ...]\n";
+	exit EX_FAILURE;
+}
+if ($Options{'f'}) {
+	$Options{'a'} = 1;
+}
 
 # ------ get (or guess) window size
 if (ioctl(STDOUT, $TIOCGWINSZ, $WinSize)) {
@@ -510,13 +520,13 @@ ls [-1RSacdfiklnrstu] [file ...]
 
 =head1 DESCRIPTION
 
-This programs lists information about files and directories.
+This program lists information about files and directories.
 If it is invoked without file/directory name arguments,
 it lists the contents of the current directory.
 Otherwise, B<ls> lists information about the files and
 information about the contents of the directories (but
 see B<-d>).  Furthermore, without any option arguments
-B<ls> justs lists the names of files and directories.
+B<ls> just lists the names of files and directories.
 All files are listed before all directories.
 The default sort order is ascending ASCII on filename.
 
@@ -547,7 +557,7 @@ List all files (normally files starting with '.' are ignored).
 
 =item -c
 
-Sort by decending last modification time of inode.
+Sort by descending last modification time of inode.
 
 =item -d
 
@@ -556,7 +566,7 @@ Do not list directory contents.
 =item -f
 
 Do not sort -- list in whatever order files/directories are returned
-by the directory read function.
+by the directory read function. This option implies -a.
 
 =item -i
 
@@ -586,15 +596,17 @@ on non-Unix systems.)
 
 =item -t
 
-Sort by decending last modification time.
+Sort by descending last modification time.
 
 =item -u
 
-Sort by decending last access time.
+Sort by descending last access time.
 
 =back
 
 =head1 ENVIRONMENT
+
+The working of I<ls> is not influenced by any environment variables.
 
 =head1 BUGS
 
