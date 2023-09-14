@@ -13,39 +13,22 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-my $opt_a = 0;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-if (@ARGV) {
-    if ($ARGV [0] eq '-a') {
-        $opt_a = 1;
-    }
-    if ($ARGV [0] eq '--version') {
-        $0 =~ s{.*/}{};
-        print "$0 (Perl bin utils) $VERSION\n";
-        exit;
-    }
-    if ($ARGV [0] eq '--help') {
-        $0 =~ s{.*/}{};
-        print <<EOF;
-Usage: $0 [OPTION] [COMMAND [COMMAND [COMMAND ... ]]]
+my $Program = basename($0);
+my ($VERSION) = '1.3';
 
-For each command, report the full path to this command, if any.
-
-Options:
-       --version:  Print version number, then exit.
-       --help:     Print usage, then exit.
-       --:         Stop parsing options.
-EOF
-        exit;
-    }
-    if ($ARGV [0] eq '--') {
-        shift;
-    }
+my %opt;
+unless (getopts('a', \%opt)) {
+    warn "$Program version $VERSION\n";
+    warn "usage: $Program [-a] filename ...\n";
+    exit EX_FAILURE;
 }
 
-# set up defaults.
 my @PATH = ();
 my $PATHVAR = 'PATH';
 my $path_sep = ':';
@@ -102,38 +85,37 @@ foreach my $command (@ARGV) {
         my $symbol = `SHOW SYMBOL $command`; # line feed returned
         if (!$?) {
             print "$symbol";
-            next COMMAND unless $opt_a;
+            next COMMAND unless $opt{'a'};
         }
     }
-    if ($^O eq 'MacOS') {
+    elsif ($^O eq 'MacOS') {
         my @aliases = split /$path_sep/ => $ENV{Aliases};
         foreach my $alias (@aliases) {
             if (lc($alias) eq lc($command)) {
                 # MPW-Perl cannot resolve using `Alias $alias`
                 print "Alias $alias\n";
-                next COMMAND unless $opt_a;
+                next COMMAND unless $opt{'a'};
             }
         }
     }
+
     foreach my $dir (@PATH) {
         if ($^O eq 'MacOS') {
             if (-e "$dir$file_sep$command") {
                 print "$dir$file_sep$command\n";
-                next COMMAND unless $opt_a;
+                next COMMAND unless $opt{'a'};
             }
         }
         else {
             if (-x "$dir$file_sep$command") {
                 print "$dir$file_sep$command\n";
-                next COMMAND unless $opt_a;
+                next COMMAND unless $opt{'a'};
             }
         }
-        if (@PATHEXT) {
-            foreach my $ext (@PATHEXT) {
-                if (-x "$dir$file_sep$command$ext") {
-                    print "$dir$file_sep$command$ext\n";
-                    next COMMAND unless $opt_a;
-                }
+        foreach my $ext (@PATHEXT) {
+            if (-x "$dir$file_sep$command$ext") {
+                print "$dir$file_sep$command$ext\n";
+                next COMMAND unless $opt{'a'};
             }
         }
     }
@@ -149,7 +131,7 @@ which - report full paths of commands
 
 =head1 SYNOPSIS
 
-which [option] [commands]
+    which [-a] filename ...
 
 =head1 DESCRIPTION
 
@@ -163,22 +145,13 @@ I<which> accepts the following options:
 
 =over 4
 
-=item --help
-
-Print out a short help message, then exit.
-
-=item --version
-
-Print out its version number, then exit.
-
 =item -a
 
 Print out all instances of command on I<$PATH> not just the first.
 
 =item --
 
-Stop parsing for options. Useful if you want to find where in your path
-the commands I<--help>, I<-a>, and I<--version> are found.
+Stop parsing for options.
 Use I<which -- --> to find the path to I<-->.
 
 =back
