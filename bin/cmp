@@ -37,18 +37,17 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
 use constant EX_SUCCESS   => 0;
 use constant EX_FAILURE   => 1;
 use constant EX_DIFFERENT => 1;
 use constant EX_USAGE     => 2;
 
-use File::Basename;
-my $Program = basename($0);
+use constant ST_INO  => 1;
+use constant ST_SIZE => 7;
 
-END {
-    close STDOUT || die "$Program: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
+my $Program = basename($0);
 
 my $chunk_size = 10_000;     # how many bytes in a gulp
 
@@ -60,16 +59,11 @@ my $skip1;
 my $skip2;
 my $buffer1;
 my $buffer2;
-my $ino1;
-my $ino2;
-my $size1;
-my $size2;
 my $read_in1;
 my $read_in2;
 
 my $bytes_read = 0;
 my $lines_read = 0;
-my $actual_length;
 my $saw_difference;
 
 # does not yet support grouped opts
@@ -90,15 +84,25 @@ usage() unless @ARGV >= 1 and @ARGV <= 3;  # exits;
 
 $file2 = shift;
 
-(undef,$ino1,undef,undef,undef,undef,undef,$size1) = stat $file1;
-(undef,$ino2,undef,undef,undef,undef,undef,$size2) = stat $file2;
+my @stat1 = stat $file1;
+unless (@stat1) {
+    warn "$Program: '$file1': $!\n";
+    exit EX_FAILURE;
+}
+my @stat2 = stat $file2;
+unless (@stat2) {
+    warn "$Program: '$file2': $!\n";
+    exit EX_FAILURE;
+}
 
-exit EX_SUCCESS if defined $ino1 && $ino1 == $ino2;  # hopefully, on platforms where
-                                            # inode is meaningless, stat
+if (defined($stat1[ST_INO]) && $stat1[ST_INO] == $stat2[ST_INO]) {
+    exit EX_SUCCESS;                        # hopefully, on platforms where
+}                                           # inode is meaningless, stat
                                             # returns undef.
 
-if ($size1 == 0 || $size2 == 0) {       # special handling for zero-length
-    if ($size2+$size1 == 0) {           # files.
+if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
+    # special handling for zero-length files
+    if ($stat1[ST_SIZE] == 0 && $stat2[ST_SIZE] == 0) {
         exit EX_SUCCESS;
     } else {                            # Can't we say 'differ at byte zero'
                                         # and so on here?  That might make
@@ -107,8 +111,8 @@ if ($size1 == 0 || $size2 == 0) {       # special handling for zero-length
                                         # with the behavior when skip >=
                                         # filesize.
         if ($volume) {
-            warn "$Program: EOF on $file1\n" unless $size1;
-            warn "$Program: EOF on $file2\n" unless $size2;
+            warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
+            warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
         }
         exit 1;
     }
@@ -137,11 +141,13 @@ if( -d $file2 ) {
 }
 
 unless(  open FILE1, '<', $file1 ) {
-	warn "$Program: cannot open $file1\n";
+	warn "$Program: cannot open '$file1'\n";
 	exit EX_FAILURE;
-	};
-
-open FILE2, '<', $file2 || die "$Program: cannot open $file2\n";
+	}
+unless(  open FILE2, '<', $file2 ) {
+	warn "$Program: cannot open '$file2'\n";
+	exit EX_FAILURE;
+	}
 
 sysseek FILE1, $skip1, 0 if $skip1;
 sysseek FILE2, $skip2, 0 if $skip2;
