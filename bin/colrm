@@ -14,31 +14,57 @@ License: perl
 
 use strict;
 
-$0 =~ s(.*/)();
-my $usage = "usage: $0 [startcol endcol]\n";
-my ($startcol, $endcol);
+use File::Basename qw(basename);
 
-# I could be more clever, but this will run faster
+my $Program = basename($0);
 
 if (@ARGV > 2) {
-	die $usage;
+	die "usage: $Program [startcol [endcol]]\n";
 } elsif (@ARGV == 0) {
 	print while(<>);
 } elsif (@ARGV == 1) {
-	$startcol = (shift() - 1);
-	while (<>) {
-		print substr $_, 0, $startcol;
+	my $startcol = getarg();
+	while (my $line = <>) {
+		chomp $line;
+		my $len = length $line;
+		if ($startcol > $len) {
+			print $line;
+		} else {
+			print substr $line, 0, $startcol - 1;
+		}
 		print "\n";
 	}
 } elsif (@ARGV == 2) {
-	$startcol = (shift() - 1);
-	$endcol = (shift() - 1);
-	while (<>) {
-		chomp;
-		substr($_, $startcol, $endcol) = '';
+	my $startcol = getarg();
+	my $endcol = getarg();
+	if ($startcol > $endcol) {
+		die "$Program: bad range: $startcol,$endcol\n";
+	}
+	while (my $line = <>) {
+		chomp $line;
+		my $len = length $line;
+		if ($startcol > $len) {
+			print $line;
+		} else {
+			print substr $line, 0, $startcol - 1;
+			print substr $line, $endcol;
+		}
 		print "$_\n";
 	}
 }
+exit;
+
+sub getarg {
+	my $n = shift @ARGV;
+	if (!defined($n)) {
+		die "$Program: missing argument\n";
+	}
+	if ($n =~ m/\D/ || $n == 0) {
+		die("$Program: invalid column number '$n'\n");
+	}
+	return $n;
+}
+
 
 =head1 NAME
 
@@ -61,9 +87,6 @@ If both I<startcol> and I<endcol> are provided, removes all columns from
 I<startcol> to I<endcol>, inclusive.
 
 If neither is provided, acts just like B<cat>.
-
-If I<firstcol> is greater than I<lastcol>, or the arguments aren't numeric,
-it pretends it heard no arguments at all, just like the Linux version.
 
 =head1 OPTIONS AND ARGUMENTS
 
