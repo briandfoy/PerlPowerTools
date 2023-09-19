@@ -249,9 +249,10 @@ while (1) {
         } elsif ($command eq 'a') {
             &edInsert($APPEND_MODE);
         } elsif ($command eq 'c') {
-            &edDelete;
-            $adrs[1] = undef;
-            &edInsert($INSERT_MODE);
+            if (edDelete()) {
+                $adrs[1] = undef;
+                edInsert($INSERT_MODE);
+            }
         } elsif ($command eq 's') {
             &edSubstitute;
 
@@ -260,22 +261,15 @@ while (1) {
         } elsif ($command eq 'p') {
             &edPrint;
         } elsif ($command eq 'P') {
-            if (defined $Prompt) {
-                $Prompt = undef;
-            } else {
-                $Prompt = defined $opt{'p'} ? $opt{'p'} : '*';
-            }
+            edPrompt();
         } elsif ($command =~ /^q$/) {
             &edQuit($QUESTIONS_MODE);
         } elsif ($command =~ /^Q$/) {
             &edQuit($NO_QUESTIONS_MODE);
         } elsif ($command eq 'h') {
-            print("$Error\n") if (defined $Error);
+            edHelp();
         } elsif ($command eq 'H') {
-            $EXTENDED_MESSAGES ^= 1;
-            if ($EXTENDED_MESSAGES && defined $Error) {
-                print "$Error\n";
-            }
+            edHelp(1);
         } elsif ($command eq 'j') {
             &edJoin;
         } elsif ($command eq 'l') {
@@ -301,6 +295,42 @@ sub maxline {
         $n = 0;
     }
     return $n;
+}
+
+sub edPrompt {
+    if (defined $adrs[0]) {
+        edWarn('Too many addressses');
+        return;
+    }
+    if (defined $args[0]) {
+        edWarn('Extra arguments detected');
+        return;
+    }
+    if (defined $Prompt) {
+	$Prompt = undef;
+    } else {
+	$Prompt = defined $opt{'p'} ? $opt{'p'} : '*';
+    }
+}
+
+sub edHelp {
+    my $toggle = shift;
+
+    if (defined $adrs[0]) {
+        edWarn('Too many addressses');
+        return;
+    }
+    if (defined $args[0]) {
+        edWarn('Extra arguments detected');
+        return;
+    }
+    if ($toggle) {
+        $EXTENDED_MESSAGES ^= 1;
+        return unless $EXTENDED_MESSAGES;
+    }
+    if (defined $Error) {
+         print "$Error\n";
+    }
 }
 
 #
@@ -519,6 +549,10 @@ sub edDelete {
         edWarn('invalid address');
         return;
     }
+    if (defined $args[0]) {
+        edWarn('Extra arguments detected');
+        return;
+    }
 
     my $NumLines = $adrs[1]-$adrs[0]+1;
 
@@ -531,6 +565,7 @@ sub edDelete {
     if ($CurrentLineNum > maxline()) {
         $CurrentLineNum = maxline();
     }
+    return 1;
 }
 
 #
@@ -834,6 +869,10 @@ sub edPrintLineNum {
 sub edQuit {
     my($QuestionMode) = @_;
 
+    if (defined $adrs[0]) {
+        edWarn('Too many addressses');
+        return;
+    }
     if (defined($args[0])) {
         edWarn('Extra arguments detected');
         return;
