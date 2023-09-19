@@ -19,14 +19,21 @@ License:
 
 # use strict;
 
+use constant EX_TRUE  => 0;
+use constant EX_FALSE => 1;
+use constant EX_ERROR => 2;
+
 sub debug { 1; }
 # sub debug { print @_; }
 $SIG{__DIE__} = sub {
     print STDERR "expr: ", $_[0], "\n";
-    exit 2;
+    exit EX_ERROR;
 };
 
-@ARGV || print STDERR "usage: expr expression\n" && exit 1;
+if (scalar(@ARGV) == 0) {
+    warn "usage: expr expression\n";
+    exit EX_ERROR;
+}
 
 # check that it is a number
 sub num($) {
@@ -103,9 +110,9 @@ sub evaluate(@) {
 my $retval = evaluate @global_ops;
 die "syntax error" if (@stack);
 print $retval || 0, "\n";
-exit ($retval ? 0 : 1);
+exit ($retval ? EX_TRUE : EX_FALSE);
 
-__END__;
+__END__
 
 =pod
 
