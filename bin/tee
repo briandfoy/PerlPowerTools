@@ -31,7 +31,12 @@ if ($ignore_ints) {
 $SIG{'PIPE'} = 'PLUMBER';
 $mode = $append ? '>>' : '>';
 $fh = 'FH000';
-unless ($nostdout) {
+if ($nostdout) {
+    unless (@ARGV) {
+	warn "$0: file argument must be given with -n\n";
+	exit 1;
+    }
+} else {
     %fh = ('STDOUT', 'standard output'); # always go to stdout
 }
 $| = 1 if $unbuffer;
