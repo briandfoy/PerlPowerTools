@@ -17,13 +17,19 @@ License:
 # Gurusamy Sarathy <gsar@umich.edu>
 #
 
+use File::Basename qw(basename);
 use Getopt::Std;
 use Text::ParseWords;
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my %o;
 getopts('tn:l:s:I:', \%o) or die <<USAGE;
 Usage:
-	$0 [-t] [-n num] [-l num] [-s size] [-I repl] prog [args]
+	$Program [-t] [-n num] [-l num] [-s size] [-I repl] prog [args]
 
 	-t	trace execution (prints commands to STDERR)
 	-n num	pass at most 'num' arguments in each invocation of 'prog'
@@ -32,6 +38,18 @@ Usage:
 	-I repl	for each line in STDIN, replace all 'repl' strings in 'args'
 		  before execution
 USAGE
+
+for my $opt (qw( l n s )) {
+    next unless (defined $o{$opt});
+    if (!length($o{$opt}) || $o{$opt} =~ m/\D/) {
+	warn "$Program: option $opt: invalid number '$o{$opt}'\n";
+	exit EX_FAILURE;
+    }
+    if ($o{$opt} == 0) {
+	warn "$Program: option $opt: number must be > 0\n";
+	exit EX_FAILURE;
+    }
+}
 
 my @args = ();
 
@@ -53,15 +71,15 @@ while (1) {
     my @run = @ARGV;
     push @run, 'echo' unless (@run);
     if ($o{I}) {
-	exit(0) unless length $line;
+	exit(EX_SUCCESS) unless length $line;
 	for (@run) { s/\Q$o{I}\E/$line/g; }
     }
     elsif ($o{n}) {
-	exit(0) unless @args;
+	exit(EX_SUCCESS) unless @args;
 	push @run, splice(@args, 0, $o{n});
     }
     else {
-	exit(0) unless @args;
+	exit(EX_SUCCESS) unless @args;
 	push @run, @args;
 	@args = ();
     }
