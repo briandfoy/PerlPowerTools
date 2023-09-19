@@ -16,10 +16,14 @@ use strict;
 
 use File::Basename qw(basename);
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 my $Program = basename($0);
 
 if (@ARGV > 2) {
-	die "usage: $Program [startcol [endcol]]\n";
+	warn "usage: $Program [startcol [endcol]]\n";
+	exit EX_FAILURE;
 } elsif (@ARGV == 0) {
 	print while(<>);
 } elsif (@ARGV == 1) {
@@ -38,7 +42,8 @@ if (@ARGV > 2) {
 	my $startcol = getarg();
 	my $endcol = getarg();
 	if ($startcol > $endcol) {
-		die "$Program: bad range: $startcol,$endcol\n";
+		warn "$Program: bad range: $startcol,$endcol\n";
+		exit EX_FAILURE;
 	}
 	while (my $line = <>) {
 		chomp $line;
@@ -52,15 +57,17 @@ if (@ARGV > 2) {
 		print "$_\n";
 	}
 }
-exit;
+exit EX_SUCCESS;
 
 sub getarg {
 	my $n = shift @ARGV;
 	if (!defined($n)) {
-		die "$Program: missing argument\n";
+		warn "$Program: missing argument\n";
+		exit EX_FAILURE;
 	}
-	if ($n =~ m/\D/ || $n == 0) {
-		die("$Program: invalid column number '$n'\n");
+	if ($n =~ m/[^0-9]/ || $n == 0) {
+		warn "$Program: invalid column number '$n'\n";
+		exit EX_FAILURE;
 	}
 	return $n;
 }
