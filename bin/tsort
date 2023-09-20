@@ -14,17 +14,44 @@ License: perl
 
 use strict;
 
-use vars qw($opt_b $opt_d);
-use Getopt::Std;
-my $usage = "usage: $0 [-b|-d] [filename]\n";
-getopts("bd") or die $usage;
-die $usage if ($opt_b && $opt_d);
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my %opt;
+getopts('bd', \%opt) or usage();
+usage() if ($opt{'b'} && $opt{'d'});
+
+my $file = shift @ARGV;
+if (@ARGV) {
+    warn "$Program: extra operand '$ARGV[0]'\n";
+    usage();
+}
+$file = '-' if (!defined($file));
+
+my $fh;
+if ($file eq '-') {
+    $fh = *STDIN;
+} else {
+    if (-d $file) {
+        warn "$Program: '$file' is a directory\n";
+        exit EX_FAILURE;
+    }
+    unless (open $fh, '<', $file) {
+        warn "$Program: '$file': $!\n";
+        exit EX_FAILURE;
+    }
+}
 
 my %pairs;	# all pairs ($l, $r)
 my %npred;	# number of predecessors
 my %succ;	# list of successors
 
-while (<>) {
+while (<$fh>) {
     my ($l, $r) = my @l = split;
     next unless @l == 2;
     next if defined $pairs{$l}{$r};
@@ -33,6 +60,7 @@ while (<>) {
     ++$npred{$r};
     push @{$succ{$l}}, $r;
 }
+close $fh;
 
 # create a list of nodes without predecessors
 my @list = grep {!$npred{$_}} keys %npred;
@@ -41,7 +69,7 @@ while (@list) {
     $_ = pop @list;
     print "$_\n";
     foreach my $child (@{$succ{$_}}) {
-	if ($opt_b) {	# breadth-first
+	if ($opt{'b'}) {	# breadth-first
 	    unshift @list, $child unless --$npred{$child};
 	} else {	# depth-first (default)
 	    push @list, $child unless --$npred{$child};
@@ -50,7 +78,13 @@ while (@list) {
     }
 }
 
-warn "cycle detected\n" if grep {$npred{$_}} keys %npred;
+warn "$Program: cycle detected\n" if grep {$npred{$_}} keys %npred;
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program [-b|-d] [filename]\n";
+    exit EX_FAILURE;
+}
 
 =head1 NAME
 
