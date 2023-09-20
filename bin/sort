@@ -56,7 +56,7 @@ Getopt::Long::config('bundling');  # -cmu == -c -m -u
         splice(@ARGV, $_, 1);
     }
 
-    GetOptions(\%o, 'k=s@', qw(c m u d f i n r b D),
+    usage() unless GetOptions(\%o, 'k=s@', qw(c m u d f i n r b D),
         map {"$_=s"} qw(X t y F o R));
     push @{$o{'k'}}, @pos if @pos;   # add pos stuff back
     @ARGV = '-' unless @ARGV;
