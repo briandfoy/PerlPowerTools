@@ -1,0 +1,165 @@
+#!/usr/bin/perl
+
+=encoding utf8
+
+=begin metadata
+
+Name: seq
+Description: print a numeric sequence
+Author: Michael Mikonos
+License: artistic2
+
+=end metadata
+
+=cut
+
+use strict;
+
+use File::Basename qw(basename);
+use POSIX qw(floor);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my $begin = 1;
+my $step = 1;
+my $ender;
+my $format = "%g";
+my $term = "\n";
+
+sub usage {
+    warn "usage: $Program [-f format] [-s string] [begin [step]] end\n";
+    exit EX_FAILURE;
+}
+
+while (@ARGV && $ARGV[0] =~ /^-/) {
+    my $opt = shift;
+    if ($opt eq '--') {
+        last;
+    } elsif ($opt eq '-s') {
+        $term = shift;
+    } elsif ($opt eq '-f') {
+        $format = shift;
+    } elsif ($opt =~ m/\A\-?[0-9]/) {
+        unshift @ARGV, $opt;
+        last;
+    } else {
+        warn "$Program: unexpected option: '$opt'\n";
+        usage();
+    }
+}
+if (@ARGV == 0) {
+    usage();
+} elsif (@ARGV == 1) {
+    $ender = getnum($ARGV[0]);
+} elsif (@ARGV == 2) {
+    $begin = getnum($ARGV[0]);
+    $ender = getnum($ARGV[1]);
+} elsif (@ARGV == 3) {
+    $begin = getnum($ARGV[0]);
+    $step  = getnum($ARGV[1]);
+    $ender = getnum($ARGV[2]);
+} else {
+    warn "$Program: extra argument '$ARGV[3]'\n";
+    usage();
+}
+
+if ($step == 0) {
+    warn "$Program: illegal step value of zero\n";
+    exit EX_FAILURE;
+}
+if ($ender < $begin) {
+    if (@ARGV != 3) {
+        $step = -$step;
+    } elsif ($step > 0) {
+        warn "$Program: needs negative decrement\n";
+        exit EX_FAILURE;
+    }
+} else {
+    if ($step < 0) {
+        warn "$Program: needs positive increment\n";
+        exit EX_FAILURE;
+    }
+}
+
+my $head = 1;
+my $count = floor(($ender - $begin) / $step);
+for (0 .. $count) {
+    if ($head) {
+        $head = 0;
+    } else {
+        print $term;
+    }
+    printf $format, $begin + $_ * $step;
+}
+print "\n";
+exit EX_SUCCESS;
+
+sub getnum {
+    my $n = shift;
+    if ($n !~ m/\A[\+\-]?[0-9]+(\.[0-9]+)?\Z/) {
+        warn "$Program: invalid number '$n'\n";
+        exit EX_FAILURE;
+    }
+    return $n;
+}
+
+__END__
+
+=head1 NAME
+
+seq - print a numeric sequence
+
+=head1 SYNOPSIS
+
+    seq [OPTIONS] LAST
+    seq [OPTIONS] FIRST LAST
+    seq [OPTIONS] FIRST INCR LAST
+
+=head1 DESCRIPTION
+
+seq writes a list of numbers to standard output separated by a newline character.
+If only LAST is provided the sequence starts from 1 and the increment is 1.
+LAST may be negative, in which case the sequence starts from 1 with the increment of -1.
+
+When only FIRST and LAST are specified the increment will be either 1 or -1 based on whether FIRST is greater.
+Sequences are inclusive of FIRST and LAST, so "seq 3 3" results in the sequence "3".
+
+When an increment is needed other than 1 or -1, the INCR argument should be used.
+Zero is not a valid increment.
+Positive numbers may optionally include a '+' prefix.
+Floating point numbers may be entered in decimal notation (e.g. 0.2223).
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -f FORMAT
+
+Set a printf format specifier instead of the default '%g'
+
+=item -s STRING
+
+Separate each number with STRING instead of the newline character
+
+=back
+
+=head1 BUGS
+
+Corrupt printf format specifiers may be entered.
+
+=head1 AUTHOR
+
+Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This code is licensed under the Artistic License 2.
+
+=cut
