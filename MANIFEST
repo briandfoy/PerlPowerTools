@@ -125,6 +125,7 @@ Changes
 CONTRIBUTING.md
 INSTALL.SKIP
 lib/PerlPowerTools.pm
+lib/PerlPowerTools/SymbolicMode.pm
 lib/ppt.pm
 LICENSE-ARTISTIC2
 LICENSE-BSD2
