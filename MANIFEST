@@ -160,6 +160,7 @@ t/rm/process_options.t
 t/rm/run.t
 t/robots/000.basic.t
 t/rot13/rot13.t
+t/seq/seq.t
 t/sort/sort.t
 t/true/true.t
 t/units/units.t
