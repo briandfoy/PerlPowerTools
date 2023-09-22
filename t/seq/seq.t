@@ -18,7 +18,7 @@ subtest 'check file' => sub {
 my @args = (
 	[ [qw(1 10)],           join( "\n", 1 .. 10 ) . "\n" ],
 	[ [qw( -s - 1 10 )],    join( '-', 1 .. 10 ) . "\n" ],
-	[ [qw( -f '%o' 1 10 )], join( "\n", map { sprintf '%o', $_ } 1 .. 10 ) . "\n" ],
+	[ [qw( -f "%o" 1 10 )], join( "\n", map { sprintf '%o', $_ } 1 .. 10 ) . "\n" ],
 	[ [qw( -2 1 5 )],       join( "\n", -2 .. 5 ) . "\n" ],
 	[ [qw( -2 2 6 )],       join( "\n", qw(-2 0 2 4 6) ) . "\n" ],
 	);
