@@ -196,6 +196,8 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item shar - create a shell archive of files
 
+=item seq - output a sequence of numbers
+
 =item sleep - suspend execution for a number of seconds
 
 =item sort - sort or merge text files
