@@ -1,5 +1,58 @@
 Revision history for Perl module PerlPowerTools
 
+1.039 2023-09-22T23:46:44Z
+	* All of these improvements are from Michael Mikonos
+	* arithmetic
+		- terminate on end-of-line
+	* banner
+		- clarify usage (#232)
+	* basename
+		- fix directory separator handling (#250)
+	* bc
+		- fix integer precision problem (#236)
+	* bcd
+		- add -d to decode card (#238)
+	* cal
+		- improve year formatting (#242)
+	* cmp
+		- check that both files exist (#249)
+	* diff
+		- work with directory arguments (#240) (#241)
+	* ed
+		- fix current line tracking for j, m, t (#225)
+		- add wq shortcut (#228)
+		- fix handling of bad command 1c0 (#251)
+	* expr
+		- exit with error for missing argument (#253)
+	* fold
+		- continue if there's an error (#226)
+	* head
+		- don't head on directories (#227)
+	* ls
+		- use standard meaning of -f (turns on -a) (#245)
+	* nl
+		- validate numeric operations (#229)
+		- exit with error for bad filename (#230)
+	* paste
+		- specify stdin with - (#231)
+		- reject unknown options (#235)
+	* rmdir
+		- include filename in warnings (#243)
+	* seq
+		- added new command (#257)
+	* sort
+		- don't continue for unknown options (#255)
+	* sum 
+		- improve code readability (#239)
+	* tee
+		- handle -n properly (#254)
+	* tsort
+		- don't support multiple input files (#256)
+	* which 
+		- fix option parsing (#246)
+	* xargs
+		- fix infinite loop with -n (#248)
+
 1.038 2023-08-27T11:36:25Z
 	* All updates are from Michael Mikonos
 	* rev - accept ? as a file (#222)
