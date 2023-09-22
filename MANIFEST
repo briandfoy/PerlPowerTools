@@ -84,6 +84,7 @@ bin/rm
 bin/rmdir
 bin/robots
 bin/rot13
+bin/seq
 bin/shar
 bin/sleep
 bin/sort
