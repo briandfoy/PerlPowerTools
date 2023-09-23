@@ -191,7 +191,7 @@ sub get_lines {
         # record separator has been broken across two chunks.
         my $file = *$self->{files}[0];
         CHUNK: {
-            my $tell = tell $fh;
+            my $tell = sysseek $fh, 0, 1;
             unless ($tell > $size) {
                 sysseek $fh, 0, 0       or confess "Bad seek on [$file]: $!";
                 sysread $fh, $_, $tell  or confess "Bad read on [$file]: $!";
