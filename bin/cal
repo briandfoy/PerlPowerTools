@@ -16,47 +16,25 @@ package
 	cal; # hide from PAUSE
 use strict;
 
+my %opts;
+while (defined($ARGV[0]) && substr($ARGV[0], 0, 1) eq '-') {
+	%opts = (%opts, get_flags(shift @ARGV));
+}
 $cal::num_args = scalar( @ARGV );
 
 if( $cal::num_args == 0 ) {
-	( $cal::month, $cal::year ) = (localtime( time ))[ 4, 5 ];
-	$cal::month++;
-	$cal::year += 1900;
+	my @tm = localtime(time);
+	$cal::year = $tm[5] + 1900;
+	$cal::month = $tm[4] unless $opts{'y'};
 } elsif( $cal::num_args == 1 ) {
-	if( $ARGV[ 0 ] !~ /^\d.*$/o ) {
-		( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-		if( $cal::jd && !($cal::yr) ) {
-			( $cal::month, $cal::year ) = (localtime( time ))[ 4, 5 ];
-			$cal::month++;
-			$cal::year += 1900;
-		}
-		if( $cal::yr ) {
-			$cal::year = (localtime( time ))[ 5 ];
-			$cal::year += 1900;
-		}
-	} else {
-		$cal::year = &get_year( $ARGV[ 0 ] );
-	}
+	$cal::year = &get_year( $ARGV[ 0 ] );
 } elsif( $cal::num_args == 2 ) {
-	if( $ARGV[ 0 ] !~ /^\d.*$/o ) {
-		( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-		if( $cal::yr ) {
-			print "INVALID FLAG.  Can not use -y with year.\n";
-			&display_help();
-		}
-		$cal::year = &get_year( $ARGV[ 1 ] );
-	} else {
-		$cal::month = &get_month( $ARGV[ 0 ] );
-		$cal::year = &get_year( $ARGV[ 1 ] );
-	}
-} elsif( $cal::num_args == 3 ) {
-	( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-	if( $cal::yr ) {
+	if( $opts{'y'} ) {
 		print "INVALID FLAG.  Can not use -y with month and year.\n";
 		&display_help();
 	}
-	$cal::month = &get_month( $ARGV[ 1 ] );
-	$cal::year = &get_year( $ARGV[ 2 ] );
+	$cal::month = &get_month( $ARGV[ 0 ] );
+	$cal::year = &get_year( $ARGV[ 1 ] );
 } else {
 	print "TOO MANY ARGUMENTS.\n";
 	&display_help();
@@ -65,7 +43,7 @@ if( $cal::num_args == 0 ) {
 if( $cal::year && $cal::month ) {
 	print fmt_month($cal::year, $cal::month, 1);
 } else {
-	if ($cal::jd) {
+	if ($opts{'j'}) {
 		print_year_jd();
 	} else {
 		print_year();
@@ -74,7 +52,7 @@ if( $cal::year && $cal::month ) {
 }
 
 sub box_width {
-	return $cal::jd ? 28 : 21;
+	return $opts{'j'} ? 28 : 21;
 }
 
 sub print_year_jd {
@@ -133,7 +111,7 @@ sub fmt_month {
 	$buf .= "$title\n";
 
 	foreach my $day (@days) {
-		if ($cal::jd) {
+		if ($opts{'j'}) {
 			$buf .= sprintf '%3s ', $day;
 		} else {
 			$buf .= sprintf '%2s ', $day;
@@ -145,7 +123,7 @@ sub fmt_month {
 		if ($end == 0) {
 			$buf .= "\n";
 		}
-		if ($cal::jd) {
+		if ($opts{'j'}) {
 			$buf .= sprintf '%3s ', $month[$x];
 		} else {
 			$buf .= sprintf '%2s ', $month[$x];
@@ -164,7 +142,7 @@ sub make_month_array {
 	my( @month_array, $numdays, $remain, $x, $y ) = ();
 	my( $firstweekday ) = &day_of_week_num( $year, $month, 1 );
 	$numdays = &days_in_month( $year, $month );
-	if ($cal::jd) {
+	if ($opts{'j'}) {
 		$y = &day_of_year( $year, $month, 1 );
 	} else {
 		$y = 1;
@@ -272,26 +250,24 @@ sub get_year {
 
 sub get_flags {
 	my( $flags ) = @_;
-	my( $jd, $yr ) = ();
+	my %opt;
 	if( ($flags =~ /.[^jy\?]/o) || ($flags !~ /^-\w+/o) ) {
-		print "INVALID FLAGS ENTERED.\n";
+		print "INVALID FLAGS ENTERED: '$flags'\n";
 		&display_help();
 	}
-	if( $flags =~ /j/o ) { $jd = 1;	}
-	if( $flags =~ /y/o ) { $yr = 1; }
-	if( $flags =~ /\?/o ) { &display_help(); }
-	return( $jd, $yr );
+	if( $flags =~ /j/o ) { $opt{'j'} = 1; }
+	if( $flags =~ /y/o ) { $opt{'y'} = 1; }
+	return %opt;
 }
 
 sub display_help {
 	print <<END_HELP;
-cal.pl - part of the Perl Power Tools
-cal.pl [-jy?] [[month] year]
+cal - part of the Perl Power Tools
+cal [-j] [-y] [[month] year]
 
     -j : Display calendar using julian days, where each day
          number is the day of the year.
     -y : Display entire year calendar for the current year.
-    -? : Display this help information.
  month : The month of the entered year for which to display
          a calendar.  Valid months are 1 through 12.
   year : The year for which to display the calendar.  If no
@@ -304,6 +280,7 @@ END_HELP
 	exit;
 }
 
+__END__
 
 =head1 NAME
 
@@ -311,7 +288,7 @@ cal - displays a calendar and the date of easter
 
 =head1 SYNOPSIS
 
-cal.pl [-jy?] [[month] year]
+    cal [-jy] [[month] year]
 
 If no arguments are supplied, the current month will be displayed.  If
 only the -j flag is passed as an argument, the current month will be
@@ -332,13 +309,7 @@ leap-years, December 31 is day 365.
 
 =item -y
 
-displays the calendar for the current year.  Note this is mutually
-exclusive with the -n flag above.
-
-=item -?
-
-displays information and usage instructions for the program.  If this
-flag is included in any flag combination, it overrides all other flags.
+displays the calendar for the current year.
 
 =back
 
