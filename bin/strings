@@ -61,11 +61,18 @@ getopts( 'afon:t:' ) or die $usage;
 
 $opt_n ||= 4;
 $opt_t ||= 'o' if $opt_o;
-if ( $opt_t )
-{
-    $opt_t =~ /[dox]/ or die $usage;
-    $offset_format = "\%07$opt_t ";
+
+if ($opt_O) {
+    $opt_t = 'o';
+} elsif (defined $opt_t) {
+    my %EXPECT = (
+        'd' => 1,
+        'o' => 1,
+        'x' => 1,
+    );
+    die($usage) unless $EXPECT{$opt_t};
 }
+$offset_format = "\%07$opt_t ";
 
 # Consider all graphic characters plus space and tab to be printable.
 # Escape all punctuation characters out of paranoia.
@@ -76,6 +83,7 @@ $chunksize = 4096; # whatever
 
 for my $filename ( @ARGV )
 {
+    die("'$filename' is a directory\n") if (-d $filename);
     open( IN, '<', $filename ) or die "Can't open $filename: $!\n";
     binmode IN;
     $offset = 0;
