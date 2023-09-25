@@ -84,9 +84,14 @@ while (1) {
 	@args = ();
     }
     if ($o{t}) { local $" = "', '"; warn "exec '@run'\n"; }
-    if (system(@run) != 0) {
-	warn "$0: $run[0]: $!\n";
-	exit($? >> 8);
+    my $rc = system @run;
+    if ($rc == -1) {
+	warn "$Program: $run[0]: $!\n";
+	exit EX_FAILURE;
+    }
+    if ($rc && $rc >> 8 == 255) {
+	warn "$Program: $run[0]: exited with status 255\n";
+	exit EX_FAILURE;
     }
 }
 
