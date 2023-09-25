@@ -60,9 +60,7 @@ use Getopt::Std;
 getopts( 'afon:t:' ) or die $usage;
 
 $opt_n ||= 4;
-$opt_t ||= 'o' if $opt_o;
-
-if ($opt_O) {
+if ($opt_o) {
     $opt_t = 'o';
 } elsif (defined $opt_t) {
     my %EXPECT = (
