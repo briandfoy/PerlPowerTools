@@ -53,11 +53,16 @@ nothing.
 
 =cut
 
-$usage = "usage: strings [-afo] [-n length] [-t {d|o|x}] [file ...]\n";
+use constant EXIT_USAGE => 1;
+
+sub usage {
+	warn "usage: strings [-afo] [-n length] [-t {d|o|x}] [file ...]\n";
+	exit EXIT_USAGE;
+	}
 
 use vars qw($opt_a $opt_f $opt_o $opt_n $opt_t);
 use Getopt::Std;
-getopts( 'afon:t:' ) or die $usage;
+getopts( 'afon:t:' ) or usage();
 
 $opt_n ||= 4;
 if ($opt_o) {
@@ -68,7 +73,7 @@ if ($opt_o) {
         'o' => 1,
         'x' => 1,
     );
-    die($usage) unless $EXPECT{$opt_t};
+    usage() unless $EXPECT{$opt_t};
 }
 $offset_format = "\%07$opt_t ";
 
@@ -81,7 +86,7 @@ $chunksize = 4096; # whatever
 
 for my $filename ( @ARGV )
 {
-    die("'$filename' is a directory\n") if (-d $filename);
+    next if -d $filename;
     open( IN, '<', $filename ) or die "Can't open $filename: $!\n";
     binmode IN;
     $offset = 0;
