@@ -31,10 +31,15 @@ License: perl
 #       know what it should look like.
 #
 
-use Data::Dumper;
+use strict;
+
+use File::Basename qw(basename);
 use FileHandle;
 
-use strict;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my $length=66;		# Total page length   (Int)
 my $trailer=1;		# 5 lines of header; 5 lines of trailer (Bool)
@@ -150,10 +155,15 @@ foreach(1..$columns) {
 	push(@COLINFO, &create_col);
 }
 foreach(@ARGV) {
+	if (-d $_) {
+		warn "$Program: '$_' is a directory\n";
+		exit EX_FAILURE;
+	}
 	my $fh= FileHandle->new("$_", "r");
 	if (! $fh) {
 		next if ($quietskip);
-		die "$0: Can't open $_";
+		warn "$Program: Can't open '$_': $!\n";
+		exit EX_FAILURE;
 	}
 	push(@FINFO, {  name  => $_,
 			handle=> $fh,
@@ -201,17 +211,17 @@ NEXTFILE: foreach my $fstruct (@FINFO) {
 	}
 }
 
-exit 0;
+exit EX_SUCCESS;
 
 sub usage {
 	print STDERR @_, "\n";
 	print STDERR <<USAGE;
-$0 [-columns] [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
+usage: $Program [-columns] [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
 	[-o count] [-l length] [-h text] files
-$0 -m [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
+       $Program -m [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
 	[-o count] [-l length] [-h text] files
 USAGE
-	exit 1;
+	exit EX_FAILURE;
 }
 
 #
@@ -348,10 +358,10 @@ pr - convert text files for printing
 
 =head1 SYNOPSIS
 
-C<pr [-columns] [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
+C<pr [-columns] [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
 	C<[-o count] [-l length] [-h text] files>
 
-C<pr -m [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
+C<pr -m [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
 	C<[-o count] [-l length] [-h text] files>
 
 =head1 DESCRIPTION
