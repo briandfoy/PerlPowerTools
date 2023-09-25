@@ -18,15 +18,19 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+my $Program = basename($0);
+
 while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 	my $arg = shift;
 
 	if ( $arg eq '-i' ) {
-		delete $ENV{$_} for keys %ENV;
+		%ENV = ();
 	} elsif ( $arg =~ /^-u(.*)/ ) {
 		delete $ENV{ length($1) ? $1 : shift };
 	} else {
-		print "$0: invalid option -- $arg\n";
+		warn "$Program: invalid option -- $arg\n";
 		exit 2;
 	}
 }
@@ -44,7 +48,11 @@ if ( !@ARGV ) {
 	exit 0;
 }
 
-exec(shift, @ARGV) or exit 127;
+my $cmd = $ARGV[0];
+unless (exec {$cmd} @ARGV) {
+	warn "$Program: failed to exec '$cmd': $!\n";
+	exit 127;
+}
 
 __END__
 
