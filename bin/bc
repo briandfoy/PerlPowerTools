@@ -2533,10 +2533,11 @@ sub exec_stmt
 # IF statement
 
      my $cond = pop @ope_stack;
-     $val = 0;
      if($cond) {
        ($return, $val) = exec_stmt($instr->[1]);
        push(@ope_stack, $val), last INSTR if $return;
+     } else {
+       $val = undef;
      }
 
 #     debug {"IF: $val.\n"};
@@ -2619,7 +2620,6 @@ sub exec_stmt
 # Restore the symbols temporarily pushed in 'a' and 'A' instructions
        debug {"restoring backup: ".Dumper(\@backup_sym_table)};
 
-       my $n;
 #       pop @backup_sym_table;    # The first is undef
        while($var = pop @backup_sym_table) {
 	 debug {"restoring var: ".Dumper($var)};
