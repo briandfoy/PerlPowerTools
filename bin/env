@@ -28,7 +28,12 @@ while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 	if ( $arg eq '-i' ) {
 		%ENV = ();
 	} elsif ( $arg =~ /^-u(.*)/ ) {
-		delete $ENV{ length($1) ? $1 : shift };
+		my $val = length $1 ? $1 : shift;
+		if ($val =~ m/=/) {
+			warn "$Program: bad unset argument: '$val'\n";
+			exit 2;
+		}
+		delete $ENV{$val};
 	} else {
 		warn "$Program: invalid option -- $arg\n";
 		exit 2;
@@ -85,6 +90,7 @@ Clears the environment, passing only the values specifed to the command.
 =item B<-u> I<name>
 
 Clears the environment variable I<name> if it exists.
+The value must not include the '=' character.
 
 =back
 
