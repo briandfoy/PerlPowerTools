@@ -100,21 +100,30 @@ foreach my $command (@ARGV) {
     }
 
     foreach my $dir (@PATH) {
+        my $path = $dir . $file_sep . $command;
+
+        if (-d $path) {
+            next;
+        }
         if ($^O eq 'MacOS') {
-            if (-e "$dir$file_sep$command") {
-                print "$dir$file_sep$command\n";
+            if (-e $path) {
+                print "$path\n";
                 next COMMAND unless $opt{'a'};
             }
         }
         else {
-            if (-x "$dir$file_sep$command") {
-                print "$dir$file_sep$command\n";
+            if (-x $path) {
+                print "$path\n";
                 next COMMAND unless $opt{'a'};
             }
         }
         foreach my $ext (@PATHEXT) {
-            if (-x "$dir$file_sep$command$ext") {
-                print "$dir$file_sep$command$ext\n";
+            my $pathext = $path . $ext;
+            if (-d $pathext) {
+                next;
+            }
+            if (-x $pathext) {
+                print "$pathext\n";
                 next COMMAND unless $opt{'a'};
             }
         }
