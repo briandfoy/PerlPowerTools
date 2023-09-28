@@ -48,8 +48,9 @@ License:
 eval 'exec /usr/local/bin/perl -S $0 ${1+"$@"}'
 	if $running_under_some_shell;
 
-push @ARGV, "-";
-
+if (scalar(@ARGV) == 0) {
+    push @ARGV, "-";
+}
 $_ = "|P|K0|I10|O10|?";
 
 for (;;) {
