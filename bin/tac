@@ -16,11 +16,20 @@ License: perl
 # tac - concatenate and print files in reverse
 #
 
-use Getopt::Std;
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-my $VERSION = '0.17';
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-getopts('bBrs:S:', \my %opts);
+my $Program = basename($0);
+my $VERSION = '0.18';
+
+unless (getopts('bBrs:S:', \my %opts)) {
+    warn "$Program version $VERSION\n";
+    warn "usage: $Program [-br] [-s separator] [-B] [-S bytes] [file...]\n";
+    exit EX_FAILURE;
+}
 my %long = qw/
     b before
     B binary
@@ -39,11 +48,16 @@ if (defined $opts{separator} && $opts{regex}) {
 
 $opts{files} = \@ARGV;
 
-my $fh =  IO::Tac->new(%opts) or die "$0: can't open file: $!\n";
+my $fh = IO::Tac->new(%opts);
+unless ($fh) {
+    warn "$Program: can't open file: $!\n";
+    exit EX_FAILURE;
+}
 print while <$fh>;
+exit EX_SUCCESS;
 
 END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
+    close STDOUT || die "$Program: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
 }
 
