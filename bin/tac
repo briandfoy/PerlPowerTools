@@ -50,7 +50,6 @@ $opts{files} = \@ARGV;
 
 my $fh = IO::Tac->new(%opts);
 unless ($fh) {
-    warn "$Program: can't open file: $!\n";
     exit EX_FAILURE;
 }
 print while <$fh>;
@@ -102,15 +101,31 @@ sub TIEHANDLE {
        $mode |= O_BINARY if *$self->{binary};
 
     # Open files for reading.
-    @files = map {
-        local *FH;
-        sysopen FH, $_, $mode   or return;
-        sysseek FH, 0, 2        or return;
-        [$_, *FH];
-    } @files ? @files : @ARGV;
-
-    # Add files and filehandles to object.
-    *$self->{files} = @files ? \@files : [['-', *STDIN]];
+    if (scalar(@files) == 0 && scalar(@ARGV) == 0) {
+        *$self->{'files'} = [['-', *STDIN]];
+    } else {
+        if (scalar(@files) == 0) {
+            @files = @ARGV;
+        }
+        *$self->{'files'} = [];
+        foreach my $file (@files) {
+            if (-d $file) {
+                warn "$Program: '$file' is a directory\n";
+                next;
+            }
+            my $fh;
+            unless (sysopen $fh, $file, $mode) {
+                warn "$Program: failed to open '$file': $!\n";
+                next;
+            }
+            unless (sysseek $fh, 0, 2) {
+                warn "$Program: seek failed for '$file': $!\n";
+                next;
+            }
+            push @{ *$self->{'files'} }, [$file, $fh];
+        }
+    }
+    return if (scalar @{ *$self->{'files'} } == 0);
 
     # Keep track of current file.
     $ARGV = *$self->{files}[0][0];
