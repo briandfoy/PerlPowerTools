@@ -19,24 +19,55 @@ License:
 use strict;
 use integer;
 
+use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
-use vars qw($opt_o);
-
 use constant BUFLEN => 4096;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 use constant MASK32 => 0xffffffff;
 use constant MASK16 => 0xffff;
 use constant MASK8  => 0xff;
 
-&help unless getopts('o:');
+my $Program = basename($0);
 
-# default to bsd unless spec.
-$opt_o = 1 unless ( $0 =~ /cksum$/ || defined($opt_o) );
+my %opt;
+help() unless getopts('a:o:', \%opt);
+
+# crc default for cksum; bsd default for sum
+my $alg;
+if ($Program =~ m/cksum/) {
+	$alg = \&crc32;
+} else {
+	$alg = \&sum1;
+}
+if (defined $opt{'a'}) {
+	if ($opt{'a'} ne 'crc' && $opt{'a'} ne 'md5') {
+		warn "$Program: -a expects crc or md5\n";
+		exit EX_FAILURE;
+	}
+	if ($opt{'a'} eq 'crc') {
+		$alg = \&crc32;
+	} else {
+		require Digest::MD5;
+		$alg = \&do_md5;
+	}
+}
+if (defined $opt{'o'}) {
+	if ($opt{'o'} ne '1' && $opt{'o'} ne '2') {
+		warn "$Program: -o expects 1 or 2\n";
+		exit EX_FAILURE;
+	}
+	if ($opt{'o'} eq '1') {
+		$alg = \&sum1;
+	} else {
+		$alg = \&sum2;
+	}
+}
 
 @ARGV = ( "-" ) unless ( @ARGV ); # STDIN if no files specified.
 
-# returns 1 on file read error, 0 if all ok.
-my($exitval) = 0; # return value
+my $exitval = EX_SUCCESS;
 
 foreach (@ARGV) {
 	my $fh;
@@ -44,20 +75,27 @@ foreach (@ARGV) {
 		$fh = *STDIN;
 	} elsif (!open($fh, '<', $_)) {
 		warn "$0: $_: $!\n";
-		$exitval = 1;
+		$exitval = EX_FAILURE;
 		next;
 	}
-	my($rval,$crc,$len)=
-		($opt_o==0)?&crc32($fh):($opt_o==1)?&sum1($fh):&sum2($fh);
+	my ($rval, $crc, $len) = $alg->($fh);
 	unless ( defined($rval) && ($rval == 0) ) {
 		warn "$0: $_: $!\n";
-		$exitval = 1;
+		$exitval = EX_FAILURE;
 		next;
 	}
 
 	# Display output information
-	printf "%lu %lu%s\n",$crc,$len,($_ eq "-")?"":" $_";
-	close($fh) if ($_ ne '-');
+	if (defined $len) {
+		printf "%lu %lu", $crc, $len;
+	} else {
+		print $crc, ' '; # for md5
+	}
+	if ($_ ne '-') {
+		print " $_";
+		close $fh;
+	}
+	print "\n";
 }
 
 exit $exitval;
@@ -98,6 +136,14 @@ sub sum2 {
 	$crc = ($crc & MASK16) + ($crc / 0x10000); # cksum
 
 	return $num,$crc,($len+511)/512; # round # of blocks up ...
+}
+
+sub do_md5 {
+	my $fh = shift;
+
+	my $ctx = Digest::MD5->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
 }
 
 # does a bunch of ands to keep the answers within 32-bits
@@ -186,10 +232,10 @@ sub crc32 {
 
 sub help {
 	print "
-usage: $0 [-o 0|1|2] [file ...]
+usage: $Program [-a crc|md5] [-o 1|2] [file ...]
 
--o	Specifies algorithm to use ... 0 is CRC32 (default), 1 is BSD
-	Algorithm 1, 2 is SYSV Algorithm 2.
+ -a alg    Select algorithm
+ -o alg    Select historic algorithm: 1 is BSD, 2 is SYSV
 
 Note: If this program is launched with a name other than 'cksum', the default
       of BSD Algorithm 1 is used unless otherwise specified via switch.
@@ -205,29 +251,34 @@ sum - display file checksums and block counts
 
 =head1 SYNOPSIS
 
-B<sum>
-[ B<-o> I<0|1|2> ]
-[ I<filename ...> ]
+    sum [-a crc|md5] [-o 1|2] [file ...]
 
 =head1 DESCRIPTION
 
-sum outputs three space separated values:  file CRC, file size, and
-file name.  Can be used to find errors in transmitted files.  You should
-not use sum for security checks as they are easily fooled.  Look into
-md5sum for something a bit more secure.  If no file names are specified,
-stdin is used and no file name will displayed in the output.
+sum outputs three space separated values:  file checksum, file size, and
+file name.  The output can be useful for indicating errors in transmitted files.
+You should not use sum for security checks as they are easily fooled.
+If no file names are specified, the standard input will be used.
 
-=head1 OPTIONS AND ARGUMENTS
+=head1 OPTIONS
 
 =over 4
 
-=item I<-o>	Specify the output type for file CRC and size.
-C<0>--CRC is computed using the CRC 32 algorithm, the default unless
-otherwise specified.  Output size is in bytes.	C<1>--CRC is computed
-using BSD Historic Algorithm 1 (16-bit checksum with right rotation
-between byte addition).  Output size is number of 1024 byte blocks.
-C<2>--CRC is computed using SYSV Historic Algorithm 2 (32-bit checksum).
-Output size is number of 512 byte blocks.
+=item -a crc
+
+CRC32 algorithm
+
+=item -a md5
+
+MD5 algorithm
+
+=item -o 1
+
+Historic BSD algorithm
+
+=item -o 2
+
+Historic SYSV algorithm
 
 =back
 
@@ -235,13 +286,12 @@ Output size is number of 512 byte blocks.
 
 sum returns 0 on success or 1 if an error occurred.
 
-The program checks the name in which it was called.  If it is anything
-except "cksum", the output will default to BSD Historic Algorithm 1
-unless otherwise specified.  Otherwise, the default is CRC32 mode.
+If the program was executed as "cksum" the default algorithm is CRC32,
+otherwise the default algorithm is BSD.
 
-Algorithms 1 and 2 will round up to the next block count for partial blocks.
+The BSD and SYSV algorithms round up to the next block count for partial blocks.
 
-CRC 32 algorithm ported directly from OpenBSD cksum C source code.
+The CRC32 algorithm was ported directly from OpenBSD cksum C source code.
 
 =head1 HISTORY
 
