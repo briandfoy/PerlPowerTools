@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+# https://github.com/actions/labeler
+
+use v5.14;
+
+use File::Spec::Functions;
+use FindBin;
+
+chdir "$FindBin::Bin/..";
+
+my $destination = catfile( '.github', 'labeler.yml' );
+
+print <<"HERE";
+"Priority: low":
+  - '**'
+
+"Type: enhancement":
+  - 'bin/*'
+
+"Type: testing":
+  - any: [ 't/*', 'xt/*' ]
+
+"Tyoe: distribution maintenance":
+  - any: [ 'Makefile.PL', 'MANIFEST', 'MANIFEST.SKIP', 'INSTALL.SKIP', 'Changes', 'util/*' ]
+
+"Tyoe: documentation":
+  - any: [ 'CONTRIB*', 'LICENS*', 'PROGRAM*', 'README*' ]
+
+HERE
+
+my @programs = glob( 'bin/*' );
+foreach my $program ( @programs ) {
+	my $basename = $program =~ s|.*/||r;
+	print qq("Program: $basename":\n  - $program\n\n);
+	}
