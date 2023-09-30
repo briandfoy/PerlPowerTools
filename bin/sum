@@ -42,16 +42,19 @@ if ($Program =~ m/cksum/) {
 	$alg = \&sum1;
 }
 if (defined $opt{'a'}) {
-	if ($opt{'a'} ne 'crc' && $opt{'a'} ne 'md5') {
-		warn "$Program: -a expects crc or md5\n";
-		exit EX_FAILURE;
+	my %codetab = (
+		'crc'    => \&crc32,
+		'md5'    => \&do_md5,
+		'sha1'   => \&sha_all,
+		'sha256' => \&sha_all,
+		'sha384' => \&sha_all,
+		'sha512' => \&sha_all,
+	);
+	if (!exists($codetab{$opt{'a'}})) {
+		warn "$Program: invalid algorithm name\n";
+		help();
 	}
-	if ($opt{'a'} eq 'crc') {
-		$alg = \&crc32;
-	} else {
-		require Digest::MD5;
-		$alg = \&do_md5;
-	}
+	$alg = $codetab{$opt{'a'}};
 }
 if (defined $opt{'o'}) {
 	if ($opt{'o'} ne '1' && $opt{'o'} ne '2') {
@@ -141,7 +144,17 @@ sub sum2 {
 sub do_md5 {
 	my $fh = shift;
 
+	require Digest::MD5;
 	my $ctx = Digest::MD5->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub sha_all {
+	my $fh = shift;
+
+	require Digest::SHA;
+	my $ctx = Digest::SHA->new($opt{'a'});
 	$ctx->addfile($fh);
 	return (0, $ctx->hexdigest, undef);
 }
@@ -232,17 +245,13 @@ sub crc32 {
 
 sub help {
 	print "
-usage: $Program [-a crc|md5] [-o 1|2] [file ...]
+usage: $Program [-a alg] [-o 1|2] [file ...]
 
- -a alg    Select algorithm
- -o alg    Select historic algorithm: 1 is BSD, 2 is SYSV
-
-Note: If this program is launched with a name other than 'cksum', the default
-      of BSD Algorithm 1 is used unless otherwise specified via switch.
+ -a alg    Select algorithm: crc, md5, sha1, sha256, sha384, sha512
+ -o alg    Select historic algorithm: 1 (BSD), 2 (SYSV)
 
 ";
-
-	exit 0;
+	exit EX_FAILURE;
 }
 
 =head1 NAME
@@ -251,7 +260,7 @@ sum - display file checksums and block counts
 
 =head1 SYNOPSIS
 
-    sum [-a crc|md5] [-o 1|2] [file ...]
+    sum [-a alg] [-o 1|2] [file ...]
 
 =head1 DESCRIPTION
 
@@ -271,6 +280,22 @@ CRC32 algorithm
 =item -a md5
 
 MD5 algorithm
+
+=item -a sha1
+
+SHA-1 algorithm
+
+=item -a sha256
+
+SHA-2/256 algorithm
+
+=item -a sha384
+
+SHA-2/384 algorithm
+
+=item -a sha512
+
+SHA-2/512 algorithm
 
 =item -o 1
 
