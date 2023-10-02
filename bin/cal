@@ -41,32 +41,39 @@ if( $cal::num_args == 0 ) {
 }
 
 if( $cal::year && $cal::month ) {
-	print fmt_month($cal::year, $cal::month, 1);
+	my @lines = fmt_month($cal::year, $cal::month, 1);
+	print join("\n", @lines), "\n\n";
 } else {
+	print_title();
 	if ($opts{'j'}) {
 		print_year_jd();
 	} else {
 		print_year();
 	}
-
+	print "\n";
 }
 
 sub box_width {
 	return $opts{'j'} ? 28 : 21;
 }
 
-sub print_year_jd {
-	my $w = box_width();
-	my $width = 2 * $w + 1;
+sub box_hcount {
+	return $opts{'j'} ? 2 : 3;
+}
+
+sub print_title {
+	my $width = box_hcount() * box_width() + 1;
 	my $margin = int(($width / 2) - (length("$cal::year") / 2));
 	print ' ' x $margin, $cal::year, "\n\n";
+}
 
+sub print_year_jd {
+	my $w = box_width();
 	my @month = (1 .. 12);
 	while (@month) {
 		my @mon = splice @month, 0, 2;
-		my @txt = map { fmt_month($cal::year, $_, 0) } @mon;
-		my @m0 = split /\n/, $txt[0];
-		my @m1 = split /\n/, $txt[1];
+		my @m0 = fmt_month($cal::year, $mon[0], 0);
+		my @m1 = fmt_month($cal::year, $mon[1], 0);
 
 		foreach my $i (0 .. 7) {
 			printf "%-${w}s %-${w}s\n", $m0[$i], $m1[$i];
@@ -76,17 +83,12 @@ sub print_year_jd {
 
 sub print_year {
 	my $w = box_width();
-	my $width = 3 * $w + 2;
-	my $margin = int(($width / 2) - (length("$cal::year") / 2));
-	print ' ' x $margin, $cal::year, "\n\n";
-
 	my @month = (1 .. 12);
 	while (@month) {
 		my @mon = splice @month, 0, 3;
-		my @txt = map { fmt_month($cal::year, $_, 0) } @mon;
-		my @m0 = split /\n/, $txt[0];
-		my @m1 = split /\n/, $txt[1];
-		my @m2 = split /\n/, $txt[2];
+		my @m0 = fmt_month($cal::year, $mon[0], 0);
+		my @m1 = fmt_month($cal::year, $mon[1], 0);
+		my @m2 = fmt_month($cal::year, $mon[2], 0);
 
 		foreach my $i (0 .. 7) {
 			printf "%-${w}s %-${w}s %-${w}s\n", $m0[$i], $m1[$i], $m2[$i];
@@ -102,14 +104,15 @@ sub fmt_month {
 					  'June', 'July', 'August', 'September', 'October',
 					  'November', 'December' );
 	my( @days ) = ('Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa' );
+	my @lines;
 
 	$title = $months[$month];
 	$title .= " $year" if $titleyr;
 	$margin = int((box_width() / 2) - (length($title) / 2));
+	$title = (' ' x $margin) . $title;
+	push @lines, $title;
 
-	$buf = ' ' x $margin;
-	$buf .= "$title\n";
-
+	$buf = '';
 	foreach my $day (@days) {
 		if ($opts{'j'}) {
 			$buf .= sprintf '%3s ', $day;
@@ -121,7 +124,8 @@ sub fmt_month {
 	$end = 0;
 	for( $x = 0; $x < scalar(@month); $x++ ) {
 		if ($end == 0) {
-			$buf .= "\n";
+			push @lines, $buf;
+			$buf = '';
 		}
 		if ($opts{'j'}) {
 			$buf .= sprintf '%3s ', $month[$x];
@@ -133,8 +137,8 @@ sub fmt_month {
 			$end = 0;
 		}
 	}
-	$buf .= "\n\n";
-	return $buf;
+	push @lines, $buf;
+	return @lines;
 }
 
 sub make_month_array {
