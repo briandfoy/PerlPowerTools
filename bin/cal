@@ -16,10 +16,13 @@ package
 	cal; # hide from PAUSE
 use strict;
 
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 my %opts;
-while (defined($ARGV[0]) && substr($ARGV[0], 0, 1) eq '-') {
-	%opts = (%opts, get_flags(shift @ARGV));
-}
+getopts('jy', \%opts) or display_help();
 $cal::num_args = scalar( @ARGV );
 
 if( $cal::num_args == 0 ) {
@@ -31,13 +34,13 @@ if( $cal::num_args == 0 ) {
 } elsif( $cal::num_args == 2 ) {
 	if( $opts{'y'} ) {
 		print "INVALID FLAG.  Can not use -y with month and year.\n";
-		&display_help();
+		display_help();
 	}
 	$cal::month = &get_month( $ARGV[ 0 ] );
 	$cal::year = &get_year( $ARGV[ 1 ] );
 } else {
 	print "TOO MANY ARGUMENTS.\n";
-	&display_help();
+	display_help();
 }
 
 if( $cal::year && $cal::month ) {
@@ -52,6 +55,7 @@ if( $cal::year && $cal::month ) {
 	}
 	print "\n";
 }
+exit EX_SUCCESS;
 
 sub box_width {
 	return $opts{'j'} ? 28 : 21;
@@ -238,7 +242,7 @@ sub get_month {
 	my( $month ) = @_;
 	if( $month < 1 || $month > 12 || $month !~ /^\d+$/o ) {
 		print "INVALID MONTH ENTERED.\n";
-		&display_help();
+		display_help();
 	}
 	return( $month );
 }
@@ -247,21 +251,9 @@ sub get_year {
 	my( $year ) = @_;
 	if( $year < 1 || $year > 9999 || $year !~ /^\d+$/o ) {
 		print "INVALID YEAR ENTERED.\n";
-		&display_help();
+		display_help();
 	}
 	return( $year );
-}
-
-sub get_flags {
-	my( $flags ) = @_;
-	my %opt;
-	if( ($flags =~ /.[^jy\?]/o) || ($flags !~ /^-\w+/o) ) {
-		print "INVALID FLAGS ENTERED: '$flags'\n";
-		&display_help();
-	}
-	if( $flags =~ /j/o ) { $opt{'j'} = 1; }
-	if( $flags =~ /y/o ) { $opt{'y'} = 1; }
-	return %opt;
 }
 
 sub display_help {
@@ -281,7 +273,7 @@ cal [-j] [-y] [[month] year]
 If no arguments are passed, prints the calendar for the current
 month and year.
 END_HELP
-	exit;
+	exit EX_FAILURE;
 }
 
 __END__
