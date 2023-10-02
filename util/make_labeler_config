@@ -12,6 +12,9 @@ chdir "$FindBin::Bin/..";
 my $destination = catfile( '.github', 'labeler.yml' );
 
 print <<"HERE";
+# Created by $0 at @{[scalar localtime]}
+# https://github.com/marketplace/actions/labeler
+
 "Priority: low":
   - '**'
 
