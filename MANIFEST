@@ -166,7 +166,6 @@ t/sort/sort.t
 t/true/true.t
 t/units/units.t
 t/uudecode/uudecode.t
-util/extract_metadata
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc
