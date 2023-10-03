@@ -118,7 +118,7 @@ else {
 }
 binmode $in;
 ## Byte operations.
-if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {
+if ($opt{b} and (! $opt{p}) and (! $opt{l})) {
 
     my ($chunk, $fh);
     my $count = get_count ($opt{b});
@@ -139,7 +139,7 @@ if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {
 }
 
 ## Split on patterns.
-elsif ($opt{p} and (! $opt{b}) and (! $opt{l}) and (! $opt{"?"})) {
+elsif ($opt{p} and (! $opt{b}) and (! $opt{l})) {
 
     my $regex = $opt{p};
     my $fh = nextfile ($prefix);
@@ -151,7 +151,7 @@ elsif ($opt{p} and (! $opt{b}) and (! $opt{l}) and (! $opt{"?"})) {
 }
 
 ## Line operations.
-elsif ((! $opt{p}) and (! $opt{b}) and (! $opt{"?"})) {
+elsif ((! $opt{p}) and (! $opt{b})) {
 
     # default is -l 1000  (NOT 1k!)
     my $fh;
@@ -214,10 +214,6 @@ The file is split whenever an input line matches I<pattern>, which is
 interpreted as a Perl regular expression.  The matching line will be
 the first line of the next output file.  This option is incompatible
 with the B<-b> and B<-l> options.
-
-=item -?
-
-Short usage summary.
 
 =back
 
