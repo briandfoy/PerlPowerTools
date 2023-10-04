@@ -425,13 +425,10 @@ sub write {
 	my $self=shift;
 	my $wa=shift;
 
-	$of=">" . $self->file;
-	if (exists $$wa{append} ) {
-		$of=">$of";
-	}
+	my $mode = exists $$wa{append} ? '>>' : '>';
 	my $alt_msg="\"" . $self->file . "\" ";
 	$alt_msg.=(-e $self->file)?"[Appended]":"[New File]";
-	if (! open(MBOX, '<', $of )) {
+	if (!open(MBOX, $mode, $self->file)) {
 		warn "Failed to write to ", $self->file, ": $!\n";
 		return;
 	}
