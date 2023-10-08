@@ -5,7 +5,7 @@
 Name: hexdump
 Description: print input as hexadecimal
 Author: Michael Mikonos
-License:
+License: artistic2
 
 =end metadata
 
@@ -14,7 +14,7 @@ License:
 use strict;
 use warnings;
 
-use File::Basename;
+use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
@@ -134,7 +134,8 @@ sub xd {
         $cesc[13] = ' \r ';
     }
     if (@ARGV) {
-        while (my $path = shift @ARGV) {
+        while (@ARGV) {
+            my $path = shift @ARGV;
             unless (open $curf, '<', $path) {
                 warn "$Program: $path: $!\n";
                 exit EX_USAGE;
@@ -163,7 +164,7 @@ getopts('cn:rs:u', \%opt)
 $| = 1 if $opt{'u'};
 foreach (qw(n s)) {
     if ($opt{$_} && $opt{$_} =~ m/\D/) {
-        warn "hexdump: bad -$_ argument\n";
+        warn "$Program: bad -$_ argument\n";
         exit EX_USAGE;
     }
 }
@@ -241,3 +242,9 @@ No support for multi-byte hex display, or plain hex output.
 =head1 AUTHOR
 
 Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This code is licensed under the Artistic License 2.
