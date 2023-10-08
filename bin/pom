@@ -14,6 +14,9 @@ License: perl
 
 use strict;
 
+use Math::Trig qw(atan deg2rad rad2deg tan);
+use POSIX qw(floor fmod);
+
 { my $vt100_compatible = 0;
   $vt100_compatible ||= $ENV{TERM}    =~ /vt100|xterm|ansi/i;
   $vt100_compatible ||= $ENV{TERMCAP} =~ /vt100|xterm|ansi/i;
@@ -35,22 +38,11 @@ sub ELONGP   () { 282.596403   } # ecliptic longitude of the Sun at perigee
 sub ECCENT   () {   0.01671542 } # Earth's orbit's eccentricity
 sub MMLONG   () {  64.975464   } # moon's mean longitude at EPOCH
 sub MMLONGP  () { 349.383063   } # mean longitude of the perigee at EPOCH
-sub MLNODE   () { 151.950429   } # mean longitude of the node at EPOCH
-sub SYNMONTH () {  29.53058868 } # synodic month (new Moon to new Moon)
-sub PI       () { 3.141592654  } # assume uncurved space
 
 #
 ## Helper functions
 
-sub sign     { ($_[0]<0) ? -1 : (($_[0]>0) ? 1 : 0); }
-sub floor    { my $x = int($_[0]); ($x<$_[0]) ? $x : $x-1; }
-sub fmod     { $_[0] - (int($_[0] / $_[1]) * $_[1]); }
 sub fixangle { fmod(($_[0] - (360 * (floor($_[0] / 360)))), 360); }
-sub torad    { ($_[0] * (PI / 180)); }
-sub todeg    { ($_[0] * (180 / PI)); }
-sub FNITG    { (sign($_[0]) * floor(abs($_[0]))); }
-sub tan      { sin($_[0]) / cos($_[0]); }
-sub atan     { atan2($_[0], 1) }
 
 #
 ## Parse the command line, filling in with the current GMT
@@ -124,7 +116,7 @@ sub mdy_to_julian {
     $j_c = floor(365.25 * $j_yy) - 694025;
   }
   else {
-    $j_c = FNITG((365.25 * $j_yy) - 0.75) - 694025;
+    $j_c = floor((365.25 * $j_yy) - 0.75) - 694025;
   }
   $j_d = floor(30.6001 * ($j_mm + 1));
 
@@ -139,7 +131,7 @@ sub kepler {
 
   sub EPSILON { 1e-6 }
 
-  my $e = $m = torad($m);
+  my $e = $m = deg2rad($m);
 
   my $delta;
   do {
@@ -172,7 +164,7 @@ sub calc_phase {
 
   my $sun_ecc = kepler($sun_epoch_coords, ECCENT);
   $sun_ecc = sqrt((1 + ECCENT) / (1 - ECCENT)) * tan($sun_ecc / 2);
-  $sun_ecc = 2 * todeg(atan($sun_ecc)); # true anomaly
+  $sun_ecc = 2 * rad2deg(atan($sun_ecc)); # true anomaly
                                         # sun's geocentric ecliptic longitude
   my $sun_lambda = fixangle($sun_ecc + ELONGP);
 
@@ -182,19 +174,19 @@ sub calc_phase {
   my $moon_mean_anomaly =
     fixangle($moon_mean_longitude - 0.1114041 * $day - MMLONGP);
   my $moon_evection = 1.2739
-    * sin(torad(2 * $moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly);
-  my $moon_annual_equation = 0.1858 * sin(torad($sun_epoch_coords));
-  my $moon_correction_1 = 0.37 * sin(torad($sun_epoch_coords));
+    * sin(deg2rad(2 * $moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly);
+  my $moon_annual_equation = 0.1858 * sin(deg2rad($sun_epoch_coords));
+  my $moon_correction_1 = 0.37 * sin(deg2rad($sun_epoch_coords));
   my $moon_corrected_anomaly = $moon_mean_anomaly + $moon_evection -
     $moon_annual_equation - $moon_correction_1;
   my $moon_correction_for_center =
-    6.2886 * sin(torad($moon_corrected_anomaly));
-  my $moon_correction_2 = 0.214 * sin(torad(2 * $moon_corrected_anomaly));
+    6.2886 * sin(deg2rad($moon_corrected_anomaly));
+  my $moon_correction_2 = 0.214 * sin(deg2rad(2 * $moon_corrected_anomaly));
   my $moon_corrected_longitude =
     $moon_mean_longitude + $moon_evection + $moon_correction_for_center
     - $moon_annual_equation - $moon_correction_2;
   my $moon_variation = 0.6583
-    * sin(torad(2 * ($moon_corrected_longitude - $sun_lambda)));
+    * sin(deg2rad(2 * ($moon_corrected_longitude - $sun_lambda)));
   my $moon_true_longitude = $moon_corrected_longitude + $moon_variation;
 
   # age of moon, in degrees
