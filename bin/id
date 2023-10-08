@@ -34,12 +34,14 @@ my($user,$pw,$uid,$gid,$tp);
 
 if ( @ARGV ) { # user specified
 	($user,$pw,$uid,$gid) = getpwnam $ARGV[0];
-	($user,$pw,$uid,$gid) = getpwuid $ARGV[0] unless ( $uid );
-	die "id: $ARGV[0]: No such user\n" unless ( $uid );
+	if (!defined($uid) && $ARGV[0] =~ m/\A[0-9]+\Z/) {
+		($user,$pw,$uid,$gid) = getpwuid $ARGV[0];
+	}
+	die "id: $ARGV[0]: No such user\n" unless (defined $uid);
 }
 
 if ( $opt_u ) { # print uid
-	$tp = ($uid)?$uid:($opt_r)?$<:$>;
+	$tp = defined $uid ? $uid : $opt_r ? $< : $>;
 	$tp = scalar getpwuid $tp || $tp if ( $opt_n );
 }
 elsif ( $opt_g ) { # print gid
