@@ -167,18 +167,11 @@ for my $file (@ARGV) {
     # the description line.  append info to this string
     my $desc = "$file:";
 
-    # 0) check permission
-    if (! -r $file) {
-        $desc .= " can't read `$file': Permission denied.";
-        print $desc,"\n";
-        next;
-    }
-
     # 1) check for various special files first
     if ($followLinks) {
-        stat($file);
+        stat($file) or die("$F: '$file': $!\n");
     } else {
-        lstat($file);
+        lstat($file) or die("$F: '$file': $!\n");
     }
 
     if (! -f _  or -z _) {
