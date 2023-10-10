@@ -15,6 +15,7 @@ use strict;
 require 5.004;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 use constant DWIDTH => 132;
 use constant EX_SUCCESS => 0;
@@ -33,23 +34,15 @@ my @data_table;
 # Pointers into @data_table for each ASCII char
 my %ascii_to_table;
 
-# options
 my $width = DWIDTH;
-while (@ARGV && $ARGV[0] =~ s/^-//) {
-  local $_ = shift;
-  if (s/^w//) {
-    if    (length) { $width = $_ }
-    elsif (@ARGV)  { $width = shift }
-    else           { warn "$Program: illegal argument for -w option\n";
-                     exit EX_FAILURE; }
-    if ($width =~ /[^0-9]/ || $width == 0) {
-       warn "$Program: illegal argument for -w option\n";
-       exit EX_FAILURE;
-    }
-    next;
+my %opt;
+getopts('w:', \%opt) or usage();
+if (defined $opt{'w'}) {
+  if ($opt{'w'} =~ m/[^0-9]/ || $opt{'w'} == 0) {
+    warn "$Program: illegal argument for -w option\n";
+    exit EX_FAILURE;
   }
-  warn "$Program: illegal option -- $_\n";
-  usage();
+  $width = $opt{'w'};
 }
 
 # scale characters to width
