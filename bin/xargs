@@ -17,9 +17,11 @@ License:
 # Gurusamy Sarathy <gsar@umich.edu>
 #
 
+use strict;
+
 use File::Basename qw(basename);
-use Getopt::Std;
-use Text::ParseWords;
+use Getopt::Std qw(getopts);
+use Text::ParseWords qw(quotewords);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
@@ -27,10 +29,11 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 
 my %o;
-getopts('tn:l:s:I:', \%o) or die <<USAGE;
+getopts('0tn:l:s:I:', \%o) or die <<USAGE;
 Usage:
-	$Program [-t] [-n num] [-l num] [-s size] [-I repl] prog [args]
+	$Program [-0t] [-n num] [-l num] [-s size] [-I repl] prog [args]
 
+	-0	expect NUL characters as separators instead of spaces
 	-t	trace execution (prints commands to STDERR)
 	-n num	pass at most 'num' arguments in each invocation of 'prog'
 	-l num	pass at most 'num' lines of STDIN as 'args' in each invocation
@@ -55,6 +58,7 @@ my @args = ();
 
 $o{I} ||= '{}' if exists $o{I};
 $o{l} = 1 if $o{I};
+my $sep = $o{'0'} ? '\0+' : '\s+';
 
 while (1) {
     my $line = "";
@@ -63,7 +67,8 @@ while (1) {
 	chomp;
 	$line .= $_ if $o{I};
 	$totlines++;
-	push @args, grep defined, quotewords('\s+', 1, $_);
+	my @words = quotewords($sep, 1, $_);
+	push @args, grep { defined } @words;
 	last if $o{n} and @args >= $o{n};
 	last if $o{s} and length("@args") >= $o{s};
 	last if $o{l} and $totlines >= $o{l};
