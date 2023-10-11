@@ -53,18 +53,32 @@ nothing.
 
 =cut
 
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use vars qw($opt_a $opt_f $opt_o $opt_n $opt_t);
+
 use constant EXIT_USAGE => 1;
 
+my $Program = basename($0);
+
 sub usage {
-	warn "usage: strings [-afo] [-n length] [-t {d|o|x}] [file ...]\n";
+	warn "usage: $Program [-afo] [-n length] [-t {d|o|x}] [file ...]\n";
 	exit EXIT_USAGE;
 	}
 
-use vars qw($opt_a $opt_f $opt_o $opt_n $opt_t);
-use Getopt::Std;
 getopts( 'afon:t:' ) or usage();
+if (defined $opt_n) {
+    if ($opt_n !~ m/\A[0-9]\Z/ || $opt_n == 0) {
+        warn "$Program: invalid minimum string length '$opt_n'\n";
+        exit EXIT_USAGE;
+    }
+} else {
+    $opt_n = 4;
+}
 
-$opt_n ||= 4;
 if ($opt_o) {
     $opt_t = 'o';
 } elsif (defined $opt_t) {
@@ -75,26 +89,26 @@ if ($opt_o) {
     );
     usage() unless $EXPECT{$opt_t};
 }
-$offset_format = "\%07$opt_t ";
+my $offset_format = "\%07$opt_t ";
 
 # Consider all graphic characters plus space and tab to be printable.
 # Escape all punctuation characters out of paranoia.
 
-$punctuation = join '\\', split //, q/`~!@#$%^&*()-+={}|[]\:";'<>?,.\//;
-$printable = '\w \t' . $punctuation;
-$chunksize = 4096; # whatever
+my $punctuation = join '\\', split //, q/`~!@#$%^&*()-+={}|[]\:";'<>?,.\//;
+my $printable = '\w \t' . $punctuation;
+my $chunksize = 4096; # whatever
 
 for my $filename ( @ARGV )
 {
     next if -d $filename;
-    open( IN, '<', $filename ) or die "Can't open $filename: $!\n";
+    open( IN, '<', $filename ) or die "$Program: Can't open $filename: $!\n";
     binmode IN;
-    $offset = 0;
+    my $offset = 0;
 
     while ( $_ or read( IN, $_, $chunksize ) )
     {
         $offset += length($1) if s/^([^$printable]+)//o;
-        $string = '';
+        my $string = '';
 
 	do {
             $string .= $1 if s/^([$printable]+)//o;
