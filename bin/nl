@@ -25,43 +25,18 @@ use utf8;
 
 use Getopt::Std qw(getopts);
 use File::Basename qw(basename);
+use Pod::Usage qw(pod2usage);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 our $VERSION = '1.2';
 my $program  = basename($0);
-my $usage    = <<EOF;
-
-Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
-          [-n format] [-s sep] [-v startnum] [-w width] [file ...]
-
-    -V              version
-    -b type         'a'     all lines
-                    't'     only non-empty lines (default)
-                    'n'     no numbering
-                    'pexpr' only lines matching pattern specified by expr
-                    'eexpr' exclude lines matching pattern specified by expr
-    -d delim        characters (max 2) indicating new section (default : '\\:')
-    -f type         same as -b but for footer lines (default : 'n')
-    -h type         same as -b but for header lines (default : 'n')
-    -i incr         increment value (default : 1)
-    -n format       'ln'    left justified
-                    'rn'    right justified without leading zeros (default)
-                    'rz'    right justified with leading zeros
-    -p              single page (don't restart numbering at pages delimiters)
-    -s sep          characters between number and text line (default : TAB)
-    -v startnum     initial value to number pages (default : 1)
-    -w width        line number width (default : 6)
-EOF
 
 # options
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
-unless (getopts("Vb:d:f:h:i:n:ps:v:w:", \%options)) {
-	warn $usage;
-	exit EX_FAILURE;
-}
+getopts('Vb:d:f:h:i:n:ps:v:w:', \%options) or pod2usage(EX_FAILURE);
 
 my $version     = $options{V};
 my $type_b      = $options{b} || "t";
@@ -192,8 +167,8 @@ sub print_line {
 	}
 	else
 	{
-		warn $usage;
-		exit EX_FAILURE;
+		warn "$program: invalid type '$type'\n";
+		pod2usage(EX_FAILURE);
 	}
 
 	print $line;
@@ -289,7 +264,7 @@ The following options are supported.
     -d delim        characters (max 2) indicating new section (default : '\\:')
     -f type         same as -b but for footer lines (default : 'n')
     -h type         same as -b but for header lines (default : 'n')
-    -i incr         increment value (dafault : 1)
+    -i incr         increment value (default : 1)
     -n format       'ln'    left justified
                     'rn'    right justified without leading zeros (default)
                     'rz'    right justified with leading zeros
