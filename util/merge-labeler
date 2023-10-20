@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+use v5.10;
+
+our( $repo, $id ) = @ARGV;
+our( $url ) = "https://api.github.com/repos/$repo/issues/$id/labels";
+
+say STDERR "REPO: $repo ID $id";
+
+my @labels = get_labels( $repo, $id );
+say STDERR "LABELS: @labels";
+
+my @labels_to_remove = grep { /\A(Status|Priority):\s+/ } @labels;
+say STDERR "LABELS TO REMOVE: @labels_to_remove";
+
+remove_labels( @labels_to_remove );
+
+add_labels( "Status: accepted" );
+
+sub add_labels {
+	foreach my $label ( @_ ) {
+		my @extra = (
+			$url,
+			'-d', qq('{"labels": ["$label"]}'),
+			);
+
+		curl( 'POST', @extra );
+		}
+	}
+
+sub curl {
+	state $token = do {
+		open my $fh, '<', '.token';
+		chomp( my $line = <$fh> );
+		$line;
+		};
+
+	my( $method, @extra ) = @_;
+
+	my $command = [
+		'curl',
+		'--silent',
+		'-X', $method,
+		'-H',  q('Accept: application/vnd.github.v3+json'),
+		'-H', qq('Authorization: token $token'),
+		'-H',  q('X-GitHub-Api-Version: 2022-11-28'),
+		];
+
+	my @c = ( @$command, @extra );
+
+	my @output = `@c`;
+
+	return @output;
+	}
+
+sub get_labels {
+	my @extra = (
+			$url,
+		);
+
+	my @labels =
+		map { /\A\s*"name":\s+"(.+)"/ ? $1 : () }
+		curl( 'GET', @extra );
+	}
+
+sub remove_labels {
+	foreach my $label ( @_ ) {
+		$label =~ s/ /%20/g;
+		my @extra = (
+			"$url/$label",
+			);
+
+		curl( 'DELETE',  @extra )
+		}
+	}
