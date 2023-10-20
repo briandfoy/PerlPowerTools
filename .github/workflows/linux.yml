@@ -27,6 +27,7 @@ on:
             - '.github/workflows/macos.yml'
             - '.github/workflows/release.yml'
             - '.github/workflows/windows.yml'
+            - '.github/workflows/merge.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
