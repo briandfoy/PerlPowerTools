@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 use v5.10;
 
+our $VERSION = '0.001';
+say STDERR "$0: $VERSION";
+
 our( $repo, $id ) = @ARGV;
 our( $url ) = "https://api.github.com/repos/$repo/issues/$id/labels";
 
