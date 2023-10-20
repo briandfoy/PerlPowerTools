@@ -212,13 +212,11 @@ sub wc_fh {
     $total_paras += $paras;
     $total_lines += $lines; $total_words += $words;
     $total_chars += $chars; $total_bytes += $bytes;
-    $out = do {
-        if (defined($filename)) {
-            sprintf(" %s\n",basename($filename))
-        } else {
-            "\n"
-        }
-    };
+    if (defined $filename) {
+        $out = " $filename\n";
+    } else {
+        $out = "\n";
+    }
     $out = sprintf(" %9u%s",$bytes,$out) if ($opt{'c'});
     $out = sprintf(" %9u%s",$chars,$out) if ($opt{'m'});
     $out = sprintf(" %9u%s",$words,$out) if ($opt{'w'});
