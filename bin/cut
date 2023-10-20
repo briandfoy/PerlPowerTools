@@ -23,14 +23,35 @@ License: perl
 
 $^W = 1;    # -w
 use strict;
-use Getopt::Std;
-use File::Basename;
 
-## What's my name?
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 my $me = basename($0);
 
-## Grab options
-getopts ('b:c:d:f:ns', \my %opt);
+sub usage {
+    print <<EOT;
+usage:  $me -b list [-n] [file ...]
+        $me -c list [file ...]
+        $me -f list [-d delim] [-s] [file ...]
+
+Each LIST is made up of one range, or many ranges separated by commas.
+Each range is one of:
+
+  N     Nth byte, character or field, counted from 1
+  N-    from Nth byte, character or field, to end of line
+  N-M   from Nth to Mth (included) byte, character or field
+  -M    from first to Mth (included) byte, character or field
+
+EOT
+    exit EX_FAILURE;
+}
+
+my %opt;
+getopts('b:c:d:f:ns', \%opt) or usage();
 
 # There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
@@ -64,7 +85,7 @@ if (defined ($opt{b})) {
 	}
 	print "\n";
     }
-    exit 0;
+    exit EX_SUCCESS;
 }
 
 ## Field operations
@@ -114,26 +135,11 @@ elsif (defined ($opt{f})) {
 	}
     }
 
-    exit 0;
+    exit EX_SUCCESS;
 }
 
-## $SIG{__CLUE__}
-print <<EOT;
-usage:  $me -b list [-n] [file ...]
-        $me -c list [file ...]
-        $me -f list [-d delim] [-s] [file ...]
-
-Each LIST is made up of one range, or many ranges separated by commas.
-Each range is one of:
-
-  N     Nth byte, character or field, counted from 1
-  N-    from Nth byte, character or field, to end of line
-  N-M   from Nth to Mth (included) byte, character or field
-  -M    from first to Mth (included) byte, character or field
-
-EOT
-
-exit 1;
+warn "$me: byte, character or field list required\n";
+usage();
 
 # (Thanks to Abigail for the pod template.)
 
