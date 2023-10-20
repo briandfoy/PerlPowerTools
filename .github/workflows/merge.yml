@@ -3,7 +3,7 @@ name: merge-labeler
 # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 
 permissions:
-    pull-requests: read|write
+    pull-requests: write
 
 on:
   pull_request:
