@@ -90,9 +90,18 @@ sub parse_args()
     usage 1, "-f and -r cannot be used together"
         if $opt_f and $opt_r;
 
-    $point = check_number($opt_b), $type = "b" if $opt_b;
-    $point = check_number($opt_c), $type = "c" if $opt_c;
-    $point = check_number($opt_n), $type = "n" if $opt_n;
+    if (defined $opt_b) {
+        $point = check_number($opt_b);
+        $type = 'b';
+    }
+    if (defined $opt_c) {
+        $point = check_number($opt_c);
+        $type = 'c';
+    }
+    if (defined $opt_n) {
+        $point = check_number($opt_n);
+        $type = 'n';
+    }
 
     for (@ARGV) {
         $point = check_number($1), shift @ARGV, last
