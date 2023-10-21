@@ -380,8 +380,13 @@ sub handle_args($$$)
     my @dirs;
 
     for my $f (@$files_) {
-        if(-d $f) {
-             push @dirs, $f;
+        if (-d $f) {
+            if ($opt_f) {
+                push @dirs, $f;
+            } else {
+                warn "$me: '$f' is a directory\n";
+                $rc = EX_FAILURE;
+            }
         } else {
             push @files, $f;
         }
