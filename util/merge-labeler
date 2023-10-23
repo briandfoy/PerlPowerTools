@@ -42,7 +42,6 @@ sub curl {
 	my $command = [
 		'curl',
 		'--trace-ascii', '-',
-		'-v',
 		'--silent',
 		'-X', $method,
 		'-H',  q('Accept: application/vnd.github.v3+json'),
