@@ -15,27 +15,29 @@ License: public domain
 # public domain code by salzr@certo.com
 # (formerly rsalz@osf.org, rsalz@bbn.com, mirror!rs)
 
-require 'getopts.pl';
+use strict;
 
-sub
-Usage
-{
-    print STDERR "@_.\nUsage: $av0 files...\n";
-    exit(1);
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+sub usage {
+    warn "usage: $Program file...\n";
+    exit EX_FAILURE;
 }
 
+getopts('') or usage();
 binmode STDOUT;
 
-# Parse JCL.
-$av0 = $0;
-$av0 =~ s@.*/@@;
-&Getopts("") || &Usage("Usage error");
-
 # Do work.
-$dirty = 0;
+my $dirty = 0;
 ARGUMENT: for my $f ( @ARGV ) {
     if ( ! open(FH, '<', $f) ) {
-	warn "$av0: can't open $f, $!\n";
+	warn "$Program: can't open '$f': $!\n";
 	next ARGUMENT;
     }
     binmode FH;
@@ -48,10 +50,11 @@ ARGUMENT: for my $f ( @ARGV ) {
 '
     }
     if (-B $f) {
-	$mode = (stat $f)[2];
+	my $mode = (stat $f)[2];
 	$mode = (join '', 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
 	print "sed -e 's/^X//' | uudecode <<'FUNKY_STUFF'\n";
 	print "begin $mode $f\n";
+	my $block;
 	print pack 'u', $block while read FH, $block, 45;
 	print "end\n";
 	print "FUNKY_STUFF\n";
@@ -63,8 +66,11 @@ ARGUMENT: for my $f ( @ARGV ) {
     close(FH);
 }
 
-&Usage("No input files") unless $dirty;
-exit(0);
+unless ($dirty) {
+    warn "$Program: no input files were processed\n";
+    exit EX_FAILURE;
+}
+exit EX_SUCCESS;
 
 __END__
 
@@ -74,7 +80,7 @@ shar - create a shell archive of files
 
 =head1 SYNOPSIS
 
-B<shar> file [files...]
+B<shar> file...
 
 =head1 DESCRIPTION
 
