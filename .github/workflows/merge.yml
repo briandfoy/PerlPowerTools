@@ -1,11 +1,11 @@
 name: merge-labeler
 
-# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-
+# https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#repository-permissions-for-pull-requests
 permissions:
     pull-requests: write
     issues: write
 
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 on:
   pull_request:
     types:
