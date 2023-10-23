@@ -61,14 +61,22 @@ $opt{b} = $opt{c} if defined $opt{c};
 if (defined ($opt{b})) {
 
     my @list = split (/,/, $opt{b});
+    foreach my $item (@list) {
+	if ($item == 0) {
+	    warn "$me: byte positions are numbered from 1\n";
+	    exit EX_FAILURE;
+	}
+    }
 
     while (<>) {
 	chomp;
 
 	foreach my $item (@list) {
 	    my ($start,$end) = split (/-/, $item);
-	    die "$me: invalid byte list\nType '$me' alone for usage.\n"
-		if ($start and $end and $start > $end);  # parameters overlap?
+	    if ($start and $end and $start > $end) {
+		warn "$me: invalid byte list\n";
+		exit EX_FAILURE;
+	    }
 
 	    # change cut's list parameters to substr's parameters
 	    $start--;			   # cut counts from 1, not 0
@@ -92,6 +100,12 @@ if (defined ($opt{b})) {
 elsif (defined ($opt{f})) {
 
     my @list = split (/,/, $opt{f});
+    foreach my $item (@list) {
+	if ($item == 0) {
+	    warn "$me: fields are numbered from 1\n";
+	    exit EX_FAILURE;
+	}
+    }
 
     my $delim = "\t";
     $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
@@ -103,8 +117,10 @@ elsif (defined ($opt{f})) {
 	if (/$delim/) {
 	    foreach my $item (@list) {
 		my ($start,$end) = split (/-/, $item);
-		die "$me: invalid byte list\nType '$me' alone for usage.\n"
-		    if ($start and $end and $start > $end);   # parameters overlap?
+		if ($start and $end and $start > $end) {
+			warn "$me: invalid field list\n";
+			exit EX_FAILURE;
+		}
 
 		# change cut's list parameters to substr's parameters
 		$start--;			   # cut counts from 1, not 0
