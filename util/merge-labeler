@@ -41,7 +41,7 @@ sub curl {
 
 	my $command = [
 		'curl',
-		'--trace-ascii',
+		'--trace-ascii', '-',
 		'-v',
 		'--silent',
 		'-X', $method,
