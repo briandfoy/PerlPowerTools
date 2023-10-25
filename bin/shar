@@ -33,10 +33,13 @@ sub usage {
 getopts('') or usage();
 binmode STDOUT;
 
-# Do work.
 my $dirty = 0;
 ARGUMENT: for my $f ( @ARGV ) {
-    if ( ! open(FH, '<', $f) ) {
+    if (-d $f) {
+	warn "$Program: '$f' is a directory\n";
+	next ARGUMENT;
+    }
+    unless (open FH, '<', $f) {
 	warn "$Program: can't open '$f': $!\n";
 	next ARGUMENT;
     }
@@ -49,6 +52,7 @@ ARGUMENT: for my $f ( @ARGV ) {
 # and feed the result to /bin/sh
 '
     }
+    print "echo x - $f\n";
     if (-B $f) {
 	my $mode = (stat $f)[2];
 	$mode = (join '', 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
@@ -57,12 +61,11 @@ ARGUMENT: for my $f ( @ARGV ) {
 	my $block;
 	print pack 'u', $block while read FH, $block, 45;
 	print "end\n";
-	print "FUNKY_STUFF\n";
     } else {
 	print "sed -e 's/^X//' >$f <<'FUNKY_STUFF'\n";
 	print 'X', $_ while ( <FH> );
-	print "FUNKY_STUFF\n";
     }
+    print "FUNKY_STUFF\n";
     close(FH);
 }
 
@@ -84,8 +87,10 @@ B<shar> file...
 
 =head1 DESCRIPTION
 
-B<shar> creates a shell archive of the I<files> on the command line. The shell
-archive is a shell script, and executing it will recreate the I<files>.
+B<shar> reads input files and writes a shell archive to standard output.
+The shell archive is a shell script, and executing it will recreate the I<files>.
+File permissions are not preserved for archived files.
+Extracted files are created with the default file permissions and owner.
 Directories are I<not> recreated.
 
 =head1 SEE ALSO
