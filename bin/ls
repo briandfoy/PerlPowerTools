@@ -41,6 +41,17 @@ my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
 my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
 $ftype[0] = '';
 
+sub get_columns {
+  eval {
+    require IO::Tty;
+  } or do {
+    return 80;
+  };
+  my @winsize = IO::Tty::get_winsize(*STDIN);
+  shift @winsize; # lines
+  return shift @winsize; # columns
+}
+
 sub format_mode {
   my $mode = shift;
   my %opts = @_;
@@ -81,7 +92,7 @@ my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
 my $VERSION = '0.70';	# because we're V7-compatible :)
-my $WinCols = 80;	# window columns of output
+my $WinCols;		# window columns of output
 
 # ------ compensate for lack of getpwuid/getgrgid on some platforms
 eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
@@ -450,6 +461,7 @@ if ($Options{'f'}) {
 	$Options{'a'} = 1;
 }
 
+$WinCols = get_columns();
 $Attributes = stat(STDOUT);
 if ($Attributes->mode & 0140000) {
 	$Options{'1'} = '1';
