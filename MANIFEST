@@ -65,7 +65,6 @@ bin/moo
 bin/morse
 bin/nl
 bin/od
-bin/par
 bin/paste
 bin/patch
 bin/pig
