@@ -3,11 +3,6 @@
 # has read permissions since the merge is coming from a fork (usually).
 name: merge-labeler
 
-# https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#repository-permissions-for-pull-requests
-permissions:
-    pull-requests: write
-    issues: write
-
 # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 on:
   pull_request:
@@ -15,14 +10,14 @@ on:
       - closed
 
 jobs:
-  accept:
+  relabel:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    environment: merge
     steps:
     - uses: actions/checkout@v3
-    - run: |
-        echo ${{ github.token }} | cat >> .token
-        echo REPO ${{ github.repository }}
-        echo ID ${{ github.event.number }}
+      env:
+        MERGE_TOKEN: ${{ secrets.MERGE_TOKEN }}
+      run: |
         perl util/merge-labeler  ${{ github.repository }} ${{ github.event.number }}
 

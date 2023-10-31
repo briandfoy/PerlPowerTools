@@ -31,17 +31,12 @@ sub add_labels {
 	}
 
 sub curl {
-	state $token = do {
-		open my $fh, '<', '.token';
-		chomp( my $line = <$fh> );
-		$line;
-		};
+	state $token = $ENV{MERGE_TOKEN};
 
 	my( $method, @extra ) = @_;
 
 	my $command = [
 		'curl',
-		'-v',
 		'--silent',
 		'-X', $method,
 		'-H',  q('Accept: application/vnd.github.v3+json'),
