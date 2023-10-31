@@ -35,8 +35,16 @@ binmode STDOUT;
 
 my $dirty = 0;
 ARGUMENT: for my $f ( @ARGV ) {
+    unless ($dirty) {
+	print '# --cut here--
+# To extract, remove everything before the "cut here" line
+# and run the command "sh file".
+';
+	$dirty = 1;
+    }
     if (-d $f) {
-	warn "$Program: '$f' is a directory\n";
+	print "echo x - $f/\n";
+	print "mkdir -p $f\n";
 	next ARGUMENT;
     }
     unless (open FH, '<', $f) {
@@ -45,13 +53,6 @@ ARGUMENT: for my $f ( @ARGV ) {
     }
     binmode FH;
 
-    if ( $dirty++ == 0 ) {
-	print '# --cut here--
-#! /bin/sh
-# To unshar, remove everything before the "cut here" line
-# and feed the result to /bin/sh
-'
-    }
     print "echo x - $f\n";
     if (-B $f) {
 	my $mode = (stat $f)[2];
@@ -91,7 +92,8 @@ B<shar> reads input files and writes a shell archive to standard output.
 The shell archive is a shell script, and executing it will recreate the I<files>.
 File permissions are not preserved for archived files.
 Extracted files are created with the default file permissions and owner.
-Directories are I<not> recreated.
+Directories will be recreated, but directory arguments must be provided before
+the files they contain.
 
 =head1 SEE ALSO
 
