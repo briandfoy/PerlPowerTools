@@ -40,8 +40,8 @@ use strict;
 use File::Basename qw(basename);
 
 use constant EX_SUCCESS   => 0;
-use constant EX_FAILURE   => 1;
 use constant EX_DIFFERENT => 1;
+use constant EX_FAILURE   => 2;
 use constant EX_USAGE     => 2;
 
 use constant ST_INO  => 1;
@@ -114,7 +114,7 @@ if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
             warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
             warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
         }
-        exit 1;
+        exit EX_DIFFERENT;
     }
 }
 
@@ -169,9 +169,9 @@ READ: while (defined ($read_in1 = sysread FILE1, $buffer1, $chunk_size)) {
             my $report_bytes = $bytes_read + 1 + $_;
             if ($volume == 1 ) {
                 print "$file1 $file2 differ: char $report_bytes, line $report_lines\n";
-                exit 1;
-            } elsif ($volume eq 0) {
-                exit 1;
+                exit EX_DIFFERENT;
+            } elsif ($volume == 0) {
+                exit EX_DIFFERENT;
 	    } else {
                 $saw_difference ||= 1;
                 printf "%6d %3o %3o\n", $report_bytes, ord(substr $buffer1,$_,1),
