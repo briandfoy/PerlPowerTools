@@ -1,3 +1,6 @@
+# This action requires a personal access token with issues and pull requests
+# read-write permissions. The GITHUB_TOKEN that the action supplies only
+# has read permissions since the merge is coming from a fork (usually).
 name: merge-labeler
 
 # https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#repository-permissions-for-pull-requests
