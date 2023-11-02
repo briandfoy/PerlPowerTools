@@ -69,7 +69,7 @@ while ($ARGV[0] =~ /^-/) {
   my $opt = shift;
   last if $opt eq '--';
   if ($opt =~ /^-C(.*)/) {
-    $Context_Lines = $1 || shift;
+    $Context_Lines = checklen($1 || shift);
     $opt_c = 1;
     $Diff_Type = "CONTEXT";
   } elsif ($opt =~ /^-c$/) {
@@ -83,7 +83,7 @@ while ($ARGV[0] =~ /^-/) {
     $opt_f = 1;
     $Diff_Type = "REVERSE_ED";
   } elsif ($opt =~ /^-U(.*)$/) {
-    $Context_Lines = $1 || shift;
+    $Context_Lines = checklen($1 || shift);
     $opt_u = 1;
     $Diff_Type = "UNIFIED";
   } elsif ($opt =~ /^-u$/) {
@@ -191,6 +191,12 @@ sub bag {
   my $msg = shift;
   warn "$Program: $msg\n";
   exit 2;
+}
+
+sub checklen {
+  my $n = shift;
+  return int($n) if ($n =~ m/\A[0-9]+\Z/);
+  bag("Invalid context length '$n'\n$usage");
 }
 
 ########
