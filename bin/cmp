@@ -118,18 +118,8 @@ if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
     }
 }
 
-if (@ARGV) {
-    $skip1 = shift;
-    usage() unless $skip1 =~ /^(0x[A-F\d]+|\d+)$/;   # exits;
-}
-
-if (@ARGV) {
-    $skip2 = shift;
-    usage() unless $skip2 =~ /^(0x[A-F\d]+|\d+)$/;   # exits;
-}
-
-$skip1 = eval "$skip1" if defined $skip1;
-$skip2 = eval "$skip2" if defined $skip2;
+$skip1 = skipnum(shift) if @ARGV;
+$skip2 = skipnum(shift) if @ARGV;
 
 if( -d $file1 ) {
 	warn( "$Program: $file1 is a directory\n" );
@@ -200,6 +190,14 @@ close FILE1;
 close FILE2;
 
 exit $saw_difference;
+
+sub skipnum {
+    my $n = shift;
+    return hex($n) if ($n =~ m/\A0x/);
+    return int($n) if ($n =~ m/\A[0-9]+\z/);
+    warn "$Program: invalid offset number '$n'\n";
+    usage();
+}
 
 sub usage {
     warn "usage: $Program [-l] [-s] file1 file2 [skip1 [skip2]]\n";
