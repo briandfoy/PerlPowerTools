@@ -194,7 +194,7 @@ exit $saw_difference;
 sub skipnum {
     my $n = shift;
     return hex($n) if ($n =~ m/\A0x/);
-    return int($n) if ($n =~ m/\A\d+\Z/);
+    return int($n) if ($n =~ m/\A[0-9]+\z/);
     warn "$Program: invalid offset number '$n'\n";
     usage();
 }
