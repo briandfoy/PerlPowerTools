@@ -53,6 +53,8 @@ my $chunk_size = 10_000;     # how many bytes in a gulp
 
 my $volume=1;                # controlled by -s and -l
 
+my $fh1;
+my $fh2;
 my $file1;
 my $file2;
 my $skip1;
@@ -83,67 +85,93 @@ while (@ARGV) {
 usage() unless @ARGV >= 1 and @ARGV <= 3;  # exits;
 
 $file2 = shift;
-
-my @stat1 = stat $file1;
-unless (@stat1) {
-    warn "$Program: '$file1': $!\n";
-    exit EX_FAILURE;
-}
-my @stat2 = stat $file2;
-unless (@stat2) {
-    warn "$Program: '$file2': $!\n";
-    exit EX_FAILURE;
-}
-
-if (defined($stat1[ST_INO]) && $stat1[ST_INO] == $stat2[ST_INO]) {
-    exit EX_SUCCESS;                        # hopefully, on platforms where
-}                                           # inode is meaningless, stat
-                                            # returns undef.
-
-if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
-    # special handling for zero-length files
-    if ($stat1[ST_SIZE] == 0 && $stat2[ST_SIZE] == 0) {
-        exit EX_SUCCESS;
-    } else {                            # Can't we say 'differ at byte zero'
-                                        # and so on here?  That might make
-                                        # more sense than this behavior.
-                                        # Also, this should be made consistent
-                                        # with the behavior when skip >=
-                                        # filesize.
-        if ($volume) {
-            warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
-            warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
-        }
-        exit EX_DIFFERENT;
-    }
-}
-
 $skip1 = skipnum(shift) if @ARGV;
 $skip2 = skipnum(shift) if @ARGV;
 
-if( -d $file1 ) {
-	warn( "$Program: $file1 is a directory\n" );
-	exit EX_USAGE;
+if ($file1 eq '-') {
+    if ($file2 eq '-') {
+        exit EX_SUCCESS;
+    }
+    $fh1 = *STDIN;
 }
-if( -d $file2 ) {
-	warn( "$Program: $file2 is a directory\n" );
-	exit EX_USAGE;
+if ($file2 eq '-') {
+    $fh2 = *STDIN;
 }
 
-unless(  open FILE1, '<', $file1 ) {
-	warn "$Program: cannot open '$file1'\n";
-	exit EX_FAILURE;
-	}
-unless(  open FILE2, '<', $file2 ) {
-	warn "$Program: cannot open '$file2'\n";
-	exit EX_FAILURE;
-	}
+if (!$fh1 && !$fh2) {
+    my @stat1 = stat $file1;
+    unless (@stat1) {
+        warn "$Program: '$file1': $!\n";
+        exit EX_FAILURE;
+    }
+    my @stat2 = stat $file2;
+    unless (@stat2) {
+        warn "$Program: '$file2': $!\n";
+        exit EX_FAILURE;
+    }
 
-sysseek FILE1, $skip1, 0 if $skip1;
-sysseek FILE2, $skip2, 0 if $skip2;
+    if (defined($stat1[ST_INO]) && $stat1[ST_INO] == $stat2[ST_INO]) {
+        exit EX_SUCCESS;                        # hopefully, on platforms where
+    }                                           # inode is meaningless, stat
+                                                # returns undef.
 
-READ: while (defined ($read_in1 = sysread FILE1, $buffer1, $chunk_size)) {
-                      $read_in2 = sysread FILE2, $buffer2, $chunk_size;
+    if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
+        # special handling for zero-length files
+        if ($stat1[ST_SIZE] == 0 && $stat2[ST_SIZE] == 0) {
+            exit EX_SUCCESS;
+        } else {                            # Can't we say 'differ at byte zero'
+                                            # and so on here?  That might make
+                                            # more sense than this behavior.
+                                            # Also, this should be made consistent
+                                            # with the behavior when skip >=
+                                            # filesize.
+            if ($volume) {
+                warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
+                warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
+            }
+            exit EX_DIFFERENT;
+        }
+    }
+}
+
+unless ($fh1) {
+    if (-d $file1) {
+        warn "$Program: '$file1' is a directory\n";
+        exit EX_FAILURE;
+    }
+    unless (open $fh1, '<', $file1) {
+        warn "$Program: cannot open '$file1'\n";
+        exit EX_FAILURE;
+    }
+}
+unless ($fh2) {
+    if (-d $file2) {
+        warn "$Program: '$file2' is a directory\n";
+        exit EX_FAILURE;
+    }
+    unless (open $fh2, '<', $file2) {
+        warn "$Program: cannot open '$file2'\n";
+        exit EX_FAILURE;
+    }
+}
+
+if ($skip1) {
+    if (-p $fh1) {
+        sysread $fh1, $buffer1, $skip1;
+    } else {
+        sysseek $fh1, $skip1, 0;
+    }
+}
+if ($skip2) {
+    if (-p $fh2) {
+        sysread $fh2, $buffer2, $skip2;
+    } else {
+        sysseek $fh2, $skip2, 0;
+    }
+}
+
+READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
+                      $read_in2 = sysread $fh2, $buffer2, $chunk_size;
 
     my $checklength = $chunk_size;
     if ($read_in1 < $chunk_size or $read_in2 < $chunk_size) {
@@ -186,9 +214,8 @@ READ: while (defined ($read_in1 = sysread FILE1, $buffer1, $chunk_size)) {
     }
 }
 
-close FILE1;
-close FILE2;
-
+close $fh1;
+close $fh2;
 exit $saw_difference;
 
 sub skipnum {
@@ -245,6 +272,8 @@ I<file2>, respectively, that determine where the file comparison
 will begin.  Offsets may be given in decimal, octal, or hexadecimal
 form.  Indicate octal notation with a leading '0', and hexadecimal
 notation with a leading '0x'.
+
+file1 or file2 may be given as '-', which reads from standard input.
 
 =head2 OPTIONS
 
