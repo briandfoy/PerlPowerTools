@@ -47,9 +47,6 @@ sub sym_perms {
 		$what_mask |= $what{$_};
 	}
 
-#	printf "%o, %o, %o\n", $who_mask, $what_mask, $change;
-#	print "$how\n";
-
 	if ($how eq '+') {
 		$mode |= ($who_mask & $what_mask);
 	} elsif ($how eq '-') {
@@ -63,7 +60,7 @@ sub get_mode {
 	my $mode = shift;
 	my $real_mode;
 
-	if ($mode =~ /^0?[0-7]{3}$/) {
+	if ($mode =~ /^0?[0-7]{1,3}$/) {
 		return $real_mode = oct($mode);
 	}
 	$real_mode = sym_perms $mode;
@@ -71,7 +68,7 @@ sub get_mode {
 	die "bad mode: $mode\n";
 }
 
-my $mode = $opt_m ? get_mode $opt_m : $default_mode;
+my $mode = defined $opt_m ? get_mode($opt_m) : $default_mode;
 
 foreach my $fifo (@ARGV) {
 	mkfifo $fifo, $mode or die "can't make fifo $fifo: $!\n";
