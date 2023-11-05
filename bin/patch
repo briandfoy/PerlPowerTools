@@ -1105,7 +1105,11 @@ package
 sub TIEHANDLE {
     my ($class, $file) = @_;
     local *FH;
-    open *FH, '<', $file or return;
+    if ($file eq '-') {
+        *FH = *STDIN;
+    } else {
+        open *FH, '<', $file or return;
+    }
     bless [*FH], $class;
 }
 
