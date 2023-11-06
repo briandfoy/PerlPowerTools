@@ -540,8 +540,6 @@ sub edSubstitute {
 #
 
 sub edDelete {
-    my($Numlines);
-
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
