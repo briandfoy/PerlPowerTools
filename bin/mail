@@ -417,7 +417,6 @@ sub load {
 sub stuff {
 	my $self=shift;
 
-	print "In the stuff method\n";
 	push(@{$self->{messages}}, $_[0]);
 	$self->size(0);
 }
@@ -625,6 +624,7 @@ EDLOOP: {
 package main;
 
 use English;
+use File::Temp;
 use Getopt::Std;
 use vars qw($VERSION $ROWS $BUFFERL $box);
 
@@ -788,12 +788,13 @@ sub visual {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
-		my $tmbox=mailbox->new(file => "/tmp/ppt_mail$$");
+		my $tmp = File::Temp->new;
+		my $path = $tmp->filename;
+		my $tmbox = mailbox->new('file' => $path);
 		$tmbox->stuff($message);
-		$tmbox->file("/tmp/ppt_mail$$");
 		$tmbox->write;
-		system("$ENV{VISUAL} /tmp/ppt_mail$$");
-		$tmbox2=mailbox->new(file => "/tmp/ppt_mail$$");  # Hope this isn't a leak
+		system($ENV{'VISUAL'}, $path);
+		$tmbox2 = mailbox->new('file' => $path);  # Hope this isn't a leak
 		print Dumper $tmbox2;
 		$tmbox2->load;
 		print Dumper $tmbox2;
