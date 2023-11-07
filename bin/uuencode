@@ -68,27 +68,26 @@ die "XXX: Not reached";
 sub encode($$) {
     my($source, $destination) = @_;
     my $mode;
+    my $input;
 
-    if ($source eq '-' && -t STDIN) {
+    if ($source eq '-') {
 	warn "$0: WARNING: reading from standard input\n";
-    }
-
-    if ($source ne '-') {
+	$input = *STDIN;
+	$mode = 0644;
+    } else {
+	open($input, '<', $source) || die "can't open $source: $!";
 	$mode = (stat($source))[2] & 0666;
     }
+    binmode $input; # winsop
 
-    printf "begin %03o $destination\n", $mode || 0644;
-
-    local *INPUT;
-    open(INPUT, '<', $source) 	|| die "can't open $source: $!";
-    binmode(INPUT);   # winsop
+    printf "begin %03o $destination\n", $mode;
 
     my $block;
-    print pack ("u", $block) while read (INPUT, $block, 45);
+    print pack ("u", $block) while read ($input, $block, 45);
     print "`\n";
     print "end\n";
 
-    close(INPUT)		|| die "can't close $source: $!";
+    close($input) || die "can't close $source: $!";
 }
 
 =encoding utf8
