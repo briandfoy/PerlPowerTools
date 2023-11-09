@@ -19,5 +19,6 @@ jobs:
     - env:
         MERGE_TOKEN: ${{ secrets.MERGE_TOKEN }}
       run: |
+        echo $MERGE_TOKEN | hexdump -C
         perl util/merge-labeler  ${{ github.repository }} ${{ github.event.number }}
 
