@@ -17,10 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - env:
-        MERGE_TOKEN: ${{ secrets.MERGE_TOKEN }}
-        FOO: ${{ secrets.FOO }}
+        MERGE_TOKEN: ${{ env.MERGE_TOKEN }}
       run: |
         echo MERGE_TOKEN $MERGE_TOKEN | hexdump -C
-        echo FOO $FOO | hexdump -C
         perl util/merge-labeler  ${{ github.repository }} ${{ github.event.number }}
 
