@@ -49,15 +49,27 @@ die "$0: both files cannot be standard input\n"
 $" = defined $delimiter ? $delimiter : ' ';
 
 my @file_names = map { $_ eq '-' ? 'STDIN' : $_ } @ARGV;
+my $fh1;
+my $fh2;
 
-open(F1, '<', $ARGV[0]) || die "Can't read $file_names[0]: $!\n";
-open(F2, '<', $ARGV[1]) || die "Can't read $file_names[1]: $!\n";
+if ($ARGV[0] eq '-') {
+  $fh1 = *STDIN;
+} else {
+  die("$0: '$ARGV[0]' is a directory\n") if (-d $ARGV[0]);
+  open($fh1, '<', $ARGV[0]) || die "Can't open '$ARGV[0]': $!\n";
+}
+if ($ARGV[1] eq '-') {
+  $fh2 = *STDIN;
+} else {
+  die("$0: '$ARGV[1]' is a directory\n") if (-d $ARGV[1]);
+  open($fh2, '<', $ARGV[1]) || die "Can't open '$ARGV[1]': $!\n";
+}
 
 my @buf1; # line buffers for the two files
 my @buf2; #
 
-get_a_line(\@buf1, \*F1);
-get_a_line(\@buf2, \*F2);
+get_a_line(\@buf1, $fh1);
+get_a_line(\@buf2, $fh2);
 
 my ($diff, $eof1, $eof2);
 while (@buf1 && @buf2) {
@@ -66,24 +78,24 @@ while (@buf1 && @buf2) {
   if ($diff < 0) {
     print_joined_lines($buf1[0], []) if $unpairables[0];
     shift @buf1;
-    get_a_line(\@buf1, \*F1) || shift @buf1;
+    get_a_line(\@buf1, $fh1) || shift @buf1;
     next;
   }
   if ($diff > 0) {
     print_joined_lines([], $buf2[0]) if $unpairables[1];
     shift @buf2;
-    get_a_line(\@buf2, \*F2) || shift @buf2;
+    get_a_line(\@buf2, $fh2) || shift @buf2;
     next;
   }
 
   $eof1 = 0;
   do {
-    get_a_line(\@buf1, \*F1) || $eof1++
+    get_a_line(\@buf1, $fh1) || $eof1++
   } until $eof1 || ($buf1[-1]->[$j1] cmp $buf2[0]->[$j2]);
 
   $eof2 = 0;
   do {
-    get_a_line(\@buf2, \*F2) || $eof2++
+    get_a_line(\@buf2, $fh2) || $eof2++
   } until $eof2 || ($buf1[0]->[$j1] cmp $buf2[-1]->[$j2]);
 
   if ($print_pairables) {
@@ -104,16 +116,16 @@ while (@buf1 && @buf2) {
 if ($unpairables[0] && @buf1) {
   do{
     print_joined_lines(shift @buf1, [])
-  } until !get_a_line(\@buf1, \*F1);
+  } until !get_a_line(\@buf1, $fh1);
 }
 if ($unpairables[1] && @buf2) {
   do{
     print_joined_lines([], shift @buf2)
-  } until !get_a_line(\@buf2, \*F2);
+  } until !get_a_line(\@buf2, $fh2);
 }
 
-close F1 || die "Can't close $file_names[0]: $1\n";
-close F2 || die "Can't close $file_names[1]: $1\n";
+close $fh1 || die "Can't close '$file_names[0]': $!\n";
+close $fh2 || die "Can't close '$file_names[1]': $!\n";
 
 exit 0;
 
