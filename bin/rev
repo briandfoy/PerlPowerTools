@@ -13,25 +13,49 @@ License: gpl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 # unbuffer output to make it look speedier
 $|++;
 
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
-if (scalar(@ARGV) == 0 || $ARGV[0] !~ m/^-/) {
-	while (<>) {
-		chomp;
-		my $r = reverse($_);
-		print $r . $/;
+my $rc = EX_SUCCESS;
+if (scalar(@ARGV) == 0 || $ARGV[0] !~ m/^-./) {
+	if (@ARGV) {
+		foreach my $file (@ARGV) {
+			if (-d $file) {
+				warn "$Program: '$file' is a directory\n";
+				$rc = EX_FAILURE;
+				next;
+			}
+			my $fh;
+			unless (open $fh, '<', $file) {
+				warn "$Program: cannot open '$file': $!\n";
+				$rc = EX_FAILURE;
+				next;
+			}
+			rev($fh);
+			if ($!) {
+				warn "$Program: '$file': $!\n";
+				$rc = EX_FAILURE;
+			}
+		}
+	} else {
+		rev(*STDIN);
 	}
-	die("$0: $!") if $!;
 }
 elsif ($ARGV[0] eq '--version') {
-	print " $0 $VERSION\n";
+	print " $Program $VERSION\n";
 }
 else {
 	print <<EOF;
-Usage: $0 [OPTION] [FILE]
+Usage: $Program [OPTION] [FILE]
 
 Reverses lines of the named file or the text input on STDIN
 
@@ -40,10 +64,19 @@ Options:
 	--help || -h:     Print usage, then exit;
 
 EOF
-	exit 1;
+	exit EX_FAILURE;
 }
 
-exit;
+exit $rc;
+
+sub rev {
+	my $fh = shift;
+	while (<$fh>) {
+		chomp;
+		my $r = reverse;
+		print $r, $/;
+	}
+}
 
 __END__
 
