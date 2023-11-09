@@ -95,6 +95,9 @@ while ($ARGV[0] =~ /^-/) {
     $opt_q = 1;
     $opt_e = 1;
     $Diff_Type = "ED";
+  } elsif ($opt eq '-') {
+    unshift @ARGV, '-';
+    last;
   } else {
     $opt =~ s/^-//;
     bag("Illegal option -- $opt\n$usage");
@@ -114,8 +117,6 @@ if (scalar(@ARGV) != 2) {
 }
 
 ######## DO THE DIFF!
-my ($file1, $file2) = @ARGV;
-
 my ($char1, $char2); # string to print before file names
 if ($Diff_Type eq "CONTEXT") {
     $char1 = '*' x 3; $char2 = '-' x 3;
@@ -123,25 +124,35 @@ if ($Diff_Type eq "CONTEXT") {
     $char1 = '-' x 3; $char2 = '+' x 3;
 }
 
-if (-d $file1) {
+my ($file1, $file2) = @ARGV;
+my ($fh1, $fh2);
+
+if ($file1 eq '-') {
+    exit 0 if ($file2 eq '-');
+    $fh1 = *STDIN;
+} elsif (-d $file1) {
     bag("'$file2': is a directory") if (-d $file2);
     my $path = join('/', $file1, basename($file2));
-    open(F1, '<', $path) or bag("Couldn't open '$path': $!");
+    open($fh1, '<', $path) or bag("Couldn't open '$path': $!");
 } else {
-    open(F1, '<', $file1) or bag("Couldn't open '$file1': $!");
+    open($fh1, '<', $file1) or bag("Couldn't open '$file1': $!");
 }
-if (-d $file2) {
+
+if ($file2 eq '-') {
+    $fh2 = *STDIN;
+} elsif (-d $file2) {
     bag("'$file1': is a directory") if (-d $file1);
     my $path = join('/', $file2, basename($file1));
-    open(F2, '<', $path) or bag("Couldn't open '$path': $!");
+    open($fh2, '<', $path) or bag("Couldn't open '$path': $!");
 } else {
-    open(F2, '<', $file2) or bag("Couldn't open '$file2': $!");
+    open($fh2, '<', $file2) or bag("Couldn't open '$file2': $!");
 }
+
 my (@f1, @f2);
-chomp(@f1 = <F1>);
-close F1;
-chomp(@f2 = <F2>);
-close F2;
+chomp(@f1 = <$fh1>);
+close $fh1;
+chomp(@f2 = <$fh2>);
+close $fh2;
 
 # diff yields lots of pieces, each of which is basically a Block object
 my $diffs = diff(\@f1, \@f2);
