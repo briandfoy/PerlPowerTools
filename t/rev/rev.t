@@ -7,10 +7,12 @@ END { done_testing() }
 use lib qw(t/lib);
 use utils;
 
+use File::Basename;
 use File::Spec::Functions;
 use IPC::Run3 qw(run3);
 
 my $command = 'bin/rev';
+my $basename = basename($command);
 
 subtest script => sub {
 	ok( -e $command, "$command exists" );
@@ -50,7 +52,7 @@ subtest "version" => sub {
  	my @command = ( $^X, $command, '--version' );
   	run3 \@command, undef, \$output, \$error;
 
-	like $output, qr/\Q$command\E \d+\.\d+/, "shows version message";
+	like $output, qr/\Q$basename\E \d+\.\d+/, "shows version message";
 	};
 
 subtest "help" => sub {
@@ -59,6 +61,6 @@ subtest "help" => sub {
 	 	my( $output, $error );
  		my @command = ( $^X, $command, $arg );
   		run3 \@command, undef, \$output, \$error;
-		like $output, qr/Usage: \Q$command/, "shows help message";
+		like $output, qr/Usage: \Q$basename/, "shows help message";
 		}
 	};
