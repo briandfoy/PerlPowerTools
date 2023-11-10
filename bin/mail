@@ -390,8 +390,17 @@ sub load {
 
 	print "Loading the mailfile ", $self->file, "\n";
 	my $start=1;
-	if (! defined $self->file) { die "No mailbox specified in class\n"; }
-	open(MBOX, '<', $self->file) || return;
+	unless (defined $self->file) {
+		die "No mailbox specified\n";
+	}
+	if (-d $self->file) {
+		warn $self->file . ": is a directory\n";
+		return;
+	}
+	unless (open MBOX, '<', $self->file) {
+		warn $self->file . ": cannot open: $!\n";
+		return;
+	}
 	$self->size(-s $self->file);
 	my @MESS=();
 	while(<MBOX>) {
@@ -1033,7 +1042,7 @@ USAGE
 if (@ARGV) {   # Assume batch-mode
 	Batch(@ARGV);
 } else {
-	if ($opt_f) {
+	if (defined $opt_f) {
 		Interactive($opt_f);
 	} else {
 		if (exists $ENV{MAIL}) {
