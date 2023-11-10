@@ -16,20 +16,28 @@ License: perl
 
 use strict;
 
-END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 unless (@ARGV) {
-    die "usage: $0 format [argument ...]\n";
+    warn "usage: $Program format [argument ...]\n";
+    exit EX_FAILURE;
 }
 
 my $format = shift;
 $format =~ s/\\v/\x0b/g; # escape \v not available in printf()
 $format =~ s/\%c/\%\.1s/g; # standard printf: %c == 1st char
-eval qq(printf "$format", \@ARGV);
-die if $@;
+
+my @ints = map { m/\A0x/i ? hex : int } @ARGV;
+eval qq(printf "$format", \@ints) or do {
+    warn "$Program: $@\n";
+    exit EX_FAILURE;
+};
+exit EX_SUCCESS;
 
 __END__
 
