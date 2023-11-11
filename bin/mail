@@ -947,11 +947,10 @@ sub parseargs {
 sub parse_msg_list {
 	my($list, $current)=@_;
 
+	$list =~ s/^\s+//g;
+	$list =~ s/\s$//g;
+	return [ $current ] if (length($list) == 0);
 
-	$list=~s/^\s+//g;  $list=~s/\s$//g;
-	if (! $list) {
-		return([ $current ]);
-	}
 	# Get ugly.
 	my @list=();
 	foreach my $stuff (split(/[, ]+/, $list)) {
