@@ -672,15 +672,11 @@ sub print_fortune
 {
 	my ($file, $index) = @_;
 
-	my $wait = 0;
-
+	print read_fortune($file, $index);
 	if ($opts{w}) {
 		my $tmp = fortune_length( $file, $index );
-		$wait = int ($tmp/75);
+		sleep(int($tmp/75));
 	}
-
-	print read_fortune( $file, $index );
-	sleep $wait;
 }
 
 # fortune_length
