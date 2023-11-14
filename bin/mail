@@ -510,6 +510,8 @@ package
 	editor; # hide from PAUSE
 @ISA=qw(PerlPowerTools::mailprog);
 
+use File::Temp;
+
 %editor::fields=(message => undef, mesgno => undef);
 sub new {
 	my $class=shift;
@@ -603,19 +605,17 @@ EDLOOP: {
 				print "read $arg $bytes bytes\n";
 			};
 			/v/ && do {
-				if (! $ENV{VISUAL}) {
-					$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
-					if (! $ENV{VISUAL}) {
-						warn "No VISUAL in environment\n";
-						last SWITCH;
-					}
-				}
-				open(F, '>', "/tmp/ppt_mail$$") || do { warn "Unable to open temp file"; last SWITCH; };
+				my $vipath = main::vipath() || last SWITCH;
+				my $tmp = File::Temp->new;
+				my $tmpfile = $tmp->filename;
 				@BODY=grep(s/$/\n/g, @BODY);
-				print F @BODY;
-				close(F);
-				system("$ENV{VISUAL} /tmp/ppt_mail$$");
-				open(F, '>', "/tmp/ppt_mail$$") || die "Unable to re-open temp file";
+				print { $tmp } @BODY;
+				my $rc = system($vipath, $tmpfile);
+				if ($rc != 0) {
+					warn "Failed to execute '$vipath': $!\n";
+					last SWITCH;
+				}
+				open(F, '<', $tmpfile) || die "Unable to re-open $tmpfile: $!";
 				@BODY=<F>;
 				chomp(@BODY);
 				close(F);
@@ -683,6 +683,13 @@ sub listing {
 		print $message->summary, "\n";
 	}
 	return $first;
+}
+sub vipath {
+	return $ENV{'VISUAL'} if (defined $ENV{'VISUAL'});
+	my $default = '/usr/bin/vi';
+	return $default if (-x $default);
+	warn "No VISUAL in environment\n";
+	return;
 }
 sub shell {
 	# How to get an interactive shell in Perl.  Hmmm...
@@ -783,14 +790,7 @@ sub quit {
 sub visual {
 	my($list)=@_;
 
-	if (! $ENV{VISUAL}) {
-		$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
-		if (! $ENV{VISUAL}) {
-			warn "No VISUAL in environment\n";
-			return;
-		}
-	}
-
+	my $cmd = vipath() || return;
 	foreach my $msgno (@$list) {
 		$message=$box->messagex($msgno);
 		if (! defined $message) {
@@ -802,11 +802,13 @@ sub visual {
 		my $tmbox = mailbox->new('file' => $path);
 		$tmbox->stuff($message);
 		$tmbox->write;
-		system($ENV{'VISUAL'}, $path);
+		my $rc = system($cmd, $path);
+		if ($rc != 0) {
+			warn "Failed to execute '$cmd': $!\n";
+			return;
+		}
 		$tmbox2 = mailbox->new('file' => $path);  # Hope this isn't a leak
-		print Dumper $tmbox2;
 		$tmbox2->load;
-		print Dumper $tmbox2;
 		$box->replace($msgno, $tmbox2->messagex(1));
 	}
 }
