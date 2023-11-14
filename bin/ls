@@ -14,7 +14,9 @@ License: perl
 
 # Perl Power Tool - ls(1)
 
+use Config qw(%Config);
 use File::Basename qw(basename);
+use File::Spec::Functions;
 use File::stat;
 use Getopt::Std;
 use File::Spec;
@@ -42,15 +44,42 @@ my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
 $ftype[0] = '';
 
 sub get_columns {
-  eval {
-    require IO::Tty;
-  } or do {
-    return 80;
-  };
-  my @winsize = IO::Tty::get_winsize(*STDIN);
-  shift @winsize; # lines
-  return shift @winsize; # columns
+	my @methods = qw(windows unix default);
+	foreach my $m ( @methods ) {
+		my $cols = __PACKAGE__->can($m)->();
+		next unless defined $cols;
+		return $cols;
+		}
 }
+
+sub windows {
+	return unless $^O eq 'MSWin32';
+	my @lines = `powershell -command "&{(get-host).ui.rawui.WindowSize;}"`;
+
+	while( my $l = shift @lines ) { last if $l =~ /\A-----/ }
+	return $lines[0] =~ m/\A\s*(\d+)/ ? $1 : ();
+	}
+
+sub unix {
+	return if $^O eq 'MSWin32';
+	my $c = do {
+		if( has('tput') ) { `tput cols` }
+		elsif( has('ssty') ) { `stty size  | cut -d' ' -f 2` }
+		else { undef };
+		};
+	chomp $c;
+	return $c;
+	}
+
+sub default { 80 }
+
+sub has ( $program ) {
+	foreach my $dir ( split /\Q$Config{path_sep}/, $ENV{PATH} ) {
+		next unless -x catfile( $dir, $program );
+		return 1;
+		}
+	return;
+	}
 
 sub format_mode {
   my $mode = shift;
