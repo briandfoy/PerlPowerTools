@@ -2611,7 +2611,7 @@ sub exec_stmt
        print STDERR "No function $name has been defined\n";
        @ope_stack = (0);
        $return = 3;
-       YYERROR;
+       last INSTR;
      }
 
      if($sym_table{$name}{type} eq 'builtin') {
