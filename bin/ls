@@ -41,6 +41,17 @@ my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
 my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
 $ftype[0] = '';
 
+sub get_columns {
+  eval {
+    require IO::Tty;
+  } or do {
+    return 80;
+  };
+  my @winsize = IO::Tty::get_winsize(*STDIN);
+  shift @winsize; # lines
+  return shift @winsize; # columns
+}
+
 sub format_mode {
   my $mode = shift;
   my %opts = @_;
@@ -81,14 +92,7 @@ my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
 my $VERSION = '0.70';	# because we're V7-compatible :)
-my $WinSize = "\0" x 8;	# window size buffer
-my $TIOCGWINSZ =	# get window size via ioctl()
- 0x40087468;		# should be require sys/ioctl.pl,
-			# but that won't exist on all platforms
-my $WinCols = 0;	# window columns of output
-my $WinRows = 0;	# window rows of output
-my $Xpixel = 0;		# window start X
-my $Ypixel = 0;		# window start Y
+my $WinCols;		# window columns of output
 
 # ------ compensate for lack of getpwuid/getgrgid on some platforms
 eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
@@ -457,12 +461,7 @@ if ($Options{'f'}) {
 	$Options{'a'} = 1;
 }
 
-# ------ get (or guess) window size
-if (ioctl(STDOUT, $TIOCGWINSZ, $WinSize)) {
-	($WinRows, $WinCols, $Xpixel, $Ypixel) = unpack('S4', $WinSize);
-} else {
-	$WinCols = 80;
-}
+$WinCols = get_columns();
 $Attributes = stat(STDOUT);
 if ($Attributes->mode & 0140000) {
 	$Options{'1'} = '1';
