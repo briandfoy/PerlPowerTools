@@ -71,7 +71,7 @@ else {
 foreach my $file (@ARGV) {
 
     # Check if the file exists. If not, create it.
-    unless (-f $file) {
+    unless (-e $file) {
         next if $no_create;
         local *FILE;
         require Fcntl;  # Import
