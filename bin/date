@@ -46,14 +46,7 @@ sub munge_tz {
 
 sub posix_tz { POSIX::strftime( '%Z', core_time() ) }
 
-sub quarter {
-    my $mon = ( core_time() )[4] + 1;
-
-       if( $mon <= 3 ) { 1 }
-    elsif( $mon <= 6 ) { 2 }
-    elsif( $mon <= 9 ) { 3 }
-    else               { 4 }
-    }
+sub quarter { int((core_time())[4] / 3) + 1 }
 
 sub run {
 	my $args = shift;
@@ -299,6 +292,8 @@ Show the version and exit
 =item * %p  - AM or PM
 
 =item * %P  - like %p, but lowercase
+
+=item * %q  - quarter of the year (1-4)
 
 =item * %r  - Time in HH(12 hour):MM:SS (AM|PM) format
 
