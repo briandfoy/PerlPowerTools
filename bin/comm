@@ -21,6 +21,13 @@ License: public domain
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my @COL = (undef, 1, 1, 1);
 
 if ($ARGV[0] =~ /^-[123]+$/) {
@@ -31,35 +38,66 @@ if ($ARGV[0] =~ /^-[123]+$/) {
 }
 
 unless (@ARGV == 2) {
-  die "Usage: comm [-123] file1 file2\n";
+  warn "usage: $Program [-123] file1 file2\n";
+  exit EX_FAILURE;
+}
+my ($f1, $f2);
+if ($ARGV[0] eq '-') {
+  if ($ARGV[1] eq '-') {
+    warn "$Program: only one file argument may be stdin\n";
+    exit EX_FAILURE;
+  }
+  $f1 = *STDIN;
+} else {
+  if (-d $ARGV[0]) {
+    warn "$Program: '$ARGV[0]' is a directory\n";
+    exit EX_FAILURE;
+  }
+  unless (open $f1, '<', $ARGV[0]) {
+    warn "$Program: Couldn't open file '$ARGV[0]': $!\n";
+    exit EX_FAILURE;
+  }
+}
+if ($ARGV[1] eq '-') {
+  $f2 = *STDIN;
+} else {
+  if (-d $ARGV[1]) {
+    warn "$Program: '$ARGV[1]' is a directory\n";
+    exit EX_FAILURE;
+  }
+  unless (open $f2, '<', $ARGV[1]) {
+    warn "$Program: Couldn't open file '$ARGV[1]': $!\n";
+    exit EX_FAILURE;
+  }
 }
 
-open F1, '<', $ARGV[0]
-  or die "comm: Couldn't open file $ARGV[0]: $!\n";
-open F2, '<', $ARGV[1]
-  or die "comm: Couldn't open file $ARGV[1]: $!\n";
-
-my $r1 = <F1>;
-my $r2 = <F2>;
+my $r1 = <$f1>;
+my $r2 = <$f2>;
 
 while (defined $r1 && defined $r2) {
   if ($r1 eq $r2) {
     print "\t\t", $r1 if $COL[3];
-    $r1 = <F1>;
-    $r2 = <F2>;
+    $r1 = <$f1>;
+    $r2 = <$f2>;
   } elsif ($r1 gt $r2) {
     print "\t", $r2 if $COL[2];
-    $r2 = <F2>;
+    $r2 = <$f2>;
   } else {
     print $r1 if $COL[1];
-    $r1 = <F1>;
+    $r1 = <$f1>;
   }
 }
 
 print $r1 if defined $r1 && $COL[1];
 print "\t", $r2 if defined $r2 && $COL[2];
-if ($COL[1]) { print while <F1> }
-if ($COL[2]) { print "\t", $_ while <F2> }
+if ($COL[1]) { print while <$f1> }
+if ($COL[2]) { print "\t", $_ while <$f2> }
+
+close $f1;
+close $f2;
+exit EX_SUCCESS;
+
+__END__
 
 =encoding utf8
 
