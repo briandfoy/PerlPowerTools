@@ -42,7 +42,6 @@ EOF
     exit $_[0];
 }
 
-usage(1) unless scalar @ARGV > 0;
 usage(0) if grep {$_ eq "-h"} @ARGV;
 
 my $arg;
@@ -55,8 +54,6 @@ while($arg = shift @ARGV) {
     }
     push @files, $arg;
 }
-
-usage(1) unless scalar @files >= 0;
 
 # $tabstop is used only if multiple tab stops have not been defined
 $tabstop = $tabstops[0] if scalar @tabstops == 1;
@@ -111,6 +108,9 @@ for my $file (@files) {
 
     close IN;
 }
+unless (@files) {
+    do_unexpand <STDIN>;
+}
 
 __END__
 
@@ -119,8 +119,6 @@ __END__
 unexpand - convert spaces to tabs
 
 =head1 SYNOPSIS
-
-expand [B<-h>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
 
 unexpand [B<-h>] [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>]
 [B<file> ...]
@@ -140,17 +138,7 @@ the tabs are set at those specific columns.
 I<unexpand> puts tabs back into the data from the standard input or the
 named files and writes the result on the standard output.
 
-Option (with I<expand> and I<unexpand>):
-
-=over 4
-
-=item -h
-
-Print a usage message and exit with a status code indicating success.
-
-=back
-
-Option (with I<unexpand> only):
+=head1 OPTIONS
 
 =over 4
 
@@ -160,6 +148,10 @@ By default, only leading blanks and tabs are reconverted to maximal
 strings of tabs.  If the B<-a> option is given, tabs are inserted
 whenever they would compress the resultant file by replacing two or
 more characters.
+
+=item -h
+
+Print a usage message and exit with a status code indicating success.
 
 =back
 
