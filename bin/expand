@@ -41,7 +41,6 @@ EOF
     exit $_[0];
 }
 
-usage(1) unless scalar @ARGV > 0;
 usage(0) if grep /^-h$/, @ARGV;
 
 # at most one argument
@@ -114,6 +113,9 @@ for my $file (@files) {
     close IN;
 
 }
+unless (@files) {
+    do_expand <STDIN>;
+}
 
 __END__
 
@@ -124,9 +126,6 @@ expand - convert tabs to spaces
 =head1 SYNOPSIS
 
 expand [B<-h>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
-
-unexpand [B<-h>] [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>]
-[B<file> ...]
 
 =head1 DESCRIPTION
 
@@ -140,29 +139,13 @@ If a single B<tabstop> argument is given, tabs are set B<tabstop> spaces
 apart instead of the default 8.  If multiple tabstops are given then
 the tabs are set at those specific columns.
 
-I<unexpand> puts tabs back into the data from the standard input or the
-named files and writes the result on the standard output.
-
-Option (with I<expand> and I<unexpand>):
+=head1 OPTIONS
 
 =over 4
 
 =item -h
 
 Print a usage message and exit with a status code indicating success.
-
-=back
-
-Option (with I<unexpand> only):
-
-=over 4
-
-=item -a
-
-By default, only leading blanks and tabs are reconverted to maximal
-strings of tabs.  If the B<-a> option is given, tabs are inserted
-whenever they would compress the resultant file by replacing two or
-more characters.
 
 =back
 
