@@ -299,7 +299,7 @@ sub maxline {
 
 sub edPrompt {
     if (defined $adrs[0]) {
-        edWarn('Too many addressses');
+        edWarn('Too many addresses');
         return;
     }
     if (defined $args[0]) {
@@ -317,7 +317,7 @@ sub edHelp {
     my $toggle = shift;
 
     if (defined $adrs[0]) {
-        edWarn('Too many addressses');
+        edWarn('Too many addresses');
         return;
     }
     if (defined $args[0]) {
@@ -622,18 +622,11 @@ sub edWrite {
     }
     $RememberedFilename = $filename;
 
-    if ($AppendMode) {
-        unless (open $fh, '>>', $filename) {
-            warn "$filename: $!\n";
-            edWarn('cannot open output file');
-            return;
-        }
-    } else {
-        unless (open $fh, '>', $filename) {
-            warn "$filename: $!\n";
-            edWarn('cannot open output file');
-            return;
-        }
+    my $mode = $AppendMode ? '>>' : '>';
+    unless (open $fh, $mode, $filename) {
+        warn "$filename: $!\n";
+        edWarn('cannot open output file');
+        return;
     }
 
     for my $line (@lines[$adrs[0]..$adrs[1]]) {
@@ -667,14 +660,12 @@ sub edEdit {
     my(@tmp_lines,@tmp_lines2,$tmp_chars,$chars);
 
     if ($InsertMode) {
+        if (defined $adrs[1]) {
+            $adrs[0] = $adrs[1];
+        }
         if (!defined($adrs[0])) {
             $adrs[0] = maxline();
         }
-        if (defined($args[1])) {
-            edWarn('Too many addressses');
-            return;
-        }
-
     } else {
         if (defined($adrs[0]) or defined($adrs[1])) {
             edWarn("too many addresses for command: $#adrs (@adrs)");
@@ -868,7 +859,7 @@ sub edQuit {
     my($QuestionMode) = @_;
 
     if (defined $adrs[0]) {
-        edWarn('Too many addressses');
+        edWarn('Too many addresses');
         return;
     }
     if (defined($args[0])) {
