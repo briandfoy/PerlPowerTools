@@ -78,12 +78,10 @@ sub do_expand(@)
 	my $curs = 0;
 	for my $c (split //, $line)  {
 
-	    if($c eq "\010") {  # backspace
-		$curs -= 2;
-		$curs = -1 unless $curs >= 0;
-	    }
-
-	    if($c eq "\t") {
+	    if($c eq "\b") {  # backspace
+		print "\b";
+		$curs-- if $curs;
+	    } elsif($c eq "\t") {
 		if(scalar @tabstops > 0) {
 		    if(defined($line_desc{$curs}) ){
 			$incr = $line_desc{$curs};
