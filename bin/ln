@@ -11,101 +11,74 @@ License: perl
 
 =cut
 
-
 use strict;
-use Getopt::Std;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-my $warnings = 0;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    $warnings = 1;
-    warn "$0: @_";
-};
+my $VERSION = '1.3';
+my $Program = basename($0);
 
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-sf] source_file [target_file | [source_files ...] target_directory]
-EOF
-    }
-    die "$0: @_";
-};
+getopts('sf', \my %options) or usage();
+usage() unless @ARGV;
 
-# Get the options.
-#     s   =>  symbolic links.
-#     f   =>  force.
-getopts ('sf', \my %options);
-
-die "Usage" unless @ARGV;
-
-my $target;
-if (@ARGV > 1) {
-    $target = pop @ARGV;
-}
-else {
-    require File::Basename;
-    $target = File::Basename::basename ($ARGV [0]);
-    die "$target: cannot overwrite directory" if -d $target;
+my $target = pop @ARGV;
+if (scalar(@ARGV) == 0 && -d $target) {
+    warn "$Program: '$target': cannot overwrite directory\n";
+    exit EX_FAILURE;
 }
 
 # Deal with the force option in that case of a "file" target.
 unless (-d $target) {
-    if (exists $options {f} && -e $target) {
-        unlink $target or die "cannot unlink `$target': $!";
+    if (exists $options{'f'} && -e $target) {
+        unless (unlink $target) {
+            warn "$Program: cannot unlink '$target': $!\n";
+            exit EX_FAILURE;
+        }
     }
 }
 
-# Since creating symbolic links uses a different function than creating
-# hard links, we stick it in a closure.
-# Note that we can't do the obvious symlink (@_), as those bloody prototypes
-# force use to spell out the arguments, and & can't be used on buildins.
-# perlsub also hints it's possible to override the global link(), and
-# hence have symlink() called if the 's' option is given. But perlsub
-# cowardly calls Exporter -> export() instead of explaining it, and the
-# author of Exporter.pm should be shot for the lack of comments.
-# I don't feel like plowing through its code.
-my $link = exists $options {s} ? sub {symlink ($_ [0], $_ [1])}
-                               : sub {   link ($_ [0], $_ [1])};
-
+my $rc = EX_SUCCESS;
 foreach my $file (@ARGV) {
     my $this_target;
     if (-d $target) {
-        require File::Basename;
         require File::Spec;
-        # Isn't this silly? Two File:: namespaces, one is procedurial,
-        # the other OO. And what's the point of the OO-ness of File::Spec
-        # anyway??
-        my $this_file = File::Basename::basename ($file);
-        $this_target  = File::Spec -> catfile ($target, $this_file);
+        my $this_file = basename($file);
+        $this_target  = File::Spec->catfile($target, $this_file);
         # Deal with the force option.
-        if (exists $options {f} && -e $this_target) {
-            unlink $this_target or do {
-                warn "cannot unlink `$this_target': $!";
+        if (exists $options{'f'} && -e $this_target) {
+            unless (unlink $this_target) {
+                warn "$Program: cannot unlink '$this_target': $!\n";
+                $rc = EX_FAILURE;
                 next;
-            };
+            }
         }
     }
     else {
         $this_target = $target;
     }
 
-    # Now it's time to make the link.
-    $link -> ($file, $this_target) or
-         warn "failed to link $file to $this_target: $!";
+    unless (dolink($file, $this_target)) {
+        warn "$Program: failed to link '$file' to '$this_target': $!\n";
+        $rc = EX_FAILURE;
+    }
+}
+exit $rc;
+
+sub usage {
+    warn "$Program (Perl bin utils) $VERSION\n";
+    warn "usage: $Program [-sf] source_file [target_file | [source_files ...] target_directory]\n";
+    exit EX_FAILURE;
 }
 
-
-exit $warnings;
+sub dolink {
+    my ($file, $target) = @_;
+    return symlink($file, $target) if $options{'s'};
+    return link($file, $target);
+}
 
 __END__
 
@@ -136,7 +109,7 @@ B<ln> accepts the following options:
 
 =item B<-s>
 
-Create symbolic links instead of hard links (the default).
+Create symbolic links (hard links are created by default)
 
 =item B<-f>
 
