@@ -70,6 +70,7 @@ my(@FINFO, @COLINFO);
 OPTION:
 while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     next OPTION unless length;
+    last if ($_ eq '-');
 
     # Lousy options
     if (s/^[ei]//) {
@@ -148,7 +149,6 @@ if (! $column_sep) {
 #
 # Initialize file and column structures
 #
-my @files;
 my $pageno=$startpageno;
 
 foreach(1..$columns) {
@@ -349,6 +349,8 @@ sub printpage {
 	@COLINFO=();
 	foreach(1..$columns) { push(@COLINFO, &create_col); }
 }
+
+__END__
 
 =pod
 
