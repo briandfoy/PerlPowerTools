@@ -26,7 +26,10 @@ $opt_f = 0;
 
 getopts('bfpxl:eEst') || die "Bad options.\n";
 
-if ($opt_l and $opt_l !~ /\D/) {
+if (defined $opt_l) {
+    if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
+        die "bad -l argument: '$opt_l'\n";
+    }
     # multiply by 2 for half-lines
     $opt_l *= 2;
 } else {
@@ -126,12 +129,11 @@ while (<>) {
                 print_line(1);
                 print "\e9";
                 print "\x0D" if !$front;
-                $front = 1;
             } else {
                 # skip to next full line
                 print "\x0A";
-                $front = 1;
             }
+            $front = 1;
 
             # splice off top two rows
             splice(@buf, 0, 2);
@@ -194,14 +196,13 @@ for ($row=0; $row < $max_row; ) {
         # half line feed
         print "\e9";
         print "\x0D" if !$front;
-        $front = 1;
     } else {
         # full line feed
         print "\x0A";
         # skip half line
         ++$row;
-        $front = 1;
     }
+    $front = 1;
     ++$row;
 }
 
@@ -370,7 +371,7 @@ overrides the B<-e> option.
 
 Accept only BSD-style escape sequences; a reverse line feed is an
 escape followed by the ASCII character whose decimal value is 7
-(control-g).  The B<-e> option is overriden by the B<-E> option.
+(control-g).  The B<-e> option is overridden by the B<-E> option.
 
 If neither the B<-E> nor the B<-e> option is used, B<col> accepts both BSD
 and IRIX style escapes sequences.
