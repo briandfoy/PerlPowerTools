@@ -37,7 +37,7 @@ my %options;
 while (@ARGV && $ARGV [0] =~ /^-/) {
     my $opt = reverse shift;
     chop $opt;
-    if ($opt eq '-') {shift; last;}
+    last if ($opt eq '-');
     usage() unless $opt =~ /^[RHLP]+$/;
     local $_;
     while (length ($_ = chop $opt)) {
