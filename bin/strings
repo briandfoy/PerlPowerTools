@@ -60,20 +60,21 @@ use Getopt::Std qw(getopts);
 
 use vars qw($opt_a $opt_f $opt_o $opt_n $opt_t);
 
-use constant EXIT_USAGE => 1;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
 
 sub usage {
 	warn "usage: $Program [-afo] [-n length] [-t {d|o|x}] [file ...]\n";
-	exit EXIT_USAGE;
+	exit EX_FAILURE;
 	}
 
 getopts( 'afon:t:' ) or usage();
 if (defined $opt_n) {
     if ($opt_n !~ m/\A[0-9]\Z/ || $opt_n == 0) {
         warn "$Program: invalid minimum string length '$opt_n'\n";
-        exit EXIT_USAGE;
+        exit EX_FAILURE;
     }
 } else {
     $opt_n = 4;
@@ -101,18 +102,32 @@ my $chunksize = 4096; # whatever
 for my $filename ( @ARGV )
 {
     next if -d $filename;
-    open( IN, '<', $filename ) or die "$Program: Can't open $filename: $!\n";
-    binmode IN;
+    my $in;
+    unless (open $in, '<', $filename) {
+        warn "$Program: Can't open '$filename': $!\n";
+        exit EX_FAILURE;
+    }
+    binmode $in;
+    scanfile($in, $filename);
+    close $in;
+}
+unless (@ARGV) {
+    scanfile(*STDIN, '<stdin>');
+}
+exit EX_SUCCESS;
+
+sub scanfile {
+    my ($fh, $filename) = @_;
     my $offset = 0;
 
-    while ( $_ or read( IN, $_, $chunksize ) )
+    while ($_ or read($fh, $_, $chunksize))
     {
         $offset += length($1) if s/^([^$printable]+)//o;
         my $string = '';
 
 	do {
             $string .= $1 if s/^([$printable]+)//o;
-        } until ( $_ or ! read( IN, $_, $chunksize ) );
+        } until ($_ or !read($fh, $_, $chunksize));
 
         if ( length($string) >= $opt_n )
         {
@@ -122,5 +137,4 @@ for my $filename ( @ARGV )
         }
         $offset += length($string);
     }
-    close IN;
 }
