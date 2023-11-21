@@ -17,14 +17,13 @@ License:
 # Michael Robinson (smrf@sans.vuw.ac.nz) 1999-03-03
 #
 
-# use strict;
+use strict;
+use integer;
 
 use constant EX_TRUE  => 0;
 use constant EX_FALSE => 1;
 use constant EX_ERROR => 2;
 
-sub debug { 1; }
-# sub debug { print @_; }
 $SIG{__DIE__} = sub {
     print STDERR "expr: ", $_[0], "\n";
     exit EX_ERROR;
@@ -59,13 +58,13 @@ my @global_ops = (
 	"<"  => sub { $_[0] <  $_[1] || 0; },
     },
     # add, subtract
-    { 	"+"  => sub { num($_[0]) + num($_[1]) || 0; },
-	"-"  => sub { num($_[0]) - num($_[1]) || 0; },
+    { 	"+"  => sub { num($_[0]) + num($_[1]); },
+	"-"  => sub { num($_[0]) - num($_[1]); },
     },
     # multiplication, division, modulo
-    { 	"*"  => sub { num($_[0]) * num($_[1]) || 0; },
-	"/"  => sub { int(num($_[0]) / num($_[1])) || 0; },
-	"%"  => sub { num($_[0]) % num($_[1]) || 0; },
+    { 	"*"  => sub { num($_[0]) * num($_[1]); },
+	"/"  => sub { num($_[0]) / num($_[1]); },
+	"%"  => sub { num($_[0]) % num($_[1]); },
     },
     # regexp match
     { 	":"  => sub { ($_[0] =~ /^$_[1]/) ? ($1 ? $1 : length $&) : 0; },
@@ -75,20 +74,19 @@ my @global_ops = (
 
 my @stack = @ARGV;	# yuck, a global to handle the argument stack
 			# could just use @ARGV, but it'd look ugly
-sub evaluate(@); 	# protect us from use strict
-sub evaluate(@) {
+sub evaluate {
     my ($op, @ops) = @_;
 
     # if we're passed an operator to test...
     if ($op) {
 	die "syntax error" if $op->{$stack[0]};
 
-	return evaluate @ops unless $op->{$stack[1]}; # recurse
+	return evaluate(@ops) unless $op->{$stack[1]}; # recurse
 
-	my $retval = evaluate @ops;
+	my $retval = evaluate(@ops);
 	while ($op->{$stack[0]}) {		      # handle equal precendence
 	    my $o = shift @stack;
-	    $retval = $op->{$o}->($retval, evaluate @ops);
+	    $retval = $op->{$o}->($retval, evaluate(@ops));
 	}
 	return $retval;
     }
@@ -98,7 +96,7 @@ sub evaluate(@) {
     # handle brackets, the lowest precedence and not a binary operator
     if ($stack[0] eq "(") {
 	shift @stack; 				# remove the bracket
-	my $retval = evaluate @global_ops; 	# restart
+	my $retval = evaluate(@global_ops); 	# restart
 	$stack[0] eq ")" or die "syntax error";
 	shift @stack; 				# remove the bracket
 	return $retval;
@@ -107,7 +105,7 @@ sub evaluate(@) {
     return shift @stack; # remove the primitive and return as value
 }
 
-my $retval = evaluate @global_ops;
+my $retval = evaluate(@global_ops);
 die "syntax error" if (@stack);
 print $retval || 0, "\n";
 exit ($retval ? EX_TRUE : EX_FALSE);
