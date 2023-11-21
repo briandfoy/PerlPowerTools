@@ -204,6 +204,7 @@ else
 
   if ($opt{'f'})
    {
+    die("Cannot open '$opt{'f'}': is a directory\n") if (-d $opt{'f'});
     open(STDIN, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
    }
   binmode(STDIN);
