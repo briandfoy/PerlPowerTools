@@ -14,6 +14,13 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my $dict_file = "/usr/dict/words";      # Filename (path) for standard dict
 my $alt_dict_file = "/usr/dict/linux.words"; # Filename (path) for an alternate dict
 
@@ -29,11 +36,9 @@ my (
 );
 
 sub usage {
-  warn "$0: @_\n" if @_;
-  die "usage: $0 [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [ file ... ]\n";
+  warn "usage: $Program [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [file ...]\n";
+  exit EX_FAILURE;
 }
-
-# usage() unless @ARGV;
 
 keys %words = 45402;   # allocate bins for the hash, it may be useful to
                        #  change this if you dict file is larger or smaller.
@@ -72,7 +77,8 @@ while (@ARGV) {
       else { push @supp, $ARGV[1]; shift}
     }
     else {
-      usage("unrecognized option: -$_");
+      warn "unrecognized option: -$_\n";
+      usage();
     }
   }
   else {   # must be the file(s) to check.
@@ -86,17 +92,18 @@ unshift @supp, $dict_file;
 # read in dictionary words
 
 for my $dict_file (@supp) {
-  open(IN, '<', $dict_file) || die "Could not open dictionary <$dict_file>: $!\n";
-  my @tmp_words;
-  @tmp_words = map {lc} <IN>;
-  chomp @tmp_words;
-  @words{@tmp_words} = ();
-
-#  for my $word (@tmp_words) {
-#    $words{lc($word)} = 1;
-#  }
+  my $in;
+  unless (open $in, '<', $dict_file) {
+    warn "$Program: could not open dictionary <$dict_file>: $!\n";
+    exit EX_FAILURE;
+  }
+  while (<$in>) {
+    chomp;
+    my $w = lc;
+    $words{$w} = 1;
+  }
+  close $in;
 }
-
 @keys = keys %words;
 
 # Read data to check
@@ -128,7 +135,7 @@ unless ( $inter ) {
   check_words( keys %check );
 }
 
-exit 0;  # end of main program, below are subroutines.
+exit EX_SUCCESS;  # end of main program, below are subroutines.
 
 sub check_words {
 
