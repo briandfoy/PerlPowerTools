@@ -14,17 +14,19 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
 my ($VERSION) = '1.3';
+my $Program = basename($0);
 
 sub usage () {
     <<EOUsage;
-install (Perl bin utils) $VERSION
+$Program (Perl bin utils) $VERSION
 
-Usage: $0 [-CcDp] [-g group] [-m mode] [-o owner] file1 file2
-       $0 [-CcDp] [-g group] [-m mode] [-o owner] file ... directory
-       $0 -d [-g group] [-m mode] [-o owner] directory ...
+Usage: $Program [-CcDp] [-g group] [-m mode] [-o owner] file1 file2
+       $Program [-CcDp] [-g group] [-m mode] [-o owner] file ... directory
+       $Program -d [-g group] [-m mode] [-o owner] directory ...
 EOUsage
 }
 
@@ -45,7 +47,7 @@ getopts('CcDdf:g:Mm:o:ps', \%opt) or die usage;
 die usage unless @ARGV;
 
 if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
-    die "$0: -d not allowed with -[CcDp]\n", usage;
+    die "$Program: -d not allowed with -[CcDp]\n", usage;
 }
 
 $opt{C}++ if $opt{p};
@@ -58,7 +60,7 @@ if ($Unix) {
             $opt{g} = $gid;
         }
         else {
-            die "$0: unknown group `$opt{g}'\n";
+            die "$Program: unknown group `$opt{g}'\n";
         }
     }
 
@@ -67,7 +69,7 @@ if ($Unix) {
             $opt{o} = $uid;
         }
         else {
-            die "$0: unknown user `$opt{o}'\n";
+            die "$Program: unknown user `$opt{o}'\n";
         }
     }
 }
@@ -87,7 +89,7 @@ sub modify_file {
 
     if ($mode) {
         unless (chmod $mode, $path) {
-            printf STDERR "$0: chmod %o $path: $!\n", $mode;
+            printf STDERR "$Program: chmod %o $path: $!\n", $mode;
             $Errors++;
         }
     }
@@ -98,29 +100,27 @@ sub modify_file {
         my $gid = $opt{g} || $st[5];
 
         unless (chown $uid, $gid => $path) {
-            warn "$0: chown $uid.$gid $path: $!\n";
+            warn "$Program: chown $uid.$gid $path: $!\n";
             $Errors++;
         }
     }
 
     if ($opt{p}) {
         unless (utime @{$st}[8,9] => $path) {
-            warn "$0: utime $path: $!\n";
+            warn "$Program: utime $path: $!\n";
             $Errors++;
         }
     }
 
     if ($opt{s} and -B $path) {
         if (system "strip", $path) {
-            warn "$0: strip $path exited " . ($? >> 8) . "\n";
+            warn "$Program: strip $path exited " . ($? >> 8) . "\n";
             $Errors++;
         }
     }
 }
 
 sub install_dirs {
-    require File::Basename;
-
     my $mode = $opt{m} || '755';
     my $symbolic = $mode =~ /^[0-7]{1,4}$/ ? 0 : 1;
 
@@ -130,7 +130,7 @@ sub install_dirs {
     while (@ARGV) {
         my $dir = pop @ARGV;
         my $intermediate = 0;
-        while ($dir ne File::Basename::dirname ($dir)) {
+        while ($dir ne dirname($dir)) {
             my $val = $intermediate++;
 
             push @dirs => [$dir, $val];
@@ -139,7 +139,7 @@ sub install_dirs {
                 $min{$dir} = $val;
             }
 
-            $dir = File::Basename::dirname ($dir);
+            $dir = dirname($dir);
         }
     }
 
@@ -156,7 +156,7 @@ sub install_dirs {
 
         next if $implied && -d $dir;
 
-        mkdir $dir, 0755 or die "$0: mkdir $dir: $!\n";
+        mkdir $dir, 0755 or die "$Program: mkdir $dir: $!\n";
     }
 
     foreach my $directory (@ARGV) {
@@ -167,7 +167,7 @@ sub install_dirs {
         my $bits;
         if ($symbolic) {
             unless ( $bits = mod($mode, $dir) ) {
-                die "$0: invalid mode: $mode\n";
+                die "$Program: invalid mode: $mode\n";
             }
             $bits = oct $bits;
         }
@@ -185,10 +185,10 @@ sub install_files {
     my $dir = -d $dst;
 
     if (scalar(@ARGV) == 0) {
-        die "$0: missing destination file operand after '$dst'\n";
+        die "$Program: missing destination file operand after '$dst'\n";
     }
     if (!$dir and @ARGV > 1) {
-        die "$0: $dst is not a directory\n", usage;
+        die "$Program: $dst is not a directory\n", usage;
     }
 
     my $mode = $opt{m} || '755';
@@ -198,43 +198,43 @@ sub install_files {
     require File::Spec;
 
     foreach my $file (@ARGV) {
-        my $targ = $dir ? File::Spec->catfile($dst,$file) : $dst;
+        my $targ = $dir ? File::Spec->catfile($dst, basename($file)) : $dst;
 
         my @st;
         if ($opt{p}) {
             unless (@st = stat $file) {
-                warn "$0: stat $file: $!\n";
+                warn "$Program: stat $file: $!\n";
                 $Errors++;
                 next;
             }
         }
 
         if (-d $file) {
-            warn "$0: ignoring directory '$file'\n";
+            warn "$Program: ignoring directory '$file'\n";
             $Errors++;
             next;
         }
 
         if ($opt{C}) {
             if (system "cmp", "-s", $file, $targ) {
-                warn "$0: copy $file $targ\n" if $Debug;
+                warn "$Program: copy $file $targ\n" if $Debug;
 
                 unless ( File::Copy::copy($file, $targ) ) {
-                    warn "$0: copy $file $targ: $!\n";
+                    warn "$Program: copy $file $targ: $!\n";
                     $Errors++;
                     next;
                 }
             }
             else {
-                warn("$0: $file not copied to $targ\n") if $Debug;
+                warn("$Program: $file not copied to $targ\n") if $Debug;
                 next;
             }
         }
         else { # default -c
-            warn "$0: copy $file $targ\n" if $Debug;
+            warn "$Program: copy $file $targ\n" if $Debug;
 
             unless ( File::Copy::copy($file, $targ) ) {
-                warn "$0: copy $file $targ: $!\n";
+                warn "$Program: copy $file $targ: $!\n";
                 $Errors++;
                 next;
             }
@@ -243,7 +243,7 @@ sub install_files {
         my $bits;
         if ($symbolic) {
             unless ( mod($mode, $targ) ) {
-                die "$0: invalid mode: $mode\n";
+                die "$Program: invalid mode: $mode\n";
             }
             $bits = oct $bits;
         }
