@@ -14,8 +14,13 @@ License: perl
 
 use strict;
 
-use Getopt::Std;
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 use vars qw($VERSION);
 $VERSION = '1.1';
 
@@ -24,11 +29,11 @@ use vars qw($opt_e $opt_E $opt_s $opt_t);
 
 $opt_f = 0;
 
-getopts('bfpxl:eEst') || die "Bad options.\n";
-
+getopts('bfpxl:eEst') or usage();
 if (defined $opt_l) {
     if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
-        die "bad -l argument: '$opt_l'\n";
+        warn "$Program: bad -l argument: '$opt_l'\n";
+        exit EX_FAILURE;
     }
     # multiply by 2 for half-lines
     $opt_l *= 2;
@@ -296,7 +301,12 @@ sub print_line {
     }
 }
 
-exit 0;
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: col [-bfpx] [-l num] [-Eest]\n";
+    exit EX_FAILURE;
+}
 
 __END__
 
