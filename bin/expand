@@ -27,21 +27,17 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my %line_desc;
 my $tabstop = 8;
 my @tabstops;
 my @files;
-
-sub usage($;$)
-{
-    print <<"EOF";
-Usage:
-expand [-h] [-tabstop] [-tab1, tab2, ...] [file ...]
-EOF
-    print STDERR $_[1] if $_[1];
-    exit $_[0];
-}
-
-usage(0) if grep /^-h$/, @ARGV;
 
 # at most one argument
 if($ARGV[0] =~ /-(.*)/) {
@@ -52,8 +48,6 @@ if($ARGV[0] =~ /-(.*)/) {
 
 @files = @ARGV;
 
-my %line_desc;
-
 # $tabstop is used only if multiple tab stops have not been defined
 if(scalar @tabstops == 0) {
     $tabstop = 8;
@@ -61,8 +55,7 @@ if(scalar @tabstops == 0) {
     $tabstop = $tabstops[0];
 } else {
     my $howfar = 1;
-    my %tabs;
-    map { $tabs{$_} = 1 } @tabstops;
+    my %tabs = map { $_ => 1 } @tabstops;
     for (my $i = $tabstops[$#tabstops]-1; $i >= 0; $i--) {
         # how far is the $i-th column from the next tab
 	$line_desc{$i} = $howfar;
@@ -71,48 +64,56 @@ if(scalar @tabstops == 0) {
     }
 }
 
-sub do_expand(@)
-{
-    my $incr;
-    for my $line(@_) {
-	my $curs = 0;
-	for my $c (split //, $line)  {
-
-	    if($c eq "\b") {  # backspace
-		print "\b";
-		$curs-- if $curs;
-	    } elsif($c eq "\t") {
-		if(scalar @tabstops > 0) {
-		    if(defined($line_desc{$curs}) ){
-			$incr = $line_desc{$curs};
-		    } else { # Jupiter, and beyond the infinite
-			$incr = 1;
-		    }
-		} else {
-		    $incr = $curs%$tabstop ? ($tabstop - $curs%$tabstop)
-			: $tabstop;
-		}
-		print " " x $incr;
-		$curs += $incr;
-  	    } else {
-		print $c;
-		$curs++;
-	    }
-
-	}
-    }
-
-}
-
 for my $file (@files) {
-
-    open IN, '<', $file or usage(1, "couldn't open '$file' for reading: $!'");
-    do_expand <IN>;
-    close IN;
-
+    my $in;
+    unless (open $in, '<', $file) {
+	warn "$Program: couldn't open '$file' for reading: $!'\n";
+	exit EX_FAILURE;
+    }
+    while (<$in>) {
+	expand_line($_);
+    }
+    close $in;
 }
 unless (@files) {
-    do_expand <STDIN>;
+    while (<>) {
+	expand_line($_);
+    }
+}
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program [-tabstop] [-tab1,tab2,...] [file ...]\n";
+    exit EX_FAILURE;
+}
+
+sub expand_line {
+    my $line = shift;
+    my $incr;
+    my $curs = 0;
+
+    for my $c (split //, $line) {
+	if($c eq "\b") {  # backspace
+	    print "\b";
+	    $curs-- if $curs;
+	} elsif($c eq "\t") {
+	    if(scalar @tabstops > 0) {
+		if(defined($line_desc{$curs})) {
+		    $incr = $line_desc{$curs};
+		} else { # Jupiter, and beyond the infinite
+		    $incr = 1;
+		}
+	    } else {
+		$incr = $curs%$tabstop ? ($tabstop - $curs%$tabstop)
+		    : $tabstop;
+	    }
+	    print ' ' x $incr;
+	    $curs += $incr;
+	} else {
+	    print $c;
+	    $curs++;
+        }
+    }
 }
 
 __END__
@@ -123,7 +124,7 @@ expand - convert tabs to spaces
 
 =head1 SYNOPSIS
 
-expand [B<-h>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
+expand [B<-tabstop>] [B<-tab1,tab2,...>] [B<file> ...]
 
 =head1 DESCRIPTION
 
@@ -133,17 +134,17 @@ are preserved into the output and decrement the column count for tab
 calculations.  I<expand> is useful for pre-processing character files
 (before sorting, looking at specific columns, etc.) that contain tabs.
 
-If a single B<tabstop> argument is given, tabs are set B<tabstop> spaces
-apart instead of the default 8.  If multiple tabstops are given then
-the tabs are set at those specific columns.
-
 =head1 OPTIONS
 
 =over 4
 
-=item -h
+=item -tabstop
 
-Print a usage message and exit with a status code indicating success.
+Tabs are set B<tabstop> spaces apart instead of the default 8.
+
+=item -tab1,-tab2,...
+
+Tabs are set at the specific column numbers B<tab1>, B<tab2> and so on.
 
 =back
 
