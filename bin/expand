@@ -142,7 +142,7 @@ calculations.  I<expand> is useful for pre-processing character files
 
 Tabs are set B<tabstop> spaces apart instead of the default 8.
 
-=item -tab1,-tab2,...
+=item -tab1,tab2,...
 
 Tabs are set at the specific column numbers B<tab1>, B<tab2> and so on.
 
