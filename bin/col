@@ -304,7 +304,7 @@ sub print_line {
 exit EX_SUCCESS;
 
 sub usage {
-    warn "usage: col [-bfpx] [-l num] [-Eest]\n";
+    warn "usage: $Program [-bfpx] [-l num] [-Eest]\n";
     exit EX_FAILURE;
 }
 
