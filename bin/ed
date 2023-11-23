@@ -707,7 +707,7 @@ sub edEdit {
     }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
         $tmp_lines[-1] .= "\n";
-        $chars++;
+        $tmp_chars++;
         print "Newline appended\n";
     }
 
