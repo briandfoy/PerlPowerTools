@@ -247,7 +247,7 @@ if (ref $patch eq 'Patch') {
 }
 
 $patch->note("done\n");
-exit $patch->error ? 1 : 0;
+exit($patch->error ? 1 : 0);
 
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
