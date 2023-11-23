@@ -82,7 +82,7 @@ else {
     install_files();
 }
 
-exit $Errors == 0 ? 0 : 1;
+exit($Errors == 0 ? 0 : 1);
 
 sub modify_file {
     my($path,$mode,$st) = @_;
