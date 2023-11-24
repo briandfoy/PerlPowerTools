@@ -1,5 +1,130 @@
 Revision history for Perl module PerlPowerTools
 
+1.041 2023-11-24T17:10:58Z
+	* All changes from Michael Mikonos unless otherwise noted
+	* arithmetic
+		- use getopts (#336)
+	* banner
+		- use getopts instead of custom parsing (#286)
+	* bc
+		- don't print 0 for a false condition (#247)
+		- allow file named 0 (#282)
+		- fix case that eats too much input (#292)
+		
+	* cal
+		- use getopts instead of custom parsing (#277)
+	* chgrp
+		- allow -- to end options (#341)
+	* chmod
+		- allow -- to end options (#347)
+	* chown
+		- allow -- to end options (#347)
+	* cmp
+		- exit with 2 on arg failure (#307)
+		- handle hex input (#309)
+		- support - for stdin (#310)
+	* col
+		- reject 0 value for -l (#334)
+		- add usage (#343)
+	* comm
+		- use strict (#306)
+		- support - for stdin (#327)
+	* cut
+		- show error for unknown options (#297)
+		- disallow -b 0 or -f 0 (#299)
+	* date
+		- some code cleanups (#287)
+		- document -q (#328)
+	* diff
+		- validate -U and -C args (#308)
+		- support - for stdin (#311)
+	* ed
+		- removed unused code (#315)
+		- fix r command addresses (#330)
+		- allow r to add newline to last line (#346)
+	* expand
+		- support - for stdin (#324)
+		- don't suppress backspace (#329)
+		- don't slurp file (#344)
+	* expr
+		- use strict (#338)
+	* file
+		- fix an error message (#285)
+	* fortune
+		- improve -w handling (#322)
+	* hexdump
+		- allow file named 0 (#283)
+	* id
+		- allow uid 0 (#281)
+	* install
+		- handle directory args correctly (#339)
+		- fix exit status precedence problem (#348) (mauke)
+	* join
+		- support - for stdin (#313)
+		- show usage (#345)
+	* ln
+		- error out for bad options (#331)
+	* ls
+		- try harder to determine the screen size (#303)
+	* mail
+		- fix problem writing to mailbox (#279)
+		- better handling of temp file (#316)
+		- disallow directory for -f (#319)
+		- error for uid 0 (#321)
+		- remove some duplicated code (#322)
+	* mkfifo
+		- let -m take one and two digit args (#312)
+	* nl
+		- use Pod::Usage (#291)
+	* patch
+		- support - for stdin (#314)
+		- fix exit status precedence problem (#348) (mauke)
+	* pom
+		- leverage libraries to get math functions instead of coding them (#280)
+	* pr
+		- allow -- to end options (#332)
+		- use spaces for margin_spaces (#342)
+	* printf
+		- support hex arguments (#320)
+	* rev
+		- warn for directory args (#318)
+	* shar
+		- fix dependency error with old getopts.pl (#300)
+		- ignore directories (#303)
+		- support dir arguments from find (#304)
+	* spell
+		- refactor for better looping (#335)
+	* split
+		- remove code to handle -? (unkown switch still does same thing) (#278)
+	* strings
+		- make strict-safe, better validation (#289)
+		- read stdin by default (#333)
+	* tail
+		- stricter checking on numbers for arguments (#284)
+		- continue on error (#294)
+		- allow 0 as argument (#296)
+		- warn for directories (#298)
+	* tar
+		- disallow directories for -f (#337)
+	* tee
+		- guard special chars in filename (#290)
+	* touch
+		- support directories (#326)
+	* unexpand
+		- support - for stdin (#325)
+		- don't slurp file (#340)
+	* uuencode
+		- support - for stdin (#317)
+		
+	* wc
+		- report filenames (#295)
+	* wump
+		- various refactors (#293)
+	* xargs
+		- support -0 (#288)
+			
+	
+
 1.040 2023-10-02T04:42:58Z
 	* All of these improvements are from Michael Mikonos
 	* cal
