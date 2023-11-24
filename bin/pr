@@ -287,7 +287,10 @@ sub print_header {
 	my($col)=@_;		# the current column.
 	return if (!$trailer);
 
-	print "\n\n", scalar(localtime), " ";
+	print "\n\n";
+	print ' ' x $offsetspaces if $offsetspaces;
+	print scalar(localtime), " ";
+
 	if ($header) {
 		print "$header ";
 	} else {
@@ -320,7 +323,7 @@ sub printpage {
 
 	print_header($COLINFO[0]);
 	foreach my $line (1..$COLINFO[0]{oheight}) {
-		print "O"x${offsetspaces} if ($offsetspaces);
+		print ' ' x $offsetspaces if $offsetspaces;
 		foreach my $column (@COLINFO) {
 			my $pfmt;
 			my $numbering="";
