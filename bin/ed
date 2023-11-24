@@ -657,7 +657,7 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_chars,$chars);
+    my(@tmp_lines, @tmp_lines2, $tmp_chars, $chars, $fh);
 
     if ($InsertMode) {
         if (defined $adrs[1]) {
@@ -681,14 +681,12 @@ sub edEdit {
         return 1;
     }
 
-    # suck the file into a temp array
-
     if (-d $filename) {
         warn "$filename: is a directory\n";
         edWarn('cannot read input file');
         return 0;
     }
-    unless (open(SOURCE, '<', $filename)) {
+    unless (open $fh, '<', $filename) {
         warn "$filename: $!\n";
         edWarn('cannot open input file');
         return 0;
@@ -698,12 +696,20 @@ sub edEdit {
     $tmp_chars = 0;
     $chars = 0;
 
-    while (<SOURCE>) {
-        push(@tmp_lines,$_);
+    while (<$fh>) {
+        push @tmp_lines, $_;
         $tmp_chars += length;
     }
-
-    close(SOURCE);
+    unless (close $fh) {
+        warn "$filename: $!\n";
+        edWarn('cannot close input file');
+        return 0;
+    }
+    if (substr($tmp_lines[-1], -1, 1) ne "\n") {
+        $tmp_lines[-1] .= "\n";
+        $tmp_chars++;
+        print "Newline appended\n";
+    }
 
     # now that we've got it, figure out what to do with it
 
@@ -744,12 +750,6 @@ sub edEdit {
         $NeedToSave = 0;
         $UserHasBeenWarned = 0;
         $CurrentLineNum = maxline();
-    }
-
-    if ($lines[maxline()] !~ /\n$/) {
-        $lines[maxline()] .= "\n";
-        $chars++;
-        print "Newline appended\n";
     }
 
     print "$chars\n" unless ($SupressCounts);
