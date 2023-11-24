@@ -16,20 +16,19 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 my $VERSION = '1.1';
 
-END {
-  close STDOUT || die "$0: can't close stdout: $!\n";
-  $? = 1 if $? == 255;  # from die
-}
-
 sub help {
-  print <<"HELP_YOURSELF";
-join (Perl Power Tools) $VERSION
-Usage: join [-a file_number | -v file_number] [-e string] [-j file_number field]
-            [-o list] [-t char] [-1 field] [-2 field] file1 file2
-HELP_YOURSELF
-  exit 0;
+  warn "$Program (Perl Power Tools) $VERSION\n";
+  warn "usage: $Program [-a file_number | -v file_number] [-e string] [-j file_number field]\n";
+  warn "            [-o list] [-t char] [-1 field] [-2 field] file1 file2\n";
+  exit EX_FAILURE;
 }
 
 # options
@@ -42,9 +41,14 @@ my @unpairables = (undef) x 2;  # print unpairables from which files?
 
 get_options();
 
-die "$0: I expect two filenames as arguments\n" unless @ARGV == 2;
-die "$0: both files cannot be standard input\n"
-  if $ARGV[0] eq '-' and $ARGV[1] eq '-';
+if (scalar(@ARGV) != 2) {
+  warn "$Program: two filenames arguments expected\n";
+  help();
+}
+if ($ARGV[0] eq '-' && $ARGV[1] eq '-') {
+  warn "$Program: both files cannot be standard input\n";
+  exit EX_FAILURE;
+}
 
 $" = defined $delimiter ? $delimiter : ' ';
 
@@ -55,14 +59,26 @@ my $fh2;
 if ($ARGV[0] eq '-') {
   $fh1 = *STDIN;
 } else {
-  die("$0: '$ARGV[0]' is a directory\n") if (-d $ARGV[0]);
-  open($fh1, '<', $ARGV[0]) || die "Can't open '$ARGV[0]': $!\n";
+  if (-d $ARGV[0]) {
+    warn "$Program: '$ARGV[0]' is a directory\n";
+    exit EX_FAILURE;
+  }
+  unless (open $fh1, '<', $ARGV[0]) {
+    warn "$Program: cannot open '$ARGV[0]': $!\n";
+    exit EX_FAILURE;
+  }
 }
 if ($ARGV[1] eq '-') {
   $fh2 = *STDIN;
 } else {
-  die("$0: '$ARGV[1]' is a directory\n") if (-d $ARGV[1]);
-  open($fh2, '<', $ARGV[1]) || die "Can't open '$ARGV[1]': $!\n";
+  if (-d $ARGV[1]) {
+    warn "$Program: '$ARGV[1]' is a directory\n";
+    exit EX_FAILURE;
+  }
+  unless (open $fh2, '<', $ARGV[1]) {
+    warn "$Program: cannot open '$ARGV[1]': $!\n";
+    exit EX_FAILURE;
+  }
 }
 
 my @buf1; # line buffers for the two files
@@ -124,10 +140,15 @@ if ($unpairables[1] && @buf2) {
   } until !get_a_line(\@buf2, $fh2);
 }
 
-close $fh1 || die "Can't close '$file_names[0]': $!\n";
-close $fh2 || die "Can't close '$file_names[1]': $!\n";
-
-exit 0;
+unless (close $fh1) {
+  warn "$Program: Can't close '$file_names[0]': $!\n";
+  exit EX_FAILURE;
+}
+unless (close $fh2) {
+  warn "$Program: Can't close '$file_names[1]': $!\n";
+  exit EX_FAILURE;
+}
+exit EX_SUCCESS;
 
 sub get_a_line {
   my ($aref, $fh) = @_;
@@ -178,21 +199,30 @@ sub get_arg {
   my ($arg,$opt) = shift;
   if    (length) { $opt = $_ }
   elsif (@ARGV)  { $opt = shift @ARGV }
-  else           {die "$0: option requires an argument -- $arg\n"}
+  else {
+    warn "option requires an argument -- '$arg'\n";
+    help();
+  }
   return $opt;
 }
 
 sub get_numeric_arg {
   my ($argname, $desc) = @_;
   my $opt = get_arg($argname);
-  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";
+  if ($opt !~ m/\A[0-9]+\Z/) {
+    warn "invalid number of $desc: `$opt'\n";
+    help();
+  }
   return $opt;
 }
 
 sub get_file_number {
   my $argname = shift;
-  my $f = get_arg($argname);
-  $f =~ /^[12]$/ || die "$0: argument $argname expects 1 or 2\n";
+  my $f = get_numeric_arg($argname);
+  if ($f != 1 && $f != 2) {
+    warn "argument $argname expects 1 or 2\n";
+    help();
+  }
   return --$f;
 }
 
@@ -201,10 +231,16 @@ sub get_field_specs {
     my $text = get_arg('o');
     my @specs = split /\s+|,/, $text;
     foreach my $spec (@specs) {
-      $spec =~ /^(0)$|^([12])\.(\d+)$/ || die "$0: weird field spec `$spec'\n";
+      if ($spec !~ m/^(0)$|^([12])\.(\d+)$/) {
+        warn "$Program: invalid field spec `$spec'\n";
+        exit EX_FAILURE;
+      }
       if (defined $1) { push @fields, [0, -1] }
       else {
-        die "$0: fields start at 1\n" if $3 == 0;
+        if ($3 == 0) {
+          warn "$Program: fields start at 1\n";
+          exit EX_FAILURE;
+        }
         push @fields, [$2, $3 - 1];
       }
     }
@@ -227,13 +263,19 @@ sub get_options {
     elsif (s/^-e//)    { $e_string = get_arg('e') }
     elsif (s/^-(?:j?([12])|j)//) {
       my $field = get_numeric_arg('j');
-      die("$0: fields start at 1\n") if $field == 0;
+      if ($field == 0) {
+        warn "fields start at 1\n";
+        help();
+      }
       if ($1) { ($1 == 1 ? $j1 : $j2) = $field}
       else    { $j1 = $j2 = $field }
     }
     elsif (s/^-o//)    { get_field_specs() }
     elsif (s/^-t//)    { $delimiter = get_arg('t') }
-    else {die "$0: invalid option -- $_\n"}
+    else {
+      warn "invalid option '$_'\n";
+      help();
+    }
   }
 }
 
