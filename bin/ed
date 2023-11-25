@@ -74,6 +74,18 @@ use strict;
 
 use Getopt::Std qw(getopts);
 
+use constant E_ADDREXT => 'too many addresses';
+use constant E_ADDRBAD => 'invalid address';
+use constant E_ARGEXT  => 'extra arguments detected';
+use constant E_SUFFBAD => 'invalid command suffix';
+use constant E_CLOSE   => 'cannot close file';
+use constant E_OPEN    => 'cannot open file';
+use constant E_READ    => 'cannot read file';
+use constant E_NOFILE  => 'no current filename';
+use constant E_UNSAVED => 'buffer modified';
+use constant E_CMDBAD  => 'unknown command';
+use constant E_PATTERN => 'invalid pattern delimiter';
+
 # important globals
 
 my $CurrentLineNum = 0;         # default to before first line.
@@ -147,6 +159,7 @@ if (defined $opt{'p'}) {
     $Prompt = $opt{'p'};
 }
 if ($opt{'v'}) {
+    warn "perl ed version $VERSION\n";
     $EXTENDED_MESSAGES = 1;
 }
 if ($opt{'s'}) {
@@ -161,9 +174,6 @@ if (!defined($fname) || $fname eq '-') {
     $args[0] = $fname;
 }
 
-if ($EXTENDED_MESSAGES) {
-    print STDERR "perl ed version $VERSION\n";
-}
 &edEdit($NO_QUESTIONS_MODE,$NO_APPEND_MODE);
 
 #
@@ -189,21 +199,19 @@ while (1) {
 
         if (defined($adrs[0])) {
             if ($adrs[0] > maxline() || $adrs[0] < 0) {
-                edWarn('address out of range');
+                edWarn(E_ADDRBAD);
                 next;
             }
         }
-
         if (defined($adrs[1])) {
             if ($adrs[1] > maxline() || $adrs[1] < 0) {
-                edWarn('address out of range');
+                edWarn(E_ADDRBAD);
                 next;
             }
         }
-
         if (defined($adrs[0]) and defined($adrs[1])) {
-            unless ($adrs[1] >= $adrs[0]) {
-                edWarn("Second address ($adrs[0]) must be >= first ($adrs[1])");
+            if ($adrs[1] < $adrs[0]) {
+                edWarn(E_ADDRBAD);
                 next;
             }
         }
@@ -283,10 +291,8 @@ while (1) {
         }
 
     } else {
-        edWarn('unrecognized command');
+        edWarn(E_CMDBAD);
     }
-
-
 }
 
 sub maxline {
@@ -299,11 +305,11 @@ sub maxline {
 
 sub edPrompt {
     if (defined $adrs[0]) {
-        edWarn('Too many addresses');
+        edWarn(E_ADDREXT);
         return;
     }
     if (defined $args[0]) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
     if (defined $Prompt) {
@@ -317,11 +323,11 @@ sub edHelp {
     my $toggle = shift;
 
     if (defined $adrs[0]) {
-        edWarn('Too many addresses');
+        edWarn(E_ADDREXT);
         return;
     }
     if (defined $args[0]) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
     if ($toggle) {
@@ -344,11 +350,11 @@ sub edPrint {
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
     if ($adrs[0] == 0 || $adrs[1] == 0) {
-        edWarn('invalid address');
+        edWarn(E_ADDRBAD);
         return;
     }
     if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
 
@@ -392,20 +398,20 @@ sub escape_line {
 # merge lines back into $lines[$adrs[0]]
 sub edJoin {
     if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
     if (defined($adrs[0]) && $adrs[0] == 0) {
-        edWarn('invalid address');
+        edWarn(E_ADDRBAD);
         return;
     }
     if (defined($adrs[1]) && $adrs[1] == 0) {
-        edWarn('invalid address');
+        edWarn(E_ADDRBAD);
         return;
     }
     if (!defined($adrs[0]) && !defined($adrs[1])) {
         if ($CurrentLineNum == maxline()) {
-            edWarn('invalid address');
+            edWarn(E_ADDRBAD);
             return;
         }
         $adrs[0] = $CurrentLineNum;
@@ -443,7 +449,7 @@ sub edMove {
         $end = $start;
     }
     if ($start == 0 || $end == 0) { # allowed for $dst only
-        edWarn('invalid address');
+        edWarn(E_ADDRBAD);
         return;
     }
     my $dst = $args[0];
@@ -457,7 +463,7 @@ sub edMove {
         }
         # move a range into itself
         if ($dst >= $start && $dst <= $end) {
-            edWarn('invalid destination');
+            edWarn(E_ADDRBAD);
             return;
         }
     }
@@ -490,15 +496,13 @@ sub edMove {
 sub edSubstitute {
     my($LastMatch,$char,$first,$middle,$last,$whole,$flags,$PrintLastLine);
 
-    $PrintLastLine = 0;
-
     # parse args
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $CurrentLineNum unless (defined($adrs[1]));
 
     unless (defined($args[0])) {
-        edWarn('Need a substitution string');
+        edWarn(E_PATTERN);
         return;
     }
 
@@ -544,11 +548,11 @@ sub edDelete {
     $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
     if ($adrs[0] == 0 || $adrs[1] == 0) {
-        edWarn('invalid address');
+        edWarn(E_ADDRBAD);
         return;
     }
     if (defined $args[0]) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
 
@@ -572,7 +576,7 @@ sub edDelete {
 
 sub edFilename {
     if (defined($adrs[0]) or defined($adrs[1])) {
-        edWarn("too many addresses for command: $#adrs (@adrs)");
+        edWarn(E_ADDREXT);
         return;
     }
 
@@ -585,7 +589,7 @@ sub edFilename {
         print "$RememberedFilename\n";
     }
     else {
-        edWarn('No current filename');
+        edWarn(E_NOFILE);
     }
 }
 
@@ -609,7 +613,7 @@ sub edWrite {
         if ($commandsuf eq 'q') {
             $qflag = 1;
         } else {
-            edWarn('Invalid command suffix');
+            edWarn(E_SUFFBAD);
             return;
         }
     }
@@ -617,7 +621,7 @@ sub edWrite {
     $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
 
     if (!defined($filename)) {
-        edWarn('No current filename');
+        edWarn(E_NOFILE);
         return;
     }
     $RememberedFilename = $filename;
@@ -625,7 +629,7 @@ sub edWrite {
     my $mode = $AppendMode ? '>>' : '>';
     unless (open $fh, $mode, $filename) {
         warn "$filename: $!\n";
-        edWarn('cannot open output file');
+        edWarn(E_OPEN);
         return;
     }
 
@@ -633,11 +637,15 @@ sub edWrite {
         print {$fh} $line;
         $chars += length($line);
     }
+    unless (close $fh) {
+        warn "$filename: $!\n";
+        edWarn(E_CLOSE);
+        return;
+    }
 
     $NeedToSave = 0;
     $UserHasBeenWarned = 0;
     print "$chars\n" unless ($SupressCounts);
-    close $fh;
 
     # v7 docs say to chmod 666 the file ... we're not going to
     # follow the docs *that* closely today (6/16/99 ---gmj)
@@ -668,7 +676,7 @@ sub edEdit {
         }
     } else {
         if (defined($adrs[0]) or defined($adrs[1])) {
-            edWarn("too many addresses for command: $#adrs (@adrs)");
+            edWarn(E_ADDREXT);
             return;
         }
     }
@@ -683,12 +691,12 @@ sub edEdit {
 
     if (-d $filename) {
         warn "$filename: is a directory\n";
-        edWarn('cannot read input file');
+        edWarn(E_READ);
         return 0;
     }
     unless (open $fh, '<', $filename) {
         warn "$filename: $!\n";
-        edWarn('cannot open input file');
+        edWarn(E_OPEN);
         return 0;
     }
 
@@ -702,7 +710,7 @@ sub edEdit {
     }
     unless (close $fh) {
         warn "$filename: $!\n";
-        edWarn('cannot close input file');
+        edWarn(E_CLOSE);
         return 0;
     }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
@@ -714,7 +722,6 @@ sub edEdit {
     # now that we've got it, figure out what to do with it
 
     if ($InsertMode) {
-
         if (maxline() != 0 && $adrs[0] == maxline()) {
             push(@lines,@tmp_lines);
             $CurrentLineNum = maxline();
@@ -732,27 +739,23 @@ sub edEdit {
             $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
 
-        $chars = $tmp_chars;
         $NeedToSave = 1;
-        $UserHasBeenWarned = 0;
-
-
     } else {
         if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
             $UserHasBeenWarned = 1;
-            edWarn('file modified');
+            edWarn(E_UNSAVED);
             return;
         }
 
         @lines = @tmp_lines;
         unshift(@lines,undef); # line 0 is not used
-        $chars = $tmp_chars;
         $NeedToSave = 0;
-        $UserHasBeenWarned = 0;
         $CurrentLineNum = maxline();
     }
 
-    print "$chars\n" unless ($SupressCounts);
+    $chars = $tmp_chars;
+    $UserHasBeenWarned = 0;
+    print "$chars\n" unless $SupressCounts;
     return 1;
 }
 
@@ -764,16 +767,16 @@ sub edInsert {
     my($Mode) = @_;
     my(@tmp_lines,@tmp_lines2,$tmp_chars);
 
-    if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+    if (defined($adrs[1])) {
+        edWarn(E_ADDREXT);
         return;
     }
-
-    $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-
-    if (defined($adrs[1])) {
-        edWarn('Too many addresses');
+    if (defined($args[0])) {
+        edWarn(E_ARGEXT);
         return;
+    }
+    if (!defined($adrs[0])) {
+        $adrs[0] = $CurrentLineNum;
     }
 
     # suck the text into a temp array
@@ -834,7 +837,7 @@ sub edInsert {
 
 sub edPrintLineNum {
     if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
 
@@ -859,24 +862,18 @@ sub edQuit {
     my($QuestionMode) = @_;
 
     if (defined $adrs[0]) {
-        edWarn('Too many addresses');
+        edWarn(E_ADDREXT);
         return;
     }
     if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
-
-    if ($QuestionMode) {
-        if ($NeedToSave) {
-            unless ($UserHasBeenWarned) {
-                edWarn('Current buffer has been modified but not saved');
-                $UserHasBeenWarned = 1;
-                return;
-            }
-        }
+    if ($QuestionMode && $NeedToSave && !$UserHasBeenWarned) {
+        $UserHasBeenWarned = 1;
+        edWarn(E_UNSAVED);
+        return;
     }
-
 
     exit 0;
 }
@@ -894,7 +891,7 @@ sub edQuit {
 
 sub edSetCurrentLine {
     if (defined($args[0])) {
-        edWarn('Extra arguments detected');
+        edWarn(E_ARGEXT);
         return;
     }
 
@@ -908,7 +905,7 @@ sub edSetCurrentLine {
         if ($adr <= maxline() && $adr > 0 && maxline() != 0) {
             $CurrentLineNum = $adr;
         } else {
-            edWarn("requested line ($adr) out of range: 1-" . maxline());
+            edWarn(E_ADDRBAD);
             return 0;
         }
 
@@ -918,13 +915,12 @@ sub edSetCurrentLine {
         if ($CurrentLineNum < maxline()) {
             $CurrentLineNum++;
         } else {
-            edWarn('already at end of file');
+            edWarn(E_ADDRBAD);
             return 0;
         }
     }
 
-    print "$lines[$CurrentLineNum]";
-
+    print $lines[$CurrentLineNum];
     return 1;
 }
 
