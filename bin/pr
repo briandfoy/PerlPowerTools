@@ -231,6 +231,10 @@ sub create_col  {
 	my($col)=@_;
 
 	my $pagelen=$length-($trailerlength*2);
+	if ($pagelen <= 0) {
+		$trailer = 0;
+		$pagelen = 1;
+	}
 	if($doublespace) {
 		$pagelen=($pagelen%2 == 0)?$pagelen/2:int($pagelen/2)+1;
 	}
@@ -337,7 +341,7 @@ sub printpage {
 			print $numbering;
 			print $numberchar if ($number);
 
-			if (!$column_sep) {
+			if (!$column_sep && $trailer) {
 				$pfmt="%-${colwidth}s";
 				printf("$pfmt", $$column{text}[$line-1]{text});
 			} else {
