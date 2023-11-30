@@ -726,7 +726,7 @@ sub edEdit {
             push(@lines,@tmp_lines);
             $CurrentLineNum = maxline();
         } elsif ($adrs[0] == 0) {
-            splice @lines, 0, 1, undef, @tmp_lines;
+            splice @lines, 1, 0, @tmp_lines;
             $CurrentLineNum = scalar(@tmp_lines);
         } else {
             splice @lines, $adrs[0] + 1, 0, @tmp_lines;
