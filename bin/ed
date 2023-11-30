@@ -726,16 +726,10 @@ sub edEdit {
             push(@lines,@tmp_lines);
             $CurrentLineNum = maxline();
         } elsif ($adrs[0] == 0) {
-            shift(@lines); # get rid of undefined line
-            unshift(@lines,@tmp_lines);
-            unshift(@lines,undef); # put 0 line back
+            splice @lines, 0, 1, undef, @tmp_lines;
             $CurrentLineNum = scalar(@tmp_lines);
         } else {
-            shift(@lines); # get rid 0 line
-            @tmp_lines2 = splice(@lines,0,$adrs[0]);
-            unshift(@lines,@tmp_lines);
-            unshift(@lines,@tmp_lines2);
-            unshift(@lines,undef); # put 0 line back
+            splice @lines, $adrs[0] + 1, 0, @tmp_lines;
             $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
 
@@ -747,8 +741,7 @@ sub edEdit {
             return;
         }
 
-        @lines = @tmp_lines;
-        unshift(@lines,undef); # line 0 is not used
+        @lines = (undef, @tmp_lines);
         $NeedToSave = 0;
         $CurrentLineNum = maxline();
     }
