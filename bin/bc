@@ -2180,7 +2180,9 @@ sub yylex
 	      $type = $FLOAT;
 	  }
 	  if ($line =~ s/^[eE]([-+]*\d+)//) {
-	      $yylval *= 10 ** $1;
+	      my $mult = $bignum ? Math::BigFloat->new('10') : 10;
+	      $mult = $mult ** $1;
+	      $yylval *= $mult;
 	      $type = $FLOAT;
 	  }
 
