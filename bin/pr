@@ -109,7 +109,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 
     if (s/^o//) {
 	warn "-o option already used" if $offsetspaces;
-	$offsetspaces=shift;
+	$offsetspaces = checknum(shift);
 	redo OPTION;
     }
 
@@ -232,9 +232,15 @@ USAGE
 	exit EX_FAILURE;
 }
 
-#
-# FUNCTIONS
-#
+sub checknum {
+	my $n = shift;
+	if (length($n) == 0 || $n !~ m/\A[0-9]+\Z/) {
+		warn "$Program: invalid number: '$n'\n";
+		exit EX_FAILURE;
+	}
+	return int($n);
+}
+
 sub create_col  {
 	my($col)=@_;
 
