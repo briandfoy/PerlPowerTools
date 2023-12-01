@@ -19,11 +19,10 @@ use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
-use constant EX_USAGE   => 2;
 
 my $Program = basename($0);
 
-my (%opt, @chars, @cesc, $adr, $nread, $curf, $skip);
+my (%opt, @chars, @cesc, $adr, $dump, $fmt, $nread, $curf, $skip);
 
 sub getchar {
     my $c;
@@ -52,30 +51,31 @@ sub doskip {
     }
 }
 
-sub dumper {
-    return unless (@chars);
-    if ($opt{'c'}) {
-        printf '%07lx ', $adr;
-        foreach my $c (@chars) {
-            if ($c =~ m/[[:print:]]/) {
-                printf '%3s ', $c;
-            } else {
-                my $i = ord $c;
-                my $e = $cesc[$i];
-                $e ||= sprintf '%03o ', $i;
-                print $e;
-            }
+sub dump_c {
+    printf "$fmt ", $adr;
+    foreach my $c (@chars) {
+        if ($c =~ m/[[:print:]]/) {
+            printf '%3s ', $c;
+        } else {
+            my $i = ord $c;
+            my $e = $cesc[$i];
+            $e ||= sprintf '%03o ', $i;
+            print $e;
         }
-        print "\n";
-    } else {
-        printf '%08lx ', $adr;
-        my $str = join '', @chars;
-        my $hex = unpack 'H*', $str;
-        $hex =~ s/^(.{16})/$1 /;
-        $hex =~ s/(\S{2})/ $1/g;
-        $str =~ s/[^[:print:]]/./g;
-        printf "%-51s|%s|\n", $hex, $str;
     }
+    print "\n";
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_x {
+    printf "$fmt ", $adr;
+    my $str = join '', @chars;
+    my $hex = unpack 'H*', $str;
+    $hex =~ s/^(.{16})/$1 /;
+    $hex =~ s/(\S{2})/ $1/g;
+    $str =~ s/[^[:print:]]/./g;
+    printf "%-51s|%s|\n", $hex, $str;
     $adr += scalar @chars;
     undef @chars;
 }
@@ -85,7 +85,7 @@ sub dofile {
     my $c;
     while (defined($c = getchar())) {
         push @chars, $c;
-        dumper() if (scalar(@chars) == 16);
+        &$dump if (scalar(@chars) == 16);
         if ($opt{'n'} && $opt{'n'} == $nread) {
             return 1;
         }
@@ -124,6 +124,8 @@ sub revert {
 sub xd {
     $adr = $nread = 0;
     if ($opt{'c'}) {
+        $fmt = '%07lx';
+        $dump = \&dump_c;
         $cesc[0]  = ' \0 ';
         $cesc[7]  = ' \a ';
         $cesc[8]  = ' \b ';
@@ -132,13 +134,16 @@ sub xd {
         $cesc[11] = ' \v ';
         $cesc[12] = ' \f ';
         $cesc[13] = ' \r ';
+    } else {
+        $fmt = '%08lx';
+        $dump = \&dump_x;
     }
     if (@ARGV) {
         while (@ARGV) {
             my $path = shift @ARGV;
             unless (open $curf, '<', $path) {
                 warn "$Program: $path: $!\n";
-                exit EX_USAGE;
+                exit EX_FAILURE;
             }
             last if (dofile() != 0);
         }
@@ -146,26 +151,21 @@ sub xd {
         $curf = *STDIN;
         dofile();
     }
-    dumper(); # odd bytes at end
-
-    if ($opt{'c'}) {
-        printf "%07lx\n", $adr;
-    } else {
-        printf "%08lx\n", $adr;
-    }
+    &$dump if @chars; # odd bytes at end
+    printf "$fmt\n", $adr;
 }
 
 getopts('cn:rs:u', \%opt)
     or do {
     	warn("usage: $Program [-cru] [-n length] [-s skip] [file ...]\n");
-    	exit EX_USAGE;
+    	exit EX_FAILURE;
     	};
 
 $| = 1 if $opt{'u'};
 foreach (qw(n s)) {
     if ($opt{$_} && $opt{$_} =~ m/\D/) {
         warn "$Program: bad -$_ argument\n";
-        exit EX_USAGE;
+        exit EX_FAILURE;
     }
 }
 $skip = $opt{'s'};
@@ -181,16 +181,16 @@ hexdump - print input as hexadecimal
 
 =head1 SYNOPSIS
 
-hexdump [-cu] [-n NUMBER] [-s NUMBER] file ..
+hexdump [-cu] [-n NUMBER] [-s NUMBER] [file ...]
 
-hexdump [-ru] file ...
+hexdump [-ru] [file ...]
 
 =head1 DESCRIPTION
 
-Data is read from stdin if no input files are provided. The default output
-mode is canonical hex+ASCII. Each line begins with an offset number followed
-by a space-separated list of 16 hex bytes. Finally, printable input
-characters are listed between two '|' characters.
+Data is read from standard input if no file arguments are provided. The
+default output mode is canonical hex+ASCII. Each line begins with an offset
+number followed by a space-separated list of 16 hex bytes. Finally, printable
+input characters are listed between two '|' characters.
 
 =head2 OPTIONS
 
@@ -235,7 +235,7 @@ Output runs in unbuffered mode.
 =head1 BUGS
 
 No option exists for setting an output filename, so the -r option will
-write binary data to a terminal if stdout is not redirected.
+write binary data to a terminal if output is not redirected.
 
 No support for multi-byte hex display, or plain hex output.
 
