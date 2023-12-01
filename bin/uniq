@@ -45,6 +45,7 @@ sub get_numeric_arg {
 
 while (@ARGV && $ARGV[0] =~ /^[-+]/) {
   local $_ = shift;
+  last if ($_ eq '--');
   /^-[h?]$/    && help();        # terminates
   /^-v$/       && version();     # terminates
   /^-c$/       && ($optc++, next);
@@ -102,32 +103,32 @@ uniq [B<-c> | B<-d> | B<-u>] [B<-f> I<fields>] [B<-s> I<chars>] [I<input files>]
 =head1 DESCRIPTION
 
 The uniq utility reads the standard input comparing adjacent lines and
-writes a copy of each unique input line to the standard output.  The sec-
-ond and succeeding copies of identical adjacent input lines are not writ-
-ten.  Repeated lines in the input will not be detected if they are not
+writes a copy of each unique input line to the standard output.  The
+second and succeeding copies of identical adjacent input lines are not
+written.  Repeated lines in the input will not be detected if they are not
 adjacent, so it may be necessary to sort the files first.
 
 The following options are available:
 
 =over
 
-=item c
+=item -c
 
 Precede each output line with the count of the number of times the
 line occurred in the input, followed by a single space.
 
-= item d
+=item -d
 
 Don't output lines that are not repeated in the input.
 
-=item f I<fields>
+=item -f I<fields>
 
 Ignore the first fields in each input line when doing compar-
 isons.  A field is a string of non-blank characters separated
 from adjacent fields by blanks.  Field numbers are one based,
 i.e. the first field is field one.
 
-=item s I<chars>
+=item -s I<chars>
 
 Ignore the first chars characters in each input line when doing
 comparisons.  If specified in conjunction with the B<-f> option, the
@@ -135,7 +136,7 @@ first chars characters after the first fields fields will be ig-
 nored.  Character numbers are one based, i.e. the first character is
 character one.
 
-=item u
+=item -u
 
 Don't output lines that are repeated in the input.
 
