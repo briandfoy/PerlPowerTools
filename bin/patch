@@ -22,7 +22,7 @@ my $VERSION = '0.27';
 
 $|++;
 
-if (@ARGV && $ARGV[0] eq '-v') {
+sub version {
     print split /^    /m, qq[
         This is patch $VERSION written in Perl.
 
@@ -70,10 +70,11 @@ if (@ARGV) {
     my $next = 0;
     for (@options) {
         local @ARGV = @$_;
-        Getopt::Long::GetOptions(\my %opts, @desc);
+        Getopt::Long::GetOptions(\my %opts, @desc) or die("Bad options\n");
         $opts{origfile} = shift;
         $_ = \%opts;
         $patchfile = shift unless $next++;
+        version() if $opts{'version'};
     }
 }
 
