@@ -4,7 +4,7 @@
 
 Name: fmt
 Description: reformat paragraphs
-Author: Dmitri Tiknonov dmitri@cpan.org
+Author: Dmitri Tikhonov dmitri@cpan.org
 License: perl
 
 =end metadata
@@ -15,7 +15,13 @@ License: perl
 use strict;
 use warnings;
 
+use File::Basename qw(basename);
 use Getopt::Long;
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my $MAX_WIDTH = 75;
 
@@ -31,8 +37,7 @@ my $MAX_WIDTH = 75;
 
 GetOptions(
     "width=i"   => \$MAX_WIDTH,
-    "help"      => sub { &print_usage; exit; },
-);
+) or usage();
 
 my $fmt_line = '<' x $MAX_WIDTH;
 
@@ -67,14 +72,11 @@ if (length $line) {
     do write while length $line;
 }
 
-exit;
+exit EX_SUCCESS;
 
-sub print_usage {
-    (my $prog = $0) =~ s~.*[/\\]~~;
-    print <<"USAGE";
-Usage: $0 [-w WIDTH] [file...]
-
-USAGE
+sub usage {
+    warn "usage: $Program [-w WIDTH] [file...]\n";
+    exit EX_FAILURE;
 }
 
 __END__
@@ -100,10 +102,6 @@ option -WIDTH is an abbreviated form of -w DIGITS.
 
 Maximum line width.  This option can be specified in shortened version,
 -DIGITS.  The default is 75.
-
-=item -h
-
-Print help screen and exit.
 
 =back
 
