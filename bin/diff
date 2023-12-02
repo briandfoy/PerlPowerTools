@@ -129,8 +129,10 @@ my ($fh1, $fh2);
 
 if ($file1 eq '-') {
     exit 0 if ($file2 eq '-');
+    bag("cannot compare '-' to a directory") if (-d $file2);
     $fh1 = *STDIN;
 } elsif (-d $file1) {
+    bag("cannot compare '-' to a directory") if ($file2 eq '-');
     bag("'$file2': is a directory") if (-d $file2);
     my $path = join('/', $file1, basename($file2));
     open($fh1, '<', $path) or bag("Couldn't open '$path': $!");
