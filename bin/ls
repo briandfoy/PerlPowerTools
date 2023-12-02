@@ -308,6 +308,7 @@ UNDEFSTAT
 sub List {
 	my $Name = shift;	# directory name
 	my $Options = shift;	# options/flags hashref
+	my $is_dir = shift;
 	my $Expand = shift;	# do 1 level of dir expansion,
 				# for "ls DIRNAME"
 	my $Attributes = "";	# entry attributes hashref
@@ -344,12 +345,12 @@ sub List {
 
 	# ------ print directory name if -R
 	if (exists($Options->{'R'})) {
-		print "$Name:\n";
+		print "$Name:\n" if $is_dir;
 	}
 
 	# ----- print total in blocks if -s or -l
 	if (exists($Options->{'l'}) || exists($Options->{'s'})) {
-		print "total $TotalBlocks\n";
+		print "total $TotalBlocks\n" if $is_dir;
 	}
 
 	# ------ sort entry list
@@ -402,7 +403,7 @@ sub List {
 			 $Attributes->{$Entry}->mode & 0040000) {
 				$Path = File::Spec->canonpath(File::Spec->catdir($Name,$Entry));
 				@Dirs = DirEntries(\%Options, $Path);
-				List($Path, \%Options, 0, @Dirs);
+				List($Path, \%Options, 1, 0, @Dirs);
 			}
 		}
 	}
@@ -498,7 +499,7 @@ if ($Attributes->mode & 0140000) {
 
 # ------ current directory if no arguments
 if ($#ARGV < 0) {
-	List('.', \%Options, 0, DirEntries(\%Options, "."));
+	List('.', \%Options, 1, 0, DirEntries(\%Options, "."));
 
 # ------ named files/directories if arguments
 } else {
@@ -517,7 +518,7 @@ if ($#ARGV < 0) {
 	}
 	for my $Arg (Order(\%Options, \%Attributes, @Files)) {
 		$First = 0;
-		List($Arg, \%Options, 0,
+		List($Arg, \%Options, 0, 0,
 		 DirEntries(\%Options, $Arg));
 	}
 	for my $Arg (@Dirs) {
@@ -529,7 +530,7 @@ if ($#ARGV < 0) {
 			$First = 0;
 			print "$Arg:\n" if ($ArgCount > 0);
 		}
-		List($Arg, \%Options, 0,
+		List($Arg, \%Options, 1, 0,
 		 DirEntries(\%Options, $Arg));
 	}
 }
