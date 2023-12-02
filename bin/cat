@@ -36,7 +36,7 @@ my $ends              = exists $options{'e'};
 my $tabs              = exists $options{'t'};
 my $nonprinting       = exists $options{'v'} || $ends || $tabs;
 my $squeeze_empty     = exists $options{'s'};
-my $number_lines      = exists $options{'n'};
+my $number_lines      = $options{'n'} && !$options{'b'};
 my $number_non_blanks = exists $options{'b'};
 
 # Unbuffer output for -u.
