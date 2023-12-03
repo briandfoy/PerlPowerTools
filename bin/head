@@ -59,7 +59,7 @@ foreach my $file (@ARGV) {
             next;
         }
         unless (open $fh, '<', $file) {
-            warn "$Program: $file: $!\n";
+            warn "$Program: failed to open '$file': $!\n";
             $err++;
             next;
         }
@@ -79,7 +79,10 @@ foreach my $file (@ARGV) {
         last unless (defined $line);
         print $line;
     }
-    close($fh) unless $is_stdin;
+    if (!$is_stdin && !close($fh)) {
+        warn "$Program: failed to close '$file': $!\n";
+        $err++;
+    }
 }
 exit ($err ? EX_FAILURE : EX_SUCCESS);
 
