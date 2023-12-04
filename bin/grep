@@ -274,6 +274,7 @@ sub matchfile {
     $total = 0;
 
 FILE: while (defined ($file = shift(@_))) {
+	my $compressed = 0;
 
 	if (-d $file) {
 	    if (-l $file && @ARGV != 1) {
@@ -329,6 +330,7 @@ FILE: while (defined ($file = shift(@_))) {
 	    my ($ext) = $file =~ /\.([^.]+)$/;
 	    if (defined $ext && exists $Compress{$ext}) {
 		$file = "$Compress{$ext} $file |";
+		$compressed = 1;
 	    }
 	    elsif (! (-T $file  || $opt->{a})) {
 		warn qq($Me: skipping binary file "$file"\n) if $opt->{T};
@@ -342,12 +344,19 @@ FILE: while (defined ($file = shift(@_))) {
 	if ($file eq '-') {
 	    $fh = *STDIN;
 	}
-	elsif (!open($fh, '<', $file)) {
-	    unless ($opt->{'q'}) {
+	else {
+	    my $ok;
+	    if ($compressed) {
+		$ok = open $fh, $file; # pipe
+	    }
+	    else {
+		$ok = open $fh, '<', $file;
+	    }
+	    if (!$ok && !$opt->{'q'}) {
 		warn "$Me: $file: $!\n";
 		$Errors++;
 	    }
-	    next FILE;
+	    next FILE unless $ok;
 	}
 
 	$total = 0;
