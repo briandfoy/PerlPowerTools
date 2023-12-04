@@ -24,8 +24,8 @@ sub usage () {
     <<EOUsage;
 $Program (Perl bin utils) $VERSION
 
-Usage: $Program [-CcDp] [-g group] [-m mode] [-o owner] file1 file2
-       $Program [-CcDp] [-g group] [-m mode] [-o owner] file ... directory
+Usage: $Program [-CcDps] [-g group] [-m mode] [-o owner] file1 file2
+       $Program [-CcDps] [-g group] [-m mode] [-o owner] file ... directory
        $Program -d [-g group] [-m mode] [-o owner] directory ...
 EOUsage
 }
@@ -467,9 +467,9 @@ install - install files and directories
 
 =head1 SYNOPSIS
 
-B<install> [B<-CcDp>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file1> I<file2>
+B<install> [B<-CcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file1> I<file2>
 
-B<install> [B<-CcDp>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file> ... I<directory>
+B<install> [B<-CcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file> ... I<directory>
 
 B<install> B<-d> [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<directory> ...
 
