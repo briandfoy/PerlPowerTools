@@ -65,7 +65,7 @@ sub run {
 	foreach (@$args) {
 		if( /^-/ and ! exists $allowed{$_} ) {
 			print STDERR "Unrecognized option $_\n";
-			exit(2);
+			usage(2);
 			}
 
 		   if( /^\-u/ ) { $TZ = $ENV{'TZ'} = 'UTC'; my @times = CORE::gmtime; *core_time = sub { @times } }
@@ -94,7 +94,7 @@ sub select_format {
 sub setup_specifiers {
 	my %specifiers = (
 		'e'  => sprintf( '% 2d', (core_time)[3] ),
-		'P'  => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
+		'P'  => lc(POSIX::strftime('%p', core_time())),
 		'q'  => quarter(),
 		'T'  => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
 		'z'  => tz_offset(),
@@ -140,7 +140,7 @@ sub usage {
 	my $exit_code = defined $_[0] ? $_[0] : 0;
 
 	my $output = <<"HEADER";
-usage: $0 [-fhIRuv] [+format]
+usage: $0 [-hIRuv] [+format]
 
 Formats:
 HEADER
