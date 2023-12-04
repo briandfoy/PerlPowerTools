@@ -61,8 +61,14 @@ if (defined $ARGV[0] && $ARGV[0] ne '-') {
 }
 
 $opt{'d'} ? decode() : encode();
-close $in;
-close $out;
+unless (close $in) {
+    warn "$Program: failed to close input: $!\n";
+    exit EX_FAILURE;
+}
+unless (close $out) {
+    warn "$Program: failed to close output: $!\n";
+    exit EX_FAILURE;
+}
 exit EX_SUCCESS;
 
 sub decode {
