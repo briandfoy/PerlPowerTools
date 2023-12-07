@@ -188,7 +188,7 @@ then executes user specified commands on those files.
 find and print a list of all files on the system (disk) with a F<.pm>
 extension (perl modules).
 
-C<find / -name "*.pl" -print>
+C<find / -name "*.pm" -print>
 
 find and delete all files in the current directory and subdirectories
 that end with F<.bak> and have not been accessed in the last 10 days
