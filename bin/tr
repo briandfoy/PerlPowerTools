@@ -17,6 +17,7 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
@@ -34,18 +35,7 @@ sub usage {
     exit EX_FAILURE;
 }
 
-@opt{ qw/c s d U C/ } = ('') x 5;
-
-while (defined($ARGV[0]) && $ARGV[0] =~ s/^-(?=.)//) {
-    for my $flag (split(//,$ARGV[0])) {
-        if ('cdsUC' !~ m/\Q$flag/) {
-            warn "unknown option: '$flag'\n";
-            usage();
-        }
-        $opt{$flag} = $flag;
-    }
-    shift;
-}
+getopts('cdsUC', \%opt) or usage();
 my $narg = ($opt{'d'} && !$opt{'s'}) ? 1 : 2;
 if (scalar(@ARGV) < $narg) {
     warn "missing operand\n";
@@ -61,7 +51,7 @@ for (($string1, $string2) = splice(@ARGV, 0, 2)) {
     s/^\[(.*?)\]$/$1/;
 }
 
-my $opts = join('', @opt{qw/c s d/});
+my $opts = join '', map { $opt{$_} ? $_ : () } ('c', 's', 'd');
 
 # this is in an eval because tr/// needs to
 # see its parts at compile time
