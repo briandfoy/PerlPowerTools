@@ -37,8 +37,15 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 Algorithm::Diff->import('diff');
+
+use constant EX_SUCCESS   => 0;
+use constant EX_DIFFERENT => 1;
+use constant EX_FAILURE   => 2;
+
+use vars qw($opt_C $opt_c $opt_e $opt_f $opt_q $opt_U $opt_u);
 
 # GLOBAL VARIABLES  ####
 # After we've read up to a certain point in each file, the number of items
@@ -50,8 +57,9 @@ my $Program = basename($0);
 my @Ed_Hunks = ();
 ########################
 
-my $usage = << "ENDUSAGE";
-Usage: $Program [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
+sub usage {
+    warn << "ENDUSAGE";
+Usage: $Program [-c | -C lines | -e | -f | -q | -u | -U lines] oldfile newfile
     -c do a context diff with 3 lines of context
     -C do a context diff with 'lines' lines of context (implies -c)
     -e create a script for the ed editor to change oldfile to newfile
@@ -61,59 +69,41 @@ Usage: $Program [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
     -q report only whether or not the files differ
 
 ENDUSAGE
+    exit EX_FAILURE;
+}
 
 my $Context_Lines = 0; # lines of context to print. 0 for old-style diff
 my $Diff_Type = "OLD"; # by default, do standard UNIX diff
-my ($opt_c, $opt_u, $opt_e, $opt_f, $opt_q);
-while ($ARGV[0] =~ /^-/) {
-  my $opt = shift;
-  last if $opt eq '--';
-  if ($opt =~ /^-C(.*)/) {
-    $Context_Lines = checklen($1 || shift);
+getopts('C:cefqU:u') or usage();
+if (defined $opt_C) {
+    $Context_Lines = checklen($opt_C);
     $opt_c = 1;
-    $Diff_Type = "CONTEXT";
-  } elsif ($opt =~ /^-c$/) {
+    set_diff_type('CONTEXT');
+} elsif ($opt_c) {
     $Context_Lines = 3;
-    $opt_c = 1;
-    $Diff_Type = "CONTEXT";
-  } elsif ($opt =~ /^-e$/) {
-    $opt_e = 1;
-    $Diff_Type = "ED";
-  } elsif ($opt =~ /^-f$/) {
-    $opt_f = 1;
-    $Diff_Type = "REVERSE_ED";
-  } elsif ($opt =~ /^-U(.*)$/) {
-    $Context_Lines = checklen($1 || shift);
+    set_diff_type('CONTEXT');
+}
+if ($opt_e || $opt_q) {
+    set_diff_type('ED');
+}
+if ($opt_f) {
+    set_diff_type('REVERSE_ED');
+}
+if (defined $opt_U) {
+    $Context_Lines = checklen($opt_U);
     $opt_u = 1;
-    $Diff_Type = "UNIFIED";
-  } elsif ($opt =~ /^-u$/) {
+    set_diff_type('UNIFIED');
+} elsif ($opt_u) {
     $Context_Lines = 3;
-    $opt_u = 1;
-    $Diff_Type = "UNIFIED";
-  } elsif ($opt =~ /^-q$/) {
-    $Context_Lines = 0;
-    $opt_q = 1;
-    $opt_e = 1;
-    $Diff_Type = "ED";
-  } elsif ($opt eq '-') {
-    unshift @ARGV, '-';
-    last;
-  } else {
-    $opt =~ s/^-//;
-    bag("Illegal option -- $opt\n$usage");
-  }
+    set_diff_type('UNIFIED');
 }
 
-if ($opt_q and grep($_,($opt_c, $opt_f, $opt_u)) > 1) {
-    bag("Combining -q with other options is nonsensical");
-}
-
-if (grep($_,($opt_c, $opt_e, $opt_f, $opt_u)) > 1) {
-    bag("Only one of -c, -u, -f, -e are allowed");
-}
-
-if (scalar(@ARGV) != 2) {
-    bag("Missing argument\n$usage");
+if (scalar(@ARGV) < 2) {
+    warn "$Program: missing argument\n";
+    usage();
+} elsif (scalar(@ARGV) > 2) {
+    warn "$Program: extra argument: '$ARGV[2]'\n";
+    usage();
 }
 
 ######## DO THE DIFF!
@@ -128,7 +118,7 @@ my ($file1, $file2) = @ARGV;
 my ($fh1, $fh2);
 
 if ($file1 eq '-') {
-    exit 0 if ($file2 eq '-');
+    exit(EX_SUCCESS) if ($file2 eq '-');
     bag("cannot compare '-' to a directory") if (-d $file2);
     $fh1 = *STDIN;
 } elsif (-d $file1) {
@@ -158,11 +148,11 @@ close $fh2;
 
 # diff yields lots of pieces, each of which is basically a Block object
 my $diffs = diff(\@f1, \@f2);
-exit 0 unless @$diffs;
+exit(EX_SUCCESS) unless @$diffs;
 
-if ($opt_q and @$diffs) {
+if ($opt_q) {
     print "Files $file1 and $file2 differ\n";
-    exit 1;
+    exit EX_DIFFERENT;
 }
 
 if ($Diff_Type =~ /UNIFIED|CONTEXT/) {
@@ -197,19 +187,29 @@ $oldhunk->output_diff(\@f1, \@f2, $Diff_Type);
 # Print hunks backwards if we're doing an ed diff
 map {$_->output_ed_diff(\@f1, \@f2, $Diff_Type)} @Ed_Hunks if @Ed_Hunks;
 
-exit 1;
+exit EX_DIFFERENT;
 # END MAIN PROGRAM
 
 sub bag {
   my $msg = shift;
   warn "$Program: $msg\n";
-  exit 2;
+  exit EX_FAILURE;
 }
 
 sub checklen {
   my $n = shift;
   return int($n) if ($n =~ m/\A[0-9]+\Z/);
-  bag("Invalid context length '$n'\n$usage");
+  warn "$Program: invalid context length '$n'\n";
+  usage();
+}
+
+sub set_diff_type {
+  my $val = shift;
+  if ($Diff_Type ne 'OLD') {
+    warn "$Program: incompatible diff type options\n";
+    usage();
+  }
+  $Diff_Type = $val;
 }
 
 ########
@@ -757,7 +757,7 @@ diff - compute `intelligent' differences between two files
 
 =head1 SYNOPSIS
 
-diff [{-c | -C lines -e | -f | -u | -U lines}] file1 file2
+diff [-c | -C lines | -e | -f | -q | -u | -U lines] file1 file2
 
 =head1 DESCRIPTION
 
