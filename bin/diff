@@ -490,9 +490,7 @@ sub output_ed_diff {
 
     if ($block->insert) {
 	my @outlist = @$fileref2[$hunk->{"start2"}..$hunk->{"end2"}];
-	map {s/$/\n/} @outlist; # add \n's
-	print @outlist;
-	print ".\n"; # end of ed 'c' or 'a' command
+	print join("\n", @outlist), "\n.\n"; # '.' signifies end of 'c' or 'a'
     }
 }
 
