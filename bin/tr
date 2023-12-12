@@ -31,11 +31,11 @@ my(
 );
 
 sub usage {
-    warn "usage: $Program [-cdsUC] string1 string2\n";
+    warn "usage: $Program [-Ccds] string1 string2\n";
     exit EX_FAILURE;
 }
 
-getopts('cdsUC', \%opt) or usage();
+getopts('Ccds', \%opt) or usage();
 my $narg = ($opt{'d'} && !$opt{'s'}) ? 1 : 2;
 if (scalar(@ARGV) < $narg) {
     warn "missing operand\n";
@@ -51,13 +51,14 @@ for (($string1, $string2) = splice(@ARGV, 0, 2)) {
     s/^\[(.*?)\]$/$1/;
 }
 
-my $opts = join '', map { $opt{$_} ? $_ : () } ('c', 's', 'd');
-
 # this is in an eval because tr/// needs to
 # see its parts at compile time
+my $cflag = ($opt{'C'} || $opt{'c'}) ? 'c' : '';
+my $dflag = $opt{'d'} ? 'd' : '';
+my $sflag = $opt{'s'} ? 's' : '';
 eval qq{
     while (<>) {
-	tr[$string1][$string2]$opts;
+	tr[$string1][$string2]$cflag$dflag$sflag;
 	print;
     }
     1;
@@ -75,7 +76,7 @@ tr - translate or delete characters
 
 =head1 SYNOPSIS
 
-tr [ -cdsUC ] [ I<SEARCHLIST> [ I<REPLACEMENTLIST> ] ]
+tr [ -Ccds ] [ I<SEARCHLIST> [ I<REPLACEMENTLIST> ] ]
 
 =head1 DESCRIPTION
 
@@ -89,9 +90,13 @@ Here are the options:
 
 =over
 
-=item -c
+=item -C
 
 Complement the SEARCHLIST.
+
+=item -c
+
+The same as -C.
 
 =item -d
 
@@ -100,14 +105,6 @@ Delete found but unreplaced characters.
 =item -s
 
 Squash duplicate replaced characters.
-
-=item -U
-
-Translate to/from UTF-8.
-
-=item -C
-
-Translate to/from 8-bit char (octet).
 
 =back
 
@@ -131,10 +128,6 @@ enough.  If the REPLACEMENTLIST is empty, the SEARCHLIST is replicated.
 This latter is useful for counting characters in a class or for squashing
 character sequences in a class.
 
-The first B<-U> or B<-C> flag applies to the left side of the translation.
-The second one applies to the right side.  If present, these flags
-override the current utf8 state.
-
 =head1 EXAMPLES
 
 The following command creates a list of all the words in F<file1>
@@ -147,14 +140,6 @@ The following command strips the 8th bit from an input file:
 
     tr "\200-\377" "\000-\177"
 
-The following command translates Latin-1 to Unicode:
-
-    tr -CU "\0-\xFF" ""
-
-The following command translates Unicode to Latin-1
-
-    tr -UC "\0-\x{FF}" ""
-
 =head1 NOTE
 
 This command is implemented using Perl's C<tr> operator.
@@ -166,9 +151,6 @@ operation.
 There is no way to catch the file open error on ARGV handle
 processing, so the exit status does not reflect file open
 failures.
-
-Not all systems have Unicode support yet, in which case the
-B<-U> or B<-C> flags would cause a fatal error.
 
 =head1 AUTHOR
 
