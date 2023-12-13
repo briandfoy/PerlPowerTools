@@ -40,21 +40,7 @@ sub find_find2perl {
 	}
 
 my $find2perl  = find_find2perl();
-
-die <<"HEREDOC" unless -e $find2perl;
-Did not find the find2perl program. Install App::find2perl or set the
-FIND2PERL environment variable with the path.
-
-This program looked for find2perl in:
-
-	@{[ defined $find2perl ? $find2perl : '<not found>' ]}
-
-find2perl was distributed with perl up to v5.18 and became a separate
-module in v5.20. Older versions of find2perl assumed that the program
-would be next to the perl binary but installed something like
-/usr/bin/find2perl that would dispatch to the Standard Library
-version.
-HEREDOC
+die("This program needs the App::find2perl module.\n") unless -e $find2perl;
 
 # Temp files to capture find2perl output and error.
 my ($out_fh, $out_file) = tempfile();
