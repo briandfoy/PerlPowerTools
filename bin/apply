@@ -13,7 +13,9 @@ License: perl
 
 
 use strict;
-use warnings;
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 my ($VERSION) = '1.2';
 
@@ -24,7 +26,7 @@ sub usage () {
 $0 (Perl bin utils) $VERSION
 $0 [-ac] [-#] command argument [argument ...]
 EOF
-    exit;
+    exit EX_FAILURE;
 };
 
 my $argc  = 1;
@@ -51,9 +53,8 @@ while (@ARGV) {
     last;
 }
 
-usage unless @ARGV;
-
 my $command = shift;
+usage() unless @ARGV;
 
 # Scan $command for ``%d''.
 my @thingies = $command =~ /${magic}(\d+)/g;
@@ -80,6 +81,7 @@ while (@ARGV && @ARGV >= $argc) {
         }
     }
 }
+exit EX_SUCCESS;
 
 __END__
 
