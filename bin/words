@@ -13,50 +13,63 @@ License: perl
 
 use strict;
 
-use File::Basename;
-use Getopt::Std;
+use File::Basename qw(basename dirname);
+use File::Spec qw();
+use Getopt::Std qw(getopts);
 
-use vars qw($VERSION);
-$VERSION = '1.2';
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
 use vars qw($opt_w $opt_m);
 
-getopts('w:m:') || die "Bad options.\n";
+my $VERSION = '1.3';
+my $Program = basename($0);
 
-my $dir = dirname($0);
-my $wordlist = $opt_w || "$dir/wordlist";
+getopts('m:w:') or usage();
+usage() unless @ARGV;
 
-unless (@ARGV) {
-    warn "usage: $0 [-w <word-file>] [-m <min-length>] <letters>\n";
-    exit;
+my $wordlist;
+if (defined $opt_w) {
+    $wordlist = $opt_w;
+} else {
+    $wordlist = File::Spec->catfile(dirname($0), 'wordlist');
 }
 
-my $minlen = $opt_m || 0;                # minimum word length
-
-if ($minlen =~ /\D/) {
-    die "$0: <min-length> must be a whole number\n";
+my $minlen;
+if (defined $opt_m) {
+    if ($opt_m !~ m/\A[0-9]+\Z/) {
+        warn "$Program: <min-length> must be a whole number\n";
+        exit EX_FAILURE;
+    }
+    $minlen = $opt_m;
+} else {
+    $minlen = 0;
 }
 
-open(DICT, '<', $wordlist) or                 # open word list
-    die "Unable to open $wordlist: $!\n";
+if (-d $wordlist) {
+    warn "$Program: '$wordlist' is a directory\n";
+    exit EX_FAILURE;
+}
+my $dict;
+unless (open $dict, '<', $wordlist) {
+    warn "$Program: unable to open '$wordlist': $!\n";
+    exit EX_FAILURE;
+}
 
 $| = 1;
 
 my $letters = shift;
-my $words = 0;
-
-my %letters;
-
 $letters = lc $letters;              # convert to lowercase
 $letters =~ tr/a-z//cd;              # strip non-letter characters
 
+my %letters;
 foreach (split(//, $letters)) {      # store letter counts
     $letters{$_}++;
 }
 
 my($word);
 WORD:
-while (defined($word = <DICT>)) {
+while (defined($word = <$dict>)) {
                                      # for each word in list
     chomp($word);
 
@@ -73,9 +86,21 @@ while (defined($word = <DICT>)) {
     }
 
     print "$word\n";                 # success - print word
-    $words++;
+}
+if ($!) {
+    warn "$Program: failed to read '$wordlist': $!\n";
+    exit EX_FAILURE;
+}
+unless (close $dict) {
+    warn "$Program: failed to close '$wordlist': $!\n";
+    exit EX_FAILURE;
+}
+exit EX_SUCCESS;
 
-} # WORD: while (defined($word = <DICT>))
+sub usage {
+    warn "usage: $Program [-w <word-file>] [-m <min-length>] <letters>\n";
+    exit EX_FAILURE;
+}
 
 __END__
 
