@@ -34,6 +34,8 @@ while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 			exit 2;
 		}
 		delete $ENV{$val};
+	} elsif ($arg eq '--') {
+		last;
 	} else {
 		warn "$Program: invalid option -- $arg\n";
 		exit 2;
@@ -93,10 +95,6 @@ Clears the environment variable I<name> if it exists.
 The value must not include the '=' character.
 
 =back
-
-=head1 ENVIRONMENT
-
-The working of I<env> is not influenced by any environment variables.
 
 =head1 DIAGNOSTICS
 
