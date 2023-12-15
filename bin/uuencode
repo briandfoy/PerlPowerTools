@@ -16,67 +16,61 @@ License: perl
 
 use strict;
 
-END {
-    close STDOUT            || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;    # from die
-}
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-sub usage {
-    warn "$0: @_\n" if @_;
-    die <<USAGE;
-usage: $0 [file] name
-       $0 -p [file ...]
-USAGE
-}
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-sub encode($$);
+my $Program = basename($0);
 
-my(
-    $stream_out,		# writing everything to stdout?
-);
+my %opt;
+getopts('p', \%opt) or usage();
 
-if (@ARGV && $ARGV[0] =~ /^-/) {
-    if ($ARGV[0] ne '-p') { usage "bad option $ARGV[0]" }
-    shift;
-    $stream_out = 1;
-}
-
-usage "need arguments" 	    unless @ARGV;
-usage "too many arguments"  unless @ARGV < 3 || $stream_out;
-
-if ($stream_out) {
+usage() unless @ARGV;
+if ($opt{'p'}) { # write to stdout
     for my $input (@ARGV) {
 	encode($input => $input);
     }
-    exit;
+    exit EX_SUCCESS;
 }
-
 if (@ARGV == 2) {
     my($in, $out) = @ARGV;
     encode($in => $out);
-    exit;
 }
-
-if (@ARGV == 1) {
+elsif (@ARGV == 1) {
     my($out) = @ARGV;
     encode("-" => $out);
-    exit;
+}
+else {
+    usage();
+}
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program [file] name\n";
+    warn "       $Program -p file ...\n";
+    exit EX_FAILURE;
 }
 
-die "XXX: Not reached";
-
-sub encode($$) {
+sub encode {
     my($source, $destination) = @_;
     my $mode;
     my $input;
 
     if ($source eq '-') {
-	warn "$0: WARNING: reading from standard input\n";
 	$input = *STDIN;
 	$mode = 0644;
     } else {
-	open($input, '<', $source) || die "can't open $source: $!";
-	$mode = (stat($source))[2] & 0666;
+	if (-d $source) {
+	    warn "$Program: '$source' is a directory\n";
+	    exit EX_FAILURE;
+	}
+	unless (open $input, '<', $source) {
+	    warn "$Program: failed to open '$source': $!\n";
+	    exit EX_FAILURE;
+	}
+	$mode = (stat($input))[2] & 0666;
     }
     binmode $input; # winsop
 
@@ -87,7 +81,10 @@ sub encode($$) {
     print "`\n";
     print "end\n";
 
-    close($input) || die "can't close $source: $!";
+    unless (close $input) {
+	warn "$Program: can't close '$source': $!\n";
+	exit EX_FAILURE;
+    }
 }
 
 =encoding utf8
