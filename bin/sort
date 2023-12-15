@@ -589,23 +589,8 @@ sub _debug {
 }
 
 sub usage {
-    local $/ = "\n";    # in case changed
-    my $u;
-
-    seek DATA, 0, 0;
-    while (<DATA>) {
-        last if m/^=head1 SYNOPSIS$/;
-    }
-
-    while (<DATA>) {
-        last if m/^=/;
-        $u .= $_;
-    }
-
-    $u =~ s/\n//;
-
-    die "Usage:$u";
-
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
 __END__
@@ -613,7 +598,6 @@ __END__
 =head1 NAME
 
 sort - sort or merge text files
-
 
 =head1 SYNOPSIS
 
@@ -623,9 +607,6 @@ sort - sort or merge text files
     [-y max_records] [-F max_files]
     input_file1 [input_file2 ...]
 
-  See docs for more information.
-
-
 =head1 DESCRIPTION
 
 The sort utility sorts text files by lines (or records).  Comparisons
@@ -634,8 +615,7 @@ and are performed lexicographically. By default, if keys are not given,
 sort regards each input line as a single field.  The sort is a merge
 sort.  If you don't like that, feel free to change it.
 
-
-=head2 Options
+=head1 OPTIONS
 
 The following options are available:
 
@@ -648,7 +628,7 @@ filename, or an array reference containing multiple filename strings.
 
 =item C<c>
 
-Check that single input fle is ordered as specified by the arguments and
+Check that single input file is ordered as specified by the arguments and
 the collating sequence of the current locale.  No output is produced;
 only the exit code is affected.
 
@@ -729,7 +709,7 @@ Reverse the sense of the comparisons.
 Ignore leading blank characters when determining the starting and ending
 positions of a restricted sort key.  If the B<b> option is specified
 before the first B<k> option, it is applied to all B<k> options.
-Otherwise, the B<b> option can be attached indepently to each
+Otherwise, the B<b> option can be attached independently to each
 field_start or field_end option argument (see below).
 
 =item C<t> I<STRING>
@@ -795,7 +775,7 @@ like them and want to use them.  Usage is:
     +field_start[.first_char][type] [-field_end[.last_char][type]]
 
 Where field_end in B<k> specified the last position to be included,
-it specifes the last position to NOT be included.  Also, numbers
+it specifies the last position to NOT be included.  Also, numbers
 are counted from 0 instead of 1.  B<pos2> must immediately follow
 corresponding B<+pos1>.  The rest should be the same as the B<k> option.
 
@@ -886,12 +866,12 @@ options.
 =item MAX_SORT_RECORDS
 
 Default is 200,000.  Maximum number of records to use before writing
-to a temp file.  Overriden by B<y> option.
+to a temp file.  Overridden by B<y> option.
 
 =item MAX_SORT_FILES
 
 Maximum number of open temp files to use before merging open temp
-files.  Overriden by B<F> option.
+files.  Overridden by B<F> option.
 
 =back
 
