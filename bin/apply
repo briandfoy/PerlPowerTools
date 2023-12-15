@@ -14,20 +14,13 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-my ($VERSION) = '1.2';
-
-sub usage () {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    print <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-ac] [-#] command argument [argument ...]
-EOF
-    exit EX_FAILURE;
-};
+my $Program = basename($0);
+my ($VERSION) = '1.3';
 
 my $argc  = 1;
 my $magic = '%';
@@ -48,7 +41,7 @@ while (@ARGV) {
         next;
     }
     if ($ARGV [0] =~ /^-/) {
-        usage;  # usage will exit;
+        usage();  # usage will exit
     }
     last;
 }
@@ -65,23 +58,43 @@ if (@thingies) { # Ignore $argc, found our own.
 }
 
 # Now, apply the command till we run out.
+my $err = EX_SUCCESS;
 while (@ARGV && @ARGV >= $argc) {
     if (@thingies) {
        (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
-        system $new_command;   # Reinterpreted by the shell!
+        my $rc = system $new_command;   # Reinterpreted by the shell!
+        checkerr($rc);
         splice @ARGV, 0, $argc;
     }
     else {
         if ($argc) {
-            system $command, splice @ARGV, 0, $argc;
+            my $rc = system $command, splice @ARGV, 0, $argc;
+            checkerr($rc);
         }
         else {
-            system $command;
+            my $rc = system $command;
+            checkerr($rc);
             shift;
         }
     }
 }
-exit EX_SUCCESS;
+exit $err;
+
+sub checkerr {
+    my $status = shift;
+    if ($status != 0) {
+        if ($status == -1) {
+            warn "$Program: command failed: $!\n";
+        }
+        $err = EX_FAILURE;
+    }
+}
+
+sub usage {
+    warn "$Program (Perl bin utils) $VERSION\n";
+    warn "usage: $Program [-ac] [-#] command argument [argument ...]\n";
+    exit EX_FAILURE;
+}
 
 __END__
 
