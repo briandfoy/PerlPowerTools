@@ -26,24 +26,24 @@ my $argc  = 1;
 my $magic = '%';
 
 while (@ARGV) {
-    if ($ARGV [0] eq '--') {
+    if ($ARGV[0] !~ m/\A\-/) {
+        last;
+    }
+    if ($ARGV[0] eq '--') {
         shift;
         last;
     }
-    if ($ARGV [0] =~ /^-a(.)$/) {
+
+    if ($ARGV[0] =~ m/\A\-a(.)\Z/) {
         $magic = $1;
-        shift;
-        next;
     }
-    if ($ARGV [0] =~ /^-(\d+)$/) {
+    elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
-        shift;
-        next;
     }
-    if ($ARGV [0] =~ /^-/) {
+    else {
         usage();  # usage will exit
     }
-    last;
+    shift;
 }
 
 my $command = shift;
@@ -62,26 +62,34 @@ my $err = EX_SUCCESS;
 while (@ARGV && @ARGV >= $argc) {
     if (@thingies) {
        (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
-        my $rc = system $new_command;   # Reinterpreted by the shell!
-        checkerr($rc);
+        run_cmd($new_command); # Reinterpreted by the shell!
         splice @ARGV, 0, $argc;
     }
     else {
         if ($argc) {
-            my $rc = system $command, splice @ARGV, 0, $argc;
-            checkerr($rc);
+            run_cmd($command, splice(@ARGV, 0, $argc));
         }
         else {
-            my $rc = system $command;
-            checkerr($rc);
             shift;
+            run_cmd($command);
         }
     }
 }
+if (@ARGV) {
+    warn "$Program: unexpected number of arguments\n";
+    $err = EX_FAILURE;
+}
 exit $err;
 
-sub checkerr {
-    my $status = shift;
+sub run_cmd {
+    my $cmd = shift;
+    my $status;
+    if (scalar(@_) > 0) {
+        $status = system $cmd, @_;
+    }
+    else {
+        $status = system $cmd;
+    }
     if ($status != 0) {
         if ($status == -1) {
             warn "$Program: command failed: $!\n";
