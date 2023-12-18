@@ -48,7 +48,7 @@ printenv - Display the environment
 
 =head1 SYNOPSIS
 
-printenv I<name>
+printenv [name]
 
 =head1 DESCRIPTION
 
@@ -66,11 +66,6 @@ I<printenv> accepts the following options:
 Print out a short help message, then exit.
 
 =back
-
-=head1 ENVIRONMENT
-
-The operation of I<printenv> is not influenced by any environment variables.
-(However, the output certainly is.)
 
 =head1 BUGS
 
