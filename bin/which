@@ -22,12 +22,15 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 my ($VERSION) = '1.3';
 
-my %opt;
-unless (getopts('a', \%opt)) {
+sub usage {
     warn "$Program version $VERSION\n";
     warn "usage: $Program [-a] filename ...\n";
     exit EX_FAILURE;
 }
+
+my %opt;
+getopts('a', \%opt) or usage();
+@ARGV or usage();
 
 my @PATH = ();
 my $PATHVAR = 'PATH';
