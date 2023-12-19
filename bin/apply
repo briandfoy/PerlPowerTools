@@ -20,9 +20,10 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 my $argc  = 1;
+my $debug = 0;
 my $magic = '%';
 
 while (@ARGV) {
@@ -39,6 +40,9 @@ while (@ARGV) {
     }
     elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
+    }
+    elsif ($ARGV[0] eq '-d') {
+        $debug = 1;
     }
     else {
         usage();  # usage will exit
@@ -83,6 +87,10 @@ exit $err;
 
 sub run_cmd {
     my $cmd = shift;
+    if ($debug) {
+        print join(' ', 'exec', $cmd, @_), "\n";
+        return;
+    }
     my $status;
     if (scalar(@_) > 0) {
         $status = system $cmd, @_;
@@ -100,7 +108,7 @@ sub run_cmd {
 
 sub usage {
     warn "$Program (Perl bin utils) $VERSION\n";
-    warn "usage: $Program [-ac] [-#] command argument [argument ...]\n";
+    warn "usage: $Program [-ac] [-d] [-#] command argument [argument ...]\n";
     exit EX_FAILURE;
 }
 
@@ -114,7 +122,7 @@ apply - Run a command many times with different arguments
 
 =head1 SYNOPSIS
 
-apply [-aB<c>] [-#] command argument [argument ...]
+apply [-aB<c>] [-d] [-#] command argument [argument ...]
 
 =head1 DESCRIPTION
 
@@ -132,6 +140,10 @@ I<apply> accepts the following options:
 =item -aB<c>
 
 Use the character B<c> instead of B<%> for interpolation of arguments.
+
+=item -d
+
+Print each constructed command but do not execute it.
 
 =item -#
 
