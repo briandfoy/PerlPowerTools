@@ -2,103 +2,74 @@ Revision history for Perl module PerlPowerTools
 
 1.042 2023-12-22T12:45:27Z
 	* All changes from Michael Mikonos unless otherwise noted
-	
 	* apply
 		- require args after command (#374)
 		- catch system() failures (#376)
 		- handle bad arg count (#384)
 		- add the -d option (#385)
-	
 	* baseb4
 		- check close return value (#362)
-	
 	* bc
 		- use bignum with e notation (#353)
-	
 	* cat
 		- Let -b override in (#360)
-	
 	* cmp
 		- forbid -s with -l (#387)
-	
 	* chown
 		- show filename in error message (#386)
-	
 	* date
 		- show usage for bad options (#365)
-	
 	* diff
 		- die if the args try to compare standard input to a directory (#361)
 		- improve options handling (#371)
 		- speedup some loops (#372)
-	
 	* ed
-		- Adjust some error strings (#349) 
+		- Adjust some error strings (#349)
 		- simplify code for r command (#354)
-	
 	* env
 		- end options with -- (#379)
-	
 	* grep
 		- make decompression work (#365)
-	
 	* find
 		- correct usage example (#370)
 		- simpler error messages (#375)
-	
 	* fmt
 		- die for unknown options (#357)
-	
 	* head
 		- check close return value (#363)
-	
 	* hexdump
 		- small code improvements (#358)
-	
 	* install
 		- update usage string (#364)
-	
 	* ls
 		- fix output for -R (#359)
-	
 	* patch
 		- die for unknown options (#356)
-	
 	* pig
 		- add NetBSD compatibility (#369)
-	
 	* pr
 		- fix incorrect looping with -l (#350)
 		- support - as standard input (#351)
 		- validate -o argument (#352)
-	
 	* printenv
 		- update Pod docs (#382)
-		
 	* sort
 		- better usage (#380)
-	
 	* tr
 		- improve -d option (#367)
 		- use getopts instead of custom code (#368)
 		- the -C option is now an alias for -c (#373)
 		- remove the -U option (#373)
-	
 	* uniq
 		- treat -- as end of options (#355)
-	
 	* uudecode
 		- implement the -i option (#381)
-		
 	* uuencode
 		- directory argument is a failure (#378)
-	
 	* which
 		- requires an arguemnt (#383)
-	
 	* words
 		- directory argument is a failure (#377)
-	
 
 1.041 2023-11-24T17:10:58Z
 	* All changes from Michael Mikonos unless otherwise noted
