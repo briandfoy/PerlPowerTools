@@ -10,7 +10,7 @@ Revision history for Perl module PerlPowerTools
 		- don't print 0 for a false condition (#247)
 		- allow file named 0 (#282)
 		- fix case that eats too much input (#292)
-		
+
 	* cal
 		- use getopts instead of custom parsing (#277)
 	* chgrp
@@ -115,15 +115,13 @@ Revision history for Perl module PerlPowerTools
 		- don't slurp file (#340)
 	* uuencode
 		- support - for stdin (#317)
-		
+
 	* wc
 		- report filenames (#295)
 	* wump
 		- various refactors (#293)
 	* xargs
 		- support -0 (#288)
-			
-	
 
 1.040 2023-10-02T04:42:58Z
 	* All of these improvements are from Michael Mikonos
@@ -139,7 +137,7 @@ Revision history for Perl module PerlPowerTools
 	* look
 		- reject mulitple arguments (#274)
 	* pr
-		- disallow directories as arguments (#264) 	
+		- disallow directories as arguments (#264)
 	* strings
 		- better validation for args (#262)
 	* sum
@@ -155,8 +153,6 @@ Revision history for Perl module PerlPowerTools
 		- don't return directories (#267)
 	* xargs
 		- better handling of exec errors (#265)
-		
-	
 
 1.039 2023-09-22T23:46:44Z
 	* All of these improvements are from Michael Mikonos
@@ -200,13 +196,13 @@ Revision history for Perl module PerlPowerTools
 		- added new command (#257)
 	* sort
 		- don't continue for unknown options (#255)
-	* sum 
+	* sum
 		- improve code readability (#239)
 	* tee
 		- handle -n properly (#254)
 	* tsort
 		- don't support multiple input files (#256)
-	* which 
+	* which
 		- fix option parsing (#246)
 	* xargs
 		- fix infinite loop with -n (#248)
