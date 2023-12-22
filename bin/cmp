@@ -31,13 +31,13 @@ License: perl
 #
 # Todo:
 #
-# support grouped single-letter opts
 # revise how zero-length files are handled ?
 #
 
 use strict;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS   => 0;
 use constant EX_DIFFERENT => 1;
@@ -68,23 +68,24 @@ my $bytes_read = 0;
 my $lines_read = 0;
 my $saw_difference;
 
-# does not yet support grouped opts
-while (@ARGV) {
-    my $item= shift;
-
-    $item =~ /^--$/     and  $file1  = shift  , last;
-    $item =~ /^-\?$/    and  manual();        # exits
-    $item =~ /^-l$/     and  $volume = 2      , next;
-    $item =~ /^-s$/     and  $volume = 0      , next;
-    $item =~ /^-./      and  usage();         # exits
-
-    $file1 = $item;
-    last;
+my %opt;
+getopts('?ls', \%opt) or usage();
+manual() if $opt{'?'};
+if ($opt{'l'}) {
+    if ($opt{'s'}) {
+        warn "$Program: options -l and -s are incompatible\n";
+        exit EX_FAILURE;
+    }
+    $volume = 2;
 }
-
+$volume = 0 if $opt{'s'};
 usage() unless @ARGV >= 1 and @ARGV <= 3;  # exits;
 
+$file1 = shift;
 $file2 = shift;
+unless (defined $file2) {
+    $file2 = '-';
+}
 $skip1 = skipnum(shift) if @ARGV;
 $skip2 = skipnum(shift) if @ARGV;
 
@@ -140,7 +141,7 @@ unless ($fh1) {
         exit EX_FAILURE;
     }
     unless (open $fh1, '<', $file1) {
-        warn "$Program: cannot open '$file1'\n";
+        warn "$Program: cannot open '$file1': $!\n";
         exit EX_FAILURE;
     }
 }
@@ -150,7 +151,7 @@ unless ($fh2) {
         exit EX_FAILURE;
     }
     unless (open $fh2, '<', $file2) {
-        warn "$Program: cannot open '$file2'\n";
+        warn "$Program: cannot open '$file2': $!\n";
         exit EX_FAILURE;
     }
 }
@@ -293,10 +294,6 @@ in decimal, and the byte values are given in octal.
 =item -?
 
 show the documentation
-
-=item -.
-
-show a short usage summary
 
 =back
 
