@@ -182,26 +182,29 @@ READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
     }
 
     if ($buffer1 ne $buffer2) {
-        for (0..$checklength) {
-            next unless (substr $buffer1,$_,1) ne (substr $buffer2,$_,1);
-            my $report_lines = $lines_read + 1 +  (substr $buffer1,0,$_) =~ tr[\n][\n];
+        my @bytes1 = unpack 'C*', $buffer1;
+        my @bytes2 = unpack 'C*', $buffer2;
+
+        for (0 .. $checklength) {
+            $lines_read++ if ($bytes1[$_] == ord("\n"));
+            next if ($bytes1[$_] == $bytes2[$_]);
+            my $report_lines = $lines_read + 1;
             my $report_bytes = $bytes_read + 1 + $_;
-            if ($volume == 1 ) {
+            if ($volume == 1) {
                 print "$file1 $file2 differ: char $report_bytes, line $report_lines\n";
                 exit EX_DIFFERENT;
             } elsif ($volume == 0) {
                 exit EX_DIFFERENT;
-	    } else {
+            } else {
                 $saw_difference ||= 1;
-                printf "%6d %3o %3o\n", $report_bytes, ord(substr $buffer1,$_,1),
-                                                       ord(substr $buffer2,$_,1);
+                printf "%6d %3o %3o\n", $report_bytes, $bytes1[$_], $bytes2[$_];
                 next READ if $_ == $checklength;
                 next;
-	    }
+            }
         }
+    } else {
+        $lines_read += $buffer1 =~ tr[\n][\n];
     }
-
-    $lines_read += $buffer1 =~ tr[\n][\n];
     $bytes_read += $checklength;
 
     if ($read_in1 < $read_in2) {
