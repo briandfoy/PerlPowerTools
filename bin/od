@@ -156,10 +156,9 @@ while ($len = read($fh, $buf, 1)) {
 	    print "*\n";
 	}
 	$lastline = $data . '|';
+	$offset1 += length $data;
 	undef $data;
     }
-
-    $offset1++;
     last if $is_limit;
 }
 unless (defined $len) {
