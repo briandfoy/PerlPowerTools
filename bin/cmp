@@ -42,6 +42,7 @@ use Getopt::Std qw(getopts);
 use constant EX_SUCCESS   => 0;
 use constant EX_DIFFERENT => 1;
 use constant EX_FAILURE   => 2;
+use constant EX_USAGE     => 2;
 
 use constant ST_INO  => 1;
 use constant ST_SIZE => 7;
@@ -231,7 +232,7 @@ sub skipnum {
 
 sub usage {
     warn "usage: $Program [-l] [-s] file1 file2 [skip1 [skip2]]\n";
-    exit EX_FAILURE;
+    exit EX_USAGE;
 }
 
 sub manual {
