@@ -14,8 +14,15 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 use Math::Trig qw(atan deg2rad rad2deg tan);
 use POSIX qw(floor fmod);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 { my $vt100_compatible = 0;
   $vt100_compatible ||= $ENV{TERM}    =~ /vt100|xterm|ansi/i;
@@ -44,6 +51,20 @@ sub MMLONGP  () { 349.383063   } # mean longitude of the perigee at EPOCH
 
 sub fixangle { fmod(($_[0] - (360 * (floor($_[0] / 360)))), 360); }
 
+sub usage {
+  warn "usage: $Program [-d] [-e] [[[[[[cc]yy]mm]dd]HH]]\n";
+  exit EX_FAILURE;
+}
+
+sub checknum {
+  my $n = shift;
+  if ($n !~ m/\A[0-9]+\Z/) {
+    warn "$Program: bad number: '$n'\n";
+    exit EX_FAILURE;
+  }
+  return int($n);
+}
+
 #
 ## Parse the command line, filling in with the current GMT
 
@@ -51,25 +72,16 @@ my ($cc, $yy, $mm, $dd, $hh);
 my ($gm_yy, $gm_mm, $gm_dd, $gm_hh) = (gmtime(time))[5,4,3,2];
 $gm_yy += 1900; $gm_mm++;
 
-my $debugging = 0;
-my $enhanced_behavior = 0;
-
-foreach my $switch (grep /^\-/, @ARGV) {
-  $debugging = 1 if ($switch =~ /d/i);
-  $enhanced_behavior = 1 if ($switch =~ /e/i);
-}
-
-if (grep /^\-e(nhanced)?$/i, @ARGV) {
-  $enhanced_behavior = 1;
-}
-                                        # remove any -switches
-@ARGV = grep !/^\-/, @ARGV;
+my %opt;
+getopts('de', \%opt) or usage();
+my $debugging = $opt{'d'};
+my $enhanced_behavior = $opt{'e'};
 
 if (@ARGV) {
   if ( (@ARGV != 1) ||
        (length($ARGV[0]) & 1) || !length($ARGV[0]) || (length($ARGV[0]) > 10)
   ) {
-    die "$0 usage: $0 [-d] [-e] [[[[[[cc]yy]mm]dd]HH]]\n";
+    usage();
   }
 
   ($hh, $dd, $mm, $yy, $cc) = reverse($ARGV[0] =~ /(..)/g);
@@ -78,14 +90,36 @@ if (@ARGV) {
   defined($yy) && ($yy = $cc . $yy);
 }
 
-defined($hh) || ($hh = $gm_hh);
-defined($dd) || ($dd = $gm_dd);
-defined($mm) || ($mm = $gm_mm);
-defined($yy) || ($yy = $gm_yy);
+if (defined $hh) {
+  if (checknum($hh) > 23) {
+    warn "$Program: bad hour: '$hh'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $hh = $gm_hh;
+}
 
-die "$0: bad month $mm\n" if ($mm=~/\D/ || $mm<1 || $mm>12);
-die "$0: bad day $dd\n"   if ($dd=~/\D/ || $dd<1 || $dd>31);
-die "$0: bad hour $hh\n"  if ($hh=~/\D/ || $hh<0 || $hh>23);
+if (defined $dd) {
+  $dd = checknum($dd);
+  if ($dd == 0 || $dd > 31) {
+    warn "$Program: bad day: '$dd'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $dd = $gm_dd;
+}
+
+if (defined $mm) {
+  $mm = checknum($mm);
+  if ($mm == 0 || $mm > 12) {
+    warn "$Program: bad month: '$mm'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $mm = $gm_mm;
+}
+
+defined($yy) || ($yy = $gm_yy);
 
 #
 ## Convert phase time to Julian
@@ -129,7 +163,7 @@ sub mdy_to_julian {
 sub kepler {
   my ($m, $ecc) = @_;
 
-  sub EPSILON { 1e-6 }
+  my $EPSILON = 1e-6;
 
   my $e = $m = deg2rad($m);
 
@@ -137,7 +171,7 @@ sub kepler {
   do {
     $delta = $e - $ecc * sin($e) - $m;
     $e -= $delta / (1 - $ecc * cos($e));
-  } while (abs($delta) > EPSILON);
+  } while (abs($delta) > $EPSILON);
 
   $e;
 }
@@ -321,7 +355,7 @@ else {
   &display_moon($mm, $dd, $yy, $hh);
 }
 
-exit;
+exit EX_SUCCESS;
 
 __END__
 
