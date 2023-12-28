@@ -174,7 +174,7 @@ sub octal1 {
     $upformat = 'C*'; # for -b
     $pffmt = '%.3o ';
     @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x $len;
+    $strfmt = $pffmt x (scalar @arr);
 }
 
 sub char1 {
