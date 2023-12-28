@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 
 use File::Basename qw(basename dirname);
 use File::Spec::Functions qw(catfile);
@@ -17,6 +19,14 @@ use Test::Warnings qw(had_no_warnings);
 
 =over
 
+=item * dumper
+
+=cut
+
+# Stolen from Mojo::Util
+use Data::Dumper;
+sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
+
 =item * extract_meta( PROGRAM )
 
 Extracts the metadata as a hash reference of the named PROGRAM
@@ -28,7 +38,7 @@ sub extract_meta {
 	my( $program ) = @_;
 
 	open my $fh, '<:utf8', $program or do {
-		warn "Could not open <$file>: $!\n";
+		warn "Could not open <$program>: $!\n";
 		return;
 		};
 	my $data = do { local $/; <$fh> };
@@ -70,6 +80,20 @@ sub programs_to_test {
 		my %Excludes = map { catfile( 'bin', $_ ), 1 } qw(perlpowertools perldoc);
 		my @programs = grep { ! exists $Excludes{$_} } glob( 'bin/*' );
 		}
+	}
+
+use IPC::Run3 qw(run3);
+sub run_command {
+	my( $program, $args, $input ) = @_;
+
+	run3(
+		[$^X, $program, @$args ],
+		\$input, \my $output, \my $error
+		);
+
+	my %result;
+	@result{qw( program args stdout stderr )} = ( $program, [@$args], $output, $error );
+	return \%result;
 	}
 
 sub run_program_test {
