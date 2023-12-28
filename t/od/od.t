@@ -14,13 +14,16 @@ my $test_file = catfile( qw(t data od ascii.txt ) );
 
 my $outputs = get_outputs();
 
+# od adds an extra space at the end of each line
+$outputs->{$_} =~ s/\n(?!\z)/ \n/g for qw( plain-stdout plain-x-stdout plain-xj16-stdout plain-xN16-stdout );
+
 my @table = (
-	[ [                         ], 'no args',                 $outputs->{'empty-stdout'},                           $outputs->{undef} ],
-	[ [               $test_file], 'file arg',                $outputs->{'plain-stdout'}      =~ s/\n(?!\z)/ \n/gr, $outputs->{undef} ],
-	[ [ qw(),         $test_file], 'file arg',                $outputs->{'plain-stdout'}      =~ s/\n(?!\z)/ \n/gr, $outputs->{undef} ],
-	[ [ qw(-x),       $test_file], 'file arg (-x)',           $outputs->{'plain-x-stdout'}    =~ s/\n(?!\z)/ \n/gr, $outputs->{undef} ],
-	[ [ qw(-x -j 16), $test_file], 'file arg with skip (-x)', $outputs->{'plain-xj16-stdout'} =~ s/\n(?!\z)/ \n/gr, $outputs->{undef} ],
-	[ [ qw(-x -N 16), $test_file], 'file arg with limit (-x)', $outputs->{'plain-xN16-stdout'} =~ s/\n(?!\z)/ \n/gr, $outputs->{undef} ],
+	[ [                         ], 'no args',                  $outputs->{'empty-stdout'},      $outputs->{undef} ],
+	[ [               $test_file], 'file arg',                 $outputs->{'plain-stdout'},      $outputs->{undef} ],
+	[ [ qw(),         $test_file], 'file arg',                 $outputs->{'plain-stdout'},      $outputs->{undef} ],
+	[ [ qw(-x),       $test_file], 'file arg (-x)',            $outputs->{'plain-x-stdout'},    $outputs->{undef} ],
+	[ [ qw(-x -j 16), $test_file], 'file arg with skip (-x)',  $outputs->{'plain-xj16-stdout'}, $outputs->{undef} ],
+	[ [ qw(-x -N 16), $test_file], 'file arg with limit (-x)', $outputs->{'plain-xN16-stdout'}, $outputs->{undef} ],
 	);
 
 foreach my $tuple ( @table ) {
