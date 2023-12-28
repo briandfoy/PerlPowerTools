@@ -6,7 +6,7 @@ use Test::More;
 require './t/lib/common.pl';
 
 my $Script = program_name();
-diag( "Script is $Script" );
+
 compile_test($Script);
 sanity_test($Script);
 
