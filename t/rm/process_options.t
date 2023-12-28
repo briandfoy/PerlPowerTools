@@ -45,9 +45,9 @@ subtest process_options => sub {
 		[ [ qw(-f 1 2 3     ) ],   {f=>1      }, [qw(1 2 3)] ],
 
 		[ [ qw(-iR -P       ) ],   {i=>1, P=>1, R=>1}, [qw()         ] ],
-		[ [ qw(-ir -P       ) ],   {i=>1, P=>1, R=>1}, [qw()         ] ],
+		[ [ qw(-ir -P       ) ],   {i=>1, P=>1, R=>1, r=>1}, [qw()         ] ],
 		[ [ qw(-iR -P foo b ) ],   {i=>1, P=>1, R=>1}, [qw(foo b)    ] ],
-		[ [ qw(-ir -P f bar ) ],   {i=>1, P=>1, R=>1}, [qw(f bar)    ] ],
+		[ [ qw(-ir -P f bar ) ],   {i=>1, P=>1, R=>1, r=>1}, [qw(f bar)    ] ],
 		[ [ qw( -i -f -- -i ) ],   {f=>1            }, [qw( -i     ) ] ],
 		[ [ qw( -f -i -- -f ) ],   {i=>1            }, [qw( -f     ) ] ],
 		);

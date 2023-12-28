@@ -117,7 +117,7 @@ sub files { my $self = shift; @{ $self->{files} } }
 sub is_force       { my $self = shift; $self->{options}{f} }
 sub is_interactive { my $self = shift; $self->{options}{i} }
 sub is_overwrite   { my $self = shift; $self->{options}{P} }
-sub is_recursive   { my $self = shift; $self->{options}{R} }
+sub is_recursive   { my $self = shift; $self->{options}{R} || $self->{options}{r} }
 sub is_verbose     { my $self = shift; $self->{options}{v} }
 
 sub options { my $self = shift; $self->{options} }
@@ -177,7 +177,7 @@ sub process_options {
 
 	$self->preprocess_options;
 
-	use Getopt::Long qw(:config ignore_case);
+	use Getopt::Long qw(:config no_ignore_case);
 
 	my %opts;
 	my $ret = Getopt::Long::GetOptionsFromArray(
@@ -185,10 +185,12 @@ sub process_options {
 		'f' => \$opts{'f'},
 		'i' => \$opts{'i'},
 		'P' => \$opts{'P'},
-		'R' => \$opts{'r'},
-		'r' => \$opts{'R'},
+		'R' => \$opts{'R'},  # both of these are recursive
+		'r' => \$opts{'r'},
 		'v' => \$opts{'v'},
 		);
+
+	$opts{'R'} = 1 if $opts{'r'};
 
 	$self->{options} = { map { defined $_ ? $_ : 0 } %opts };
 	$self->{files}   = $self->{args};
