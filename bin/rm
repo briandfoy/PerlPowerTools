@@ -177,7 +177,7 @@ sub process_options {
 
 	$self->preprocess_options;
 
-	require Getopt::Long;
+	use Getopt::Long qw(:config ignore_case);
 
 	my %opts;
 	my $ret = Getopt::Long::GetOptionsFromArray(
