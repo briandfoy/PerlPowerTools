@@ -125,9 +125,9 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     }
 
     # Accept -2, -3, etc...
-    if (s/^(\d.*)//) {
+    if (s/\A([0-9]+)//) {
         $columns = $1;
-        next OPTION;
+        redo OPTION;
     }
 
     usage("unexpected option: -$_");
