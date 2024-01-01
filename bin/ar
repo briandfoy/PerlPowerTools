@@ -14,12 +14,12 @@ License: perl
 use POSIX qw(strftime);
 use File::Basename;
 use FileHandle;
+use Getopt::Std qw(getopts);
 
 # allow the first arg to not have a '-'.
 if ($ARGV[0] !~ /^\-/) { $ARGV[0] = '-' . $ARGV[0]; }
 
-require "getopts.pl";
-Getopts("dmpqrtxabciouv");
+getopts('dmpqrtxabciouv') or usage();
 
 # take only one of the following major opts
 if (($opt_d + $opt_m + $opt_p + $opt_q + $opt_r + $opt_t + $opt_x) != 1) {
