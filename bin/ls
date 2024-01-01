@@ -14,6 +14,8 @@ License: perl
 
 # Perl Power Tool - ls(1)
 
+use strict;
+
 use Config qw(%Config);
 use File::Basename qw(basename);
 use File::Spec::Functions;
@@ -73,7 +75,8 @@ sub unix {
 
 sub default { 80 }
 
-sub has ( $program ) {
+sub has {
+	my $program = shift;
 	foreach my $dir ( split /\Q$Config{path_sep}/, $ENV{PATH} ) {
 		next unless -x catfile( $dir, $program );
 		return 1;
@@ -138,14 +141,14 @@ if ($@) {
 # ------ get directory entries
 sub DirEntries {
 	my $Options = shift;	# option arguments hashref
-	local *DH;		# directory handle
+	my $dh;			# directory handle
 	my %Attributes = ();	# entry/attributes hash
 	my @Entries = ();	# entries in original order
 	my $Name = "";		# entry name
 
-	if (!opendir(DH, $_[0]) || exists($Options{'d'})) {
+	if (!opendir($dh, $_[0]) || exists($Options{'d'})) {
 		if (-e $_[0]) {
-			closedir(DH) if (defined(DH));
+			closedir($dh) if (defined($dh));
 			push(@Entries, $_[0]);
 			$Attributes{$_[0]} = stat($_[0]);
 			push(@Entries, \%Attributes);
@@ -154,13 +157,13 @@ sub DirEntries {
 		warn "$Program: can't access '$_[0]': $!\n";
 		return ();
 	}
-	while ($Name = readdir(DH)) {
+	while ($Name = readdir($dh)) {
 		next if (!exists($Options->{'a'}) &&
 		 $Name =~ m/^\./o);
 		push(@Entries, $Name);
 		$Attributes{$Name} = stat( File::Spec->catfile( $_[0], $Name ) );
 	}
-	closedir(DH);
+	closedir($dh);
 
 	# ------ return list with %Attributes ref at end
 	push(@Entries, \%Attributes);
@@ -492,7 +495,7 @@ if ($Options{'f'}) {
 }
 
 $WinCols = get_columns();
-$Attributes = stat(STDOUT);
+$Attributes = stat(*STDOUT);
 if ($Attributes->mode & 0140000) {
 	$Options{'1'} = '1';
 }
