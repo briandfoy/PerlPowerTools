@@ -23,13 +23,10 @@ my ($VERSION) = '1.3';
 
 my $Program = basename($0);
 
-getopts ('benstuv?', \my %options)  or do {
-	print <<EOF;
-$Program version $VERSION
-$Program [-benstuv] [file ...]
-EOF
-
-	exit EX_FAILURE;
+getopts('benstuv', \my %options)  or do {
+    warn "$Program version $VERSION\n";
+    warn "usage: $Program [-benstuv] [file ...]\n";
+    exit EX_FAILURE;
 };
 
 my $ends              = exists $options{'e'};
