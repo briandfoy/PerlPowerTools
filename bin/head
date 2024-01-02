@@ -43,48 +43,47 @@ if (defined $opt{'n'}) {
     $count = 10;
 }
 
-@ARGV = '-' unless @ARGV;
-my $err = 0;
+my $rc = EX_SUCCESS;
 my $sep = 0;
 
 foreach my $file (@ARGV) {
-    my ($fh, $is_stdin);
-    if ($file eq '-') {
-        $fh = *STDIN;
-        $is_stdin = 1;
-    } else {
-        if (-d $file) {
-            warn "$Program: '$file' is a directory\n";
-            $err++;
-            next;
-        }
-        unless (open $fh, '<', $file) {
-            warn "$Program: failed to open '$file': $!\n";
-            $err++;
-            next;
-        }
+    if (-d $file) {
+        warn "$Program: '$file' is a directory\n";
+        $rc = EX_FAILURE;
+        next;
     }
-
+    my $fh;
+    unless (open $fh, '<', $file) {
+        warn "$Program: failed to open '$file': $!\n";
+        $rc = EX_FAILURE;
+        next;
+    }
     if (scalar(@ARGV) > 1) {
-        my $fname = $is_stdin ? 'standard input' : $file;
         if ($sep == 0) {
             $sep = 1;
         } else {
             print "\n";
         }
-        print "==> $fname <==\n";
+        print "==> $file <==\n";
     }
+    tail_fh($fh);
+    unless (close $fh) {
+        warn "$Program: failed to close '$file': $!\n";
+        $rc = EX_FAILURE;
+    }
+}
+tail_fh(*STDIN) unless @ARGV;
+exit $rc;
+
+sub tail_fh {
+    my $fh = shift;
+
     foreach (1 .. $count) {
         my $line = <$fh>;
         last unless (defined $line);
         print $line;
     }
-    if (!$is_stdin && !close($fh)) {
-        warn "$Program: failed to close '$file': $!\n";
-        $err++;
-    }
 }
-exit ($err ? EX_FAILURE : EX_SUCCESS);
 
 __END__
 
