@@ -82,8 +82,8 @@ sub parse_args()
 
     } else {
 
-    # special handling for -numeric options
-        Getopt::Long::config("pass_through");
+    # pass_through is special handling for -numeric options
+    Getopt::Long::config('bundling', 'pass_through');
     GetOptions("b=s", "c=s", "f", "h", "n=s", "r");
 
     usage 0 if $opt_h;
@@ -104,8 +104,11 @@ sub parse_args()
     }
 
     for (@ARGV) {
-        $point = check_number($1), shift @ARGV, last
-        if /^([-+].*)$/;
+        if (m/\A[\-\+]/) {
+            $point = check_number($_);
+            shift @ARGV;
+            last;
+        }
     }
 
     usage 1, "The number cannot be null" if $point == 0;
