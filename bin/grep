@@ -278,13 +278,13 @@ FILE: while (defined ($file = shift(@_))) {
 
 	if (-d $file) {
 	    if (-l $file && @ARGV != 1) {
-		warn qq($Me: "$file" is a symlink to a directory\n" )
+		warn qq($Me: "$file" is a symlink to a directory\n)
 		    if $opt->{T};
 		next FILE;
 
 	    }
 	    if (!$opt->{r}) {
-		warn qq($Me: "$file" is a directory\n");
+		warn qq($Me: "$file" is a directory\n);
 		next FILE;
 	    }
 	    unless (opendir(DIR, $file)) {
