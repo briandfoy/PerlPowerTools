@@ -1044,12 +1044,7 @@ sub CalculateLine {
 
     if (defined($offsetexpr)) {
         $myline = $CurrentLineNum unless defined($myline);
-
-        if ($offsetdir =~ /^-$/) {
-            $myline -= $offsetammount;
-        } else {
-            $myline += $offsetammount;
-        }
+        $myline += int $offsetexpr;
     }
 
     if (defined($plusesorminusesexpr)) {
