@@ -11,16 +11,6 @@ License: perl
 
 =cut
 
-
-#
-# cut -- remove sections from each line of files
-#
-#        Rich Lafferty <rich@alcor.concordia.ca>
-#        Thu Mar  4 02:33:30 EST 1999
-#
-#   Perl Power Tools -- http://language.perl.com/ppt/
-#
-
 use strict;
 
 use File::Basename qw(basename);
@@ -30,6 +20,135 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $me = basename($0);
+
+my %opt;
+getopts('b:c:d:f:ns', \%opt) or usage();
+
+# There's no difference between -b and -c on any unix I
+# use regularly -- it's for i18n. Thus, -n is a noop, too.
+$opt{b} = $opt{c} if defined $opt{c};
+
+handle_b() if $opt{b};
+handle_f() if $opt{f};
+
+warn "$me: byte, character or field list required\n";
+usage();
+
+
+
+sub checknum {
+    my $n = shift;
+    if ($n !~ m/\A\-?[0-9]+\Z/) {
+        warn "$me: unexpected byte or field number: '$n'\n";
+        exit EX_FAILURE;
+    }
+    if ($n == 0) {
+        warn "$me: bytes and fields are numbered from 1\n";
+        exit EX_FAILURE;
+    }
+}
+
+sub handle_b {
+    my @list = split (/,/, $opt{b});
+
+    while (<>) {
+        chomp;
+
+        foreach my $item (@list) {
+            my ($start, $end);
+            if (substr($item, 0, 1) eq '-') {
+                checknum($item);
+                $start = 1;
+                $end = abs($item) + 1;
+            }
+            elsif (index($item, '-') == -1) {
+                checknum($item);
+                $start = $item;
+                $end = $start + 1;
+            }
+            else {
+                ($start, $end) = split /\-/, $item;
+                checknum($start);
+                checknum($end);
+                $end++;
+                if ($start >= $end) {
+                    warn "$me: invalid byte list\n";
+                    exit EX_FAILURE;
+                }
+            }
+
+            # change cut's list parameters to substr's parameters
+            $start = length if $start > length;
+            $end = length if $end > length;
+
+            printf "%s", substr($_, $start - 1, $end - $start);
+        }
+        print "\n";
+    }
+    exit EX_SUCCESS;
+}
+
+sub handle_f {
+    my @list = split (/,/, $opt{f});
+    my $delim = "\t";
+    $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
+
+    while (<>) {
+        chomp;
+
+        # Only waste time on lines with delimiters
+        if (/$delim/) {
+            foreach my $item (@list) {
+                my ($start, $end);
+                if (substr($item, 0, 1) eq '-') {
+                    checknum($item);
+                    $start = 0;
+                    $end = abs $item;
+                }
+                elsif (index($item, '-') == -1) {
+                    checknum($item);
+                    $start = $item - 1;
+                    $end = $start + 1;
+                }
+                else {
+                    ($start, $end) = split /\-/, $item;
+                    checknum($start);
+                    checknum($end);
+                    $start--;
+                    if ($start >= $end) {
+                        warn "$me: invalid field list\n";
+                        exit EX_FAILURE;
+                    }
+                }
+
+                my @hunk = split (/$delim/, $_);
+
+                # don't let parameters exceed number of fields
+                $end = @hunk if (! $end or $end > @hunk);
+                $start = @hunk if $start > @hunk;
+
+                # If start of field is bigger than number of items, cut(1)
+                # still outputs a newline -- but we won't enter the for()
+                print "\n" if ($start == $end and $item eq $list[$#list]);
+
+                for (my $i = $start; $i < $end; $i++) {
+                    print $hunk[$i];
+                    if ($item eq $list[$#list] and $i == $end - 1) {  # if done
+                        print "\n";
+                    }
+                    else {
+                        print $delim;
+                    }
+                }
+            }
+        }
+        else {  # no delimiter in line
+            print "$_\n" unless $opt{"s"};
+        }
+    }
+
+    exit EX_SUCCESS;
+}
 
 sub usage {
     print <<EOT;
@@ -49,127 +168,6 @@ EOT
     exit EX_FAILURE;
 }
 
-sub checknum {
-    my $n = shift;
-    if ($n !~ m/\A\-?[0-9]+\Z/) {
-	warn "$me: unexpected byte or field number: '$n'\n";
-	exit EX_FAILURE;
-    }
-    if ($n == 0) {
-	warn "$me: bytes and fields are numbered from 1\n";
-	exit EX_FAILURE;
-    }
-}
-
-my %opt;
-getopts('b:c:d:f:ns', \%opt) or usage();
-
-# There's no difference between -b and -c on any unix I
-# use regularly -- it's for i18n. Thus, -n is a noop, too.
-$opt{b} = $opt{c} if defined $opt{c};
-
-## Byte operations
-if (defined ($opt{b})) {
-
-    my @list = split (/,/, $opt{b});
-
-    while (<>) {
-	chomp;
-
-	foreach my $item (@list) {
-	    my ($start, $end);
-	    if (substr($item, 0, 1) eq '-') {
-		checknum($item);
-		$start = 1;
-		$end = abs($item) + 1;
-	    } elsif (index($item, '-') == -1) {
-		checknum($item);
-		$start = $item;
-		$end = $start + 1;
-	    } else {
-		($start, $end) = split /\-/, $item;
-		checknum($start);
-		checknum($end);
-		$end++;
-		if ($start >= $end) {
-		    warn "$me: invalid byte list\n";
-		    exit EX_FAILURE;
-		}
-	    }
-
-	    # change cut's list parameters to substr's parameters
-	    $start = length if $start > length;
-	    $end = length if $end > length;
-
-	    printf "%s", substr($_, $start - 1, $end - $start);
-	}
-	print "\n";
-    }
-    exit EX_SUCCESS;
-}
-
-## Field operations
-elsif (defined ($opt{f})) {
-
-    my @list = split (/,/, $opt{f});
-    my $delim = "\t";
-    $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
-
-    while (<>) {
-	chomp;
-
-	# Only waste time on lines with delimiters
-	if (/$delim/) {
-	    foreach my $item (@list) {
-		my ($start, $end);
-		if (substr($item, 0, 1) eq '-') {
-		    checknum($item);
-		    $start = 0;
-		    $end = abs $item;
-		} elsif (index($item, '-') == -1) {
-		    checknum($item);
-		    $start = $item - 1;
-		    $end = $start + 1;
-		} else {
-		    ($start, $end) = split /\-/, $item;
-		    checknum($start);
-		    checknum($end);
-		    $start--;
-		    if ($start >= $end) {
-			warn "$me: invalid field list\n";
-			exit EX_FAILURE;
-		    }
-		}
-
-		my @hunk = split (/$delim/, $_);
-
-		# don't let parameters exceed number of fields
-		$end = @hunk if (! $end or $end > @hunk);
-		$start = @hunk if $start > @hunk;
-
-		# If start of field is bigger than number of items, cut(1)
-		# still outputs a newline -- but we won't enter the for()
-		print "\n" if ($start == $end and $item eq $list[$#list]);
-
-		for (my $i = $start; $i < $end; $i++) {
-		    print $hunk[$i];
-		    if ($item eq $list[$#list] and $i == $end - 1) {  # if done
-			print "\n";
-		    } else {
-			print $delim;
-		    }
-		}
-	    }
-	} else {  # no delimiter in line
-	    print "$_\n" unless $opt{"s"};
-	}
-    }
-
-    exit EX_SUCCESS;
-}
-
-warn "$me: byte, character or field list required\n";
-usage();
 
 # (Thanks to Abigail for the pod template.)
 
