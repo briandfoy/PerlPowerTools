@@ -274,7 +274,7 @@ This source is in Github:
 
 =head1 AUTHOR
 
-brian d foy, C<< <bdfoy@cpan.org> >> is the current maintainer, even
+brian d foy, C<< <briandfoy@pobox.com> >> is the current maintainer, even
 though he wrote none of the utilities.
 
 =head1 COPYRIGHT AND LICENSE
