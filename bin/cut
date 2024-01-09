@@ -21,7 +21,6 @@ License: perl
 #   Perl Power Tools -- http://language.perl.com/ppt/
 #
 
-$^W = 1;    # -w
 use strict;
 
 use File::Basename qw(basename);
@@ -50,6 +49,18 @@ EOT
     exit EX_FAILURE;
 }
 
+sub checknum {
+    my $n = shift;
+    if ($n !~ m/\A\-?[0-9]+\Z/) {
+	warn "$me: unexpected byte or field number: '$n'\n";
+	exit EX_FAILURE;
+    }
+    if ($n == 0) {
+	warn "$me: bytes and fields are numbered from 1\n";
+	exit EX_FAILURE;
+    }
+}
+
 my %opt;
 getopts('b:c:d:f:ns', \%opt) or usage();
 
@@ -61,35 +72,36 @@ $opt{b} = $opt{c} if defined $opt{c};
 if (defined ($opt{b})) {
 
     my @list = split (/,/, $opt{b});
-    foreach my $item (@list) {
-	if ($item == 0) {
-	    warn "$me: byte positions are numbered from 1\n";
-	    exit EX_FAILURE;
-	}
-    }
 
     while (<>) {
 	chomp;
 
 	foreach my $item (@list) {
-	    my ($start,$end) = split (/-/, $item);
-	    if ($start and $end and $start > $end) {
-		warn "$me: invalid byte list\n";
-		exit EX_FAILURE;
+	    my ($start, $end);
+	    if (substr($item, 0, 1) eq '-') {
+		checknum($item);
+		$start = 1;
+		$end = abs($item) + 1;
+	    } elsif (index($item, '-') == -1) {
+		checknum($item);
+		$start = $item;
+		$end = $start + 1;
+	    } else {
+		($start, $end) = split /\-/, $item;
+		checknum($start);
+		checknum($end);
+		$end++;
+		if ($start >= $end) {
+		    warn "$me: invalid byte list\n";
+		    exit EX_FAILURE;
+		}
 	    }
 
 	    # change cut's list parameters to substr's parameters
-	    $start--;			   # cut counts from 1, not 0
-	    $start = 0 if $start < 0;
-	    $end = $start + 1 unless $item =~ /-/;
 	    $start = length if $start > length;
+	    $end = length if $end > length;
 
-	    if ($end) {
-		$end = length if $end > length;
-		printf ("%s", substr ($_, $start, $end - $start));
-	    } else {
-		printf ("%s", substr ($_, $start));
-	    }
+	    printf "%s", substr($_, $start - 1, $end - $start);
 	}
 	print "\n";
     }
@@ -100,13 +112,6 @@ if (defined ($opt{b})) {
 elsif (defined ($opt{f})) {
 
     my @list = split (/,/, $opt{f});
-    foreach my $item (@list) {
-	if ($item == 0) {
-	    warn "$me: fields are numbered from 1\n";
-	    exit EX_FAILURE;
-	}
-    }
-
     my $delim = "\t";
     $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
 
@@ -116,16 +121,25 @@ elsif (defined ($opt{f})) {
 	# Only waste time on lines with delimiters
 	if (/$delim/) {
 	    foreach my $item (@list) {
-		my ($start,$end) = split (/-/, $item);
-		if ($start and $end and $start > $end) {
+		my ($start, $end);
+		if (substr($item, 0, 1) eq '-') {
+		    checknum($item);
+		    $start = 0;
+		    $end = abs $item;
+		} elsif (index($item, '-') == -1) {
+		    checknum($item);
+		    $start = $item - 1;
+		    $end = $start + 1;
+		} else {
+		    ($start, $end) = split /\-/, $item;
+		    checknum($start);
+		    checknum($end);
+		    $start--;
+		    if ($start >= $end) {
 			warn "$me: invalid field list\n";
 			exit EX_FAILURE;
+		    }
 		}
-
-		# change cut's list parameters to substr's parameters
-		$start--;			   # cut counts from 1, not 0
-		$start = 0 if $start < 0;
-		$end = $start + 1 unless $item =~ /-/;
 
 		my @hunk = split (/$delim/, $_);
 
