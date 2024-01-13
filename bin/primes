@@ -30,7 +30,7 @@ END {
 chomp(my $start = @ARGV ? $ARGV[0] : <STDIN>);
 my $end   = $ARGV[1] || 2**32 - 1;
 for ($start, $end) {
-  s/^\s*\+?(\d{1,10}).*/$1/ || die "$0: $_: illegal numeric format\n";
+  s/\A\s*\+?(\d{1,10})\Z/$1/ || die "$0: $_: illegal numeric format\n";
   $_ > 2**32 - 1 && die "$0: $_: Numerical result out of range\n";
 }
 die "$0: start value must be less than stop value\n" if ($end < $start);
