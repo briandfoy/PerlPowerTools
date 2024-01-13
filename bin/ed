@@ -60,7 +60,6 @@ License: gpl
 #                u - undo
 #                v - global command "inVerted"
 #                x - get encryption key
-#                ! - shell command
 #
 #        - Create regression test suite...test against "real" ed.
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
@@ -230,6 +229,8 @@ while (1) {
 
         if (!length($command)) {
             &edSetCurrentLine;
+        } elsif ($command eq '!') {
+            edPipe();
         } elsif ($command eq '=') {
             &edPrintLineNum;
 
@@ -393,6 +394,15 @@ sub escape_line {
         }
     }
     return $s;
+}
+
+# does not modify buffer
+sub edPipe {
+    return unless defined $args[0];
+    my $rc = system $args[0];
+    print "$args[0]: $!\n" if ($rc == -1);
+    print "!\n";
+    return;
 }
 
 # merge lines back into $lines[$adrs[0]]
@@ -933,12 +943,17 @@ sub edSetCurrentLine {
 
 sub edParse {
 
-    #
-    # Parse commands....and yes, this could be done a lot more elegantly
-    # with fancy regexps
-    #
-
     @adrs = ();
+
+    my $cmdline = $_;
+    $cmdline =~ s/\A\s+//;
+
+    if (substr($cmdline, 0, 1) eq '!') {
+        $command = '!';
+        $cmdline =~ s/\A.\s*//;
+        $args[0] = $cmdline;
+        return 1;
+    }
 
     my @fields =
              (/^(
