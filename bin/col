@@ -40,6 +40,7 @@ if (defined $opt_l) {
 } else {
     $opt_l = 512;
 }
+usage() if @ARGV;
 
 my @buf = [];       # character buffer
 my $col = 0;        # current column number
