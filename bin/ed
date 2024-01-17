@@ -73,7 +73,7 @@ use strict;
 
 use Getopt::Std qw(getopts);
 
-use constant E_ADDREXT => 'too many addresses';
+use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
 use constant E_ARGEXT  => 'extra arguments detected';
 use constant E_SUFFBAD => 'invalid command suffix';
@@ -398,9 +398,14 @@ sub escape_line {
 
 # does not modify buffer
 sub edPipe {
-    return unless defined $args[0];
-    my $rc = system $args[0];
-    print "$args[0]: $!\n" if ($rc == -1);
+    if (defined $adrs[0]) {
+        edWarn(E_ADDREXT);
+        return;
+    }
+    if (defined $args[0]) {
+        my $rc = system $args[0];
+        print "$args[0]: $!\n" if ($rc == -1);
+    }
     print "!\n";
     return;
 }
@@ -945,16 +950,7 @@ sub edParse {
 
     @adrs = ();
 
-    my $cmdline = $_;
-    $cmdline =~ s/\A\s+//;
-
-    if (substr($cmdline, 0, 1) eq '!') {
-        $command = '!';
-        $cmdline =~ s/\A.\s*//;
-        $args[0] = $cmdline;
-        return 1;
-    }
-
+    s/\A\s+//;
     my @fields =
              (/^(
                  (
@@ -969,14 +965,15 @@ sub edParse {
                   (([+-])?(\d+))?         # [+]num | -num
                   (([\+]+)|([-^]+))?        # + | -
                 )?
-                 ([acdeEfhHijlmnpPqQrstwW=])?        # command char
+                 ([acdeEfhHijlmnpPqQrstwW=\!])?        # command char
                  ([a-z])?                # command suffix
-                 (\s*)(\S+)?                # argument (filename, etc.)
+                 (\s*)(.+)?                # argument (filename, etc.)
                  )$/x);
 
 
     return 0 if ($#fields == -1);  # bad syntax
 
+    my $space_sep = length $fields[29];
     if (defined($fields[27])) {
         $command = $fields[27];
     } else {
@@ -985,14 +982,15 @@ sub edParse {
     }
     if (defined $fields[28]) {
         $commandsuf = $fields[28];
-        if (lc($command) ne 'w') {
+        if ($command eq '!' && !$space_sep) { # allow !ls
+            $fields[30] = $commandsuf . $fields[30];
+        } elsif (lc($command) ne 'w') {
             return 0;
         }
     } else {
         $commandsuf = '';
     }
 
-    my $space_sep = length $fields[29];
     $args[0] = $fields[30];
 
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
