@@ -16,7 +16,7 @@ use strict;
 use Getopt::Std;
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
-my( @DECK, @PLAYERS_HAND, @COMPUTERS_HAND, @BOOKS, %BOOKS);
+my(@DECK, @PLAYERS_HAND, @COMPUTERS_HAND, %BOOKS, %opt);
 my(@HIS_PAST_GUESSES, @MY_PAST_GUESSES);
 my($asker, $opponent, $professional, $whoseturn, $status, $myb, $yourb);
 my %so=( 'A'=>1, 'J'=>11, 'Q'=>12, 'K'=>13 );  # For sort ranking, below.
@@ -24,8 +24,7 @@ my %so=( 'A'=>1, 'J'=>11, 'Q'=>12, 'K'=>13 );  # For sort ranking, below.
 sub pickone {		# Computer's card-picking routine.  Dumb or smart.
 	my($myarr)=@_;
 
-	my %h;
-	map($h{$_}=1, @$myarr);
+	my %h = map { $_ => 1 } @$myarr;
 
 	return( (keys %h)[rand scalar keys %h] ) if (! $professional);
 
@@ -76,9 +75,8 @@ sub playguess {
 }
 sub draw {
 	my($drawarr, $guess)=@_;
-	my($foo);
 
-	$foo=pop @DECK;
+	my $foo = pop @DECK;
 	die("No more cards: S.N.H.") if (!$foo);
 	if ($foo eq $guess) {
 		print "$asker drew the guess\n";
@@ -172,12 +170,8 @@ sub printhand {
 #
 # MAIN
 #
-
-$main::opt_p=0;       # Is this necessary for strict?
-getopts('p') || die <<USAGE;
-Usage: $0 [-p]
-USAGE
-$professional=$main::opt_p;
+getopts('p', \%opt) or die "Usage: $0 [-p]\n";
+$professional = $opt{'p'};
 
 print "Do you want to see instructions (y/n)?";
 $status=<STDIN>;
