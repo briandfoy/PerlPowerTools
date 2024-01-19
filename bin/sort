@@ -85,9 +85,14 @@ sub _sort_file {
 
     # set output and other defaults
     $opts->{o}   = !$opts->{o} ? '' : $opts->{o};
-    $opts->{'y'} ||= $ENV{MAX_SORT_RECORDS} || 200000;  # default max records
-    $opts->{F}   ||= $ENV{MAX_SORT_FILES}   || 40;      # default max files
-
+    if (defined $opts->{'F'}) {
+        die "option -F expects a positive number\n" if (int($opts->{'F'}) < 1);
+    }
+    if (defined $opts->{'y'}) {
+        die "option -y expects a positive number\n" if (int($opts->{'y'}) < 1);
+    }
+    $opts->{'y'} ||= $ENV{'MAX_SORT_RECORDS'} || 200000;  # default max records
+    $opts->{'F'} ||= $ENV{'MAX_SORT_FILES'}   || 40;      # default max files
 
     # see big ol' mess below
     _make_sort_sub($opts);
