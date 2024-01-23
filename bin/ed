@@ -1062,13 +1062,7 @@ sub CalculateLine {
 
     if (defined($plusesorminusesexpr)) {
         $myline = $CurrentLineNum unless defined($myline);
-
-        if (defined($pluses)) {
-            $myline += length($pluses);
-        } elsif (defined($minuses)) {
-            $myline -= length($minuses);
-        }
-
+        $myline += length($pluses||'') - length($minuses||'');
     }
 
     return $myline;
