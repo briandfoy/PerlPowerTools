@@ -1112,23 +1112,12 @@ sub edSearchForward {
 sub edSearchBackward {
     my($pattern) = @_;
 
-    my $line = $CurrentLineNum > 1 ? $CurrentLineNum - 1 : maxline();
-
-    while ($line > 0) {
+    my @idx = ($CurrentLineNum .. maxline(), 1 .. ($CurrentLineNum - 1));
+    foreach my $line (reverse @idx) {
         if ($lines[$line] =~ /$pattern/) {
             return $line;
         }
-        $line--;
     }
-
-    $line = maxline();
-    while ($line >= $CurrentLineNum) {
-        if ($lines[$line] =~ /$pattern/) {
-            return $line;
-        }
-        $line--;
-    }
-
     return 0;
 }
 
