@@ -1111,13 +1111,8 @@ sub edSearchForward {
 
 sub edSearchBackward {
     my($pattern) = @_;
-    my($line,$start);
 
-    # brute force search...
-
-    $start = $CurrentLineNum > 1 ? $CurrentLineNum - 1 : maxline();
-
-    $line = $start;
+    my $line = $CurrentLineNum > 1 ? $CurrentLineNum - 1 : maxline();
 
     while ($line > 0) {
         if ($lines[$line] =~ /$pattern/) {
