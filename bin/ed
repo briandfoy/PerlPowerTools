@@ -84,6 +84,7 @@ use constant E_NOFILE  => 'no current filename';
 use constant E_UNSAVED => 'buffer modified';
 use constant E_CMDBAD  => 'unknown command';
 use constant E_PATTERN => 'invalid pattern delimiter';
+use constant E_NOMATCH => 'no match';
 
 # important globals
 
@@ -994,8 +995,17 @@ sub edParse {
     $args[0] = $fields[30];
 
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
+    if ($adrs[0] == -1) {
+        edWarn(E_NOMATCH);
+        $command = '/';
+        undef $adrs[0];
+    }
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
-
+    if ($adrs[1] == -1) {
+        edWarn(E_NOMATCH);
+        $command = '/';
+        undef $adrs[1];
+    }
     if (defined($args[0]) && $WANT_FILE{$command} && !$space_sep) {
         return 0;
     }
@@ -1049,8 +1059,10 @@ sub CalculateLine {
 
             if ($wholesearch =~ /^\?/) {
                 $myline = edSearchBackward($pattern);
+                return -1 unless $myline;
             } else {
                 $myline = edSearchForward($pattern);
+                return -1 unless $myline;
             }
         }
     }
@@ -1084,15 +1096,11 @@ sub CalculateLine {
 sub edSearchForward {
     my($pattern) = @_;
 
-    my $start = $CurrentLineNum < maxline() ? $CurrentLineNum : 1;
-
-    for my $line ($start .. maxline() , 1 .. $CurrentLineNum) {
-
+    for my $line (($CurrentLineNum + 1) .. maxline(), 1 .. $CurrentLineNum) {
         if ($lines[$line] =~ /$pattern/) {
             return $line;
         }
     }
-
     return 0;
 }
 
