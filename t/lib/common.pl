@@ -92,7 +92,7 @@ sub run_command {
 		);
 
 	my %result;
-	@result{qw( program args stdout stderr )} = ( $program, [@$args], $output, $error );
+	@result{qw( program args stdout stderr exit)} = ( $program, [@$args], $output, $error, $? >> 8 );
 	return \%result;
 	}
 
