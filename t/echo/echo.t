@@ -1,56 +1,27 @@
 use strict;
 use warnings;
 
-use Test::More 0.95 tests => 5;
+use Test::More 1;
+require './t/lib/common.pl';
+
+my $Script = program_name();
+
+compile_test($Script);
+sanity_test($Script);
 
 my ($stdout, $stderr, $did_exit, $exit_code);
-sub exit_trap (;$) {
-	$did_exit = 1;
-	$exit_code = shift;
-	no warnings 'exiting';
-	last RUN_CODE;
-}
-
-sub do_trap (&) {
-	$did_exit = $exit_code = undef;
-	$stdout = $stderr = '';
-	local *STDOUT;
-	local *STDERR;
-	open(STDOUT, '>', \$stdout);
-	open(STDERR, '>', \$stderr);
-
-	my $code = shift;
-	RUN_CODE: {
-		$code->();
-	}
-}
-
-BEGIN {
-	no warnings 'redefine';
-	*CORE::GLOBAL::exit = \&exit_trap;
-}
 
 my $class = 'PerlPowerTools::echo';
 
-subtest setup => sub {
-	plan tests => 2;
-	use lib qw(.);
-	require_ok( 'bin/echo' );
-	can_ok( $class, 'run' );
-};
-
 subtest no_input => sub {
-	plan tests => 4;
-	do_trap { $class->run() };
-	is ( $did_exit, 1 );
-	is ( $exit_code, 0 );
-	is ( $stdout, "\n" );
-	is ( $stderr, '' );
+	my $result = run_command( $Script, [], undef );
+	is( $result->{exit}, 0 );
+	is( $result->{stdout}, "\n" );
+	is( $result->{stderr}, '' );
 };
 
 subtest ask_for_help => sub {
-	plan tests => 4;
-	my $help = <<'HELP';
+	my $stdout = <<'HELP';
 Usage: echo [-n] [arguments]
 
 Displays the command line arguments, seperated by spaces.
@@ -59,29 +30,26 @@ Options:
        -n:     Do not print a newline after the arguments.
        -?:     Display usage information.
 HELP
-	do_trap { $class->run( '-?' ) };
-	is ( $did_exit, 1 );
-	is ( $exit_code, 0);
-	is ( $stdout, $help );
-	is ( $stderr, '' );
+	my $result = run_command( $Script, [qw(-?)], undef );
+	is( $result->{exit}, 0 );
+	is( $result->{stdout}, $stdout );
+	is( $result->{stderr}, '' );
 };
 
 subtest no_new_lines => sub {
-	plan tests => 4;
-	do_trap { $class->run( '-n', 'no new lines' ) };
-	is ( $did_exit, 1);
-	is ( $exit_code, 0);
-	is ( $stdout, 'no new lines' );
-	is ( $stderr, '' );
+	my $stdout = 'no new lines';
+	my $result = run_command( $Script, ['-n', 'no new lines'], undef );
+	is( $result->{exit}, 0 );
+	is( $result->{stdout}, $stdout );
+	is( $result->{stderr}, '' );
 };
 
 subtest with_new_lines => sub {
-	plan tests => 4;
-	do_trap { $class->run( 'with new lines' ) };
-	is ( $did_exit, 1 );
-	is ( $exit_code, 0);
-	is ( $stdout, "with new lines\n" );
-	is ( $stderr, '' );
+	my $stdout = 'with new lines';
+	my $result = run_command( $Script, [$stdout], undef );
+	is( $result->{exit}, 0 );
+	is( $result->{stdout}, $stdout . "\n" );
+	is( $result->{stderr}, '' );
 };
 
 done_testing();
