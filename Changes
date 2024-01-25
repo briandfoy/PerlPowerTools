@@ -1,5 +1,49 @@
 Revision history for Perl module PerlPowerTools
 
+1.043 2024-01-25T23:23:48Z
+	* All changes are from Michael Mikonos unless otherwise noted
+	* ar
+		- get rid of getopts.pl (#394)
+		- switch to three argument opens (#398)
+	* cat
+		- fail for -? (#396)
+	* cmp
+		- simplify some code (#388)
+	* col
+		- no longer takes arguments; it's just stdin (#407)
+	* ed
+		- fix some line calculation (#405, #413, #414, #415)
+		- allow whitespace in arguments (#411)
+		- fail for -? (#417)
+	* file
+		- switch to three argument opens (#398)
+	* fish
+		- update some style in the code (#410)
+	* fortune
+		- unknown options are now fatal (#392)
+	* grep
+		- remove some stray chars from error messages (#400)
+	* hangman
+		- don't assume size of word list (#416)
+	* head
+		- the - is now treated as stdin (#397)
+	* ls
+		- add strict (#395)
+	* od
+		- fix line offset numbers in output (#389)
+		- fix oddities in output with -b (#391)
+	* pom
+		- unknown options are now fatal (#390)
+	* pr
+		- -3x option are now fatal (#393)
+	* primes
+		- non-numeric data are errors now (#406)
+	* sort
+		- enough sensible bounds for -F and -y (#412)
+	* tail
+		- allow both -n1 (combined) and -n 1 (separated) (#399)
+	
+
 1.042 2023-12-22T12:45:27Z
 	* All changes from Michael Mikonos unless otherwise noted
 	* apply
