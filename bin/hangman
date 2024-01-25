@@ -72,11 +72,18 @@ print "\nTHANKS FOR PLAYING!\n";
 
 sub get_a_word {
 	my $wordlist = "wordlist.txt";
-	my( $word );
+	my( $fh, $word );
 	my( $line_num ) = 1;
 	my( $random ) = rand();
-	my( $val ) = int( $random * 9151 ) + 1;
-	open my $fh, '<', $wordlist or die "Could not open <$wordlist>: $!\n";
+
+	open($fh, '<', $wordlist) or die "Could not open <$wordlist>: $!\n";
+	my $lines = 0;
+	$lines++ while (<$fh>);
+	my $val = int($random * $lines) + 1;
+
+	close($fh) or die "Could not close <$wordlist>: $!\n";
+	open($fh, '<', $wordlist) or die "Could not open <$wordlist>: $!\n";
+
 	while( <$fh> ) {
 		if( $line_num == $val ) {
 			$word = $_;
@@ -86,7 +93,7 @@ sub get_a_word {
 			$line_num++;
 		}
 	}
-	close( FILE );
+	close($fh) or die "Could not close <$wordlist>: $!\n";
 	return( $word );
 }
 
