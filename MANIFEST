@@ -141,8 +141,10 @@ t/990.pod.t
 t/bc/input.t
 t/cat/cat.t
 t/cp/gh-115-copy-into-dir.t
+t/cut/cut.t
 t/data/cat/cat-n-1.txt
 t/data/nl/nl.txt
+t/data/od/ascii.txt
 t/data/rev/reverse-this.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
@@ -156,6 +158,7 @@ t/lib/common.pl
 t/lib/utils.pm
 t/mimedecode/000.basic.t
 t/nl/nl.t
+t/od/od.t
 t/rev/rev.t
 t/rm/process_options.t
 t/rm/run.t
