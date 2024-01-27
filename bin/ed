@@ -163,8 +163,8 @@ if ($opt{'v'}) {
     $EXTENDED_MESSAGES = 1;
 }
 
-shift if (@ARGV && $ARGV[0] eq '-');
 $args[0] = shift;
+$args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
 $SupressCounts = 1 if ($opt{'s'} || !defined($args[0]));
 
