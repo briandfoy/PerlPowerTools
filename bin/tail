@@ -68,6 +68,27 @@ sub check_number($)
     }
 }
 
+sub new_argv
+{
+    my @new;
+    my $end = 0;
+
+    foreach my $arg (@ARGV) {
+        if ($arg eq '--' || $arg !~ m/\A[\-\+]/) {
+            push @new, $arg;
+            $end = 1;
+            next;
+        }
+
+        if (!$end && $arg =~ m/\A([\-\+][0-9]+)\Z/) { # historic
+            push @new, "-n$1";
+        } else {
+            push @new, $arg;
+        }
+    }
+    return @new;
+}
+
 sub parse_args()
 {
     my $files;
@@ -82,10 +103,8 @@ sub parse_args()
 
     } else {
 
-    @ARGV = map { m/\A([\-\+][0-9]+)\Z/ ? "-n$1" : $_ } @ARGV; # historic
-
-    # pass_through is special handling for -numeric options
-    Getopt::Long::config('bundling', 'pass_through');
+    @ARGV = new_argv();
+    Getopt::Long::config('bundling');
     GetOptions("b=s", "c=s", "f", "h", "n=s", "r");
 
     usage 0 if $opt_h;
