@@ -82,6 +82,8 @@ sub parse_args()
 
     } else {
 
+    @ARGV = map { m/\A([\-\+][0-9]+)\Z/ ? "-n$1" : $_ } @ARGV; # historic
+
     # pass_through is special handling for -numeric options
     Getopt::Long::config('bundling', 'pass_through');
     GetOptions("b=s", "c=s", "f", "h", "n=s", "r");
@@ -91,27 +93,20 @@ sub parse_args()
         if $opt_f and $opt_r;
 
     if (defined $opt_b) {
+        usage(1) if (defined($opt_c) || defined($opt_n));
         $point = check_number($opt_b);
         $type = 'b';
-    }
-    if (defined $opt_c) {
+    } elsif (defined $opt_c) {
+        usage(1) if (defined($opt_b) || defined($opt_n));
         $point = check_number($opt_c);
         $type = 'c';
-    }
-    if (defined $opt_n) {
+    } elsif (defined $opt_n) {
+        usage(1) if (defined($opt_b) || defined($opt_c));
         $point = check_number($opt_n);
         $type = 'n';
     }
 
-    for (@ARGV) {
-        if (m/\A[\-\+]/) {
-            $point = check_number($_);
-            shift @ARGV;
-            last;
-        }
-    }
-
-    usage 1, "The number cannot be null" if $point == 0;
+    usage(1, 'The number cannot be zero') if $point == 0;
 
     $point = $point ? $point : -10;
     }
