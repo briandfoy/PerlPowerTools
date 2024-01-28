@@ -162,17 +162,11 @@ if ($opt{'v'}) {
     warn "perl ed version $VERSION\n";
     $EXTENDED_MESSAGES = 1;
 }
-if ($opt{'s'}) {
-    $SupressCounts = 1;
-}
 
-&Usage if scalar(@ARGV) > 1;
-my $fname = shift;
-if (!defined($fname) || $fname eq '-') {
-    $SupressCounts = 1;
-} else {
-    $args[0] = $fname;
-}
+$args[0] = shift;
+$args[0] = undef if (defined($args[0]) && $args[0] eq '-');
+Usage() if @ARGV;
+$SupressCounts = 1 if ($opt{'s'} || !defined($args[0]));
 
 &edEdit($NO_QUESTIONS_MODE,$NO_APPEND_MODE);
 
