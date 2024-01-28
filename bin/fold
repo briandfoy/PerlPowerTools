@@ -62,6 +62,7 @@ OPTION:
 while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 
     next OPTION unless length;
+    last if $_ eq '-'; # -- terminator
 
     if (s/^b//) {
         warn "-b flag already set" if $Byte_Only++;
