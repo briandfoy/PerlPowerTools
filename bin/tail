@@ -68,6 +68,27 @@ sub check_number($)
     }
 }
 
+sub new_argv
+{
+    my @new;
+    my $end = 0;
+
+    foreach my $arg (@ARGV) {
+        if ($arg eq '--' || $arg !~ m/\A[\-\+]/) {
+            push @new, $arg;
+            $end = 1;
+            next;
+        }
+
+        if (!$end && $arg =~ m/\A([\-\+][0-9]+)\Z/) { # historic
+            push @new, "-n$1";
+        } else {
+            push @new, $arg;
+        }
+    }
+    return @new;
+}
+
 sub parse_args()
 {
     my $files;
@@ -82,8 +103,8 @@ sub parse_args()
 
     } else {
 
-    # pass_through is special handling for -numeric options
-    Getopt::Long::config('bundling', 'pass_through');
+    @ARGV = new_argv();
+    Getopt::Long::config('bundling');
     GetOptions("b=s", "c=s", "f", "h", "n=s", "r");
 
     usage 0 if $opt_h;
@@ -91,27 +112,20 @@ sub parse_args()
         if $opt_f and $opt_r;
 
     if (defined $opt_b) {
+        usage(1) if (defined($opt_c) || defined($opt_n));
         $point = check_number($opt_b);
         $type = 'b';
-    }
-    if (defined $opt_c) {
+    } elsif (defined $opt_c) {
+        usage(1) if (defined($opt_b) || defined($opt_n));
         $point = check_number($opt_c);
         $type = 'c';
-    }
-    if (defined $opt_n) {
+    } elsif (defined $opt_n) {
+        usage(1) if (defined($opt_b) || defined($opt_c));
         $point = check_number($opt_n);
         $type = 'n';
     }
 
-    for (@ARGV) {
-        if (m/\A[\-\+]/) {
-            $point = check_number($_);
-            shift @ARGV;
-            last;
-        }
-    }
-
-    usage 1, "The number cannot be null" if $point == 0;
+    usage(1, 'The number cannot be zero') if $point == 0;
 
     $point = $point ? $point : -10;
     }
