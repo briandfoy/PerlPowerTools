@@ -23,6 +23,7 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 my ($VERSION) = '1.3';
 
+@ARGV = new_argv();
 my %opt;
 unless (getopts('n:', \%opt)) {
     warn "usage: $Program [-n count] [file ...]\n";
@@ -66,16 +67,16 @@ foreach my $file (@ARGV) {
         }
         print "==> $file <==\n";
     }
-    tail_fh($fh);
+    head_fh($fh);
     unless (close $fh) {
         warn "$Program: failed to close '$file': $!\n";
         $rc = EX_FAILURE;
     }
 }
-tail_fh(*STDIN) unless @ARGV;
+head_fh(*STDIN) unless @ARGV;
 exit $rc;
 
-sub tail_fh {
+sub head_fh {
     my $fh = shift;
 
     foreach (1 .. $count) {
@@ -83,6 +84,26 @@ sub tail_fh {
         last unless (defined $line);
         print $line;
     }
+}
+
+sub new_argv {
+    my @new;
+    my $end = 0;
+
+    foreach my $arg (@ARGV) {
+        if ($arg eq '--' || $arg !~ m/\A\-/) {
+            push @new, $arg;
+            $end = 1;
+            next;
+        }
+
+        if (!$end && $arg =~ m/\A\-([0-9]+)\Z/) { # historic
+            push @new, "-n$1";
+        } else {
+            push @new, $arg;
+        }
+    }
+    return @new;
 }
 
 __END__
