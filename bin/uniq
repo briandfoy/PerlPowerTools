@@ -23,9 +23,9 @@ END {
   $? = 1 if $? == 255;  # from die
 }
 
-sub help {
-  print "$0 [-c | -d | -u] [-f fields] [-s chars] [input files]\n";
-  exit 0;
+sub usage {
+  print "usage: $0 [-c | -d | -u] [-f fields] [-s chars] [input files]\n";
+  exit 1;
 }
 
 sub version { print "$0 (Perl Power Tools) $VERSION\n"; exit 0; }
@@ -46,7 +46,6 @@ sub get_numeric_arg {
 while (@ARGV && $ARGV[0] =~ /^[-+]/) {
   local $_ = shift;
   last if ($_ eq '--');
-  /^-[h?]$/    && help();        # terminates
   /^-v$/       && version();     # terminates
   /^-c$/       && ($optc++, next);
   /^-d$/       && ($optd++, next);
@@ -56,7 +55,8 @@ while (@ARGV && $ARGV[0] =~ /^[-+]/) {
   s/^-f//      && (($optf = get_numeric_arg('f', 'fields to skip')), next);
   s/^-s//      && (($opts = get_numeric_arg('s', 'bytes to skip')), next);
 
-  die "$0: invalid option -- $_\n";
+  warn "$0: invalid option -- $_\n";
+  usage();
 }
 
 my ($comp, $save_comp, $line, $save_line, $count, $eof);
