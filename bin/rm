@@ -19,7 +19,7 @@ rm - remove directory entries
 
 =head1 SYNOPSIS
 
-	rm [-fiPrR] file ...
+	rm [-fiPrRv] file ...
 
 =head1 DESCRIPTION
 
@@ -37,7 +37,7 @@ rm - remove directory entries
 
 =item * -R - remove directories recursively
 
-=item * -v
+=item * -v - show the name of each file after it is removed
 
 =back
 
@@ -283,7 +283,7 @@ sub usage {
 sub error_fh { my $self = shift; $self->{error_fh} }
 sub error {
 	my $self = shift;
-	print { $self->error_fh || * STDERR } @_;
+	print { $self->error_fh || *STDERR } @_;
 	}
 
 sub output_fh { my $self = shift; $self->{output_fh} }
