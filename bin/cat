@@ -93,6 +93,10 @@ sub do_file {
 
         print;
     }
+    if ($name ne '-' && !close($fh)) {
+        warn "$Program: failed to close '$name': $!\n";
+        return 1;
+    }
     return 0;
 }
 
