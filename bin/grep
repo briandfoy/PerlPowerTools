@@ -117,7 +117,7 @@ Specials:
 	q   quiet about failed file and dir opens
 	T   trace files as opened
 
-May use a TCGREP environment variable to set default options.
+May use GREP_OPTIONS environment variable to set default options.
 EOF
 }
 
@@ -129,9 +129,9 @@ sub parse_args {
     my ($optstring, $zeros, $nulls, %opt, $pattern, @patterns, $match_code);
     my ($SO, $SE);
 
-    if ($_ = $ENV{TCGREP}) {      # get envariable TCGREP
+    if (defined($_ = $ENV{'GREP_OPTIONS'})) {
 	s/^([^\-])/-$1/;          # add leading - if missing
-	unshift(@ARGV, $_);       # add TCGREP opt string to @ARGV
+	unshift @ARGV, $_;
     }
 
     $optstring = "incCwsxvhe:f:l1HurtpP:aqTF";
@@ -406,14 +406,14 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<tcgrep> [ B<-[incCwsxvhlF1HurtpaqT]> ] [ B<-e> I<pattern> ]
+B<grep> [ B<-[incCwsxvhlF1HurtpaqT]> ] [ B<-e> I<pattern> ]
 [ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
 
 =head1 DESCRIPTION
 
-B<tcgrep> searches for lines (or, optionally, paragraphs) in files
+B<grep> searches for lines (or, optionally, paragraphs) in files
 that satisfy the criteria specified by the user-supplied patterns.
-Because B<tcgrep> is a Perl program, the user has full access to
+Because this B<grep> is a Perl program, the user has full access to
 Perl's rich regular expression engine.  See L<perlre>.
 
 The first argument after the options (assuming the user did not specify
@@ -421,11 +421,11 @@ the B<-e> option or the B<-f> option) is taken as I<pattern>.
 If the user does not supply a list of file or directory names to
 search, B<tcgrep> will attempt to search its standard input.
 
-With no arguments, B<tcgrep> will output its option list and exit.
+With no arguments, B<grep> will output its option list and exit.
 
 =head1 OPTIONS
 
-B<tcgrep> accepts these options:
+The following options are accepted:
 
 =over 4
 
@@ -471,7 +471,7 @@ the B<-f> option supercedes the B<-e> option.
 
 =item B<-H>
 
-Highlight matches.  This option causes B<tcgrep> to attempt to use
+Highlight matches.  This option causes B<grep> to attempt to use
 your terminal's stand-out (emboldening) functionality to highlight
 those portions of each matching line or paragraph that actually
 triggered the match.  This feature is very similar to the way the
@@ -490,25 +490,25 @@ expression switch.  See L<perlre>.
 
 =item B<-l>
 
-List files containing matches.  This option tells B<tcgrep> not to
+List files containing matches.  This option tells B<grep> not to
 print any matches but only the names of the files containing matches.
 This option implies the B<-1> option.
 
 =item B<-n>
 
-Number lines or paragraphs.  Before outputting a given match, B<tcgrep>
+Number lines or paragraphs.  Before outputting a given match, B<grep>
 will first output its line or paragraph number corresponding to the
 value of the Perl magic scalar $. (whose documentation is in L<perlvar>).
 
 =item B<-P> I<sep>
 
-Put B<tcgrep> in paragraph mode, and use I<sep> as the paragraph
+Put B<grep> in paragraph mode, and use I<sep> as the paragraph
 separator.  This is implemented by assigning I<sep> to Perl's magic
 $/ scalar.  See L<perlvar>.
 
 =item B<-p>
 
-Paragraph mode.  This causes B<tcgrep> to set Perl's magic $/ to C<''>.
+Paragraph mode.  This causes B<grep> to set Perl's magic $/ to C<''>.
 (Note that the default is to process files in line mode.)  See L<perlvar>.
 
 =item B<-q>
@@ -518,7 +518,7 @@ B<-s>.
 
 =item B<-r>
 
-Recursively scan directories.  This option causes B<tcgrep> to
+Recursively scan directories.  This option causes B<grep> to
 descend directories in a left-first, depth-first manner and search
 for matches in the files of each directory it encounters.  The
 presence of B<-r> implies a file argument of F<.>, the current
@@ -533,7 +533,7 @@ in whether or not there exists a match for a pattern.  See also B<-q>.
 
 =item B<-T>
 
-Trace files as processed.  This causes B<tcgrep> to send diagnostic
+Trace files as processed.  This causes B<grep> to send diagnostic
 messages to the standard error when skipping symbolic links to directories,
 when skipping directories because the user did not give the B<-r> switch,
 when skipping non-plain files (see L<perlfunc/-f>),
@@ -548,7 +548,7 @@ the least recently modified.
 
 =item B<-u>
 
-Underline matches.  This option causes B<tcgrep> to attempt to use
+Underline matches.  This option causes B<grep> to attempt to use
 your terminal's underline functionality to underline those portions of
 each matching line or paragraph that actually triggered the match.
 See also B<-H>.
@@ -575,14 +575,14 @@ Exact matches only.  The pattern must match the entire line or paragraph.
 
 =head1 ENVIRONMENT
 
-The user's TCGREP environment variable is taken as the default set of
-options to B<tcgrep>.
+The GREP_OPTIONS environment variable is taken as the default set of
+options to grep, placed at the front of any explicit options.
 
 =head1 EXAMPLES
 
 Search all files under F</etc/init.d> for a particular pattern:
 
-    % tcgrep -r tcgrep /etc/init.d
+    % grep -r tcgrep /etc/init.d
 
 Use of B<-v> and B<-f> options in conjunction with one another:
 
@@ -593,7 +593,7 @@ Use of B<-v> and B<-f> options in conjunction with one another:
     % cat pats
     pomme
     poire
-    % tcgrep -vf pats fruits
+    % grep -vf pats fruits
     banane
 
 =head1 TODO
