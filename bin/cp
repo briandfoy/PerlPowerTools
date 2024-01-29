@@ -60,7 +60,7 @@ sub run {
 		push @command, @files, $destination;
 
 		my $rc = system { $command[0] } @command;
-		return $rc;
+		return $rc >> 8;
 		}
 	else {
 		require File::Copy;
