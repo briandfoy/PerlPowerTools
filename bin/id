@@ -21,10 +21,9 @@ License:
 
 use strict;
 use Getopt::Std;
-use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p $opt_h);
+use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p);
 
-&help unless getopts('Gnuagraph');
-&help if ( $opt_h );
+getopts('Gnuagrap') or help();
 if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
 	print STDERR "You may only choose one of -G, -g, -p, or -u.  Doh!\n\n";
 	&help;
@@ -163,7 +162,6 @@ sub help {
 	id -g [-nr] [user]
 	id -u [-nr] [user]
 	id -p [user]
-	id -h
 	id -a
 ";
 	exit 1;
@@ -175,7 +173,7 @@ id - show user information
 
 =head1 SYNOPSIS
 
-id [-Gnuagraph] [user]
+id [-Gnuagrap] [user]
 
 =head1 DESCRIPTION
 
@@ -200,9 +198,6 @@ Nothing.  The option is included for compatibility with some versions of id.
 =item I<-g>
 Display the effective group ID.
 
-=item I<-h>
-Display the usage help message.
-
 =item I<-n>
 Force the options C<-G>, C<-g> and C<-u> to display the matching name
 instead of the number for the user and group IDs.  If any of the ID
@@ -210,7 +205,7 @@ numbers do not have a matching name, the number will be displayed
 as usual.
 
 =item I<-p>
-Display the user/group information on seperate lines.  If the username
+Display the user/group information on separate lines.  If the username
 returned by getlogin is different than the username associated with
 the calling program's user ID, it is displayed preceded by the phrase
 "login".  The real ID, effective user ID (if different), real group ID,
