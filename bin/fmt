@@ -25,18 +25,10 @@ my $Program = basename($0);
 
 my $MAX_WIDTH = 75;
 
-# Take care of special case, bare -width option:
-@ARGV = grep {
-    if (/^-(\d+)$/) {
-        $MAX_WIDTH = $1;
-        0;
-    } else {
-        1;
-    }
-} @ARGV;
-
+@ARGV = new_argv();
+Getopt::Long::config('bundling');
 GetOptions(
-    "width=i"   => \$MAX_WIDTH,
+    'w=i' => \$MAX_WIDTH,
 ) or usage();
 
 my $fmt_line = '<' x $MAX_WIDTH;
@@ -77,6 +69,27 @@ exit EX_SUCCESS;
 sub usage {
     warn "usage: $Program [-w WIDTH] [file...]\n";
     exit EX_FAILURE;
+}
+
+# Take care of special case, bare -width option
+sub new_argv {
+    my @new;
+    my $end = 0;
+
+    foreach my $arg (@ARGV) {
+        if ($arg eq '--' || $arg !~ m/\A\-/) {
+            push @new, $arg;
+            $end = 1;
+            next;
+        }
+
+        if (!$end && $arg =~ m/\A\-([0-9]+)\Z/) { # historic
+            push @new, "-w$1";
+        } else {
+            push @new, $arg;
+        }
+    }
+    return @new;
 }
 
 __END__
