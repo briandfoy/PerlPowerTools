@@ -105,9 +105,6 @@ if (defined($lim) && $lim == 0) {
     exit EX_SUCCESS;
 }
 
-$opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
-		 $opt_l || $opt_o || $opt_x);
-
 my $fmt;
 if ($opt_b) {
     $fmt = \&octal1;
@@ -134,7 +131,7 @@ elsif ($opt_x) {
     $fmt = \&hex;
 }
 else {
-    help();
+    $fmt = \&octal2;
 }
 
 my $buf;
