@@ -29,15 +29,11 @@ License: gpl
 #        - Because working on this is more fun than Y2K testing !
 #
 # Who:
-#
 #        George M Jones (gmj@infinet.com).  Please send changes to me.
 #
 # When:
 #        Version 0.1
 #          - 06/09/99 - Created (note that non-Y2K compliant date !!!)
-#
-# How (Usage):
-#        ed [-ddebugflags] [-v] [-] [file]
 #
 # Irony:  This was, of course, edited originaly with emacs...
 #
@@ -154,7 +150,7 @@ $SIG{HUP} = sub {
 
 
 my %opt;
-getopts('d:p:sv', \%opt) or &Usage;
+getopts('dp:sv', \%opt) or Usage();
 if (defined $opt{'p'}) {
     $Prompt = $opt{'p'};
 }
@@ -181,7 +177,7 @@ while (1) {
 
     if (&edParse) {
 
-        if ($opt{'d'} =~ /parse/) {
+        if ($opt{'d'}) {
             print "command: /$command/ ";
             print "adrs[0]: /$adrs[0]/ " if defined($adrs[0]);
             print "adrs[1]: /$adrs[1]/ " if defined($adrs[1]);
@@ -1022,7 +1018,7 @@ sub CalculateLine {
 
     my($myline);
 
-    if ($opt{'d'} =~ /parse/) {
+    if ($opt{'d'}) {
         print "expr1=/$expr1/\n" if (defined($expr1));
         print "decimaladr=/$decimaladr/\n" if (defined($decimaladr));
         print "dotadr=/$dotadr/\n" if (defined($dotadr));
@@ -1131,7 +1127,7 @@ sub edSearchBackward {
 #
 
 sub Usage {
-    die "Usage: ed [-p prompt] [-ddebugstring] [-sv] [file]\n";
+    die "Usage: ed [-p prompt] [-dsv] [file]\n";
 }
 
 #
@@ -1160,7 +1156,7 @@ ed - text editor
 
 =head1 SYNOPSIS
 
-ed [-p prompt] [-ddebugstring] [-sv] [file]
+ed [-p prompt] [-dsv] [file]
 
 =head1 DESCRIPTION
 
@@ -1201,9 +1197,9 @@ The following options are available:
 
 =over 4
 
-=item -ddebugstring
+=item -d
 
-Print debugging output. debugstring may be set to "parse".
+Print debugging information on standard output.
 
 =item -p STRING
 
