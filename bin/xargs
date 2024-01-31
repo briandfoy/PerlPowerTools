@@ -29,20 +29,20 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 
 my %o;
-getopts('0tn:l:s:I:', \%o) or die <<USAGE;
+getopts('0tn:L:l:s:I:', \%o) or die <<USAGE;
 Usage:
-	$Program [-0t] [-n num] [-l num] [-s size] [-I repl] prog [args]
+	$Program [-0t] [-n num] [-L num] [-s size] [-I repl] prog [args]
 
 	-0	expect NUL characters as separators instead of spaces
 	-t	trace execution (prints commands to STDERR)
 	-n num	pass at most 'num' arguments in each invocation of 'prog'
-	-l num	pass at most 'num' lines of STDIN as 'args' in each invocation
+	-L num	pass at most 'num' lines of STDIN as 'args' in each invocation
 	-s size	pass 'args' amounting at most to 'size' bytes in each invocation
 	-I repl	for each line in STDIN, replace all 'repl' strings in 'args'
 		  before execution
 USAGE
 
-for my $opt (qw( l n s )) {
+for my $opt (qw( L l n s )) {
     next unless (defined $o{$opt});
     if (!length($o{$opt}) || $o{$opt} =~ m/\D/) {
 	warn "$Program: option $opt: invalid number '$o{$opt}'\n";
@@ -53,7 +53,7 @@ for my $opt (qw( l n s )) {
 	exit EX_FAILURE;
     }
 }
-
+$o{'L'} = $o{'l'} if defined $o{'l'};
 my @args = ();
 
 $o{I} ||= '{}' if exists $o{I};
@@ -65,13 +65,14 @@ while (1) {
     my $totlines = 0;
     while (<STDIN>) {
 	chomp;
+	next unless (length && m/\S/);
 	$line .= $_ if $o{I};
 	$totlines++;
 	my @words = quotewords($sep, 1, $_);
 	push @args, grep { defined } @words;
 	last if $o{n} and @args >= $o{n};
 	last if $o{s} and length("@args") >= $o{s};
-	last if $o{l} and $totlines >= $o{l};
+	last if $o{'L'} and $totlines >= $o{'L'};
     }
     my @run = @ARGV;
     push @run, 'echo' unless (@run);
