@@ -324,9 +324,8 @@ sub edHelp {
     }
     if ($toggle) {
         $EXTENDED_MESSAGES ^= 1;
-        return unless $EXTENDED_MESSAGES;
     }
-    if (defined $Error) {
+    if ($EXTENDED_MESSAGES && defined($Error)) {
          print "$Error\n";
     }
 }
@@ -475,12 +474,7 @@ sub edMove {
     }
 
     my $count = $end - $start + 1;
-    my @copy;
-    if ($count == 1) {
-        push @copy, $lines[$start];
-    } else {
-        @copy = @lines[$start .. $end];
-    }
+    my @copy = @lines[$start .. $end];
     if ($start > $dst && $end > $dst) {
         splice(@lines, $start, $count) if $delete;
         splice @lines, $dst + 1, 0, @copy;
@@ -652,9 +646,6 @@ sub edWrite {
     $NeedToSave = 0;
     $UserHasBeenWarned = 0;
     print "$chars\n" unless ($SupressCounts);
-
-    # v7 docs say to chmod 666 the file ... we're not going to
-    # follow the docs *that* closely today (6/16/99 ---gmj)
 
     if ($qflag) {
         exit 0;
