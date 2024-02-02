@@ -15,6 +15,7 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use List::Util qw(max);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
@@ -55,11 +56,7 @@ usage() unless @ARGV;
 
 # Scan $command for ``%d''.
 my @thingies = $command =~ /${magic}(\d+)/g;
-
-if (@thingies) { # Ignore $argc, found our own.
-    $argc = 0;
-    foreach (@thingies) {$argc = $_ if $_ > $argc}
-}
+$argc = max(@thingies) if @thingies;
 
 # Now, apply the command till we run out.
 my $err = EX_SUCCESS;
