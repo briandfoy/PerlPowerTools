@@ -12,7 +12,19 @@ License:
 =cut
 
 use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 use POSIX qw(uname);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my %opt;
+getopts('k', \%opt) or usage();
+usage() if @ARGV;
 
 # system ... (uname -s)
 # arch   ... (uname -m)
@@ -20,12 +32,18 @@ my ($system, $arch) = (uname())[0,4];
 
 # sun3.* -> sun3, sun4.* -> sun4, etc. SunOS hooey.
 # looks like `uname -m` eq `arch -k` on suns ...
-unless ( $ARGV[0] =~ /^-k$/i ) {
+unless ($opt{'k'}) {
 	$arch =~ s/^(sun\d+).*$/$1/;
 }
 
 $arch = "$system.$arch" if ( $system eq "OpenBSD" ); # OpenBSD hooey.
 print "$arch\n";
+exit EX_SUCCESS;
+
+sub usage {
+	warn "usage: $Program [-k]\n";
+	exit EX_FAILURE;
+}
 
 =head1 NAME
 
