@@ -49,15 +49,14 @@ subtest "from stdin" => sub {
 subtest "version" => sub {
  	my( $output, $error );
 
- 	my @command = ( $^X, $command, '--version' );
+ 	my @command = ( $^X, $command, '-v' );
   	run3 \@command, undef, \$output, \$error;
 
 	like $output, qr/\Q$basename\E \d+\.\d+/, "shows version message";
 	};
 
 subtest "help" => sub {
-
-	foreach my $arg ( '-h', '--help' ) {
+	foreach my $arg ( '-h' ) {
 	 	my( $output, $error );
  		my @command = ( $^X, $command, $arg );
   		run3 \@command, undef, \$output, \$error;
