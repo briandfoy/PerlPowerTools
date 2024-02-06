@@ -24,19 +24,20 @@ my $Program = basename($0);
 my ($VERSION) = '1.3';
 my (@fh, @sep, %opt);
 
-unless (getopts('d:s', \%opt)) {
-	print "usage: $Program [-s] [-d list] [file ...]\n";
+sub usage {
+	print "usage: $Program [-s] [-d list] file ...\n";
 	exit EX_FAILURE;
 }
+
+getopts('d:s', \%opt) or usage();
+@ARGV or usage();
+
 if (defined $opt{'d'}) {
 	@sep = split //, eval { "$opt{d}" };
 } else {
 	@sep = ("\t");
 }
 
-if (scalar(@ARGV) == 0) {
-	@ARGV = ('-');
-}
 foreach my $f (@ARGV) {
 	if (-d $f) {
 		warn "$Program: '$f': is a directory\n";
@@ -56,8 +57,7 @@ foreach my $f (@ARGV) {
 
 if ($opt{'s'}) {
 	for my $i (0..$#fh) {
-		my $fh;
-		$fh = $fh[$i];
+		my $fh = $fh[$i];
 		my $current_sep = 0;
 		my $tline;
 		while(<$fh>) {
@@ -84,8 +84,7 @@ while (1) {
 	my $tline;
 	for my $i (0..$#fh) {
 		if (not eof $fh[$i]) {
-			my $fh;
-			$fh = $fh[$i];
+			my $fh = $fh[$i];
 			my $line = <$fh>;
 			chomp($line);
 			$tline .= $line;
@@ -106,13 +105,16 @@ paste - merge corresponding or subsequent lines of files
 
 =head1 SYNOPSIS
 
-paste [-s] [-d list] [file ...]
+paste [-s] [-d list] file ...
 
 =head1 DESCRIPTION
 
 Paste combines the corresponding lines of multiple files. Each line of each
 file is printed separated by a tab character (or by the characters listed in the -d
-option).  If no files are specified, stdin is read.
+option).
+
+The argument '-' will result in standard input being read.
+If '-' is repeated, standard input will be read one line at a time for each instance of '-'.
 
 =head2 OPTIONS
 
