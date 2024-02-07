@@ -501,7 +501,7 @@ sub edSubstitute {
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined $adrs[1]);
 
-    if (defined($adrs[0]) && $adrs[0] == 0) {
+    if ($adrs[0] == 0 || $adrs[1] == 0) {
         edWarn(E_ADDRBAD);
         return;
     }
