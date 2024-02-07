@@ -499,7 +499,7 @@ sub edSubstitute {
     # parse args
 
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-    $adrs[1] = $CurrentLineNum unless (defined($adrs[1]));
+    $adrs[1] = $adrs[0] unless (defined $adrs[1]);
 
     unless (defined($args[0])) {
         edWarn(E_PATTERN);
