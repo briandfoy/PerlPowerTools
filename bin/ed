@@ -325,7 +325,7 @@ sub edHelp {
     if ($toggle) {
         $EXTENDED_MESSAGES ^= 1;
     }
-    if ($EXTENDED_MESSAGES && defined($Error)) {
+    if (defined($Error) && ($EXTENDED_MESSAGES || !$toggle)) {
          print "$Error\n";
     }
 }
@@ -501,6 +501,10 @@ sub edSubstitute {
     $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
     $adrs[1] = $adrs[0] unless (defined $adrs[1]);
 
+    if (defined($adrs[0]) && $adrs[0] == 0) {
+        edWarn(E_ADDRBAD);
+        return;
+    }
     unless (defined($args[0])) {
         edWarn(E_PATTERN);
         return;
