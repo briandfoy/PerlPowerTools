@@ -78,9 +78,6 @@ sub do_file {
             $was_empty = $is_empty;
         }
 
-        $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
-                                                 $number_non_blanks && /\S/;
-
         s/$/\$/ if $ends;
         if ($nonprinting) {
             s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
@@ -91,6 +88,9 @@ sub do_file {
             s/\x09/^I/g;
         }
 
+        if ($number_lines || ($number_non_blanks && /\S/)) {
+            printf "%6d\t", ++$count;
+        }
         print;
     }
     if ($name ne '-' && !close($fh)) {
