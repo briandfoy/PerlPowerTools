@@ -5,7 +5,6 @@ use Test::More 1;
 require './t/lib/common.pl';
 
 my $Script = program_name();
-diag "Scipt is $Script";
 
 compile_test($Script);
 sanity_test($Script);
