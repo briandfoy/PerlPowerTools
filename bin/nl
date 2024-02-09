@@ -44,11 +44,26 @@ my $delim       = $options{d} || '\:';
 my $type_f      = $options{f} || "n";
 my $type_h      = $options{h} || "n";
 my $incr        = $options{i};
-my $format      = $options{n} || "rn";
+my $format      = $options{n};
 my $single_page = $options{p};
 my $sep         = $options{s} || "\t";
 my $startnum    = $options{v};
 my $width       = $options{w};
+if (defined $format) {
+	my %expect = (
+		'ln' => 1,
+		'rn' => 1,
+		'rz' => 1,
+	);
+	unless ($expect{$format}) {
+		warn "$program: invalid line number format: '$format'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$format = 'rn';
+}
+
 if (defined $width) {
 	if ($width !~ m/\A\+?[0-9]+\Z/ || $width == 0) {
 		warn "$program: invalid line number field width: '$width'\n";
