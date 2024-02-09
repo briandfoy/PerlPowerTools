@@ -23,7 +23,7 @@ use strict;
 use Getopt::Std;
 use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p);
 
-getopts('Gnuagrap') or help();
+getopts('Gnugrap') or help();
 if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
 	print STDERR "You may only choose one of -G, -g, -p, or -u.  Doh!\n\n";
 	&help;
@@ -156,15 +156,8 @@ print "$tp\n";
 exit 0;
 
 sub help {
-	print STDERR
-"usage:	id [user]
-	id -G [-n] [user]
-	id -g [-nr] [user]
-	id -u [-nr] [user]
-	id -p [user]
-	id -a
-";
-	exit 1;
+	require Pod::Usage;
+	Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
 =head1 NAME
@@ -173,7 +166,11 @@ id - show user information
 
 =head1 SYNOPSIS
 
-id [-Gnuagrap] [user]
+	id [user]
+	id -G [-n] [user]
+	id -g [-nr] [user]
+	id -u [-nr] [user]
+	id -p [user]
 
 =head1 DESCRIPTION
 
