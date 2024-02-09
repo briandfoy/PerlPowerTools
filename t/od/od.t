@@ -1,5 +1,4 @@
 use File::Spec::Functions;
-use IPC::Run3 qw(run3);
 
 use Test::More;
 
