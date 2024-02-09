@@ -25,7 +25,7 @@ my (@maze, @walk);
 ## Parse maze type options.
 
 sub usage {
-  die "$0 usage: $0 [-fl|-fi|-df|-sf] [width height]\n"
+  die "usage: $0 [-fl|-fi|-df|-sf] [width height]\n"
 }
 
 sub traverse_by_depth         { -1 }            # normal mazes (long walks)
@@ -75,10 +75,7 @@ my $test_height = $height - 1;
 
 #
 ## initialize the maze
-
-for (my $y=0; $y<$height; $y++) {
-  push @maze, [ (0) x $width ];
-}
+@maze = map { [ (0) x $width ] } (1 .. $height);
 
 my $in = int(rand($width));
 push @walk, [0, $in];
