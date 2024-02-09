@@ -27,7 +27,7 @@ Run a bc program from FILE
 
 Run a bc program from standard input
 
-	bc [-bdiqswy] -
+	bc [-bdiqswy]
 
 =head1 DESCRIPTION
 
@@ -813,6 +813,7 @@ my @backup_sym_table;
 my $input;
 my $cur_file = '-';
 my $bignum = 0;
+my $do_stdin = 0;
 
 $debug = 0;
 sub debug(&) {
@@ -2048,7 +2049,7 @@ sub command_line()
     }
   }
 # read from STDIN if no files are named on the command line
-  @file_list = ('-') if $#file_list < 0;
+  $do_stdin = 1 unless @file_list;
 }
 
 
@@ -2070,17 +2071,20 @@ sub next_file
     return 1;
 
   }
+  if ($do_stdin) {
+    $input = *STDIN;
+    $do_stdin = 0;
+    $cur_file = '-';
+    return 1;
+  }
   if (@file_list) {
     my $file = shift @file_list;
 
     debug { "reading from $file\n" };
 
-    if ($file eq '-') {
-      $input = STDIN;
-    } else {
-      open(IN, '<', $file) or die("$file: cannot open file: $!\n");
-      $input = IN;
-    }
+    die "path '$file' is a directory\n" if (-d $file);
+    open(IN, '<', $file) or die("cannot open '$file': $!\n");
+    $input = IN;
     $cur_file = $file;
     return 1;
 
