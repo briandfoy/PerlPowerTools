@@ -38,6 +38,7 @@ use strict;
 
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
+use List::Util qw(min);
 
 use constant EX_SUCCESS   => 0;
 use constant EX_DIFFERENT => 1;
@@ -174,12 +175,8 @@ if ($skip2) {
 READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
                       $read_in2 = sysread $fh2, $buffer2, $chunk_size;
 
-    my $checklength = $chunk_size;
-    if ($read_in1 < $chunk_size or $read_in2 < $chunk_size) {
-        $checklength = ( $read_in1 < $read_in2 ?
-                                     $read_in1 :
-                                     $read_in2 ) - 1;
-    }
+    my $checklength = min($read_in1, $read_in2);
+    $checklength-- if $checklength;
 
     if ($buffer1 ne $buffer2) {
         my @bytes1 = unpack 'C*', $buffer1;
