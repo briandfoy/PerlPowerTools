@@ -149,8 +149,7 @@ sub fisher_yates_shuffle { # From The Perl Cookbook, recipe 4.17
 	my $i;
 	for($i=@$array; --$i;) {
 		my $j=int rand ($i+1);
-		next if $i==$j;
-		@$array[$i,$j]=@$array[$j,$i];
+		@$array[$i,$j] = @$array[$j,$i] if $i != $j;
 	}
 }
 
@@ -180,8 +179,7 @@ if ($status=~/^y/i) {
 	print "Press <return>"; $status=<STDIN>;
 }
 
-@DECK=split(//, 'A'x4 . 'K'x4 . 'Q'x4 . 'J'x4);
-foreach(1..4) {foreach(2..10) { push(@DECK, $_) } }
+@DECK = qw(A K Q J 10 9 8 7 6 5 4 3 2) x 4;
 fisher_yates_shuffle(\@DECK);
 
 foreach(1..7) {
