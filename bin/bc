@@ -953,7 +953,6 @@ $YYERRCODE=256;
     0,    0,    0,    0,    0,  337,    0,    0,    0,    0,
  1278,    0,    0,    0,    0,    2,
 );
-$YYTABLESIZE=1405;
 @yytable = (                                             88,
    42,   24,   43,   42,   65,   43,   65,   65,   89,   63,
    61,   63,   62,   82,   64,   65,   64,   43,   44,   35,
@@ -2821,14 +2820,12 @@ sub catch
   local($signum) = @_;
   print STDERR "\n" if (-t STDERR && -t STDIN);
   &yyerror("Floating point exception") if $signum == 8;
-#  next outer;
   main();
 }
 
 # main program
 sub main
 {
-# outer:
   while(1)
     {
       $line = '';
@@ -2839,19 +2836,17 @@ sub main
     }
 }
 
-init_table();
-
-command_line();
-
 $SIG{'INT'} = 'catch';
 $SIG{'FPE'} = 'catch';
 
-select(STDERR); $| = 1;
+select(STDERR);
+$| = 1;
 select(STDOUT);
-&next_file;
 
+init_table();
+command_line();
+next_file();
 start_stmt();
-
 main();
 
 __END__
