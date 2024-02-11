@@ -21,9 +21,9 @@ unless (@ARGV == 1 || @ARGV == 2) {
     $0 = basename ($0);
     print <<EOF;
 $0 (Perl bin utils) $VERSION
-$0 string [suffix | /pattern/]
+usage: $0 string [suffix | /pattern/]
 EOF
-    exit;
+    exit 1;
 };
 
 if (@ARGV == 2) {

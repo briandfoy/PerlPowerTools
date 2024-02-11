@@ -21,9 +21,9 @@ unless (@ARGV == 1) {
     $0 = basename ($0);
     print <<EOF;
 $0 (Perl bin utils) $VERSION
-$0 string
+usage: $0 string
 EOF
-    exit;
+    exit 1;
 };
 
 print +(dirname $ARGV [0]), "\n";
