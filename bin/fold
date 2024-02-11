@@ -90,10 +90,12 @@ if ($Space_Break && $Width < $Tabstop) {
     usage("width must be greater than $Tabstop with the -s option");
 }
 
-unshift(@ARGV, '-') unless @ARGV;
 my $err = 0;
 for (@ARGV) {
     $err |= fold_file($_);
+}
+unless (@ARGV) {
+    $err |= fold_file();
 }
 exit ($err ? EX_FAILURE : EX_SUCCESS);
 
@@ -121,17 +123,18 @@ sub fold_file {
     my($column, $char, $input, $output);
 
     $column = 0;
-    if (-d $filename) {
-        warn "$Program: $filename: is a directory\n";
-        return 1;
-    }
-    if ($filename eq '-') {
-        $input = *STDIN;
-    } else {
-        unless (open $input, '<', $filename) {
-            warn "$Program: $filename: $!\n";
+    if (defined $filename) {
+        if (-d $filename) {
+            warn "$Program: '$filename': is a directory\n";
             return 1;
         }
+        unless (open $input, '<', $filename) {
+            warn "$Program: '$filename': $!\n";
+            return 1;
+        }
+    } else {
+        $filename = '(stdin)';
+        $input = *STDIN;
     }
 
     # the following hack allows us to dispense with the
