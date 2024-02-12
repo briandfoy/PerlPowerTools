@@ -169,8 +169,9 @@ sub wc_fh {
             }
         }
         if ($opt{'w'}) {
-            @words = split(/\w+/,$_);
-            $words += $#words;
+            s/\A\s+//;
+            @words = split /\s+/;
+            $words += scalar @words;
         }
         if ($opt{'m'}) {
             @chars = m/$encoding/gox;
@@ -181,7 +182,6 @@ sub wc_fh {
         }
     }
     if ($paras > 1) { $paras--; }
-    if ($words > 1) { $words--; }
     $total_paras += $paras;
     $total_lines += $lines; $total_words += $words;
     $total_chars += $chars; $total_bytes += $bytes;
