@@ -13,36 +13,10 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
-if (@ARGV) {
-    if ($ARGV [0] eq '--version') {
-        $0 =~ s{.*/}{};
-        print "$0 (Perl bin utils) $VERSION\n";
-        exit;
-    }
-    if ($ARGV [0] eq '--help') {
-        $0 =~ s{.*/}{};
-        print <<EOF;
-Usage: $0 [OPTION] [STRING [STRING [STRING ... ]]]
-
-Repeatedly print its arguments, or "y".
-
-Options:
-       --version:  Print version number, then exit.
-       --help:     Print usage, then exit.
-       --:         Stop parsing options.
-EOF
-        exit;
-    }
-    if ($ARGV [0] eq '--') {
-        shift;
-        unshift @ARGV, "y" unless @ARGV;
-    }
-    $_ = "@ARGV\n";
-}
-else {$_ = "y\n"}
-
+$_ = @ARGV ? shift : 'y';
+$_ .= "\n";
 print while 1;
 
 __END__
@@ -55,33 +29,12 @@ yes - print out a string till doomsday
 
 =head1 SYNOPSIS
 
-yes [option] [strings]
+yes [string]
 
 =head1 DESCRIPTION
 
-I<yes> repeatedly prints out its arguments on standard output, untill killed.
-If no strings are given, I<y> is printed.
-
-=head2 OPTIONS
-
-I<yes> accepts the following options:
-
-=over 4
-
-=item --help
-
-Print out a short help message, then exit.
-
-=item --version
-
-Print out its version number, then exit.
-
-=item --
-
-Stop parsing for options. Useful if you want to print out I<--help>
-or I<--version>. Use I<yes -- --> to print out I<-->.
-
-=back
+I<yes> repeatedly prints out its argument on standard output, until killed.
+If no string is given, I<y> is printed.
 
 =head1 ENVIRONMENT
 
