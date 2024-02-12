@@ -2496,16 +2496,17 @@ sub exec_stmt
      }
 
 #     debug {"p: $name, $idx.\n"};
-     unless (defined($sym_table{$name.'[]'})
-	     and $sym_table{$name.'[]'}{'type'} eq 'array') {
+     $name .= '[]';
+     unless (defined($sym_table{$name})
+	     and $sym_table{$name}{'type'} eq 'array') {
 
-       $sym_table{$name.'[]'} = { type => 'array'};
+       $sym_table{$name} = { type => 'array'};
      }
-     unless ($sym_table{$name.'[]'}{'value'}[$idx]) {
-       $sym_table{$name.'[]'}{'value'}[$idx] = { type => 'var',
+     unless ($sym_table{$name}{'value'}[$idx]) {
+       $sym_table{$name}{'value'}[$idx] = { type => 'var',
 					    value => 0 };
      }
-     push(@ope_stack, $sym_table{$name.'[]'}{'value'}[$idx]{'value'});
+     push(@ope_stack, $sym_table{$name}{'value'}[$idx]{'value'});
      next INSTR;
 
    } elsif($_ eq '=V') {
@@ -2535,6 +2536,7 @@ sub exec_stmt
      $sym_table{$name}{'value'}[$idx] = { type => 'var',
 					  value => $value };
      push(@ope_stack, $value);
+     $return = 1; # do not print result
      next INSTR;
 
    } elsif($_ eq 'IF') {
