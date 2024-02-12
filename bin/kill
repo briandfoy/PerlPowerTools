@@ -18,7 +18,6 @@ License:
 
 use strict;
 use Config;
-use integer;
 
 # die if no signals or no arguments
 die "No signals defined ?!?" unless defined $Config{"sig_name"};
