@@ -4,7 +4,7 @@
 
 Name: yes
 Description: print out a string till doomsday
-Author: Abigail, perlpowertools@abigail.be
+Author: Michael Mikonos, mb@iinet.net.au
 License: perl
 
 =end metadata
@@ -46,7 +46,8 @@ I<yes> has no known bugs.
 
 =head1 AUTHOR
 
-The Perl implementation of I<yes> was written by Abigail, I<perlpowertools@abigail.be>.
+The Perl implementation of I<yes> was originally written by Abigail, I<perlpowertools@abigail.be>.
+Rewritten by Michael Mikonos to improve BSD compatibility.
 
 =head1 COPYRIGHT and LICENSE
 
