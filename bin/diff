@@ -332,9 +332,8 @@ sub output_diff {
 		     "REVERSE_ED" => \&output_ed_diff,
                      "UNIFIED"    => \&output_unified_diff,
 	            );
-    if (exists $funchash{$diff_type}) {
-        &{$funchash{$diff_type}}(@_); # pass in all args
-    } else {die "unknown diff type $diff_type"}
+    my $func = $funchash{$diff_type} or die "unknown diff type '$diff_type'\n";
+    $func->(@_);
 }
 
 sub output_old_diff {
@@ -538,15 +537,8 @@ sub new {
 # We don't bother storing the text of the item
 #
     my ($class,$chunk) = @_;
-    my @changes = ();
 
-# This just turns each change into a hash.
-    foreach my $item (@$chunk) {
-	my ($sign, $item_no, $text) = @$item;
-	my $hashref = {"sign" => $sign, "item_no" => $item_no};
-	push @changes, $hashref;
-    }
-
+    my @changes = map { {'sign' => $_->[0], 'item_no' => $_->[1]} } @$chunk;
     my $block = { "changes" => \@changes };
     bless $block, $class;
 
