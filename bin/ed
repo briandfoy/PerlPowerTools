@@ -262,9 +262,9 @@ while (1) {
             &edPrint;
         } elsif ($command eq 'P') {
             edPrompt();
-        } elsif ($command =~ /^q$/) {
+        } elsif ($command eq 'q') {
             &edQuit($QUESTIONS_MODE);
-        } elsif ($command =~ /^Q$/) {
+        } elsif ($command eq 'Q') {
             &edQuit($NO_QUESTIONS_MODE);
         } elsif ($command eq 'h') {
             edHelp();
@@ -666,7 +666,7 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines, @tmp_lines2, $tmp_chars, $chars, $fh);
+    my(@tmp_lines, $chars, $fh);
 
     if ($InsertMode) {
         if (defined $adrs[1]) {
@@ -678,7 +678,7 @@ sub edEdit {
     } else {
         if (defined($adrs[0]) or defined($adrs[1])) {
             edWarn(E_ADDREXT);
-            return;
+            return 0;
         }
     }
 
@@ -701,13 +701,10 @@ sub edEdit {
         return 0;
     }
 
-    @tmp_lines = ();
-    $tmp_chars = 0;
     $chars = 0;
-
     while (<$fh>) {
         push @tmp_lines, $_;
-        $tmp_chars += length;
+        $chars += length;
     }
     unless (close $fh) {
         warn "$filename: $!\n";
@@ -716,7 +713,7 @@ sub edEdit {
     }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
         $tmp_lines[-1] .= "\n";
-        $tmp_chars++;
+        $chars++;
         print "Newline appended\n";
     }
 
@@ -747,7 +744,6 @@ sub edEdit {
         $CurrentLineNum = maxline();
     }
 
-    $chars = $tmp_chars;
     $UserHasBeenWarned = 0;
     print "$chars\n" unless $SupressCounts;
     return 1;
