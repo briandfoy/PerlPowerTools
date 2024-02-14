@@ -37,8 +37,8 @@ while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 	} elsif ($arg eq '--') {
 		last;
 	} else {
-		warn "$Program: invalid option -- $arg\n";
-		exit 2;
+		require Pod::Usage;
+		Pod::Usage::pod2usage({ -exitval => 2, -verbose => 0 });
 	}
 }
 
@@ -87,12 +87,13 @@ I<env> accepts the following options:
 
 =item B<-i>
 
-Clears the environment, passing only the values specifed to the command.
+Clears the environment, passing only the values specified to the command.
 
 =item B<-u> I<name>
 
 Clears the environment variable I<name> if it exists.
 The value must not include the '=' character.
+This option may be repeated.
 
 =back
 
@@ -103,7 +104,7 @@ status of the command.  Otherwise, I<env> will return one of the following
 values:
 
     0          env completed successfully.
-    1-125      An error occured in env.
+    1-125      An error occurred in env.
     127        There was an error running the command specified.
 
 =head1 BUGS
