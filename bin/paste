@@ -62,14 +62,14 @@ if ($opt{'s'}) {
 		my $tline;
 		while(<$fh>) {
 			chomp;
-			$tline .= $_ . $sep[$current_sep++];
-			$current_sep = 0 if $current_sep == scalar @sep;
+			$tline .= $_ . $sep[$current_sep];
+			$current_sep = ($current_sep + 1) % scalar(@sep);
 		}
 		chop $tline;
 		print "$tline\n";
 		close $fh;
 	}
-	exit;
+	exit EX_SUCCESS;
 }
 
 my $files_still_open = 1;
@@ -89,11 +89,14 @@ while (1) {
 			chomp($line);
 			$tline .= $line;
 		}
-		$tline .= "$sep[$current_sep++]" if $i != $#fh;
-		$current_sep = 0 if $current_sep == scalar @sep;
+		if ($i != $#fh) {
+			$tline .= $sep[$current_sep];
+			$current_sep = ($current_sep + 1) % scalar(@sep);
+		}
 	}
 	print "$tline\n";
 }
+exit EX_SUCCESS;
 
 __END__
 
