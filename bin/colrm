@@ -54,7 +54,7 @@ if (@ARGV > 2) {
 			print substr $line, 0, $startcol - 1;
 			print substr $line, $endcol;
 		}
-		print "$_\n";
+		print "\n";
 	}
 }
 exit EX_SUCCESS;
