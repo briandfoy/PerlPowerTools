@@ -159,7 +159,7 @@ sub dump_file {
     my $fh = shift;
     my $buf;
 
-    while (!limit_reached()) {
+    while (!limit_reached() && !eof($fh)) {
 	$len = read $fh, $buf, 1;
 	unless (defined $len) {
 	    warn "$Program: read error: $!\n";
@@ -170,7 +170,6 @@ sub dump_file {
 	$nread++;
 
 	dump_line() if (length($data) == LINESZ);
-	return if (limit_reached() || eof($fh)); # $data populated
     }
 }
 
