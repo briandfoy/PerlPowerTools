@@ -25,8 +25,8 @@ use constant PRINTMAX => 126;
 use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_N
 $opt_o $opt_v $opt_x /;
 
-my ($offset1, $radix, $data, @arr, $len, $fh, $lim);
-my ($lastline, $pffmt, $strfmt, $ml);
+my ($offset1, $radix, $data, @arr, $len, $lim);
+my ($lastline, $strfmt, $ml);
 
 my %charescs = (
     0  => ' \0',
@@ -64,7 +64,6 @@ if (defined $opt_j) {
 	warn "$Program: bad argument to -j: '$opt_j'\n";
 	exit EX_FAILURE;
     }
-    $offset1 = $opt_j;
 }
 if (defined $opt_N) {
     if ($opt_N =~ m/\D/) {
@@ -72,37 +71,6 @@ if (defined $opt_N) {
 	exit EX_FAILURE;
     }
     $lim = $opt_N;
-}
-
-if (defined $ARGV[0] && $ARGV[0] ne '-') {
-    unless (open $fh, '<', $ARGV[0]) {
-	warn "$Program: cannot open '$ARGV[0]': $!\n";
-	exit EX_FAILURE;
-    }
-}
-else {
-    $fh = *STDIN;
-}
-
-binmode $fh;
-if ($offset1) {
-    foreach (1 .. $offset1) {
-	$len = read $fh, $data, 1;
-	if ($len == 0) {
-	    warn "$Program: cannot skip past end of input\n";
-	    exit EX_FAILURE;
-	}
-	unless (defined $len) {
-	    warn "$Program: read error: $!\n";
-	    exit EX_FAILURE;
-	}
-	undef $data;
-    }
-}
-if (defined($lim) && $lim == 0) {
-    printf("%.8$radix\n", $offset1) if $radix;
-    close $fh;
-    exit EX_SUCCESS;
 }
 
 my $fmt;
@@ -134,49 +102,103 @@ else {
     $fmt = \&octal2;
 }
 
-my $buf;
 my $nread = 0;
-while ($len = read($fh, $buf, 1)) {
-    $data .= $buf;
-    $nread++;
-
-    my $is_limit = defined($lim) && $nread == $lim;
-    if (length($data) == LINESZ || $is_limit || eof($fh)) {
-	$ml = ''; # multi-line indention
-	if (&diffdata || $opt_v) {
-	    printf("%.8$radix ", $offset1) if $radix;
-	    &$fmt;
-	    printf("%s$strfmt\n", $ml, @arr);
-	    $ml = ' ' x 9;
-	}
-	else {
-	    print "*\n";
-	}
-	$lastline = $data . '|';
-	$offset1 += length $data;
-	undef $data;
+my $rc = EX_SUCCESS;
+foreach my $file (@ARGV) {
+    if (-d $file) {
+	warn "$Program: '$file' is a directory\n";
+	$rc = EX_FAILURE;
+	next;
     }
-    last if $is_limit;
+    my $fh;
+    unless (open $fh, '<', $file) {
+	warn "$Program: cannot open '$file': $!\n";
+	$rc = EX_FAILURE;
+	next;
+    }
+    binmode $fh;
+
+    do_skip($fh) if $opt_j;
+    dump_file($fh);
+    close $fh;
 }
-unless (defined $len) {
-    warn "$Program: read error: $!\n";
-    exit EX_FAILURE;
+unless (@ARGV) {
+    do_skip(*STDIN) if $opt_j;
+    dump_file(*STDIN);
+}
+dump_line() if (defined $data);
+emit_offset();
+print "\n";
+exit $rc;
+
+sub limit_reached {
+    return defined($lim) && $nread >= $lim;
 }
 
-printf("%.8$radix\n", $offset1) if $radix;
-close $fh;
-exit EX_SUCCESS;
+sub emit_offset {
+    printf("%.8$radix ", $offset1) if $radix;
+}
+
+sub dump_line {
+    $ml = ''; # multi-line indention
+    if (&diffdata || $opt_v) {
+	emit_offset();
+	&$fmt;
+	printf("%s$strfmt\n", $ml, @arr);
+	$ml = ' ' x 9;
+    }
+    else {
+	print "*\n";
+    }
+    $lastline = $data . '|';
+    $offset1 += length $data;
+    undef $data;
+}
+
+sub dump_file {
+    my $fh = shift;
+    my $buf;
+
+    while (!limit_reached()) {
+	$len = read $fh, $buf, 1;
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    $rc = EX_FAILURE;
+	    return;
+	}
+	$data .= $buf;
+	$nread++;
+
+	dump_line() if (length($data) == LINESZ);
+	return if (limit_reached() || eof($fh)); # $data populated
+    }
+}
+
+sub do_skip {
+    my $fh = shift;
+    my $buf;
+
+    while ($opt_j > 0) {
+	$len = read $fh, $buf, 1;
+	if ($len == 0) {
+	    warn "$Program: skip past end of input\n";
+	    exit EX_FAILURE;
+	}
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    exit EX_FAILURE;
+	}
+	$opt_j--;
+	$offset1++;
+    }
+}
 
 sub octal1 {
-    $pffmt = '%.3o ';
     @arr = unpack 'C*', $data;
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%.3o ' x (scalar @arr);
 }
 
 sub char1 {
-    $pffmt = '%s';
-    $strfmt = $pffmt;
-
     @arr = ();
     my @arr1 = unpack 'C*', $data;
     for my $val (@arr1) {
@@ -190,6 +212,7 @@ sub char1 {
 	    $arr[0] .= "  " . chr($val) . " ";
 	}
     }
+    $strfmt = '%s';
 }
 
 sub udecimal {
@@ -199,8 +222,7 @@ sub udecimal {
     else {
         @arr = unpack 'S*', $data;
     }
-    $pffmt = '%5u ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%5u ' x (scalar @arr);
 }
 
 sub float {
@@ -212,8 +234,7 @@ sub float {
     else {
 	@arr = unpack 'f*', $data;
     }
-    $pffmt = '%6.6e ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%6.6e ' x (scalar @arr);
 }
 
 sub decimal {
@@ -223,8 +244,7 @@ sub decimal {
     else {
         @arr = unpack 's*', $data;
     }
-    $pffmt = '%5d ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%5d ' x (scalar @arr);
 }
 
 sub long {
@@ -236,8 +256,7 @@ sub long {
     else {
 	@arr = unpack 'L*', $data;
     }
-    $pffmt = '%10ld ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%10ld ' x (scalar @arr);
 }
 
 sub octal2 {
@@ -247,8 +266,7 @@ sub octal2 {
     else {
         @arr = unpack 'S*', $data;
     }
-    $pffmt = '%.6o ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%.6o ' x (scalar @arr);
 }
 
 sub hex {
@@ -258,8 +276,7 @@ sub hex {
     else {
         @arr = unpack 'S*', $data;
     }
-    $pffmt = '%.4x ';
-    $strfmt = $pffmt x (scalar @arr);
+    $strfmt = '%.4x ' x (scalar @arr);
 }
 
 sub diffdata {
@@ -268,7 +285,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-bcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] filename\n";
+    print "usage: od [-bcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -279,12 +296,12 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-bcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ]  F<filename>
+B<od> [ I<-bcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
-The B<od.pl> writes  to  the  standard output the contents of the given
-files, or of the standard input if the name `-' is  given.  Each  line
+B<od> writes  to  the  standard output the contents of the given
+files, or of the standard input if no files are specified.  Each  line
 of  the  output  consists of the offset in the input file in the leftmost
 column of each  line,  followed by  one or more columns of data from the
 file, in a format controlled by the options.  By default, od prints the
