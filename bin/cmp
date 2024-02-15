@@ -80,19 +80,18 @@ if ($opt{'l'}) {
     $volume = 2;
 }
 $volume = 0 if $opt{'s'};
-usage() unless @ARGV >= 1 and @ARGV <= 3;  # exits;
 
+usage() if (scalar(@ARGV) < 2);
 $file1 = shift;
 $file2 = shift;
-unless (defined $file2) {
-    $file2 = '-';
-}
 $skip1 = skipnum(shift) if @ARGV;
 $skip2 = skipnum(shift) if @ARGV;
+usage() if @ARGV;
 
 if ($file1 eq '-') {
     if ($file2 eq '-') {
-        exit EX_SUCCESS;
+        warn "$Program: standard input is allowed for one argument only\n";
+        exit EX_FAILURE;
     }
     $fh1 = *STDIN;
 }
