@@ -127,8 +127,7 @@ unless (@ARGV) {
     dump_file(*STDIN);
 }
 dump_line() if (defined $data);
-emit_offset();
-print "\n";
+emit_offset(1);
 exit $rc;
 
 sub limit_reached {
@@ -136,7 +135,9 @@ sub limit_reached {
 }
 
 sub emit_offset {
-    printf("%.8$radix ", $offset1) if $radix;
+    my $nl = shift;
+    return unless $radix;
+    printf "%.8$radix%s", $offset1, $nl ? "\n" : ' ';
 }
 
 sub dump_line {
