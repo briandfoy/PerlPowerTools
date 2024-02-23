@@ -40,7 +40,7 @@ my @tabstops;
 my @files;
 
 # at most one argument
-if($ARGV[0] =~ /-(.*)/) {
+if ($ARGV[0] =~ /\A\-(.+)/) {
     @tabstops = split(/,/, $1);
     usage(1) if grep /\D/, @tabstops; # only integer arguments are allowed
     shift @ARGV;
