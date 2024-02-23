@@ -16,6 +16,8 @@ License: perl
 # tac - concatenate and print files in reverse
 #
 
+use strict;
+
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
@@ -25,7 +27,8 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 my $VERSION = '0.18';
 
-unless (getopts('bBrs:S:', \my %opts)) {
+my %opts;
+unless (getopts('bBrs:S:', \%opts)) {
     warn "$Program version $VERSION\n";
     warn "usage: $Program [-br] [-s separator] [-B] [-S bytes] [file...]\n";
     exit EX_FAILURE;
