@@ -27,6 +27,10 @@ END {
   $? = 1 if $? == 255;  # from die
 }
 
+if (scalar(@ARGV) > 2) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
+}
 chomp(my $start = @ARGV ? $ARGV[0] : <STDIN>);
 my $end   = $ARGV[1] || 2**32 - 1;
 for ($start, $end) {
