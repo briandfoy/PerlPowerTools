@@ -31,20 +31,20 @@ sub usage {
 }
 
 getopts('') or usage();
+@ARGV or usage();
 binmode STDOUT;
 
-my $dirty = 0;
-ARGUMENT: for my $f ( @ARGV ) {
-    unless ($dirty) {
-	print '# --cut here--
+print '# --cut here--
 # To extract, remove everything before the "cut here" line
 # and run the command "sh file".
 ';
-	$dirty = 1;
-    }
+
+my $done = 0;
+ARGUMENT: for my $f ( @ARGV ) {
     if (-d $f) {
 	print "echo x - $f/\n";
 	print "mkdir -p $f\n";
+	$done++;
 	next ARGUMENT;
     }
     unless (open FH, '<', $f) {
@@ -68,9 +68,9 @@ ARGUMENT: for my $f ( @ARGV ) {
     }
     print "FUNKY_STUFF\n";
     close(FH);
+    $done++;
 }
-
-unless ($dirty) {
+if ($done == 0) {
     warn "$Program: no input files were processed\n";
     exit EX_FAILURE;
 }
