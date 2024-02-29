@@ -21,8 +21,9 @@ use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 use Search::Dict;
 
-use constant EX_SUCCESS => 0;
-use constant EX_FAILURE => 1;
+use constant EX_FOUND    => 0;
+use constant EX_NOTFOUND => 1;
+use constant EX_FAILURE  => 2;
 
 my $Program = basename($0);
 
@@ -38,7 +39,6 @@ my (
     %opt,       # option hash
     $opened,    # did we ever open something?
     $found,     # did we ever find something?
-    $def_dict,  # did we use the default dict list?
 );
 
 getopts('df', \%opt) or usage();
@@ -63,10 +63,8 @@ if (@ARGV) {
 
 if (defined $filearg) {
     @dicts = ($filearg);
-    $def_dict = 0;
 } else {
     @opt{ qw/d f/ } = (1, 1);
-    $def_dict = 1;
 }
 
 $search = squish($search);
@@ -77,7 +75,7 @@ FILE: for my $file (@dicts) {
         next FILE;
     }
     unless (open(DICT, '<', $file)) {
-        warn "$Program: can't open '$file': $!\n" unless $def_dict;
+        warn "$Program: can't open '$file': $!\n" unless is_default_dict();
         next FILE;
     }
 
@@ -104,12 +102,11 @@ LINE:
 }
 
 if ($opened == 0) {
-    warn "$0: No dictionaries in default list (@dicts)\n"
-    if $def_dict;
-    exit 2;
+    warn "$Program: No dictionaries available (@dicts)\n" if is_default_dict();
+    exit EX_FAILURE;
 }
 
-exit($found == 0 ? EX_FAILURE : EX_SUCCESS);
+exit($found ? EX_FOUND : EX_NOTFOUND);
 
 sub squish {
     my $str = shift;
@@ -118,6 +115,9 @@ sub squish {
     return $str;
 }
 
+sub is_default_dict {
+    return !defined($filearg);
+}
 
 __END__
 
