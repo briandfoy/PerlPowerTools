@@ -13,42 +13,27 @@ License: perl
 
 
 use strict;
-use Getopt::Std;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 sub parse_time ($);
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
-my $warnings = 0;
+my $rc = EX_SUCCESS;
 
-# Print a usage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {
-        warn <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file [files ...]
-EOF
-        exit;
-    }
-    else {
-        $warnings = 1;
-        warn "$0: @_";
-    }
-};
-
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    die "$0: @_";
-};
-
-# Get the options.
-getopts ('acmfr:t:', \my %options);
-
-warn "Unknown option" unless @ARGV;
+my %options;
+getopts('acmfr:t:', \%options) or usage();
+unless (@ARGV) {
+    warn "$Program: missing file agument\n";
+    usage();
+}
 
 my $access_time       = exists $options {a}  ||  !exists $options {m};
 my $modification_time = exists $options {m}  ||  !exists $options {a};
@@ -76,7 +61,8 @@ foreach my $file (@ARGV) {
         local *FILE;
         require Fcntl;  # Import
         sysopen FILE, $file, Fcntl::O_CREAT () or do {
-            warn "$file: $!\n";
+            warn "$Program: $file: $!\n";
+            $rc = EX_FAILURE;
             next;
         };
         close FILE;
@@ -86,7 +72,8 @@ foreach my $file (@ARGV) {
     }
 
     my ($aorig, $morig) = (stat $file) [8, 9] or do {
-        warn "$file: $!\n";
+        warn "$Program: $file: $!\n";
+        $rc = EX_FAILURE;
         next;
     };
 
@@ -94,13 +81,18 @@ foreach my $file (@ARGV) {
     my $mset = $modification_time ? $mtime : $morig;
 
     utime $aset, $mset, $file or do {
-        warn "$file: $!\n";
+        warn "$Program: $file: $!\n";
+        $rc = EX_FAILURE;
         next;
     };
 }
+exit $rc;
 
-
-exit $warnings;
+sub usage {
+    warn "$Program (Perl bin utils) $VERSION\n";
+    warn "usage: $Program [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file...\n";
+    exit EX_FAILURE;
+}
 
 sub parse_time ($) {
     my $time = shift;
