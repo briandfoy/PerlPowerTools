@@ -17,12 +17,19 @@ use Getopt::Std;
 use Socket;
 use Net::Ping;
 
-my %opt;
-getopts('nI:',\%opt);
-die "Usage: $0 host [timeout]\n" unless @ARGV;
+sub usage {
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
+}
 
+my %opt;
+getopts('nI:', \%opt) or usage();
 my $host = shift;
-my $timeout = (@ARGV) ? shift : 20;
+my $timeout = shift;
+usage() unless defined $host;
+$timeout = 20 unless defined $timeout;
+usage() if @ARGV;
+
 my $a = gethostbyname($host);
 
 if ( $a ) {
