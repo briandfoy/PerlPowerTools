@@ -17,8 +17,10 @@ use strict;
 use Getopt::Std;
 use vars qw($opt_s $opt_n $opt_r $opt_v $opt_m $opt_a);
 
-my $usage = "usage: uname [-snrvma]\n";
-getopts "snrvma" or die $usage;
+sub usage { die "usage: uname [-snrvma]\n" }
+
+getopts('snrvma') or usage();
+usage() if @ARGV;
 
 my ($sysname, $nodename, $release, $version, $machine ) = uname;
 my @out = ();
@@ -43,6 +45,7 @@ push @out, $sysname unless @out;
 
 print "@out\n";
 
+__END__
 
 =head1 NAME
 
