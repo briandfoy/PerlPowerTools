@@ -2,10 +2,6 @@
 #
 # nl - line numbering filter
 #
-# nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
-# files sequentially, and writes them to STDOUT, with lines numbered. If file
-# is a dash "-" or if no file is given as argument, nl reads from STDIN.
-#
 # 2020.10.25 v1.00 jul : first public release
 
 =begin metadata
@@ -30,13 +26,16 @@ use Pod::Usage qw(pod2usage);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 my $program  = basename($0);
 
 # options
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
 getopts('Vb:d:f:h:i:n:ps:v:w:', \%options) or pod2usage(EX_FAILURE);
+my $file = shift;
+$file = '-' unless defined $file;
+pod2usage(EX_FAILURE) if @ARGV;
 
 my $version     = $options{V};
 my $type_b      = $options{b} || "t";
@@ -129,6 +128,8 @@ my $number = $startnum;
 
 my $section = 1;
 my $new_section = 1;
+
+exit (do_file($file) ? EX_FAILURE : EX_SUCCESS);
 
 ###############
 # SUBROUTINES #
@@ -232,23 +233,14 @@ sub do_file {
 			print_line($line, $type[$section], $regex[$section]);
 		}
 	}
+	unless (close $fh)
+	{
+		warn "$program: cannot close '$name': $!\n";
+		return 1;
+	}
+
 	return 0;
 }
-
-########
-# MAIN #
-########
-
-my $err = 0;
-if (scalar(@ARGV) == 0)
-{
-	@ARGV = ('-');
-}
-foreach (@ARGV)
-{
-	$err |= do_file($_);
-}
-exit ($err ? EX_FAILURE : EX_SUCCESS);
 
 __END__
 
@@ -259,12 +251,12 @@ nl - line numbering filter
 =head1 SYNOPSIS
 
     nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
-       [-n format] [-s sep] [-v startnum] [-w width] [file ...]
+       [-n format] [-s sep] [-v startnum] [-w width] [file]
 
 =head1 DESCRIPTION
 
-nl reads files sequentially and writes them to STDOUT, with line numbers added.
-If file is a dash "-" or if no file is given as argument, nl reads from STDIN.
+nl prints its input file to standard output, with line numbers added.
+If file is a dash "-" or if no file is given as argument, nl reads from standard input.
 
 =head1 OPTIONS
 
