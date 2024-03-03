@@ -1,5 +1,164 @@
 Revision history for Perl module PerlPowerTools
 
+1.044 2024-03-03T09:12:25Z
+	* All changes are from Michael Mikonos
+	* addbib
+		- allow file named 0 for -p (#472)
+	
+	* apply
+		- fix argument handling for %N handling (#436)
+		- simplify some internals (#471)
+	
+	* arch
+		- reject all arguments (#438)
+	
+	* asa
+		- fix problem reading a file with a dash in name (#476)
+	
+	* basename
+		- exit with an error for no arguments (#448)
+	
+	* bc
+		- the - is a literal filename now (#444)
+		- a couple of internal cleanups (#451)
+		- don't print value after array element assignment (#452)
+	
+	* cat
+		- explicitly close files (#423)
+		- terminate line number with a tab (#442)
+	
+	* cmp
+		- fix off-by-one error (#450)
+		- require at least two arguments (#465)
+	
+	* colrm
+		- some internal improvements (#462)
+	
+	* cp
+		- report correct exit code (#426)
+	
+	* deroff
+		- allow reading from standard input (#474)
+	
+	* diff
+		- reduce internal clutter (#458)
+	
+	* dirname
+		- exit with an error for no arguments (#448)
+	
+	* ed
+		- internal improvements (#418)
+		- simply the debug facility (#432)
+		- clean up some internals (#437)
+		- fix applying a substitution to a single line (#441)
+		- improvements to `r filename` and `w filename` (#459)
+		- refactor some of the insertion code (#466)
+	
+	* env
+		- print usage for bad options (#461)
+	
+	* expand
+		- fix command line processing regex (#469)
+	
+	* fish
+		- reduce some internal complexity (#449)
+	
+	* fmt
+		- handle -<DIGIT> as option instead of a file (#431)
+	
+	* fold
+		- terminate command-line options with -- (#425)
+		- don't treat - as standard input (#447)
+	
+	* grep
+		- remove TCGREP environment var, use GREP_OPTIONS instead (#428)
+	
+	* head
+		- handle - option to be like -n <DIGIT> (#419)
+	
+	* id
+		- remove -h option, although you still get the usage statement (#429)
+		- note that -a is ignored (#445)
+	
+	* install
+		- some internal improvements on usage handling (#424)
+	
+	* kill
+		- validate signal number arguments (#454)
+	
+	* look
+		- standardize exit codes (#473)
+	
+	* maze
+		- fix the usage message (#443)
+	
+	* nl
+		- validate the -n argument (#446)
+		- specify exactly one file on the command line (#479)
+	
+	* od
+		- some internal improvements (#433)
+		- fix offset numbering (#434)
+		- support multiple input files (#463)
+	
+	* paste
+		- require at least one filename; - is standard input (#440)
+		- internal improvements for handling field separator (#460)
+	
+	* ping
+		- reject unknown arguments (#477)
+	
+	* primes
+		- fail for too many arguments (#470)
+	
+	* rev
+		- terminate args with -- (#439)
+	
+	* rm
+		- document the -v switch (#421)
+	
+	* shar
+		- handle missing or unreadable files (#475)
+	
+	* sleep
+		- fail for extra arguments (#430)
+	
+	* tac
+		- fix some odd cases for -s (#467)
+	
+	* tail
+		- handle -<DIGIT> option to be like `-n <DIGIT>` (#420)
+	
+	* tee
+		- end command line options with -- (#480)
+	
+	* touch
+		- fix usage handling and exit code (#468)
+	
+	* uname
+		- reject any arguments (#478)
+	
+	* uniq
+		- reject unknown command-line options (#422)
+	
+	* wc
+		- terminate argument processing with -- (#427)
+		- fix -w to report the right number (#457)
+	
+	* what
+		- invalid options die; no longer supports stdin (#456)
+	
+	* whoami
+		- don't allow arguments (#453)
+	
+	* xargs
+		- -l is an alias for -L (GNU extension) (#435)
+	
+	* yes
+		- remove GNU extensions (we are a BSD clone) (#455)
+	
+	
+
 1.043 2024-01-25T23:23:48Z
 	* All changes are from Michael Mikonos unless otherwise noted
 	* ar
