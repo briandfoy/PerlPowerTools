@@ -5,6 +5,8 @@
 Name: od
 Description: dump files in octal and other formats
 Author: Mark Kahn, mkahn@vbe.com
+Author: Michael Mikonos
+
 License: perl
 
 =end metadata
