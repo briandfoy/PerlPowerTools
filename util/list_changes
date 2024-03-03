@@ -1,0 +1,125 @@
+#!perl
+use v5.36;
+
+=head1 NAME
+
+list_changes - read the accepted PR comments to develop the Changes entry
+
+=head1 SYNOPSIS
+
+    % export PPT_GITHUB_TOKEN=...
+	% perl util/list_changes.pl
+
+=head1 DESCRIPTION
+
+This program creates the changes entry for the next release by looking
+at the unreleased pull requests and looking for a specific comment.
+
+1) List the latest pull requests and find the ones with the
+"Status: accepted" label
+
+2) Get the comments for the pull request and look for one that has
+a line like "changes: ...", where the "..." is the changes message.
+
+3) Collate this by the name of the program
+
+=head1 SOURCE AVAILABILITY
+
+This source is in GitHub:
+
+	https://github.com/briandfoy/perlpowertools
+
+=head1 AUTHOR
+
+brian d foy, C<< <briandfoy@pobox.com> >>.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2024, brian d foy <briandfoy@pobox.com>. All rights reserved.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the Artistic License 2.0.
+
+=cut
+
+use Mojo::UserAgent;
+use Mojo::JSON qw(encode_json);
+use Mojo::Util qw(dumper);
+
+my $token = $ENV{BMT_GITHUB_TOKEN};
+
+my $url = 'https://api.github.com/repos/briandfoy/PerlPowerTools/pulls';
+
+
+my $query = {
+	state => 'closed',
+	per_page => 100,
+	};
+
+my $pulls_tx = ua()->get( $url => form => $query );
+
+unless( $pulls_tx->res->is_success ) {
+die "What?";
+	}
+
+my $pulls_json = $pulls_tx->res->json;
+
+say "Found PRs: " . $pulls_json->@*;
+my $Changes;
+foreach my $pull ( $pulls_json->@* ) {
+	next unless is_accepted( $pull );
+	my $pr_number = $pull->{number};
+	my @programs = extract_programs( $pull );
+
+	my $changes = get_changes_tags( $pr_number );
+	push $changes->@*, 'NoComments' unless $changes->@*;
+	foreach my $change ( $changes->@* ) {
+		push $Changes->{$_}->@*, [ $change, $pr_number ] for @programs;
+		}
+	}
+
+foreach my $program ( sort keys $Changes->%* ) {
+	my @comments = sort { $a->[1] <=> $b->[1] } $Changes->{$program}->@*;
+
+	say "* $program";
+	foreach my $comment ( @comments ) {
+		say "    - $comment->[0] (#$comment->[1])";
+		}
+	print "\n";
+	}
+
+sub is_accepted ( $pull ) {
+	scalar grep { $_->{name} eq 'Status: accepted' } $pull->{labels}->@*;
+	}
+
+sub extract_programs ( $pull ) {
+	map { $_->{name} =~ s/\AProgram:\s+//r; } grep { $_->{name} =~ m/\AProgram:/ } $pull->{labels}->@*;
+	}
+
+sub get_changes_tags ( $pr_number ) {
+	my @comments =
+		map { /\bchanges: (.*)/ ? $1 : () }
+		get_comments( $pr_number )->@*;
+
+	return \@comments;
+	}
+
+sub get_comments ( $pr_number ) {
+	my $url = sprintf 'https://api.github.com/repos/briandfoy/PerlPowerTools/issues/%d/comments', $pr_number;
+	my $comments_tx = ua()->get( $url );
+	unless( $comments_tx->res->is_success ) {
+		return [];
+		}
+	[ map { $_->{body} } $comments_tx->res->json->@* ];
+	}
+
+sub ua () {
+	state $token = $ENV{"PPT_GITHUB_TOKEN"};
+	state $ua = Mojo::UserAgent->new;
+	state $rc = $ua->on( start => sub ( $ua, $tx ) {
+		$tx->req->headers->authorization( "Bearer $token" );
+		$tx->req->headers->header( "X-GitHub-Api-Version" => "2022-11-28" );
+		} );
+
+	$ua;
+	}
