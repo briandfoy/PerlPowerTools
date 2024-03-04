@@ -51,6 +51,7 @@ sub extract_meta {
 
 	my %hash;
 	foreach my $line ( split /[\n\r]/, $extracted ) {
+		next unless $line =~ m/\S/;
 		my( $field, $value ) = split /:\s*/, $line, 2;
 		if( exists $hash{$field} and ! ref $hash{$field} ) {
 			$hash{$field} = [ $hash{$field}, $value ];
