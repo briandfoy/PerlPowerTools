@@ -121,31 +121,6 @@ while (<>) {
 
         # start row if necessary
         $buf[$row] ||= [];
-
-        # check buffer size
-        if (@buf > $opt_l) {
-            print_line(0);
-
-            if ($buf[1] and @{$buf[1]}) {
-                # print next half line
-                print "\e9";
-                print "\x0D" if !$front;
-                $front = 1;
-
-                print_line(1);
-                print "\e9";
-                print "\x0D" if !$front;
-            } else {
-                # skip to next full line
-                print "\x0A";
-            }
-            $front = 1;
-
-            # splice off top two rows
-            splice(@buf, 0, 2);
-            $max_row -= 2;
-        }
-
     }
 }
 
