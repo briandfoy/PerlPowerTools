@@ -34,7 +34,9 @@ $opt_b |= $opt_i;
 # extract position offset
 my $position;
 if ($opt_a || $opt_b) {
-    $position = basename(shift);
+    my $val = shift;
+    usage() unless defined $val;
+    $position = basename($val);
 }
 
 # the archive filename
