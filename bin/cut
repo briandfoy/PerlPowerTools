@@ -27,6 +27,7 @@ getopts('b:c:d:f:ns', \%opt) or usage();
 # There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
 $opt{b} = $opt{c} if defined $opt{c};
+usage() if $opt{'b'} && $opt{'f'};
 
 handle_b() if $opt{b};
 handle_f() if $opt{f};
