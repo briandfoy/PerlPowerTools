@@ -17,10 +17,11 @@ use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
-use constant EX_FAILURE => 1;
+use constant EX_PARTIAL => 1;
+use constant EX_FAILURE => 2;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 sub usage {
     warn "$Program version $VERSION\n";
@@ -82,12 +83,16 @@ if (defined($ENV{PATHEXT})) {
 }
 if ($^O eq 'VMS') { @PATHEXT = qw(.exe .com); }
 
+my $rc = EX_SUCCESS;
+
 COMMAND:
 foreach my $command (@ARGV) {
+    my $found = 0;
     if ($^O eq 'VMS') {
         my $symbol = `SHOW SYMBOL $command`; # line feed returned
         if (!$?) {
             print "$symbol";
+            $found = 1;
             next COMMAND unless $opt{'a'};
         }
     }
@@ -97,10 +102,12 @@ foreach my $command (@ARGV) {
             if (lc($alias) eq lc($command)) {
                 # MPW-Perl cannot resolve using `Alias $alias`
                 print "Alias $alias\n";
+                $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
     }
+    next COMMAND if $found;
 
     foreach my $dir (@PATH) {
         my $path = $dir . $file_sep . $command;
@@ -111,12 +118,14 @@ foreach my $command (@ARGV) {
         if ($^O eq 'MacOS') {
             if (-e $path) {
                 print "$path\n";
+                $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
         else {
             if (-x $path) {
                 print "$path\n";
+                $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
@@ -127,11 +136,16 @@ foreach my $command (@ARGV) {
             }
             if (-x $pathext) {
                 print "$pathext\n";
+                $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
     }
+    next COMMAND if $found;
+    warn "$Program: $command: command not found\n";
+    $rc = EX_PARTIAL;
 }
+exit $rc;
 
 __END__
 
