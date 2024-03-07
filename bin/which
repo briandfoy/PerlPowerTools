@@ -17,10 +17,11 @@ use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
-use constant EX_FAILURE => 1;
+use constant EX_PARTIAL => 1;
+use constant EX_FAILURE => 2;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 sub usage {
     warn "$Program version $VERSION\n";
@@ -82,6 +83,8 @@ if (defined($ENV{PATHEXT})) {
 }
 if ($^O eq 'VMS') { @PATHEXT = qw(.exe .com); }
 
+my $rc = EX_SUCCESS;
+
 COMMAND:
 foreach my $command (@ARGV) {
     if ($^O eq 'VMS') {
@@ -131,7 +134,10 @@ foreach my $command (@ARGV) {
             }
         }
     }
+    warn "$Program: $command: command not found\n";
+    $rc = EX_PARTIAL;
 }
+exit $rc;
 
 __END__
 
