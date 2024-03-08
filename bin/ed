@@ -860,7 +860,7 @@ sub edQuit {
 sub edSetCurrentLine {
     if (defined($args[0])) {
         edWarn(E_ARGEXT);
-        return;
+        return 0;
     }
 
     my $adr = $adrs[1];
@@ -868,24 +868,17 @@ sub edSetCurrentLine {
         $adr = $adrs[0];
     }
     if (defined($adr)) {
-
-        # user gave us a line, go to it
-        if ($adr <= maxline() && $adr > 0 && maxline() != 0) {
-            $CurrentLineNum = $adr;
-        } else {
+        if ($adr <= 0 || maxline() == 0 || $adr > maxline()) {
             edWarn(E_ADDRBAD);
             return 0;
         }
-
+        $CurrentLineNum = $adr; # jump to specified line
     } else {
-
-        # simply increment the line
-        if ($CurrentLineNum < maxline()) {
-            $CurrentLineNum++;
-        } else {
+        if ($CurrentLineNum == maxline()) {
             edWarn(E_ADDRBAD);
             return 0;
         }
+        $CurrentLineNum++;
     }
 
     print $lines[$CurrentLineNum];
