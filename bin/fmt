@@ -42,33 +42,54 @@ format =
 .
 FORMAT
 
-while (<>) {
-    chomp;
-    if (length) {
-        if (length $line) {
-            my $last_char = substr $line, -1, 1;
-            if ('.' eq $last_char) {
-                $line .= "  ";
-            } elsif (' ' ne $last_char and "\t" ne $last_char) {
-                $line .= " ";
-            }
-        }
-        $line .= $_;
-    } else {
-        do write while length $line;
-        print "\n";
+my $rc = EX_SUCCESS;
+foreach my $file (@ARGV) {
+    next if (-d $file);
+    my $fh;
+    unless (open $fh, '<', $file) {
+        warn "$Program: failed to open '$file': $!\n";
+        $rc = EX_FAILURE;
+        next;
+    }
+    fmt_file($fh);
+    unless (close $fh) {
+        warn "$Program: failed to close '$file': $!\n";
+        $rc = EX_FAILURE;
     }
 }
-
+unless (@ARGV) {
+    fmt_file(*STDIN);
+}
 if (length $line) {
     do write while length $line;
 }
-
-exit EX_SUCCESS;
+exit $rc;
 
 sub usage {
     warn "usage: $Program [-w WIDTH] [file...]\n";
     exit EX_FAILURE;
+}
+
+sub fmt_file {
+    my $fh = shift;
+
+    while (<$fh>) {
+        chomp;
+        if (length) {
+            if (length $line) {
+                my $last_char = substr $line, -1, 1;
+                if ('.' eq $last_char) {
+                    $line .= "  ";
+                } elsif (' ' ne $last_char and "\t" ne $last_char) {
+                    $line .= " ";
+                }
+            }
+            $line .= $_;
+        } else {
+            do write while length $line;
+            print "\n";
+        }
+    }
 }
 
 # Take care of special case, bare -width option
