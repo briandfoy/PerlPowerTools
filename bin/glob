@@ -227,8 +227,14 @@ sub match_glob($) {
                        ? (getpwnam($usr))[7]
                        : (defined $ENV{HOME} ? $ENV{HOME}
                                              : (getpwuid($<))[7]);
-        $usrdir && s/^\~\Q$usr\E/$usrdir/ && $usr
-            or push @errors, "Unknown user: $usr";
+        push @errors, "Unknown user: $usr" unless $usrdir;
+
+        if (length $usr) {
+            s/\A\~\Q$usr\E/$usrdir/;
+        }
+        else {
+            s/\A\~/$usrdir/;
+        }
     }
 
     # If there's no wildcards, just return it
