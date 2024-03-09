@@ -42,6 +42,7 @@ if ($Program =~ m/cksum/) {
 	$alg = \&sum1;
 }
 if (defined $opt{'a'}) {
+	help() if defined $opt{'o'};
 	my %codetab = (
 		'crc'    => \&crc32,
 		'md5'    => \&do_md5,
