@@ -101,7 +101,7 @@ sub expand_line {
 		if(defined($line_desc{$curs})) {
 		    $incr = $line_desc{$curs};
 		} else { # Jupiter, and beyond the infinite
-		    $incr = 1;
+		    $incr = $tabstop;
 		}
 	    } else {
 		$incr = $curs%$tabstop ? ($tabstop - $curs%$tabstop)
