@@ -32,6 +32,7 @@ if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
 my($user,$pw,$uid,$gid,$tp);
 
 if ( @ARGV ) { # user specified
+	help() if scalar(@ARGV) > 1;
 	($user,$pw,$uid,$gid) = getpwnam $ARGV[0];
 	if (!defined($uid) && $ARGV[0] =~ m/\A[0-9]+\Z/) {
 		($user,$pw,$uid,$gid) = getpwuid $ARGV[0];
