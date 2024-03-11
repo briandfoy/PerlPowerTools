@@ -39,9 +39,13 @@ my $tabstop = 8;
 my @tabstops;
 my @files;
 
-# at most one argument
-if ($ARGV[0] =~ /\A\-(.+)/) {
-    @tabstops = split(/,/, $1);
+while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
+    my $val = $1;
+    if ($val eq '-') {
+        shift @ARGV;
+        last;
+    }
+    @tabstops = split /,/, $val;
     usage(1) if grep /\D/, @tabstops; # only integer arguments are allowed
     shift @ARGV;
 }
@@ -67,7 +71,7 @@ if(scalar @tabstops == 0) {
 for my $file (@files) {
     my $in;
     unless (open $in, '<', $file) {
-	warn "$Program: couldn't open '$file' for reading: $!'\n";
+	warn "$Program: couldn't open '$file' for reading: $!\n";
 	exit EX_FAILURE;
     }
     while (<$in>) {
