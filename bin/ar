@@ -16,6 +16,8 @@ use File::Basename;
 use FileHandle;
 use Getopt::Std qw(getopts);
 
+use constant MAGIC => "!<arch>\n";
+
 # allow the first arg to not have a '-'.
 if ($ARGV[0] !~ /^\-/) { $ARGV[0] = '-' . $ARGV[0]; }
 
@@ -276,7 +278,7 @@ sub readAr {
     # read magic
     my $magic;
     read($arfh,$magic,8);
-    if ($magic ne "!<arch>\n") {
+    if ($magic ne MAGIC) {
 	die "$0: $archive: Inappropriate file type or format\n";
     }
 
@@ -332,14 +334,11 @@ sub readAr {
 sub writeAr {
     my ($pAr, $pNames, $archive, $append) = @_;
 
-    my $arfh;
-    if (!defined($append)) {
-	$arfh = FileHandle->new($archive, 'w') or die "$0: $archive: $!\n";
-	$arfh->print("!<arch>\n");
-    }
-    else {
-	$arfh = FileHandle->new($archive, 'a') or die "$0: $archive: $!\n";
-    }
+    my $mode = $append ? 'a' : 'w';
+    my $putmagic = !$append || !-e $archive;
+    my $arfh = FileHandle->new($archive, $mode)
+      or die "$0: failed to open '$archive': $!\n";
+    $arfh->print(MAGIC) if $putmagic;
 
     # loop through each member of the archive and write to filehandle
     for my $group (@$pNames) {
