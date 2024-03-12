@@ -137,23 +137,12 @@ sub extract_entry
    $name =~ s/([A-Z])/_\l$1/g;
   }
  make_dir($1) if ($name =~ m#^(.*)/[^/]+#);
- my $typ = $hdr->{'mode'} >> 9;
- if ($typ != 0100)
-  {
-   if ($typ != 040)
-    {
-     printf "%o $name\n",$hdr->{'mode'};
-    }
-   read_data($read,$hdr,undef);
-   return;
-  }
-
  if (-f $name && !-w $name)
   {
    chmod(0666,$name);
    unlink($name)
   }
- my $fh = IO::File->new(">$name") unless ($name =~ m#/$#);
+ my $fh = IO::File->new($name, 'w') unless ($name =~ m#/$#);
  warn "Cannot open $name:$!" unless ($fh);
  read_data($read,$hdr,$fh);
  if ($fh)
@@ -198,29 +187,32 @@ if ($opt{'c'})
  }
 else
  {
+  my $fh;
+  my $read;
   my $hdr;
 
   $| = 1;
 
-  if ($opt{'f'})
+  if (defined $opt{'f'})
    {
     die("Cannot open '$opt{'f'}': is a directory\n") if (-d $opt{'f'});
-    open(STDIN, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
+    open($fh, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
    }
-  binmode(STDIN);
-
-  my $read;
+  else
+   {
+    $fh = *STDIN;
+   }
+  binmode $fh;
 
   if ($opt{'z'} || $opt{'Z'})
    {
     # quick and dirty till we sort out Compress::Zlib
-    my $gz = gzopen(\*STDIN, "rb");
-    die "Cannot gzopen:$gzerrno" unless ($gz);
+    my $gz = gzopen($fh, 'rb') or die "Cannot gzopen:$gzerrno";
     $read = sub { $gz->gzread($_[0],$_[1]) < 0 ? $gzerrno : 0 };
    }
   else
    {
-    $read = sub { read(\*STDIN,$_[0], $_[1]) < 0 ? $! : 0 };
+    $read = sub { read($fh, $_[0], $_[1]) < 0 ? $! : 0 };
    }
   while ($hdr = read_header($read))
    {
