@@ -109,6 +109,20 @@ my $regex_h = "";
 ($type_h, $regex_h) = split //, $type_h, 2;
 
 my @type = ($type_h, $type_b, $type_f,); # don't change order
+for (@type) {
+	my %expect = (
+		'a' => 1,
+		't' => 1,
+		'n' => 1,
+		'p' => 1,
+		'e' => 1,
+	);
+	unless ($expect{$_}) {
+		warn "$program: invalid numbering style: '$_'\n";
+		pod2usage(EX_FAILURE);
+	}
+}
+
 my @regex = ($regex_h, $regex_b, $regex_f); # don't change order
 
 # options -d
