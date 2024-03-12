@@ -142,15 +142,15 @@ sub emit_offset {
 }
 
 sub dump_line {
-    $ml = ''; # multi-line indention
     if (&diffdata || $opt_v) {
 	emit_offset();
 	&$fmt;
-	printf("%s$strfmt\n", $ml, @arr);
-	$ml = ' ' x 9;
+	printf "$strfmt\n", @arr;
+	$ml = 0;
     }
     else {
-	print "*\n";
+	print "*\n" unless $ml;
+	$ml = 1;
     }
     $lastline = $data . '|';
     $offset1 += length $data;
