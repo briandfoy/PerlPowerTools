@@ -39,19 +39,21 @@ my $opt_a = 0;
 my @tabstops;
 my @files;
 
-my $arg;
-while($arg = shift @ARGV) {
-    if($arg eq '-a') {
+while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
+    my $val = $1;
+    if ($val eq '-') { # '--' terminator
+	shift @ARGV;
+	last;
+    }
+    if ($val eq 'a') {
 	$opt_a = 1;
-	next;
-    }
-    if($arg =~ /^-(.*)/) {
-	@tabstops = split(/,/, $1);
+    } else {
+	@tabstops = split /,/, $val;
 	usage() if grep /\D/, @tabstops;
-	next;
     }
-    push @files, $arg;
+    shift @ARGV;
 }
+@files = @ARGV;
 
 # $tabstop is used only if multiple tab stops have not been defined
 $tabstop = $tabstops[0] if scalar @tabstops == 1;
