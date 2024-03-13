@@ -66,6 +66,13 @@ foreach my $file (@ARGV) {
         $rc = EX_FAILURE;
     }
 }
+unless (@ARGV) {
+    my $newfile = basename($target);
+    unless (dolink($target, $newfile)) {
+        warn "$Program: failed to link '$target' to '$newfile': $!\n";
+        $rc = EX_FAILURE;
+    }
+}
 exit $rc;
 
 sub usage {
