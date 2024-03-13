@@ -179,10 +179,13 @@ exit 0;
 sub printMember {
     my ($name, $pAr, $verbose) = @_;
 
-    print "\n<$name>\n\n" if $verbose;
-
-    # dump the data
-    print $pAr->{$name}[6];
+    if (exists $pAr->{$name}) {
+	print "\n<$name>\n\n" if $verbose;
+	print $pAr->{$name}[6];
+    }
+    else {
+	warn "entry not found in archive: '$name'\n";
+    }
 }
 
 # writes a directory-style listing for the specified archive member
