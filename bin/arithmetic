@@ -33,7 +33,7 @@ if (defined $opt{'o'}) {
 }
 my $range = 10;
 if (defined $opt{'r'}) {
-    usage() if ($range !~ m/\A[0-9]+\Z/);
+    usage() if ($opt{'r'} !~ m/\A[0-9]+\Z/);
     $range = $opt{'r'};
 }
 # Special case the range of 0. Since the right operator can only be 0,
