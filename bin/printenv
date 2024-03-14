@@ -14,29 +14,22 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
-if (@ARGV) {
-    if ($ARGV[0] eq '-?') {
-        $0 =~ s{.*/}{};
-        print <<EOF;
-Usage: $0 [name]
-
-Display the environment. If an argument is given, only the value
-of that variable is displayed.
-
-EOF
-       exit;
-    } elsif (exists $ENV{$ARGV[0]}) {
-	print $ENV{$ARGV[0]}, "\n";
-	exit;
+my $rc = 0;
+my $arg = shift;
+if (defined $arg) {
+    if (exists $ENV{$arg}) {
+        print $ENV{$arg}, "\n";
     } else {
-        exit 1;
+        $rc = 1;
+    }
+} else {
+    while (my ($key, $value) = each(%ENV)) {
+        print "$key=$value\n";
     }
 }
-
-while (my ($key, $value) = each(%ENV)) { print "$key=$value\n"; }
-exit;
+exit $rc;
 
 __END__
 
@@ -54,18 +47,6 @@ printenv [name]
 
 printenv displays the current environment. If an argument is supplied, only the
 value of that variable is displayed.
-
-=head2 OPTIONS
-
-I<printenv> accepts the following options:
-
-=over 4
-
-=item -?
-
-Print out a short help message, then exit.
-
-=back
 
 =head1 BUGS
 
