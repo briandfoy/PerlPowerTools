@@ -250,6 +250,7 @@ sub get_field_specs {
 sub get_options {
   while (@ARGV && $ARGV[0] =~ /^-(.)/) {
     local $_ = shift @ARGV;
+    return if $_ eq '--';
     if    (/^-[h?]$/)  { help() }        # terminates
     elsif (s/^-a//) {
       my $f = get_file_number('a');
