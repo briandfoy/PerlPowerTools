@@ -30,7 +30,7 @@ END {
 	$? = 1 if $? == 255;  # from die
 	}
 
-__PACKAGE__->run( \*STDOUT, @ARGV ) unless caller(); # modulino
+__PACKAGE__->run( \*STDOUT, @ARGV ) if !caller() || caller(0) eq 'PAR' || caller(1) eq 'PAR'; # modulino
 
 sub run {
 	my( $self, $fh, @numbers ) = @_;
