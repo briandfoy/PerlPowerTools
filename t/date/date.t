@@ -5,7 +5,7 @@ use warnings;
 use Test::More 1;
 
 subtest dash_u => sub {
-	my $date = `$^X bin/date -u`;
+	my $date = `"$^X" bin/date -u`;
 	like $date, qr/\bUTC\b/;
 	};
 
