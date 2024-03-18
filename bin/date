@@ -22,7 +22,7 @@ my $VERSION = '1.0.4';
 # prefer this if it is defined.
 my $TZ;
 
-run(\@ARGV) unless caller();
+run(\@ARGV) if !caller() || caller(0) eq 'PAR' || caller(1) eq 'PAR';
 
 sub get_formats {
 	{
