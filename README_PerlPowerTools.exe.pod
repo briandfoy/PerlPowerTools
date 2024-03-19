@@ -1,0 +1,47 @@
+=pod
+
+=encoding utf8
+
+=head1 PerlPowerTools.exe
+
+The script F<util/packer> bundles the L<PerlPowerTools> as a single standalone Windows executable
+(no dependencies) and generates F<packed/perlpowertools.exe>.
+
+As BusyBox, if the executable is renamed / hardlinked / symlinked as one of the
+tools, it will behave as that tool automatically. The executable MUST be called
+'perlpowertools.exe' or 'one-of-the-tools.exe', otherwise PAR won't know what to
+run.
+
+=head2 How to call the tools?
+
+    bin/cat                         # the standard way
+    bin/perlpowertools cat          # with helper script
+    packed/perlpowertools.exe cat   # from standalone executable
+    packed/cat.exe                  # with perlpowertools.exe renamed
+
+=head2 How to read the doc?
+
+    bin/perldoc cat                                     # cat documentation
+    bin/perlpowertools perldoc cat                      # cat documentation
+    packed/perlpowertools.exe perldoc perlpowertools    # PerlPowerTools documentation
+    packed/perlpowertools.exe perldoc perldoc           # perldoc documentation
+
+=head2 How to find the version?
+
+    bin/perlpowertools -V           # PerlPowerTools module version
+    packed/perlpowertools.exe -V    # PerlPowerTools module version
+
+=head2 How does it work?
+
+    bin/perlpowertools    # dispatcher/frontend (has same behaviour packed or not)
+    bin/perldoc           # custom 'perldoc' (has same behaviour packed or not)
+    util/packer           # bundles everything together with PAR::Packer
+
+B<Feedbacks of any kind are very welcomed and encouraged>, even simple ones such
+as a successful run report (or failure). If you feel like beta-testing, there
+are also many open questions (for example, F<util/packer> has not been tested
+with Active Perl).
+
+C<kaldor AT cpan.org>
+
+=cut
