@@ -30,7 +30,8 @@ END {
 	$? = 1 if $? == 255;  # from die
 	}
 
-__PACKAGE__->run( \*STDOUT, @ARGV ) if !caller() || caller(0) eq 'PAR' || caller(1) eq 'PAR'; # modulino
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+__PACKAGE__->run( \*STDOUT, @ARGV ) if !caller() || caller(0) eq 'main' || caller(0) eq 'PAR' || caller(1) eq 'PAR'; # modulino
 
 sub run {
 	my( $self, $fh, @numbers ) = @_;

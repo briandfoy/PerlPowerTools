@@ -22,7 +22,8 @@ my $VERSION = '1.0.4';
 # prefer this if it is defined.
 my $TZ;
 
-run(\@ARGV) if !caller() || caller(0) eq 'PAR' || caller(1) eq 'PAR';
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+run(\@ARGV) if !caller() || caller(0) eq 'main' || caller(0) eq 'PAR' || caller(1) eq 'PAR';
 
 sub get_formats {
 	{
