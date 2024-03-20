@@ -66,6 +66,7 @@ die $usage if not grep { $tool eq $_ } @tools;
 
 my $file = "$ppt_bin/$tool";
 $0 = $tool; # for usage/warning/error messages
+package PerlPowerTools; # change caller(0), for modulinos
 my $return = do $file;
 die $@ if $@;
 die "$file: $!" unless defined $return;
