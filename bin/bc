@@ -2034,10 +2034,10 @@ sub command_line()
   while (@ARGV) {
     my $f = shift @ARGV;
     if ($f eq '-b') {
-      require Math::BigFloat;
+      eval { require Math::BigFloat } or die "This program requires the Math::BigFloat module\n";
       $bignum = 1;
     } elsif ($f eq '-d') {
-      require Data::Dumper;
+      eval { require Data::Dumper } or die "This program requires the Data::Dumper module\n";
       $debug = 1;
     } elsif ($f eq '-y') {
       $yydebug = 1;
