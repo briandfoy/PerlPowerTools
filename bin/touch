@@ -90,7 +90,7 @@ exit $rc;
 
 sub usage {
     warn "$Program (Perl bin utils) $VERSION\n";
-    warn "usage: $Program [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file...\n";
+    warn "usage: $Program [-acm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file...\n";
     exit EX_FAILURE;
 }
 
@@ -137,7 +137,7 @@ touch - change access and modification times of files
 
 =head1 SYNOPSIS
 
-touch [-acfm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file [files ...]
+touch [-acm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file...
 
 =head1 DESCRIPTION
 
@@ -145,8 +145,8 @@ I<touch> sets the access and modification timestamps of files. By default,
 both the access and modification times are set to the current time.
 If necessary, files will be created.
 
-I<touch> exits succesfully if and only if all timestamps could be set
-succesfully.
+I<touch> exits successfully if and only if all timestamps could be set
+successfully.
 
 =head2 OPTIONS
 
@@ -196,15 +196,12 @@ The working of I<touch> is not influenced by any environment variables.
 
 =head1 BUGS
 
-I<touch> does not implement the I<-f> option.
-
 I<touch> uses C<Time::Local> to translate the time format to epoch
 seconds
 
 =head1 STANDARDS
 
-This I<touch> implementation is compatible with the B<OpenBSD> implementation,
-except for the I<-f> option.
+This I<touch> implementation is compatible with the B<OpenBSD> implementation.
 
 =head1 AUTHOR
 
