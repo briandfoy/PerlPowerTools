@@ -23,7 +23,7 @@ my $VERSION = '1.0.4';
 my $TZ;
 
 # run if called directly, indirectly, directly par-packed, undirectly par-packed
-run(\@ARGV) if !caller() || caller(0) =~ /PerlPowerTools/ || caller(0) eq 'PAR' || caller(1) eq 'PAR';
+run(\@ARGV) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR';
 
 sub get_formats {
 	{
