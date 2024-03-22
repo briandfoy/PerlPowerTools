@@ -11,8 +11,10 @@
 #   any display issue should be fixed in the tools themselves. Currently, we avoid very ugly
 #   usage/warning/error messages (some tools use raw $0). If the tools need to find their
 #   own path, then __FILE__ must be used (not $0 or any module using it).
-# - Patch for modulinos : run() if !caller() || caller(0) eq 'PAR' || caller(1) eq 'PAR';
+# - Patch for modulinos : run() if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR';
 #
+# 2024.03.22 v1.33 jul : https://github.com/briandfoy/PerlPowerTools/pull/509
+#                        - added package PerlPowerTools::Packed for modulinos
 # 2022.06.01 v1.32 jul : - fixed chdir in bin/perlpowertools
 #                        - added pwd tests in t/perlpowertools.t
 # 2022.05.31 v1.31 jul : - fixed broken script ($ not escaped in usage)
@@ -54,7 +56,7 @@ use lib $ppt_dir . '/lib';
 use if $^O eq "MSWin32", 'Win32::ShellQuote';
 use PAR::Packer;
 
-our $VERSION = '1.32';
+our $VERSION = '1.33';
 my $program  = 'packer';
 my $usage    = <<EOF;
 
