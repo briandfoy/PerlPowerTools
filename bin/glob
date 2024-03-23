@@ -464,7 +464,8 @@ sub globtest(;$) {
 #
 # If we are a script then return glob with each cmdline-arg
 #
-unless (caller) {
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+if (!caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR') {
     my $opt_0 = ($ARGV[0] eq '-0') ? defined(shift) : 0;
     my @globbed = ();
     my @errmsgs = ();
