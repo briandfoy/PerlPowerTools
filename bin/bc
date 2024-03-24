@@ -2518,6 +2518,7 @@ sub exec_stmt
      $sym_table{$varName} = { type => 'var',
 			      value => $value };
      push(@ope_stack, $value);
+     $return = 1; # do not print result
      next INSTR;
 
    } elsif($_ eq '=P') {
