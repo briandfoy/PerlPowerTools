@@ -228,7 +228,7 @@ sub test (@) {
     return ($@) ? undef : 0+$result;
 }
 
-exit(2) if (@ARGV == 0);
+exit(1) if (@ARGV == 0);
 my $rc = test @ARGV;
 
 ## For command-lines, zero is success and non-zero is false, so
