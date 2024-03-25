@@ -2224,13 +2224,10 @@ sub yylex
 	    $IDENT;
 	  }
 
-	} elsif (($char eq '*' && $line =~ s/^\*=//) or
-                 ($char eq '^' && $line =~ s/=//)) {
+	} elsif ($char eq '^' && $line =~ s/=//) {
 	    $EXP_EQ;
-	} elsif (($char eq '*' && $line =~ s/^\*//) or
-                 ($char eq '^')) {
+	} elsif ($char eq '^') {
 	    $EXP;
-
 	} elsif ($char eq '|' && $line =~ s/^\|//) {
 	    $O_O;
 	} elsif ($char eq '&' && $line =~ s/^&//) {
