@@ -2459,10 +2459,14 @@ sub exec_stmt
      next INSTR;
 
    } elsif($_ eq 'P') {
-
-	 my $value = pop @ope_stack;
-	 my $index = pop @ope_stack;
-	 push @ope_stack, $value;
+     my $index = splice @ope_stack, -2, 1; # rval remains top of stack
+     if($index !~ /^\d+$/) {
+       print STDERR "Non-integer index $index for array\n";
+       $return = 3;
+       @ope_stack = ();
+       @stmt_list=();
+       last INSTR;
+     }
      push @ope_stack, $instr->[1] . '[]' . $index;
      next INSTR;
 
@@ -2489,7 +2493,7 @@ sub exec_stmt
        $return = 3;
        @ope_stack = ();
        @stmt_list=();
-       YYERROR;
+       last INSTR;
      }
 
 #     debug {"p: $name, $idx.\n"};
