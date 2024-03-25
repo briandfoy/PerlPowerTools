@@ -2526,8 +2526,7 @@ sub exec_stmt
 
      my $varName = pop(@ope_stack);
      my $value = pop(@ope_stack);
-     my ($name, $idx) = ($varName =~ /([a-z]+)\[\](\d+)/);
-
+     my ($name, $idx) = split /\[\]/, $varName, 2;
      $name .= '[]';
      unless (defined($sym_table{$name})
 	     and $sym_table{$name}{'type'} eq 'array')
