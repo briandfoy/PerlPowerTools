@@ -2519,15 +2519,14 @@ sub exec_stmt
      $sym_table{$varName} = { type => 'var',
 			      value => $value };
      push(@ope_stack, $value);
-     $return = 1; # do not print result
+     $return = 3; # do not print result
      next INSTR;
 
    } elsif($_ eq '=P') {
 
      my $varName = pop(@ope_stack);
      my $value = pop(@ope_stack);
-     my ($name, $idx) = ($varName =~ /([a-z]+)\[\](\d+)/);
-
+     my ($name, $idx) = split /\[\]/, $varName, 2;
      $name .= '[]';
      unless (defined($sym_table{$name})
 	     and $sym_table{$name}{'type'} eq 'array')
@@ -2538,7 +2537,7 @@ sub exec_stmt
      $sym_table{$name}{'value'}[$idx] = { type => 'var',
 					  value => $value };
      push(@ope_stack, $value);
-     $return = 1; # do not print result
+     $return = 3; # do not print result
      next INSTR;
 
    } elsif($_ eq 'IF') {
@@ -2731,7 +2730,7 @@ sub exec_stmt
 
 #     debug {"breaking.\n"};
 
-     $return = 2;
+     $return = 1;
      push(@ope_stack, 0);
 
      last INSTR;
