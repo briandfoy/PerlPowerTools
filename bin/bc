@@ -2730,7 +2730,7 @@ sub exec_stmt
 
 #     debug {"breaking.\n"};
 
-     $return = 2;
+     $return = 1;
      push(@ope_stack, 0);
 
      last INSTR;
