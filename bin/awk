@@ -17,12 +17,6 @@ License: perl
 
 use strict;
 
-SANITY: {
-	my $external_module = 'App::a2p';
-	my $rc = eval "require $external_module; $external_module->import; 1";
-	die "This program needs the $external_module module.\n" unless $rc;
-	}
-
 my(
     $program,		# the code to eval
     $tmpin, 		# the files a2p reads
@@ -80,11 +74,6 @@ while (@ARGV) {
 	    unless (length) { shift; $_ = shift; }
 	    push(@nargs, $_);
 	    last;
-	}
-	elsif (s/^-//) {
-	    if (length) { usage("Long options not supported") }
-	    shift;
-	    next;
 	}
 	else {
 	    usage("unknown flag: -$_");
