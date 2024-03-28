@@ -131,6 +131,7 @@ if ($@) {
     die "Couldn't compile and execute awk-to-perl program: $@\n";
 }
 
+unlink $tmpin, $tmpout;
 exit 0;
 
 __END__
