@@ -74,7 +74,8 @@ BEGIN {
   $PREF = join '|', sort {$PREF{$a} <=> $PREF{$b}} (keys %PREF);
 }
 
-__PACKAGE__->run(@ARGV) unless caller;
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+__PACKAGE__->run(@ARGV) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR'; # modulino
 
 sub run {
   my( $class, @args ) = @_; local @ARGV;

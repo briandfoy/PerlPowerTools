@@ -30,7 +30,8 @@ END {
 	$? = 1 if $? == 255;  # from die
 	}
 
-__PACKAGE__->run( \*STDOUT, @ARGV ) unless caller(); # modulino
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+__PACKAGE__->run( \*STDOUT, @ARGV ) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR'; # modulino
 
 sub run {
 	my( $self, $fh, @numbers ) = @_;
@@ -124,6 +125,7 @@ sub more_primes {
   @next_primes = map {$_ + $_ + $base} grep {$more[$_] == 0} 0..$max;
 }
 
+1;
 
 __END__
 
