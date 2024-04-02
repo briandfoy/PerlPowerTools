@@ -36,7 +36,7 @@ my (
 );
 
 sub usage {
-  warn "usage: $Program [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [file ...]\n";
+  warn "usage: $Program [-d dict] [-c|-x] [-v] [-i] [-s dict] [file ...]\n";
   exit EX_FAILURE;
 }
 
@@ -47,9 +47,12 @@ keys %words = 45402;   # allocate bins for the hash, it may be useful to
 while (@ARGV) {
   $_ = $ARGV[0];
   if (s/^-//) {
-    if (s/^b//) {
-      if (length) { $dict_file = $_ }
-      else { $dict_file = $alt_dict_file }
+    if (s/^d//) {
+      $dict_file = $_;
+      unless (length $dict_file) {
+        $dict_file = $ARGV[1];
+        shift;
+      }
     }
     elsif (s/^[cx]//) {
       $check++;
@@ -362,7 +365,7 @@ spell - scan a file for misspelled words
 =head1 SYNOPSIS
 
 B<spell>
-[ B<-b>[I<dict>]]
+[ B<-d> [I<dict>]]
 [B<-c>|B<-x>]
 [B<-v>]
 [B<-i>]
@@ -380,17 +383,9 @@ The options are as follows:
 
 =over 4
 
-=item B<-b>
+=item B<-d> I<file>
 
-Use alternate dictionary (as specified in the variable at the top of
-the script, you should change this to represent your system).
-
-=item B<-b>I<file>
-
-Use I<file> as the alternate dictionary (notice no space between flag
-and I<file>).  This file is used B<instead of> the standard
-dictionary.  This could be a British spelling list, or for a different
-language.
+Use I<file> as the dictionary instead of the default system dictionary.
 
 =item B<-c>
 
