@@ -20,20 +20,24 @@ License:
 # Added a -6 switch for 6BONE (whois.6bone.net)
 # Added a -g switch for .gov (whois.nic.gov)
 
+use Getopt::Std qw(getopts);
 use IO::Socket;
 
-my $host = "whois.internic.net";
-my $i;
-while($i = shift) {
-    if    ($i eq "-a") { $host = "whois.arin.net";  last; }
-    elsif ($i eq "-d") { $host = "whois.nic.mil";   last; }
-    elsif ($i eq "-p") { $host = "whois.apnic.net"; last; }
-    elsif ($i eq "-r") { $host = "whois.ripe.net";  last; }
-    elsif ($i eq "-g") { $host = "whois.nic.gov";   last; }
-    elsif ($i eq "-6") { $host = "whois.6bone.net"; last; }
-    elsif ($i eq "-h") { $host = shift;             last; }
-    else               { unshift(@ARGV, $i);        last; }
-}
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my (%opt, $host);
+getopts('6adprgh:', \%opt) or usage();
+usage() unless @ARGV;
+
+set_host('whois.arin.net')     if $opt{'a'};
+set_host('whois.nic.mil')      if $opt{'d'};
+set_host('whois.apnic.net')    if $opt{'p'};
+set_host('whois.ripe.net')     if $opt{'r'};
+set_host('whois.nic.gov')      if $opt{'g'};
+set_host('whois.6bone.net')    if $opt{'6'};
+set_host($opt{'h'})            if $opt{'h'};
+set_host('whois.internic.net') unless defined $host;
 
 $| = 1;
 
@@ -46,15 +50,29 @@ my $sock = IO::Socket::INET->new(
 die "IO::Socket::INET $!" unless $sock;
 
 for my $i (@ARGV) {
-    print $sock "$i ";
+    print {$sock} "$i ";
 }
-print $sock "\n\r";
+print {$sock} "\r\n";
 
 while($line = <$sock>) {
     print $line
 }
 
 close($sock);
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: whois [-6adprg] [-h host] domain...\n";
+    exit EX_FAILURE;
+}
+
+sub set_host {
+    if (defined $host) {
+        warn "ambiguous host specification\n";
+        exit EX_FAILURE;
+    }
+    $host = shift;
+}
 
 =encoding utf8
 
