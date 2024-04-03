@@ -95,6 +95,7 @@ unshift @supp, $dict_file;
 # read in dictionary words
 
 for my $dict_file (@supp) {
+  next if -d $dict_file;
   my $in;
   unless (open $in, '<', $dict_file) {
     warn "$Program: could not open dictionary <$dict_file>: $!\n";
@@ -108,6 +109,10 @@ for my $dict_file (@supp) {
   close $in;
 }
 @keys = keys %words;
+unless (@keys) {
+  warn "$Program: word list was empty\n";
+  exit EX_FAILURE;
+}
 
 # Read data to check
 
