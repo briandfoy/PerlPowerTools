@@ -77,6 +77,18 @@ sub parse_fmt {
     }
 }
 
+sub oct2char {
+    my $str = shift;
+    my $n = oct($str) & 255;
+    return chr($n);
+}
+
+sub hex2char {
+    my $str = shift;
+    my $n = hex($str) & 255;
+    return chr($n);
+}
+
 sub escape_str {
     my $str = shift;
     $str =~ s/\\a/\a/g;
@@ -86,6 +98,8 @@ sub escape_str {
     $str =~ s/\\r/\r/g;
     $str =~ s/\\t/\t/g;
     $str =~ s/\\v/\x0b/g;
+    $str =~ s/\\([0-7]{1,3})/oct2char($1)/eg;
+    $str =~ s/\\x([0-9a-fA-F]{1,2})/hex2char($1)/eg;
     return $str;
 }
 
