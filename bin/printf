@@ -31,7 +31,7 @@ unless (@ARGV) {
 my @fmt;
 my $format = shift;
 exit EX_SUCCESS unless (length $format);
-parse_fmt();
+@ARGV = () if (parse_fmt() == 0);
 do {
     foreach my $part (@fmt) {
         if ($part->[0] eq 'str') {
@@ -60,6 +60,7 @@ sub parse_fmt {
     my $f = $format;
     $f =~ s/\%c/\%\.1s/g; # standard printf: %c == 1st char
 
+    my $i = 0;
     while (length $f) {
         if ($f =~ s/\A([^%]+)//) {
             push @fmt, [ 'str', $1 ];
@@ -67,14 +68,17 @@ sub parse_fmt {
             push @fmt, [ 'str', '%%' ];
         } elsif ($f =~ s/\A(\%[0-9\.\-]*s)//) {
             push @fmt, [ 'sfmt', $1 ];
+            $i++;
         } elsif ($f =~ s/\A(\%[0-9\.\-]*[diouXx])//) {
             push @fmt, [ 'ifmt', $1 ];
+            $i++;
         } elsif ($f =~ s/\A(\%[0-9\.\-]*[a-zA-Z])//) {
             push @fmt, [ 'str', $1 ]; # unsupported
 	} else {
             die "internal error";
         }
     }
+    return $i;
 }
 
 sub oct2char {
