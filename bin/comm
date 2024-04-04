@@ -22,25 +22,18 @@ License: public domain
 use strict;
 
 use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
 
-my @COL = (undef, 1, 1, 1);
+my %opt;
+getopts('123', \%opt) or usage();
+usage() if (@ARGV != 2);
+my @COL = (undef, !$opt{'1'}, !$opt{'2'}, !$opt{'3'});
 
-if ($ARGV[0] =~ /^-[123]+$/) {
-  my $opt = shift;
-  while ($opt =~ /[123]/g) {
-    $COL[$&] = 0;
-  }
-}
-
-unless (@ARGV == 2) {
-  warn "usage: $Program [-123] file1 file2\n";
-  exit EX_FAILURE;
-}
 my ($f1, $f2);
 if ($ARGV[0] eq '-') {
   if ($ARGV[1] eq '-') {
@@ -96,6 +89,11 @@ if ($COL[2]) { print "\t", $_ while <$f2> }
 close $f1;
 close $f2;
 exit EX_SUCCESS;
+
+sub usage {
+  warn "usage: $Program [-123] file1 file2\n";
+  exit EX_FAILURE;
+}
 
 __END__
 
