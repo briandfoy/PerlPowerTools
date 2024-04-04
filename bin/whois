@@ -41,25 +41,28 @@ set_host('whois.internic.net') unless defined $host;
 
 $| = 1;
 
-my $sock = IO::Socket::INET->new(
-    PeerAddr => $host,
-    PeerPort => 43,
-    Proto => 'tcp',
-    );
-
-die "IO::Socket::INET $!" unless $sock;
-
-for my $i (@ARGV) {
-    print {$sock} "$i ";
+foreach my $domain (@ARGV) {
+    whois($domain);
 }
-print {$sock} "\r\n";
-
-while($line = <$sock>) {
-    print $line
-}
-
-close($sock);
 exit EX_SUCCESS;
+
+sub whois {
+    my $domain = shift;
+    my $sock = IO::Socket::INET->new(
+        PeerAddr => $host,
+        PeerPort => 43,
+        Proto => 'tcp',
+    );
+    unless ($sock) {
+        warn "failed to connect: '$host': $!";
+        exit EX_FAILURE;
+    }
+    print {$sock} "$domain\r\n";
+    while ($line = <$sock>) {
+        print $line;
+    }
+    close $sock;
+}
 
 sub usage {
     warn "usage: whois [-6adprg] [-h host] domain...\n";
