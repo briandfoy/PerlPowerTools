@@ -53,6 +53,10 @@ die "$0: No PIDs specified.\n" unless ( @ARGV );
 
 my($ret) = 0;
 foreach ( @ARGV ) { # do the kills...
+	unless (m/\A\-?[0-9]+\Z/) {
+		warn "$0: failed to parse argument '$_'\n";
+		exit 1;
+	}
 	unless (kill $signal, $_) {
 		warn "$0: $_: $!\n";
 		$ret = 1;
