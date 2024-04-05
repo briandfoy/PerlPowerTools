@@ -28,16 +28,84 @@ unless (@ARGV) {
     exit EX_FAILURE;
 }
 
+my @fmt;
 my $format = shift;
-$format =~ s/\\v/\x0b/g; # escape \v not available in printf()
-$format =~ s/\%c/\%\.1s/g; # standard printf: %c == 1st char
-
-my @ints = map { m/\A0x/i ? hex : int } @ARGV;
-eval qq(printf "$format", \@ints) or do {
-    warn "$Program: $@\n";
-    exit EX_FAILURE;
-};
+exit EX_SUCCESS unless (length $format);
+@ARGV = () if (parse_fmt() == 0);
+do {
+    foreach my $part (@fmt) {
+        if ($part->[0] eq 'str') {
+            print escape_str($part->[1]);
+    } elsif ($part->[0] eq 'ifmt') {
+        my $fmt = $part->[1];
+        my $arg = shift;
+	$arg = 0 unless defined $arg;
+	if ($arg =~ m/\A0x/i) {
+            $arg = hex $arg;
+	}
+        printf $fmt, $arg;
+    } elsif ($part->[0] eq 'sfmt') {
+        my $fmt = $part->[1];
+        my $arg = shift;
+	$arg = '' unless defined $arg;
+        printf $fmt, $arg;
+    } else {
+        die "internal error";
+    }
+    }
+} while (@ARGV);
 exit EX_SUCCESS;
+
+sub parse_fmt {
+    my $f = $format;
+    $f =~ s/\%c/\%\.1s/g; # standard printf: %c == 1st char
+
+    my $i = 0;
+    while (length $f) {
+        if ($f =~ s/\A([^%]+)//) {
+            push @fmt, [ 'str', $1 ];
+        } elsif ($f =~ s/\A\%\%//) {
+            push @fmt, [ 'str', '%%' ];
+        } elsif ($f =~ s/\A(\%[0-9\.\-]*s)//) {
+            push @fmt, [ 'sfmt', $1 ];
+            $i++;
+        } elsif ($f =~ s/\A(\%[0-9\.\-]*[diouXx])//) {
+            push @fmt, [ 'ifmt', $1 ];
+            $i++;
+        } elsif ($f =~ s/\A(\%[0-9\.\-]*[a-zA-Z])//) {
+            push @fmt, [ 'str', $1 ]; # unsupported
+	} else {
+            die "internal error";
+        }
+    }
+    return $i;
+}
+
+sub oct2char {
+    my $str = shift;
+    my $n = oct($str) & 255;
+    return chr($n);
+}
+
+sub hex2char {
+    my $str = shift;
+    my $n = hex($str) & 255;
+    return chr($n);
+}
+
+sub escape_str {
+    my $str = shift;
+    $str =~ s/\\a/\a/g;
+    $str =~ s/\\b/\b/g;
+    $str =~ s/\\f/\f/g;
+    $str =~ s/\\n/\n/g;
+    $str =~ s/\\r/\r/g;
+    $str =~ s/\\t/\t/g;
+    $str =~ s/\\v/\x0b/g;
+    $str =~ s/\\([0-7]{1,3})/oct2char($1)/eg;
+    $str =~ s/\\x([0-9a-fA-F]{1,2})/hex2char($1)/eg;
+    return $str;
+}
 
 __END__
 
@@ -55,12 +123,6 @@ The B<printf> command uses the first argument as the format that describes
 how to print the remaining arguments.  Unlike the standard
 printf(1) command, this one uses the Perl version.
 See L<perlfunc/sprintf> for details.
-
-=head1 RESTRICTIONS
-
-This command should not be used in setuid programs as it does not run
-untaint its argments and will trigger errors like C<Insecure dependency
-in eval while running setuid at /opt/ppt/bin/printf line 16.>
 
 =head1 SEE ALSO
 

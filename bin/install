@@ -245,7 +245,7 @@ sub install_files {
 
         my $bits;
         if ($symbolic) {
-            unless ( mod($mode, $targ) ) {
+            unless ( $bits = mod($mode, $targ) ) {
                 die "$Program: invalid mode: $mode\n";
             }
             $bits = oct $bits;
@@ -373,6 +373,9 @@ sub mod ($$) {
                 else      {%perms             = %umask;}
                 next;
             }
+            if ($operator eq '=') {
+                %perms = ( 'u' => 0, 'g' => 0, 'o' => 0);
+            }
 
             # If we arrive here, $perms is a string.
             # We can iterate over the characters.
@@ -433,9 +436,8 @@ sub mod ($$) {
 
                 # Apply.
                 foreach my $s (@set) {
-                    do {$perms {$s} |=  $bit; next} if $operator eq '+';
+                    do {$perms {$s} |=  $bit; next} if ($operator eq '+' || $operator eq '=') ;
                     do {$perms {$s} &= ~$bit; next} if $operator eq '-';
-                    do {$perms {$s}  =  $bit; next} if $operator eq '=';
                     die "Weird operator `$operator' found\n";
                                                             # Should not happen.
                 }

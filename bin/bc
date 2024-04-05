@@ -2034,10 +2034,10 @@ sub command_line()
   while (@ARGV) {
     my $f = shift @ARGV;
     if ($f eq '-b') {
-      use Math::BigFloat;
+      eval { require Math::BigFloat } or die "This program requires the Math::BigFloat module\n";
       $bignum = 1;
     } elsif ($f eq '-d') {
-      use Data::Dumper;
+      eval { require Data::Dumper } or die "This program requires the Data::Dumper module\n";
       $debug = 1;
     } elsif ($f eq '-y') {
       $yydebug = 1;
@@ -2224,13 +2224,10 @@ sub yylex
 	    $IDENT;
 	  }
 
-	} elsif (($char eq '*' && $line =~ s/^\*=//) or
-                 ($char eq '^' && $line =~ s/=//)) {
+	} elsif ($char eq '^' && $line =~ s/=//) {
 	    $EXP_EQ;
-	} elsif (($char eq '*' && $line =~ s/^\*//) or
-                 ($char eq '^')) {
+	} elsif ($char eq '^') {
 	    $EXP;
-
 	} elsif ($char eq '|' && $line =~ s/^\|//) {
 	    $O_O;
 	} elsif ($char eq '&' && $line =~ s/^&//) {
@@ -2462,10 +2459,14 @@ sub exec_stmt
      next INSTR;
 
    } elsif($_ eq 'P') {
-
-	 my $value = pop @ope_stack;
-	 my $index = pop @ope_stack;
-	 push @ope_stack, $value;
+     my $index = splice @ope_stack, -2, 1; # rval remains top of stack
+     if($index !~ /^\d+$/) {
+       print STDERR "Non-integer index $index for array\n";
+       $return = 3;
+       @ope_stack = ();
+       @stmt_list=();
+       last INSTR;
+     }
      push @ope_stack, $instr->[1] . '[]' . $index;
      next INSTR;
 
@@ -2492,7 +2493,7 @@ sub exec_stmt
        $return = 3;
        @ope_stack = ();
        @stmt_list=();
-       YYERROR;
+       last INSTR;
      }
 
 #     debug {"p: $name, $idx.\n"};
@@ -2518,14 +2519,14 @@ sub exec_stmt
      $sym_table{$varName} = { type => 'var',
 			      value => $value };
      push(@ope_stack, $value);
+     $return = 3; # do not print result
      next INSTR;
 
    } elsif($_ eq '=P') {
 
      my $varName = pop(@ope_stack);
      my $value = pop(@ope_stack);
-     my ($name, $idx) = ($varName =~ /([a-z]+)\[\](\d+)/);
-
+     my ($name, $idx) = split /\[\]/, $varName, 2;
      $name .= '[]';
      unless (defined($sym_table{$name})
 	     and $sym_table{$name}{'type'} eq 'array')
@@ -2536,7 +2537,7 @@ sub exec_stmt
      $sym_table{$name}{'value'}[$idx] = { type => 'var',
 					  value => $value };
      push(@ope_stack, $value);
-     $return = 1; # do not print result
+     $return = 3; # do not print result
      next INSTR;
 
    } elsif($_ eq 'IF') {
@@ -2729,7 +2730,7 @@ sub exec_stmt
 
 #     debug {"breaking.\n"};
 
-     $return = 2;
+     $return = 1;
      push(@ope_stack, 0);
 
      last INSTR;

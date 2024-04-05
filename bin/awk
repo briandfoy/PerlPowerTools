@@ -17,12 +17,6 @@ License: perl
 
 use strict;
 
-SANITY: {
-	my $external_module = 'App::a2p';
-	my $rc = eval "require $external_module; $external_module->import; 1";
-	die "This program needs the $external_module module.\n" unless $rc;
-	}
-
 my(
     $program,		# the code to eval
     $tmpin, 		# the files a2p reads
@@ -81,11 +75,6 @@ while (@ARGV) {
 	    push(@nargs, $_);
 	    last;
 	}
-	elsif (s/^-//) {
-	    if (length) { usage("Long options not supported") }
-	    shift;
-	    next;
-	}
 	else {
 	    usage("unknown flag: -$_");
 	}
@@ -142,6 +131,7 @@ if ($@) {
     die "Couldn't compile and execute awk-to-perl program: $@\n";
 }
 
+unlink $tmpin, $tmpout;
 exit 0;
 
 __END__

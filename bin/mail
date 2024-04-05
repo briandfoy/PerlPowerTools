@@ -41,7 +41,7 @@ package
 @ISA=qw(PerlPowerTools::mailprog);
 
 use IO::Socket;
-use Sys::Hostname;   # Claims to be standard?
+use Sys::Hostname qw();
 
 %mailer::fields=(
 	  user => undef,
@@ -83,7 +83,7 @@ sub new {
 		}
 		# Find my address...
 		if (! defined $ENV{HOSTNAME}) {
-			my $hostname=hostname();
+			my $hostname = Sys::Hostname::hostname();
 			if (! $hostname) {
 				die "Unable to find a reasonable hostname.  Use \$HOSTNAME.\n";
 			}
@@ -112,9 +112,7 @@ sub new {
 			Type => SOCK_STREAM,
 			Timeout => 15,
 	);
-	if (! $socket) {
-		die $emsg;
-	}
+	die $emsg . $IO::Socket::errstr . "\n" unless $socket;
 	my($ofh)=select($socket); $|=1; select($ofh);
 
 	# Get the SMTP header

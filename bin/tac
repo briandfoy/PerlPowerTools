@@ -28,11 +28,7 @@ my $Program = basename($0);
 my $VERSION = '0.18';
 
 my %opts;
-unless (getopts('bBrs:S:', \%opts)) {
-    warn "$Program version $VERSION\n";
-    warn "usage: $Program [-br] [-s separator] [-B] [-S bytes] [file...]\n";
-    exit EX_FAILURE;
-}
+getopts('bBrs:S:', \%opts) or usage();
 my %long = qw/
     b before
     B binary
@@ -48,7 +44,12 @@ if (defined $opts{separator} && $opts{regex}) {
         $_ = qr/$_/;
     }
 }
-
+if (defined $opts{'size'}) {
+    if ($opts{'size'} !~ m/\A[0-9]+\Z/ || $opts{'size'} == 0) {
+        warn "$Program: option -S expects a number >= 1\n";
+        usage();
+    }
+}
 $opts{files} = \@ARGV;
 
 my $fh = IO::Tac->new(%opts);
@@ -57,6 +58,12 @@ unless ($fh) {
 }
 print while <$fh>;
 exit EX_SUCCESS;
+
+sub usage {
+    warn "$Program version $VERSION\n";
+    warn "usage: $Program [-br] [-s separator] [-B] [-S bytes] [file...]\n";
+    exit EX_FAILURE;
+}
 
 END {
     close STDOUT || die "$Program: can't close stdout: $!\n";

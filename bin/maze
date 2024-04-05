@@ -34,26 +34,20 @@ sub traverse_randomly         { rand(@walk) }   # fiendish mazez (random walks)
 sub traverse_randomly_deep    {-rand(@walk/2) } # longer random walks
 sub traverse_randomly_shallow { rand(@walk/2) } # shorter random walks
 
+my %alg = (
+  '-fl' => \&traverse_by_breadth,
+  '-fi' => \&traverse_randomly,
+  '-df' => \&traverse_randomly_deep,
+  '-sf' => \&traverse_randomly_shallow,
+);
 my $walk_function = \&traverse_by_depth;
-
-foreach my $switch (grep /^\-/, @ARGV) {
-  $walk_function = \&traverse_by_breadth       if ($switch =~ /^-fl/i);
-  $walk_function = \&traverse_randomly         if ($switch =~ /^-fi/i);
-  $walk_function = \&traverse_randomly_deep    if ($switch =~ /^-df/i);
-  $walk_function = \&traverse_randomly_shallow if ($switch =~ /^-sf/i);
-  &usage if ($switch !~ /^-(fl|fi|df|sf)$/i);
+while (@ARGV && $ARGV[0] =~ /^\-/) {
+  my $switch = shift;
+  $walk_function = $alg{$switch} or usage();
 }
-
-@ARGV = grep !/^\-/, @ARGV;
-&usage if (@ARGV && (@ARGV != 2));
-
-#
-## Parse maze size options.  Fall back on standard behavior if the
-## size isn't specified on the command line.
-
-my ($width, $height);
-
-($width, $height) = @ARGV if (@ARGV == 2);
+my $width = shift;
+my $height = shift;
+usage() if @ARGV;
 
 sub get_number {
   my ($prompt, $value) = @_;

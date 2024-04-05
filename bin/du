@@ -57,8 +57,10 @@ sub traverse {
   my $total = 0;
   local $depth = $depth + 1;
   my @s = ($opt_L || $opt_H && $depth == 1) ? stat $fn : lstat $fn;
-  # If we can't stat the file, return silently
-  return 0 unless @s;
+  unless (@s) {
+    warn "$0: cannot access '$fn': $!\n";
+    return 0;
+  }
   # Check for cross-filesystem traversals (-x option)
   if ($depth == 1) {
     $filesystem = $s[0];
