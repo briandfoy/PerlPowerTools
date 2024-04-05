@@ -20,6 +20,8 @@ License:
 # Added a -6 switch for 6BONE (whois.6bone.net)
 # Added a -g switch for .gov (whois.nic.gov)
 
+use strict;
+
 use Getopt::Std qw(getopts);
 use IO::Socket;
 
@@ -54,11 +56,11 @@ sub whois {
         Proto => 'tcp',
     );
     unless ($sock) {
-        warn "failed to connect: '$host': $!";
+        warn "$host: $IO::Socket::errstr\n";
         exit EX_FAILURE;
     }
     print {$sock} "$domain\r\n";
-    while ($line = <$sock>) {
+    while (my $line = <$sock>) {
         print $line;
     }
     close $sock;
