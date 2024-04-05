@@ -112,9 +112,7 @@ sub new {
 			Type => SOCK_STREAM,
 			Timeout => 15,
 	);
-	if (! $socket) {
-		die $emsg;
-	}
+	die $emsg . $IO::Socket::errstr . "\n" unless $socket;
 	my($ofh)=select($socket); $|=1; select($ofh);
 
 	# Get the SMTP header
