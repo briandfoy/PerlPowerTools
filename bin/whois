@@ -50,6 +50,10 @@ exit EX_SUCCESS;
 
 sub whois {
     my $domain = shift;
+    if (length($domain) == 0 || $domain !~ m/\S/) {
+        warn "empty domain name\n";
+        exit EX_FAILURE;
+    }
     my $sock = IO::Socket::INET->new(
         PeerAddr => $host,
         PeerPort => 43,
