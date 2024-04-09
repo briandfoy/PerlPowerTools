@@ -822,8 +822,6 @@ sub debug(&) {
     if $debug;
 }
 
-;#$yydebug=1;
-
 #line 32 "y.tab.pl"
 $INT=257;
 $FLOAT=258;
@@ -1240,11 +1238,7 @@ $YYERRCODE=256;
    -1,   -1,   -1,   -1,  127,
 );
 $YYFINAL=1;
-#ifndef YYDEBUG
-#define YYDEBUG 0
-#endif
 $YYMAXTOKEN=294;
-#if YYDEBUG
 @yyname = (
 "end-of-file",'','','','','','','','','',"'\\n'",'','','','','','','','','','','','','','','','','','','','',
 '','',"'!'",'','','',"'%'","'&'",'',"'('","')'","'*'","'+'","','","'-'","'.'","'/'",'',
@@ -1351,7 +1345,6 @@ undef, # "expr : '&' STRING", # removed feature but we didn't want to disturb se
 "ident : IDENT",
 "ident : IDENT '[' expr ']'",
 );
-#endif
 sub yyclearin { $yychar = -1; }
 sub yyerrok { $yyerrflag = 0; }
 $YYSTACKSIZE = $YYSTACKSIZE || $YYMAXDEPTH || 500;
@@ -1370,20 +1363,16 @@ sub yy_err_recover
           ($yyn += $YYERRCODE) >= 0 &&
           $yycheck[$yyn] == $YYERRCODE)
       {
-#if YYDEBUG
        print "yydebug: state $yyss[$yyssp], error recovery shifting",
              " to state $yytable[$yyn]\n" if $yydebug;
-#endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
         next yyloop;
       }
       else
       {
-#if YYDEBUG
         print "yydebug: error recovery discarding state ",
               $yyss[$yyssp], "\n"  if $yydebug;
-#endif
         return(1) if $yyssp <= 0;
         --$yyssp;
         --$yyvsp;
@@ -1393,7 +1382,6 @@ sub yy_err_recover
   else
   {
     return (1) if $yychar == 0;
-#if YYDEBUG
     if ($yydebug)
     {
       $yys = '';
@@ -1402,7 +1390,6 @@ sub yy_err_recover
       print "yydebug: state $yystate, error recovery discards ",
             "token $yychar ($yys)\n";
     }
-#endif
     $yychar = -1;
     next yyloop;
   }
@@ -1411,20 +1398,8 @@ sub yy_err_recover
 
 sub yyparse
 {
-#ifdef YYDEBUG
-  if ($yys = $ENV{'YYDEBUG'})
-  {
-    $yydebug = int($1) if $yys =~ /^(\d)/;
-  }
-#endif
-
-  $yynerrs = 0;
-  $yyerrflag = 0;
-  $yychar = (-1);
-
-  $yyssp = 0;
-  $yyvsp = 0;
-  $yyss[$yyssp] = $yystate = 0;
+  $yychar = -1;
+  $yynerrs = $yyerrflag = $yyssp = $yyvsp = $yyss[0] = $yystate = 0;
 
 yyloop: while(1)
   {
@@ -1433,7 +1408,6 @@ yyloop: while(1)
       if ($yychar < 0)
       {
         if (($yychar = &yylex) < 0) { $yychar = 0; }
-#if YYDEBUG
         if ($yydebug)
         {
           $yys = '';
@@ -1441,15 +1415,12 @@ yyloop: while(1)
           if (!$yys) { $yys = 'illegal-symbol'; };
           print "yydebug: state $yystate, reading $yychar ($yys)\n";
         }
-#endif
       }
       if (($yyn = $yysindex[$yystate]) && ($yyn += $yychar) >= 0 &&
               $yycheck[$yyn] == $yychar)
       {
-#if YYDEBUG
         print "yydebug: state $yystate, shifting to state ",
               $yytable[$yyn], "\n"  if $yydebug;
-#endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
         $yychar = (-1);
@@ -1468,10 +1439,8 @@ yyloop: while(1)
       }
       return(1) if &yy_err_recover;
     } # yyreduce
-#if YYDEBUG
     print "yydebug: state $yystate, reducing by rule ",
           "$yyn ($yyrule[$yyn])\n"  if $yydebug;
-#endif
     $yym = $yylen[$yyn];
     $yyval = $yyvs[$yyvsp+1-$yym];
     switch:
@@ -1987,17 +1956,14 @@ last switch;
     $yym = $yylhs[$yyn];
     if ($yystate == 0 && $yym == 0)
     {
-#if YYDEBUG
       print "yydebug: after reduction, shifting from state 0 ",
             "to state $YYFINAL\n" if $yydebug;
-#endif
       $yystate = $YYFINAL;
       $yyss[++$yyssp] = $YYFINAL;
       $yyvs[++$yyvsp] = $yyval;
       if ($yychar < 0)
       {
         if (($yychar = &yylex) < 0) { $yychar = 0; }
-#if YYDEBUG
         if ($yydebug)
         {
           $yys = '';
@@ -2005,7 +1971,6 @@ last switch;
           if (!$yys) { $yys = 'illegal-symbol'; }
           print "yydebug: state $YYFINAL, reading $yychar ($yys)\n";
         }
-#endif
       }
       return(0) if $yychar == 0;
       next yyloop;
@@ -2017,10 +1982,8 @@ last switch;
     } else {
         $yystate = $yydgoto[$yym];
     }
-#if YYDEBUG
     print "yydebug: after reduction, shifting from state ",
         "$yyss[$yyssp] to state $yystate\n" if $yydebug;
-#endif
     $yyss[++$yyssp] = $yystate;
     $yyvs[++$yyvsp] = $yyval;
   } # yyloop
@@ -2037,7 +2000,7 @@ sub command_line()
       eval { require Math::BigFloat } or die "This program requires the Math::BigFloat module\n";
       $bignum = 1;
     } elsif ($f eq '-d') {
-      eval { require Data::Dumper } or die "This program requires the Data::Dumper module\n";
+      eval { require Data::Dumper; Data::Dumper->import; 1; } or die "This program requires the Data::Dumper module\n";
       $debug = 1;
     } elsif ($f eq '-y') {
       $yydebug = 1;
