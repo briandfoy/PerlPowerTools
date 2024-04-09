@@ -14,6 +14,7 @@ License: perl
 
 use strict;
 use integer;
+use warnings;
 
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
@@ -100,7 +101,9 @@ while ($questions < QUESTIONS) {
             report();
         }
         chomp $guess;
-        if ($guess =~ /\D/) {
+        $guess =~ s/\A\s+//;
+        $guess =~ s/\s+\Z//;
+        if (length($guess) == 0 || $guess =~ /\D/) {
             print "Please type a number.\n";
             redo;
         }
