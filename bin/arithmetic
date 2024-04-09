@@ -14,7 +14,6 @@ License: perl
 
 use strict;
 use integer;
-use warnings;
 
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
