@@ -215,7 +215,6 @@ $matched = 0;
 
 sub match_glob($) {
     local $_ = shift;
-    my $glob_expr = $_;
 
     $matched = 0;
     @errors  = ();
