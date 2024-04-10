@@ -77,6 +77,7 @@ use constant E_CLOSE   => 'cannot close file';
 use constant E_OPEN    => 'cannot open file';
 use constant E_READ    => 'cannot read file';
 use constant E_NOFILE  => 'no current filename';
+use constant E_FNAME   => 'invalid filename';
 use constant E_UNSAVED => 'buffer modified';
 use constant E_CMDBAD  => 'unknown command';
 use constant E_PATTERN => 'invalid pattern delimiter';
@@ -666,7 +667,7 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines, $chars, $fh);
+    my(@tmp_lines, $chars, $fh, $filename);
 
     if ($InsertMode) {
         if (defined $adrs[1]) {
@@ -682,10 +683,15 @@ sub edEdit {
         }
     }
 
-    my $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
-    $RememberedFilename = $filename;
-
-    if ($filename eq "" ) {
+    if (defined $args[0]) {
+        if (length($args[0]) == 0) {
+            edWarn(E_FNAME);
+            return 0;
+        }
+        $filename = $RememberedFilename = $args[0];
+    } elsif (defined $RememberedFilename) {
+        $filename = $RememberedFilename;
+    } else {
         $CurrentLineNum = 0;
         return 1;
     }
