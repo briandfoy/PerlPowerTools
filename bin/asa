@@ -49,15 +49,22 @@ exit $rc;
 sub run_file {
 	my $fh = shift;
 
+	my %prefix = (
+		'1' => "\f",
+		'+' => "\r",
+		'0' => "\n\n",
+		'-' => "\n\n\n",
+	);
 	while (<$fh>) {
 		chomp;
-		s/^$/ /;
-		s/^[^10+-]/\n/;
-		s/^1/\f/;
-		s/^\+/\r/;
-		s/^0/\n\n/;
-		s/^-/\n\n\n/;
-		print;
+		if (!length($_)) {
+			print "\n";
+			next;
+		}
+		my $c = substr $_, 0, 1;
+		$_ = substr $_, 1;
+		my $p = exists $prefix{$c} ? $prefix{$c} : "\n";
+		print $p, $_;
 	}
 }
 
