@@ -16,10 +16,11 @@ License: bsd
 # file -- report the type of a file
 #
 
+use strict;
+
 use FindBin;
 use FileHandle;
 use Getopt::Long;
-use strict;
 
 my $F = $FindBin::Script;
 
@@ -116,7 +117,7 @@ GetOptions(
     "c!",  \$checkMagic,
     "L!",  \$followLinks,
     "f=s", \$fileList
-    );
+    ) or usage();
 
 # the names of the files are in $fileList.
 if ($fileList) {
@@ -126,10 +127,7 @@ if ($fileList) {
     $fileListFH->close();
 }
 
-if (!@ARGV && !$checkMagic) {
-    die "usage: $F [-cL] [-f filelist] [-m magicfile] file ...\n";
-}
-
+usage() if (!@ARGV && !$checkMagic);
 if ( ! -f $magicFile ) {
     # have a fallback for now until a distribution heirarchy is done.
     # this works on many unix systems.
@@ -279,6 +277,11 @@ if ($checkMagic) {
 exit 0;
 
 ####### SUBROUTINES ###########
+
+sub usage {
+    warn "usage: $F [-cL] [-f filelist] [-m magicfile] file ...\n";
+    exit 1;
+}
 
 # compare the magic item with the filehandle.
 # if success, print info and return true.  otherwise return undef.
