@@ -81,13 +81,12 @@ sub draw {
 	if ($foo eq $guess) {
 		print "$asker drew the guess\n";
 		print "$asker get to go again\n";
-		push(@$drawarr, $foo);
 	} else {
 		print "$asker drew a $foo\n" if ($asker eq 'You');
 		# Professional mode...is watching you
 		@MY_PAST_GUESSES=();
-		push(@$drawarr, $foo);
 	}
+	push @$drawarr, $foo;
 	return($foo);
 }
 
