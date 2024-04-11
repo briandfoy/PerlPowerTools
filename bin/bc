@@ -2045,8 +2045,7 @@ sub next_file
     debug { "reading from $file\n" };
 
     die "path '$file' is a directory\n" if (-d $file);
-    open(IN, '<', $file) or die("cannot open '$file': $!\n");
-    $input = IN;
+    open($input, '<', $file) or die("cannot open '$file': $!\n");
     $cur_file = $file;
     return 1;
 
