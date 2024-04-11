@@ -64,7 +64,7 @@ sub check_number($)
     } elsif ($opt =~ m/\A\-?(\d+)\Z/) {
         return -($1+0);
     } else {
-        usage(1, "invalid number '$opt'");
+        usage(EX_FAILURE, "invalid number '$opt'");
     }
 }
 
@@ -98,34 +98,33 @@ sub parse_args()
     # If called as xtail, then no option is used except -h
     if ($me eq "xtail") {
 
-    GetOptions("h");
-    usage 0 if $opt_h;
+    GetOptions('h') or usage(EX_FAILURE);
+    usage(EX_SUCCESS) if $opt_h;
 
     } else {
 
     @ARGV = new_argv();
     Getopt::Long::config('bundling');
-    GetOptions("b=s", "c=s", "f", "h", "n=s", "r");
-
-    usage 0 if $opt_h;
-    usage 1, "-f and -r cannot be used together"
+    GetOptions("b=s", "c=s", "f", "h", "n=s", "r") or usage(EX_FAILURE);
+    usage(EX_SUCCESS) if $opt_h;
+    usage(EX_FAILURE, '-f and -r cannot be used together')
         if $opt_f and $opt_r;
 
     if (defined $opt_b) {
-        usage(1) if (defined($opt_c) || defined($opt_n));
+        usage(EX_FAILURE) if (defined($opt_c) || defined($opt_n));
         $point = check_number($opt_b);
         $type = 'b';
     } elsif (defined $opt_c) {
-        usage(1) if (defined($opt_b) || defined($opt_n));
+        usage(EX_FAILURE) if (defined($opt_b) || defined($opt_n));
         $point = check_number($opt_c);
         $type = 'c';
     } elsif (defined $opt_n) {
-        usage(1) if (defined($opt_b) || defined($opt_c));
+        usage(EX_FAILURE) if (defined($opt_b) || defined($opt_c));
         $point = check_number($opt_n);
         $type = 'n';
     }
 
-    usage(1, 'The number cannot be zero') if $point == 0;
+    usage(EX_FAILURE, 'The number cannot be zero') if $point == 0;
 
     $point = $point ? $point : -10;
     }
