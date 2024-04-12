@@ -1994,7 +1994,7 @@ last switch;
 $mathlib=0;
 sub command_line()
 {
-  while (@ARGV) {
+  while (@ARGV && $ARGV[0] =~ m/\A\-/) {
     my $f = shift @ARGV;
     if ($f eq '-b') {
       eval { require Math::BigFloat } or die "This program requires the Math::BigFloat module\n";
@@ -2006,14 +2006,23 @@ sub command_line()
       $yydebug = 1;
     } elsif ($f eq '-l') {
       $mathlib = 1;
+    } elsif ($f eq '--') {
+      last;
     } else {
-      push(@file_list, $f);
+      usage();
     }
   }
-# read from STDIN if no files are named on the command line
-  $do_stdin = 1 unless @file_list;
+  if (@ARGV) {
+    @file_list = @ARGV;
+  } else {
+    $do_stdin = 1;
+  }
 }
 
+sub usage {
+  warn "usage: bc [-b] [-d] [-y] [-l] [file ...]\n";
+  exit 1;
+}
 
 # After finishing a file, open the next one.  Return whether there
 # really is a next one that was opened.
