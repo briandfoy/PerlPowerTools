@@ -693,6 +693,7 @@ sub edEdit {
         $filename = $RememberedFilename;
     } else {
         $CurrentLineNum = 0;
+        @lines = (0);
         return 1;
     }
 
@@ -761,7 +762,7 @@ sub edEdit {
 
 sub edInsert {
     my($Mode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_chars);
+    my(@tmp_lines);
 
     if (defined($adrs[1])) {
         edWarn(E_ADDREXT);
@@ -776,31 +777,22 @@ sub edInsert {
     }
 
     # suck the text into a temp array
-
-    @tmp_lines = ();
-    $tmp_chars = 0;
-
     while (<>) {
         last if (/^\.$/);
         push(@tmp_lines,$_);
-        $tmp_chars += length;
+    }
+    if (scalar(@tmp_lines) == 0) {
+        return 1;
     }
 
     my $src = $adrs[0];
-    $src-- if ($src && $Mode == $INSERT_MODE);
+    $src++ if ($src && $Mode == $APPEND_MODE);
+    $src++ if $src == 0; # 0a == 0i == 1i
 
-    shift @lines; # get rid of 0 line
-    @tmp_lines2 = splice @lines, 0, $src;
-    unshift @lines, @tmp_lines;
-    unshift @lines, @tmp_lines2;
-    $CurrentLineNum = $src + scalar(@tmp_lines);
-    unshift @lines, undef; # put 0 line back
+    splice @lines, $src, 0, @tmp_lines;
 
-    if ($tmp_chars) {
-        $NeedToSave = 1;
-        $UserHasBeenWarned = 0;
-    }
-
+    $NeedToSave = 1;
+    $UserHasBeenWarned = 0;
     return 1;
 }
 
