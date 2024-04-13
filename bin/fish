@@ -20,6 +20,7 @@ my(@DECK, @PLAYERS_HAND, @COMPUTERS_HAND, %BOOKS, %opt);
 my(@HIS_PAST_GUESSES, @MY_PAST_GUESSES);
 my($asker, $opponent, $professional, $whoseturn, $status, $myb, $yourb);
 my %so=( 'A'=>1, 'J'=>11, 'Q'=>12, 'K'=>13 );  # For sort ranking, below.
+my %iscard = map { $_ => 1 } qw(A J Q K 2 3 4 5 6 7 8 9 10);
 
 sub pickone {		# Computer's card-picking routine.  Dumb or smart.
 	my($myarr)=@_;
@@ -92,6 +93,7 @@ sub draw {
 
 sub askfor {
 	my($askarr, $vicarr, $card)=@_;   # The asker, the victim, and the card
+	$card = uc $card;
 
 	if ($card eq "") {
 		print "I have ", scalar(@COMPUTERS_HAND), " cards in my hand ";
@@ -99,13 +101,13 @@ sub askfor {
 		print "There are ", scalar(@DECK), " cards remaining in the stock\n";
 		return;
 	}
-	exit if ($card eq 'quit');
-	if ($card eq 'p') {
+	exit if ($card eq 'QUIT');
+	if ($card eq 'P') {
 		$professional=!$professional;
 		print $professional?"Entering":"Leaving", " professional mode\n";
 		return;
 	}
-	if (! grep($card eq $_, (keys %so, 2..10) )) {
+	unless (exists $iscard{$card}) {
 		print "I don't understand!\n";
 		return;
 	}
