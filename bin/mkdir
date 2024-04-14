@@ -40,8 +40,12 @@ sub usage {
 	}
 
 my $symbolic = 0;
-if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
-    $symbolic = 1;
+if (defined $options{'m'}) {
+	if (length($options{'m'}) == 0) {
+		warn "invalid mode\n";
+		exit EX_ERROR;
+	}
+	$symbolic = 1 if $options{'m'} =~ /[^0-7]/;
 }
 
 # Pay attention before you get lost. The argument list will be turned
@@ -74,7 +78,7 @@ foreach my $directory (@ARGV) {
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
-        warn qq 'cannot create make directory "$dir": $!\n';
+        warn "cannot create directory '$dir': $!\n";
         $err++;
         next;
     };
