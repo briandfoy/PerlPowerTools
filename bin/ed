@@ -623,14 +623,14 @@ sub edWrite {
         }
     }
 
-    $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
-
-    if (!defined($filename)) {
+    if (defined $args[0]) {
+        $filename = $RememberedFilename = $args[0];
+    } elsif (defined $RememberedFilename) {
+        $filename = $RememberedFilename;
+    } else {
         edWarn(E_NOFILE);
         return;
     }
-    $RememberedFilename = $filename;
-
     my $mode = $AppendMode ? '>>' : '>';
     unless (open $fh, $mode, $filename) {
         warn "$filename: $!\n";
