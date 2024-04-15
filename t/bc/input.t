@@ -158,7 +158,7 @@ sub operator_table {
         ],
         [
         	"x = -1\ny = 0.5\nx ^= y\nx",
-        	'NaN', # NaN might be -nan
+        	qr/-?NaN/i, # NaN might be -nan
         	'binary assignment (exponentiation - square root of -1)'
         ],
     ];
