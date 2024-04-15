@@ -180,7 +180,7 @@ if ($status=~/^y/i) {
 	print "Press <return>"; $status=<STDIN>;
 }
 
-@DECK = qw(A K Q J 10 9 8 7 6 5 4 3 2) x 4;
+@DECK = (keys %iscard) x 4;
 fisher_yates_shuffle(\@DECK);
 
 foreach(1..7) {
@@ -198,30 +198,22 @@ while(1) {
 	printhand(\@PLAYERS_HAND,"You");
 	$asker=$whoseturn?"You":"I";
 	$opponent=(!$whoseturn)?"You":"I";
+	my $hand;
 	if ($whoseturn) {
 		$status=playguess();
-		if ($status) {
-			if (&draw(\@PLAYERS_HAND, $status) eq $status) {
-				havebook(\@PLAYERS_HAND);
-				redo;
-			} else {
-				redo if (havebook(\@PLAYERS_HAND));
-				$whoseturn=!$whoseturn;
-			}
-		}
-		redo;
+		$hand = \@PLAYERS_HAND;
 	} else {
 		$status=compguess();
-		if ($status) {
-			if (&draw(\@COMPUTERS_HAND, $status) eq $status) {
-				havebook(\@COMPUTERS_HAND);
-				redo;
-			} else {
-				redo if (havebook(\@COMPUTERS_HAND));
-				$whoseturn=!$whoseturn;
-			}
+		$hand = \@COMPUTERS_HAND;
+	}
+	if ($status) {
+		if (draw($hand, $status) eq $status) {
+			havebook($hand);
+			redo;
+		} else {
+			redo if (havebook($hand));
+			$whoseturn=!$whoseturn;
 		}
-		redo;
 	}
 }
 
