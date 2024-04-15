@@ -233,7 +233,7 @@ sub statement_table {
 
         [
         	'for ( v=0; v<5; v++) { print v; if (v>2) break }; print "\n"',
-            "0123\n",
+            "0123",
             'for with break statement',
         ],
 
