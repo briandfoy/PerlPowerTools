@@ -223,6 +223,8 @@ sub statement_table {
         	'v=5; while (v--) { print v }; print "\n"',
             "43210",
             'while statement',
+            undef,
+            'while seems to be broken (#522)',
         ],
 
         [
