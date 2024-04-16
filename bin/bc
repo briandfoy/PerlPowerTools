@@ -1283,7 +1283,7 @@ my @yyrule = (
 "stmt_compile : PRINT \$\$3 expr_list_commas",
 "\$\$4 :",
 "stmt_compile : '{' \$\$4 stmt_list_block '}'",
-"\$$5 :",
+"\$\$5 :",
 "stmt_compile : IF '(' stmt_compile ')' \$\$5 terminator_or_void stmt_compile",
 "\$\$6 :",
 "\$\$7 :",
@@ -2282,7 +2282,6 @@ sub finish_stmt
 }
 
 my ($res, $val);
-my $code;
 
 #
 # exec_stmt
@@ -2482,7 +2481,7 @@ sub exec_stmt
      my $i_incr = shift @stmt_s;
      my $i_body = shift @stmt_s;
 
-     my $val=1;
+     $val = 1;
 
 #     debug { "cond: ".Dumper($i_cond) };
 
@@ -2717,7 +2716,6 @@ sub exec_stmt
 
  }
 
-  my $val;
   if ($return == 3) {
     @ope_stack = ();
   } else {
