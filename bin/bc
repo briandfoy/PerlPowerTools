@@ -1283,7 +1283,7 @@ my @yyrule = (
 "stmt_compile : PRINT \$\$3 expr_list_commas",
 "\$\$4 :",
 "stmt_compile : '{' \$\$4 stmt_list_block '}'",
-"\$$5 :",
+"\$\$5 :",
 "stmt_compile : IF '(' stmt_compile ')' \$\$5 terminator_or_void stmt_compile",
 "\$\$6 :",
 "\$\$7 :",
