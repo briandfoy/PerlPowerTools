@@ -89,15 +89,35 @@ unless ($Width && $Width =~ /^\d+$/) {
 if ($Space_Break && $Width < $Tabstop) {
     usage("width must be greater than $Tabstop with the -s option");
 }
+my $func = $Byte_Only ? \&fold_file_byte : \&fold_file;
 
-my $err = 0;
+my $rc = EX_SUCCESS;
 for (@ARGV) {
-    $err |= fold_file($_);
+    if (-d $_) {
+        warn "$Program: '$_': is a directory\n";
+        $rc = EX_FAILURE;
+        next;
+    }
+    my $fh;
+    unless (open $fh, '<', $_) {
+        warn "$Program: failed to open '$_': $!\n";
+        $rc = EX_FAILURE;
+        next;
+    }
+    if ($func->($fh) != 0) {
+        $rc = EX_FAILURE;
+    }
+    unless (close $fh) {
+        warn "$Program: failed to close '$_': $!\n";
+        $rc = EX_FAILURE;
+    }
 }
 unless (@ARGV) {
-    $err |= fold_file();
+    if ($func->(*STDIN) != 0) {
+        $rc = EX_FAILURE;
+    }
 }
-exit ($err ? EX_FAILURE : EX_SUCCESS);
+exit $rc;
 
 ########
 
@@ -117,25 +137,8 @@ sub adj_col {
     return $col;
 }
 
-# run fold on a given file
-sub fold_file {
-    my($filename) = @_;
-    my($column, $char, $input, $output);
-
-    $column = 0;
-    if (defined $filename) {
-        if (-d $filename) {
-            warn "$Program: '$filename': is a directory\n";
-            return 1;
-        }
-        unless (open $input, '<', $filename) {
-            warn "$Program: '$filename': $!\n";
-            return 1;
-        }
-    } else {
-        $filename = '(stdin)';
-        $input = *STDIN;
-    }
+sub fold_file_byte {
+    my $input = shift;
 
     # the following hack allows us to dispense with the
     # slow getc() and the hairy adj_col() code because we
@@ -143,24 +146,25 @@ sub fold_file {
     # provides a screaming 3,000% speedup, so seems worth it!
     #   --tchrist
 
-    if ($Byte_Only) {
-        my $soft  = "(.{0,$Width})(?=\b.)";   # XXX: \b != \s
-        my $hard  = "(.{$Width})(?=.)";
-        if ($Space_Break) {
-            while (<$input>) {
-              (s/$soft//o || s/$hard//o), print "$1\n" while length > $Width;
-              print;
-            }
-        } else {
-            s/$hard/$1\n/go, print while <$input>;   # SCREAM
+    my $soft  = "(.{0,$Width})(?=\b.)";   # XXX: \b != \s
+    my $hard  = "(.{$Width})(?=.)";
+    if ($Space_Break) {
+        while (<$input>) {
+          (s/$soft//o || s/$hard//o), print "$1\n" while length > $Width;
+          print;
         }
-        unless (close $input) {
-            warn "$Program: $filename: failed to close input\n";
-            return 1;
-        }
-        return 0;
+    } else {
+        s/$hard/$1\n/go, print while <$input>;   # SCREAM
     }
+    return 0;
+}
 
+# run fold on a given file
+sub fold_file {
+    my $input = shift;
+    my($column, $char, $output);
+
+    $column = 0;
 CHAR:   # bytewise processing.  The horror! The horror!
     while (defined($char = getc($input))) {
 
@@ -198,10 +202,6 @@ ADJUST: {
             $output .= $char;
         }
       }  # ADJUST goto
-    }
-    unless (close $input) {
-        warn "$Program: $filename: failed to close input\n";
-        return 1;
     }
     return 0;
 }
