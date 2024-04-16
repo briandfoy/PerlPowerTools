@@ -718,6 +718,11 @@ sub edEdit {
         edWarn(E_CLOSE);
         return 0;
     }
+    if ($chars == 0) {
+        $UserHasBeenWarned = 0;
+        print "0\n" unless $SupressCounts;
+        return 1;
+    }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
         $tmp_lines[-1] .= "\n";
         $chars++;
@@ -729,15 +734,12 @@ sub edEdit {
     if ($InsertMode) {
         if (maxline() != 0 && $adrs[0] == maxline()) {
             push(@lines,@tmp_lines);
-            $CurrentLineNum = maxline();
         } elsif ($adrs[0] == 0) {
             splice @lines, 1, 0, @tmp_lines;
-            $CurrentLineNum = scalar(@tmp_lines);
         } else {
             splice @lines, $adrs[0] + 1, 0, @tmp_lines;
-            $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
-
+        $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         $NeedToSave = 1;
     } else {
         if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
