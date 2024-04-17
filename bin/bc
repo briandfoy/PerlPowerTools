@@ -1382,7 +1382,7 @@ sub yy_err_recover
              " to state $yytable[$yyn]\n" if $yydebug;
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
-        next yyloop;
+        yyparse();
       }
       else
       {
@@ -1406,16 +1406,19 @@ sub yy_err_recover
             "token $yychar ($yys)\n";
     }
     yyclearin();
-    next yyloop;
+    yyparse();
   }
 0;
 } # yy_err_recover
 
-sub yyparse
+sub clear_flags
 {
   yyclearin();
   $yynerrs = $yyerrflag = $yyssp = $yyvsp = $yyss[0] = $yystate = 0;
+}
 
+sub yyparse
+{
 yyloop: while(1)
   {
     yyreduce: {
@@ -2749,6 +2752,7 @@ sub main
     {
       $line = '';
       eval {
+        clear_flags();
         $status = yyparse();
         1;
       } or do {
