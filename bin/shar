@@ -43,7 +43,7 @@ my $done = 0;
 ARGUMENT: for my $f ( @ARGV ) {
     if (-d $f) {
 	print "echo x - $f/\n";
-	print "mkdir -p $f\n";
+	print "mkdir -p '$f'\n";
 	$done++;
 	next ARGUMENT;
     }
@@ -63,11 +63,14 @@ ARGUMENT: for my $f ( @ARGV ) {
 	print pack 'u', $block while read FH, $block, 45;
 	print "end\n";
     } else {
-	print "sed -e 's/^X//' >$f <<'FUNKY_STUFF'\n";
+	print "sed -e 's/^X//' >'$f' <<'FUNKY_STUFF'\n";
 	print 'X', $_ while ( <FH> );
     }
     print "FUNKY_STUFF\n";
-    close(FH);
+    unless (close FH) {
+	warn "$Program: can't close '$f': $!\n";
+	next ARGUMENT;
+    }
     $done++;
 }
 if ($done == 0) {
