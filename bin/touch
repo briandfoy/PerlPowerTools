@@ -40,7 +40,7 @@ my $modification_time = exists $options {m}  ||  !exists $options {a};
 my $no_create         = exists $options {c};
 
 my ($atime, $mtime, $special_time);
-if ($options {r}) {
+if (defined $options{'r'}) {
     ($atime, $mtime) = (stat $options {r}) [8, 9] or die "$options{r}: $!\n";
     $special_time = 1;
 }
