@@ -271,10 +271,16 @@ sub run_table {
 			TODO: {
 				local $TODO = $todo;
 				if( ! ref $expected ) {
-					is $output, $expected // '', $description;
+					is $output, (defined $expected ? $expected : ''), $description;
 					}
-				elsif( ref $expected eq ref qr// ) {
+				elsif( $] < 5.010 and ref $expected eq ref qr// ) {
 					like $output, $expected, $description;
+					}
+				else {
+					SKIP: {
+						skip "$] does not have qr//", 1;
+						pass($label);
+						};
 					}
 				}
             }
