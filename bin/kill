@@ -31,13 +31,13 @@ if ( $ARGV[0] =~ /^-l$/i ) { # list signals
 	siglist();
 	exit 0;
 }
-elsif ( $ARGV[0] =~ /^-\d+$/ ) { # -signalnumber
-	($signal)=($ARGV[0]=~/^-(\d+)/);
+elsif ( $ARGV[0] =~ m/\A\-([0-9]+)\Z/ ) { # -signalnumber
+	$signal = $1;
 	die "$0: Bad signal number.\n" if ( $signal > $#signals );
 	shift @ARGV;
 }
-elsif ( $ARGV[0] =~ /^-/ ) { # -NAME or -s NAME
-	($signal)=($ARGV[0]=~/^-(.+)$/);
+elsif ( $ARGV[0] =~ /\A\-(.+)\Z/ ) { # -NAME or -s NAME
+	$signal = $1;
 	shift @ARGV;
 	$signal = shift @ARGV if ( lc $signal eq "s" ); # -s has signalname param.
 	$signal = uc $signal;
