@@ -70,8 +70,7 @@ my $lines_read = 0;
 my $saw_difference;
 
 my %opt;
-getopts('?ls', \%opt) or usage();
-manual() if $opt{'?'};
+getopts('ls', \%opt) or usage();
 if ($opt{'l'}) {
     if ($opt{'s'}) {
         warn "$Program: options -l and -s are incompatible\n";
@@ -231,15 +230,6 @@ sub usage {
     exit EX_USAGE;
 }
 
-sub manual {
-	require Pod::Usage;
-
-	Pod::Usage::pod2usage({
-		-exitval => EX_SUCCESS,
-		-verbose => 2,
-	});
-}
-
 __END__
 
 =head1 NAME
@@ -289,10 +279,6 @@ all output and warnings.
 list differences; return the byte number and the differing byte values
 for each difference between the two files.  The byte number is given
 in decimal, and the byte values are given in octal.
-
-=item -?
-
-show the documentation
 
 =back
 
