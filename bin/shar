@@ -25,11 +25,6 @@ use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
 
-sub usage {
-    warn "usage: $Program file...\n";
-    exit EX_FAILURE;
-}
-
 getopts('') or usage();
 @ARGV or usage();
 binmode STDOUT;
@@ -41,9 +36,14 @@ print '# --cut here--
 
 my $done = 0;
 ARGUMENT: for my $f ( @ARGV ) {
+    if (length($f) == 0) {
+	warn "$Program: empty file name\n";
+	next ARGUMENT;
+    }
+    my $quoted = quotefile($f);
     if (-d $f) {
-	print "echo x - $f/\n";
-	print "mkdir -p $f\n";
+	print "echo x - $quoted/\n";
+	print "mkdir -p $quoted\n";
 	$done++;
 	next ARGUMENT;
     }
@@ -53,7 +53,7 @@ ARGUMENT: for my $f ( @ARGV ) {
     }
     binmode FH;
 
-    print "echo x - $f\n";
+    print "echo x - $quoted\n";
     if (-B $f) {
 	my $mode = (stat $f)[2];
 	$mode = (join '', 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
@@ -63,11 +63,14 @@ ARGUMENT: for my $f ( @ARGV ) {
 	print pack 'u', $block while read FH, $block, 45;
 	print "end\n";
     } else {
-	print "sed -e 's/^X//' >$f <<'FUNKY_STUFF'\n";
+	print "sed -e 's/^X//' >$quoted <<'FUNKY_STUFF'\n";
 	print 'X', $_ while ( <FH> );
     }
     print "FUNKY_STUFF\n";
-    close(FH);
+    unless (close FH) {
+	warn "$Program: can't close '$f': $!\n";
+	next ARGUMENT;
+    }
     $done++;
 }
 if ($done == 0) {
@@ -75,6 +78,20 @@ if ($done == 0) {
     exit EX_FAILURE;
 }
 exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program file...\n";
+    exit EX_FAILURE;
+}
+
+sub quotefile {
+    my $name = shift;
+    if ($name =~ m/[\s\'\"\(\)\[\]\{\}\;\:\*]/) {
+	$name =~ s/\"/\\\"/g;
+	$name = "\"$name\"";
+    }
+    return $name;
+}
 
 __END__
 

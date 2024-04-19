@@ -14,18 +14,17 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
 my ($VERSION) = '1.3';
-my $Program;
-BEGIN { $Program = do { require File::Basename; File::Basename::basename($0) }; }
+my $Program = basename($0);
 
 $SIG{__WARN__} = sub { warn "$Program: @_\n" };
 $SIG{__DIE__} =  sub { die  "$Program: @_\n" };
 
 my %options;
 getopts('m:p', \%options) or usage();
-
 usage() unless @ARGV;
 
 use constant EX_SUCCESS => 0;
@@ -36,13 +35,17 @@ sub usage {
 	require Pod::Usage;
 	Pod::Usage::pod2usage({
 		-exitval => EX_USAGE,
-		-verbose => 2,
+		-verbose => 1,
 		});
 	}
 
 my $symbolic = 0;
-if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
-    $symbolic = 1;
+if (defined $options{'m'}) {
+	if (length($options{'m'}) == 0) {
+		warn "invalid mode\n";
+		exit EX_ERROR;
+	}
+	$symbolic = 1 if $options{'m'} =~ /[^0-7]/;
 }
 
 # Pay attention before you get lost. The argument list will be turned
@@ -51,14 +54,13 @@ if (exists $options{'m'} && $options{'m'} =~ /[^0-7]/) {
 # or not. "intermediate" directories are the directories interfered by
 # -p, but not given on the command line.
 if (exists $options{'p'}) {
-    require File::Basename;
     my @ARGV2;
     while (@ARGV) {
         my $dir = pop @ARGV;
         my $intermediate = 0;
-        while( $dir ne File::Basename::dirname($dir) ) {
+        while( $dir ne dirname($dir) ) {
             push @ARGV2 => [$dir, $intermediate ++];
-            $dir = File::Basename::dirname($dir);
+            $dir = dirname($dir);
         }
     }
     @ARGV = reverse @ARGV2;
@@ -76,7 +78,7 @@ foreach my $directory (@ARGV) {
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
-        warn qq 'cannot create make directory "$dir": $!\n';
+        warn "cannot create directory '$dir': $!\n";
         $err++;
         next;
     };

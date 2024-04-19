@@ -77,6 +77,7 @@ use constant E_CLOSE   => 'cannot close file';
 use constant E_OPEN    => 'cannot open file';
 use constant E_READ    => 'cannot read file';
 use constant E_NOFILE  => 'no current filename';
+use constant E_FNAME   => 'invalid filename';
 use constant E_UNSAVED => 'buffer modified';
 use constant E_CMDBAD  => 'unknown command';
 use constant E_PATTERN => 'invalid pattern delimiter';
@@ -622,14 +623,14 @@ sub edWrite {
         }
     }
 
-    $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
-
-    if (!defined($filename)) {
+    if (defined $args[0]) {
+        $filename = $RememberedFilename = $args[0];
+    } elsif (defined $RememberedFilename) {
+        $filename = $RememberedFilename;
+    } else {
         edWarn(E_NOFILE);
         return;
     }
-    $RememberedFilename = $filename;
-
     my $mode = $AppendMode ? '>>' : '>';
     unless (open $fh, $mode, $filename) {
         warn "$filename: $!\n";
@@ -666,7 +667,7 @@ sub edWrite {
 
 sub edEdit {
     my($QuestionsMode,$InsertMode) = @_;
-    my(@tmp_lines, $chars, $fh);
+    my(@tmp_lines, $chars, $fh, $filename);
 
     if ($InsertMode) {
         if (defined $adrs[1]) {
@@ -682,11 +683,17 @@ sub edEdit {
         }
     }
 
-    my $filename = defined($args[0]) ? $args[0] : $RememberedFilename;
-    $RememberedFilename = $filename;
-
-    if ($filename eq "" ) {
+    if (defined $args[0]) {
+        if (length($args[0]) == 0) {
+            edWarn(E_FNAME);
+            return 0;
+        }
+        $filename = $RememberedFilename = $args[0];
+    } elsif (defined $RememberedFilename) {
+        $filename = $RememberedFilename;
+    } else {
         $CurrentLineNum = 0;
+        @lines = (0);
         return 1;
     }
 
@@ -711,6 +718,11 @@ sub edEdit {
         edWarn(E_CLOSE);
         return 0;
     }
+    if ($chars == 0) {
+        $UserHasBeenWarned = 0;
+        print "0\n" unless $SupressCounts;
+        return 1;
+    }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
         $tmp_lines[-1] .= "\n";
         $chars++;
@@ -722,15 +734,12 @@ sub edEdit {
     if ($InsertMode) {
         if (maxline() != 0 && $adrs[0] == maxline()) {
             push(@lines,@tmp_lines);
-            $CurrentLineNum = maxline();
         } elsif ($adrs[0] == 0) {
             splice @lines, 1, 0, @tmp_lines;
-            $CurrentLineNum = scalar(@tmp_lines);
         } else {
             splice @lines, $adrs[0] + 1, 0, @tmp_lines;
-            $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         }
-
+        $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         $NeedToSave = 1;
     } else {
         if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
@@ -755,7 +764,7 @@ sub edEdit {
 
 sub edInsert {
     my($Mode) = @_;
-    my(@tmp_lines,@tmp_lines2,$tmp_chars);
+    my(@tmp_lines);
 
     if (defined($adrs[1])) {
         edWarn(E_ADDREXT);
@@ -770,31 +779,22 @@ sub edInsert {
     }
 
     # suck the text into a temp array
-
-    @tmp_lines = ();
-    $tmp_chars = 0;
-
     while (<>) {
         last if (/^\.$/);
         push(@tmp_lines,$_);
-        $tmp_chars += length;
+    }
+    if (scalar(@tmp_lines) == 0) {
+        return 1;
     }
 
     my $src = $adrs[0];
-    $src-- if ($src && $Mode == $INSERT_MODE);
+    $src++ if ($src && $Mode == $APPEND_MODE);
+    $src++ if $src == 0; # 0a == 0i == 1i
 
-    shift @lines; # get rid of 0 line
-    @tmp_lines2 = splice @lines, 0, $src;
-    unshift @lines, @tmp_lines;
-    unshift @lines, @tmp_lines2;
-    $CurrentLineNum = $src + scalar(@tmp_lines);
-    unshift @lines, undef; # put 0 line back
+    splice @lines, $src, 0, @tmp_lines;
 
-    if ($tmp_chars) {
-        $NeedToSave = 1;
-        $UserHasBeenWarned = 0;
-    }
-
+    $NeedToSave = 1;
+    $UserHasBeenWarned = 0;
     return 1;
 }
 

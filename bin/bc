@@ -801,11 +801,12 @@ repository:
 =cut
 
 #define YYBYACC 1
-#line 49 "bc.y"
 
-;# The symbol table : the keys are the identifiers, the value is in the
-;# "var" field if it is a variable, in the "func" field if it is a
-;# function.
+use strict;
+
+# The symbol table : the keys are the identifiers, the value is in the
+# "var" field if it is a variable, in the "func" field if it is a
+# function.
 my %sym_table;
 my @stmt_list = ();
 my @ope_stack;
@@ -814,57 +815,67 @@ my $input;
 my $cur_file = '-';
 my $bignum = 0;
 my $do_stdin = 0;
+my $line;
+my $var;
+my $yychar;
+my $yydebug;
+my $yyerrflag;
+my $yylval;
+my $yyn;
+my $yynerrs;
+my $yym;
+my $yyssp;
+my $yystate;
+my $yyval;
+my $yyvsp;
 
-$debug = 0;
+my $debug = 0;
 sub debug(&) {
   my $fn = shift;
   print STDERR "\t".&$fn()
     if $debug;
 }
 
-;#$yydebug=1;
-
-#line 32 "y.tab.pl"
-$INT=257;
-$FLOAT=258;
-$STRING=259;
-$IDENT=260;
-$C_COMMENT=261;
-$BREAK=262;
-$DEFINE=263;
-$AUTO=264;
-$RETURN=265;
-$PRINT=266;
-$AUTO_LIST=267;
-$IF=268;
-$ELSE=269;
-$QUIT=270;
-$WHILE=271;
-$FOR=272;
-$EQ=273;
-$NE=274;
-$GT=275;
-$GE=276;
-$LT=277;
-$LE=278;
-$PP=279;
-$MM=280;
-$P_EQ=281;
-$M_EQ=282;
-$F_EQ=283;
-$D_EQ=284;
-$EXP_EQ=285;
-$MOD_EQ=286;
-$L_SHIFT=287;
-$R_SHIFT=288;
-$E_E=289;
-$O_O=290;
-$EXP=291;
-$UNARY=292;
-$PPP=293;
-$MMM=294;
-$YYERRCODE=256;
-@yylhs = (                                               -1,
+my $INT=257;
+my $FLOAT=258;
+my $STRING=259;
+my $IDENT=260;
+my $C_COMMENT=261;
+my $BREAK=262;
+my $DEFINE=263;
+my $AUTO=264;
+my $RETURN=265;
+my $PRINT=266;
+my $AUTO_LIST=267;
+my $IF=268;
+my $ELSE=269;
+my $QUIT=270;
+my $WHILE=271;
+my $FOR=272;
+my $EQ=273;
+my $NE=274;
+my $GT=275;
+my $GE=276;
+my $LT=277;
+my $LE=278;
+my $PP=279;
+my $MM=280;
+my $P_EQ=281;
+my $M_EQ=282;
+my $F_EQ=283;
+my $D_EQ=284;
+my $EXP_EQ=285;
+my $MOD_EQ=286;
+my $L_SHIFT=287;
+my $R_SHIFT=288;
+my $E_E=289;
+my $O_O=290;
+my $EXP=291;
+my $UNARY=292;
+my $PPP=293;
+my $MMM=294;
+my $YYERRCODE=256;
+my @yylhs = (                                            -1,
     0,    0,    1,    1,    1,    3,    4,    9,    3,    3,
     3,   12,    3,   13,    3,   14,    3,   15,   17,    3,
    18,   19,   20,    3,    3,   10,   10,   16,   16,    8,
@@ -875,7 +886,7 @@ $YYERRCODE=256;
    21,   21,   21,   21,   21,   21,   21,   21,   21,   21,
    21,   21,   21,   21,   21,   21,   21,   26,   26,
 );
-@yylen = (                                                2,
+my @yylen = (                                             2,
     0,    2,    1,    2,    2,    1,    0,    0,   13,    1,
     1,    0,    3,    0,    4,    0,    7,    0,    0,    8,
     0,    0,    0,   13,    1,    1,    4,    0,    1,    1,
@@ -886,7 +897,7 @@ $YYERRCODE=256;
     3,    3,    3,    2,    2,    2,    2,    2,    2,    2,
     2,    3,    6,    1,    1,    1,    1,    1,    4,
 );
-@yydefred = (                                             1,
+my @yydefred = (                                          1,
     0,    0,   85,   86,   87,    0,    0,   11,    7,    0,
    12,    0,    6,   18,    0,    0,    0,    0,    0,    0,
    14,    0,   34,   35,    2,    3,    0,   10,    0,    0,
@@ -905,12 +916,12 @@ $YYERRCODE=256;
     0,    0,    0,    0,    8,   23,   46,    0,    0,    0,
     0,   45,    0,    0,   47,    9,   24,
 );
-@yydgoto = (                                              1,
+my @yydgoto = (                                           1,
    25,  140,   86,   36,  129,  141,  155,   90,  159,   28,
    82,   38,   48,  132,   40,   91,  147,  134,  151,  160,
    29,  130,   77,   78,  158,   30,
 );
-@yysindex = (                                             0,
+my @yysindex = (                                          0,
   475,   -8,    0,    0,    0,   84, -239,    0,    0,  -11,
     0,    3,    0,    0,   19, -218, -218,  899,  899,  899,
     0,  899,    0,    0,    0,    0,   -8,    0,  893,  -54,
@@ -929,7 +940,7 @@ $YYERRCODE=256;
   958, -116,  108, -103,    0,    0,    0,   18,  958,   -8,
  -100,    0,   31,  958,    0,    0,    0,
 );
-@yyrindex = (                                             0,
+my @yyrindex = (                                          0,
     0,    0,    0,    0,    0,  -10,    0,    0,    0,   28,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,   30,   37,
@@ -948,12 +959,12 @@ $YYERRCODE=256;
   145,  499,    0,    0,    0,    0,    0,    0,   36, 1023,
     0,    0,    0,    0,    0,    0,    0,
 );
-@yygindex = (                                             0,
+my @yygindex = (                                          0,
     0,  358,   52,    0,    0, -108,    0,   38,    0,    0,
     0,    0,    0,    0,    0,  337,    0,    0,    0,    0,
  1278,    0,    0,    0,    0,    2,
 );
-@yytable = (                                             88,
+my @yytable = (                                          88,
    42,   24,   43,   42,   65,   43,   65,   65,   89,   63,
    61,   63,   62,   82,   64,   65,   64,   43,   44,   35,
    63,   61,   89,   62,  142,   64,   88,   24,   37,  144,
@@ -1096,7 +1107,7 @@ $YYERRCODE=256;
     0,    0,  126,    0,    0,    0,  131,    0,    0,    0,
     0,    0,    0,    0,  137,
 );
-@yycheck = (                                             10,
+my @yycheck = (                                          10,
    41,   10,   41,   44,   37,   44,   37,   37,   41,   42,
    43,   42,   45,   10,   47,   37,   47,   16,   17,  259,
    42,   43,   10,   45,  133,   47,   37,   10,   40,  138,
@@ -1239,13 +1250,9 @@ $YYERRCODE=256;
    -1,   -1,  115,   -1,   -1,   -1,  119,   -1,   -1,   -1,
    -1,   -1,   -1,   -1,  127,
 );
-$YYFINAL=1;
-#ifndef YYDEBUG
-#define YYDEBUG 0
-#endif
-$YYMAXTOKEN=294;
-#if YYDEBUG
-@yyname = (
+my $YYFINAL=1;
+my $YYMAXTOKEN=294;
+my @yyname = (
 "end-of-file",'','','','','','','','','',"'\\n'",'','','','','','','','','','','','','','','','','','','','',
 '','',"'!'",'','','',"'%'","'&'",'',"'('","')'","'*'","'+'","','","'-'","'.'","'/'",'',
 '','','','','','','','','','',"';'",'',"'='",'','','','','','','','','','','','','','','','','','','','','','','',
@@ -1259,7 +1266,7 @@ $YYMAXTOKEN=294;
 "F_EQ","D_EQ","EXP_EQ","MOD_EQ","L_SHIFT","R_SHIFT","E_E","O_O","EXP","UNARY",
 "PPP","MMM",
 );
-@yyrule = (
+my @yyrule = (
 "\$accept : stmt_list_exec",
 "stmt_list_exec :",
 "stmt_list_exec : stmt_list_exec stmt_exec",
@@ -1267,24 +1274,24 @@ $YYMAXTOKEN=294;
 "stmt_exec : stmt_compile terminator",
 "stmt_exec : error terminator",
 "stmt_compile : QUIT",
-"\$$1 :",
-"\$$2 :",
-"stmt_compile : DEFINE $$1 IDENT '(' arg_list ')' terminator_or_void '{' terminator auto_list $$2 stmt_list_block '}'",
+"\$\$1 :",
+"\$\$2 :",
+"stmt_compile : DEFINE \$\$1 IDENT '(' arg_list ')' terminator_or_void '{' terminator auto_list \$\$2 stmt_list_block '}'",
 "stmt_compile : return",
 "stmt_compile : BREAK",
-"\$$3 :",
-"stmt_compile : PRINT $$3 expr_list_commas",
-"\$$4 :",
-"stmt_compile : '{' $$4 stmt_list_block '}'",
-"\$$5 :",
-"stmt_compile : IF '(' stmt_compile ')' $$5 terminator_or_void stmt_compile",
-"\$$6 :",
-"\$$7 :",
-"stmt_compile : WHILE $$6 '(' stmt_compile_or_void ')' terminator_or_void $$7 stmt_compile",
-"\$$8 :",
-"\$$9 :",
-"\$$10 :",
-"stmt_compile : FOR '(' stmt_compile_or_void ';' $$8 stmt_compile_or_void ';' $$9 stmt_compile_or_void ')' $$10 terminator_or_void stmt_compile",
+"\$\$3 :",
+"stmt_compile : PRINT \$\$3 expr_list_commas",
+"\$\$4 :",
+"stmt_compile : '{' \$\$4 stmt_list_block '}'",
+"\$\$5 :",
+"stmt_compile : IF '(' stmt_compile ')' \$\$5 terminator_or_void stmt_compile",
+"\$\$6 :",
+"\$\$7 :",
+"stmt_compile : WHILE \$\$6 '(' stmt_compile_or_void ')' terminator_or_void \$\$7 stmt_compile",
+"\$\$8 :",
+"\$\$9 :",
+"\$\$10 :",
+"stmt_compile : FOR '(' stmt_compile_or_void ';' \$\$8 stmt_compile_or_void ';' \$\$9 stmt_compile_or_void ')' \$\$10 terminator_or_void stmt_compile",
 "stmt_compile : expr",
 "return : RETURN",
 "return : RETURN '(' expr ')'",
@@ -1351,11 +1358,12 @@ undef, # "expr : '&' STRING", # removed feature but we didn't want to disturb se
 "ident : IDENT",
 "ident : IDENT '[' expr ']'",
 );
-#endif
 sub yyclearin { $yychar = -1; }
 sub yyerrok { $yyerrflag = 0; }
-$YYSTACKSIZE = $YYSTACKSIZE || $YYMAXDEPTH || 500;
-$YYMAXDEPTH = $YYMAXDEPTH || $YYSTACKSIZE || 500;
+my $YYSTACKSIZE = 500;
+my $YYMAXDEPTH = 500;
+my @yyss;
+my @yyvs;
 $yyss[$YYSTACKSIZE] = 0;
 $yyvs[$YYSTACKSIZE] = 0;
 sub YYERROR { ++$yynerrs; &yy_err_recover; }
@@ -1370,20 +1378,16 @@ sub yy_err_recover
           ($yyn += $YYERRCODE) >= 0 &&
           $yycheck[$yyn] == $YYERRCODE)
       {
-#if YYDEBUG
        print "yydebug: state $yyss[$yyssp], error recovery shifting",
              " to state $yytable[$yyn]\n" if $yydebug;
-#endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
-        next yyloop;
+        yyparse();
       }
       else
       {
-#if YYDEBUG
         print "yydebug: error recovery discarding state ",
               $yyss[$yyssp], "\n"  if $yydebug;
-#endif
         return(1) if $yyssp <= 0;
         --$yyssp;
         --$yyvsp;
@@ -1393,39 +1397,28 @@ sub yy_err_recover
   else
   {
     return (1) if $yychar == 0;
-#if YYDEBUG
     if ($yydebug)
     {
-      $yys = '';
+      my $yys = '';
       if ($yychar <= $YYMAXTOKEN) { $yys = $yyname[$yychar]; }
       if (!$yys) { $yys = 'illegal-symbol'; }
       print "yydebug: state $yystate, error recovery discards ",
             "token $yychar ($yys)\n";
     }
-#endif
-    $yychar = -1;
-    next yyloop;
+    yyclearin();
+    yyparse();
   }
 0;
 } # yy_err_recover
 
+sub clear_flags
+{
+  yyclearin();
+  $yynerrs = $yyerrflag = $yyssp = $yyvsp = $yyss[0] = $yystate = 0;
+}
+
 sub yyparse
 {
-#ifdef YYDEBUG
-  if ($yys = $ENV{'YYDEBUG'})
-  {
-    $yydebug = int($1) if $yys =~ /^(\d)/;
-  }
-#endif
-
-  $yynerrs = 0;
-  $yyerrflag = 0;
-  $yychar = (-1);
-
-  $yyssp = 0;
-  $yyvsp = 0;
-  $yyss[$yyssp] = $yystate = 0;
-
 yyloop: while(1)
   {
     yyreduce: {
@@ -1433,26 +1426,22 @@ yyloop: while(1)
       if ($yychar < 0)
       {
         if (($yychar = &yylex) < 0) { $yychar = 0; }
-#if YYDEBUG
         if ($yydebug)
         {
-          $yys = '';
+          my $yys = '';
           if ($yychar <= $#yyname) { $yys = $yyname[$yychar]; }
           if (!$yys) { $yys = 'illegal-symbol'; };
           print "yydebug: state $yystate, reading $yychar ($yys)\n";
         }
-#endif
       }
       if (($yyn = $yysindex[$yystate]) && ($yyn += $yychar) >= 0 &&
               $yycheck[$yyn] == $yychar)
       {
-#if YYDEBUG
         print "yydebug: state $yystate, shifting to state ",
               $yytable[$yyn], "\n"  if $yydebug;
-#endif
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
-        $yychar = (-1);
+        yyclearin();
         --$yyerrflag if $yyerrflag > 0;
         next yyloop;
       }
@@ -1468,16 +1457,13 @@ yyloop: while(1)
       }
       return(1) if &yy_err_recover;
     } # yyreduce
-#if YYDEBUG
     print "yydebug: state $yystate, reducing by rule ",
           "$yyn ($yyrule[$yyn])\n"  if $yydebug;
-#endif
     $yym = $yylen[$yyn];
     $yyval = $yyvs[$yyvsp+1-$yym];
     switch:
     {
 if ($yyn == 4) {
-#line 126 "bc.y"
 {
 
 		  my ($res, $val) = exec_stmt(shift @stmt_list);
@@ -1490,7 +1476,6 @@ if ($yyn == 4) {
 last switch;
 } }
 if ($yyn == 5) {
-#line 136 "bc.y"
 {
 		  @ope_stack = ();
 		  @stmt_list = ();
@@ -1500,14 +1485,12 @@ if ($yyn == 5) {
 last switch;
 } }
 if ($yyn == 7) {
-#line 147 "bc.y"
 {
 		  start_stmt();
 
 last switch;
 } }
 if ($yyn == 8) {
-#line 153 "bc.y"
 {
 		  start_stmt();
 		  start_stmt();
@@ -1515,7 +1498,6 @@ if ($yyn == 8) {
 last switch;
 } }
 if ($yyn == 9) {
-#line 159 "bc.y"
 {
 		  finish_stmt();    # The last one is empty
 		  push_instr('RETURN', 0);
@@ -1527,12 +1509,10 @@ if ($yyn == 9) {
 last switch;
 } }
 if ($yyn == 11) {
-#line 170 "bc.y"
 { push_instr('BREAK');
 last switch;
 } }
 if ($yyn == 12) {
-#line 173 "bc.y"
 {
 		  push_instr(',');
 		  start_stmt();
@@ -1541,7 +1521,6 @@ if ($yyn == 12) {
 last switch;
 } }
 if ($yyn == 13) {
-#line 179 "bc.y"
 {
 		  finish_stmt();  # The last one is empty
 		  my $stmt = finish_stmt();
@@ -1550,7 +1529,6 @@ if ($yyn == 13) {
 last switch;
 } }
 if ($yyn == 14) {
-#line 186 "bc.y"
 {
 		  start_stmt();
 		  start_stmt();
@@ -1558,7 +1536,6 @@ if ($yyn == 14) {
 last switch;
 } }
 if ($yyn == 15) {
-#line 191 "bc.y"
 {
 		  finish_stmt();  # The last one is empty
 		  my $stmt = finish_stmt();
@@ -1567,12 +1544,10 @@ if ($yyn == 15) {
 last switch;
 } }
 if ($yyn == 16) {
-#line 197 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 17) {
-#line 200 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('IF', $stmt);
@@ -1580,12 +1555,10 @@ if ($yyn == 17) {
 last switch;
 } }
 if ($yyn == 18) {
-#line 205 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 19) {
-#line 207 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-COND', $stmt);
@@ -1594,7 +1567,6 @@ if ($yyn == 19) {
 last switch;
 } }
 if ($yyn == 20) {
-#line 213 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-INCR', []);
@@ -1603,12 +1575,10 @@ if ($yyn == 20) {
 last switch;
 } }
 if ($yyn == 21) {
-#line 219 "bc.y"
 { start_stmt();
 last switch;
 } }
 if ($yyn == 22) {
-#line 221 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-COND', $stmt);
@@ -1617,7 +1587,6 @@ if ($yyn == 22) {
 last switch;
 } }
 if ($yyn == 23) {
-#line 227 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-INCR', $stmt);
@@ -1626,7 +1595,6 @@ if ($yyn == 23) {
 last switch;
 } }
 if ($yyn == 24) {
-#line 232 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('FOR-BODY', $stmt);
@@ -1634,17 +1602,14 @@ if ($yyn == 24) {
 last switch;
 } }
 if ($yyn == 26) {
-#line 241 "bc.y"
 { push_instr('RETURN', 0);
 last switch;
 } }
 if ($yyn == 27) {
-#line 242 "bc.y"
 { push_instr('RETURN', 1);
 last switch;
 } }
 if ($yyn == 30) {
-#line 250 "bc.y"
 {
 		   my $stmt = finish_stmt();
 		   if(scalar(@$stmt) > 0) {
@@ -1655,7 +1620,6 @@ if ($yyn == 30) {
 last switch;
 } }
 if ($yyn == 31) {
-#line 258 "bc.y"
 {
 		   my $stmt = finish_stmt();
 		   if(scalar(@$stmt) > 0) {
@@ -1666,27 +1630,22 @@ if ($yyn == 31) {
 last switch;
 } }
 if ($yyn == 38) {
-#line 281 "bc.y"
 { push_instr('a', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 39) {
-#line 282 "bc.y"
 { push_instr('a', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 46) {
-#line 299 "bc.y"
 { push_instr('A', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 47) {
-#line 300 "bc.y"
 { push_instr('A', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 48) {
-#line 305 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('PRINT-STMT', $stmt);
@@ -1695,7 +1654,6 @@ if ($yyn == 48) {
 last switch;
 } }
 if ($yyn == 49) {
-#line 311 "bc.y"
 {
 		  my $stmt = finish_stmt();
 		  push_instr('PRINT-STMT', $stmt);
@@ -1704,99 +1662,80 @@ if ($yyn == 49) {
 last switch;
 } }
 if ($yyn == 50) {
-#line 320 "bc.y"
 {
 		  push_instr('FUNCTION-CALL', $yyvs[$yyvsp-3]);
 
 last switch;
 } }
 if ($yyn == 51) {
-#line 324 "bc.y"
 {
 last switch;
 } }
 if ($yyn == 52) {
-#line 326 "bc.y"
 { push_instr('||_');
 last switch;
 } }
 if ($yyn == 53) {
-#line 327 "bc.y"
 { push_instr('&&_');
 last switch;
 } }
 if ($yyn == 54) {
-#line 329 "bc.y"
 { push_instr('==_');
 last switch;
 } }
 if ($yyn == 55) {
-#line 330 "bc.y"
 { push_instr('!=_');
 last switch;
 } }
 if ($yyn == 56) {
-#line 331 "bc.y"
 { push_instr('>_');
 last switch;
 } }
 if ($yyn == 57) {
-#line 332 "bc.y"
 { push_instr('>=_');
 last switch;
 } }
 if ($yyn == 58) {
-#line 333 "bc.y"
 { push_instr('<_');
 last switch;
 } }
 if ($yyn == 59) {
-#line 334 "bc.y"
 { push_instr('<=_');
 last switch;
 } }
 if ($yyn == 60) {
-#line 335 "bc.y"
 { push_instr('<<_');
 last switch;
 } }
 if ($yyn == 61) {
-#line 336 "bc.y"
 { push_instr('>>_');
 last switch;
 } }
 if ($yyn == 62) {
-#line 338 "bc.y"
 { push_instr('+_');
 last switch;
 } }
 if ($yyn == 63) {
-#line 339 "bc.y"
 { push_instr('-_');
 last switch;
 } }
 if ($yyn == 64) {
-#line 340 "bc.y"
 { push_instr('*_');
 last switch;
 } }
 if ($yyn == 65) {
-#line 341 "bc.y"
 { push_instr('/_');
 last switch;
 } }
 if ($yyn == 66) {
-#line 342 "bc.y"
 { push_instr('^_');
 last switch;
 } }
 if ($yyn == 67) {
-#line 343 "bc.y"
 { push_instr('%_');
 last switch;
 } }
 if ($yyn == 68) {
-#line 347 "bc.y"
 {
 		  push_instr('+_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1805,7 +1744,6 @@ if ($yyn == 68) {
 last switch;
 } }
 if ($yyn == 69) {
-#line 353 "bc.y"
 {
 		  push_instr('-_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1814,7 +1752,6 @@ if ($yyn == 69) {
 last switch;
 } }
 if ($yyn == 70) {
-#line 359 "bc.y"
 {
 		  push_instr('*_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1823,7 +1760,6 @@ if ($yyn == 70) {
 last switch;
 } }
 if ($yyn == 71) {
-#line 365 "bc.y"
 {
 		  push_instr('/_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1832,7 +1768,6 @@ if ($yyn == 71) {
 last switch;
 } }
 if ($yyn == 72) {
-#line 371 "bc.y"
 {
 		  push_instr('^_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1841,7 +1776,6 @@ if ($yyn == 72) {
 last switch;
 } }
 if ($yyn == 73) {
-#line 377 "bc.y"
 {
 		  push_instr('%_');
 		  push_instr('V', $yyvs[$yyvsp-2]);
@@ -1850,21 +1784,18 @@ if ($yyn == 73) {
 last switch;
 } }
 if ($yyn == 74) {
-#line 386 "bc.y"
 {
 		  push_instr('m_');
 
 last switch;
 } }
 if ($yyn == 75) {
-#line 390 "bc.y"
 {
 		  push_instr('!_');
 
 last switch;
 } }
 if ($yyn == 76) {
-#line 394 "bc.y"
 {
 		  # 'v'.$2 has already been pushed in the 'ident' rule
 		  push_instr('N', 1);
@@ -1875,7 +1806,6 @@ if ($yyn == 76) {
 last switch;
 } }
 if ($yyn == 77) {
-#line 402 "bc.y"
 {
 		  push_instr('N', 1);
 		  push_instr('-_');
@@ -1885,7 +1815,6 @@ if ($yyn == 77) {
 last switch;
 } }
 if ($yyn == 78) {
-#line 409 "bc.y"
 {
 		  # $1 is already on the stack (see the "ident:" rule)
 		  push_instr('v', $yyvs[$yyvsp-1])     ;
@@ -1905,7 +1834,6 @@ if ($yyn == 78) {
 last switch;
 } }
 if ($yyn == 79) {
-#line 426 "bc.y"
 {
 		  # See PPP for comments
 		  push_instr('v', $yyvs[$yyvsp-1]);
@@ -1922,12 +1850,10 @@ if ($yyn == 79) {
 last switch;
 } }
 if ($yyn == 80) {
-#line 440 "bc.y"
 { $yyval = $yyvs[$yyvsp-0];
 last switch;
 } }
 if ($yyn == 82) {
-#line 448 "bc.y"
 {
 		  push_instr('V', $yyvs[$yyvsp-2]);
 		  push_instr('=V');
@@ -1936,7 +1862,6 @@ if ($yyn == 82) {
 last switch;
 } }
 if ($yyn == 83) {
-#line 454 "bc.y"
 {
 		  # Add [] to the name in order to allow the same name
 		  # for an array and a scalar
@@ -1947,39 +1872,32 @@ if ($yyn == 83) {
 last switch;
 } }
 if ($yyn == 84) {
-#line 462 "bc.y"
-{ $yyval = $yyvs[$yyvsp-0]->{"value"};
+{ $yyval = $yyvs[$yyvsp-0];
 last switch;
 } }
 if ($yyn == 85) {
-#line 464 "bc.y"
 { push_instr('N', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 86) {
-#line 465 "bc.y"
 { push_instr('N', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 87) {
-#line 466 "bc.y"
 { push_instr('S', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 88) {
-#line 470 "bc.y"
 { push_instr('v', $yyvs[$yyvsp-0]);
 last switch;
 } }
 if ($yyn == 89) {
-#line 473 "bc.y"
 {
 		  push_instr('p', $yyvs[$yyvsp-3]);
 		  $yyval = $yyvs[$yyvsp-3].'[]'.$yyvs[$yyvsp-1];
 
 last switch;
 } }
-#line 1201 "y.tab.pl"
     } # switch
     $yyssp -= $yym;
     $yystate = $yyss[$yyssp];
@@ -1987,25 +1905,21 @@ last switch;
     $yym = $yylhs[$yyn];
     if ($yystate == 0 && $yym == 0)
     {
-#if YYDEBUG
       print "yydebug: after reduction, shifting from state 0 ",
             "to state $YYFINAL\n" if $yydebug;
-#endif
       $yystate = $YYFINAL;
       $yyss[++$yyssp] = $YYFINAL;
       $yyvs[++$yyvsp] = $yyval;
       if ($yychar < 0)
       {
         if (($yychar = &yylex) < 0) { $yychar = 0; }
-#if YYDEBUG
         if ($yydebug)
         {
-          $yys = '';
+          my $yys = '';
           if ($yychar <= $#yyname) { $yys = $yyname[$yychar]; }
           if (!$yys) { $yys = 'illegal-symbol'; }
           print "yydebug: state $YYFINAL, reading $yychar ($yys)\n";
         }
-#endif
       }
       return(0) if $yychar == 0;
       next yyloop;
@@ -2017,47 +1931,54 @@ last switch;
     } else {
         $yystate = $yydgoto[$yym];
     }
-#if YYDEBUG
     print "yydebug: after reduction, shifting from state ",
         "$yyss[$yyssp] to state $yystate\n" if $yydebug;
-#endif
     $yyss[++$yyssp] = $yystate;
     $yyvs[++$yyvsp] = $yyval;
   } # yyloop
 } # yyparse
-#line 479 "bc.y"
 
-@file_list=();
-$mathlib=0;
-sub command_line()
+my @file_list;
+my $mathlib = 0;
+sub command_line
 {
-  while (@ARGV) {
+  while (@ARGV && $ARGV[0] =~ m/\A\-/) {
     my $f = shift @ARGV;
     if ($f eq '-b') {
       eval { require Math::BigFloat } or die "This program requires the Math::BigFloat module\n";
       $bignum = 1;
     } elsif ($f eq '-d') {
-      eval { require Data::Dumper } or die "This program requires the Data::Dumper module\n";
+      eval { require Data::Dumper; Data::Dumper->import; 1; } or die "This program requires the Data::Dumper module\n";
       $debug = 1;
     } elsif ($f eq '-y') {
       $yydebug = 1;
     } elsif ($f eq '-l') {
       $mathlib = 1;
+    } elsif ($f eq '--') {
+      last;
     } else {
-      push(@file_list, $f);
+      usage();
     }
   }
-# read from STDIN if no files are named on the command line
-  $do_stdin = 1 unless @file_list;
+  if (@ARGV) {
+    @file_list = @ARGV;
+  } else {
+    $do_stdin = 1;
+  }
 }
 
+sub usage {
+  warn "usage: bc [-b] [-d] [-y] [-l] [file ...]\n";
+  exit 1;
+}
 
 # After finishing a file, open the next one.  Return whether there
 # really is a next one that was opened.
 sub next_file
 {
-  if($cur_file) {
+  if (defined $input) {
     close $input;
+    $input = undef;
   }
 
   if($mathlib) {
@@ -2082,8 +2003,7 @@ sub next_file
     debug { "reading from $file\n" };
 
     die "path '$file' is a directory\n" if (-d $file);
-    open(IN, '<', $file) or die("cannot open '$file': $!\n");
-    $input = IN;
+    open($input, '<', $file) or die("cannot open '$file': $!\n");
     $cur_file = $file;
     return 1;
 
@@ -2122,7 +2042,7 @@ sub yylex
 	# Skip over white space, and grab the first character.
 	# If there is no such character, then grab the next line.
 	$line =~ s/^\s*(.|\n)//	|| next lexloop;
-	local($char) = $1;
+	my $char = $1;
 
 	if ($char eq '/' and $line =~ /^\*/) {
           # C-style comment
@@ -2175,10 +2095,10 @@ sub yylex
           } else {
 	      $yylval = $bignum ? Math::BigFloat->new($char) : int($char);
 	  }
-	  $type = $INT;
+	  my $type = $INT;
 
 	  if ($line =~ s/^(\.\d*)//) {
-	      $tmp = "0$1"; # ".1" -> "0.1"
+	      my $tmp = "0$1"; # ".1" -> "0.1"
 	      $yylval += $tmp;
 	      $type = $FLOAT;
 	  }
@@ -2365,7 +2285,6 @@ sub finish_stmt
 }
 
 my ($res, $val);
-my $code;
 
 #
 # exec_stmt
@@ -2565,7 +2484,7 @@ sub exec_stmt
      my $i_incr = shift @stmt_s;
      my $i_body = shift @stmt_s;
 
-     my $val=1;
+     $val = 1;
 
 #     debug { "cond: ".Dumper($i_cond) };
 
@@ -2800,7 +2719,6 @@ sub exec_stmt
 
  }
 
-  my $val;
   if ($return == 3) {
     @ope_stack = ();
   } else {
@@ -2820,7 +2738,7 @@ sub exec_stmt
 # catch signals
 sub catch
 {
-  local($signum) = @_;
+  my $signum = shift;
   print STDERR "\n" if (-t STDERR && -t STDIN);
   &yyerror("Floating point exception") if $signum == 8;
   main();
@@ -2829,13 +2747,19 @@ sub catch
 # main program
 sub main
 {
+  my $status;
   while(1)
     {
       $line = '';
-      eval '$status = &yyparse;';
-#      debug { "yyparse returned $status" } if !$@;
+      eval {
+        clear_flags();
+        $status = yyparse();
+        1;
+      } or do {
+        yyerror($@);
+      };
+
       exit $status if ! $@;
-      &yyerror($@);
     }
 }
 
@@ -3133,4 +3057,3 @@ define j(n,x) {
     v += e;
   }
 }
-#line 2391 "y.tab.pl"

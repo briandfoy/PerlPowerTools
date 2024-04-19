@@ -74,7 +74,11 @@ sub parse_fmt {
             $i++;
         } elsif ($f =~ s/\A(\%[0-9\.\-]*[a-zA-Z])//) {
             push @fmt, [ 'str', $1 ]; # unsupported
-	} else {
+        } else {
+            if ($f =~ m/\A[^\%]*(\%[\S]+)/) {
+                warn "$Program: invalid format: '$1'\n";
+                exit EX_FAILURE;
+            }
             die "internal error";
         }
     }

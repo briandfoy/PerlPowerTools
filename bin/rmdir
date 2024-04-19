@@ -23,16 +23,21 @@ use constant EX_FAILURE => 1;
 my ($VERSION) = '1.2';
 my $Program = basename($0);
 
-my $warnings = 0;
+my $rc = EX_SUCCESS;
 my %opt;
 if (!getopts('p', \%opt) || scalar(@ARGV) == 0) {
     warn "usage: $Program [-p] directory ...\n";
     exit EX_FAILURE;
 }
 foreach my $directory (@ARGV) {
+    unless (-d $directory) {
+        warn "$Program: '$directory': not a directory or does not exist\n";
+        $rc = EX_FAILURE;
+        next;
+    }
     unless (rmdir $directory) {
         warn "$Program: failed to remove '$directory': $!\n";
-        $warnings = 1;
+        $rc = EX_FAILURE;
         next;
     };
     if ($opt{'p'}) {
@@ -43,13 +48,13 @@ foreach my $directory (@ARGV) {
 
             unless (rmdir $directory) {
                 warn "$Program: failed to remove '$directory': $!\n";
-                $warnings = 1;
+                $rc = EX_FAILURE;
                 last;
             }
         }
     }
 }
-exit $warnings;
+exit $rc;
 
 __END__
 
