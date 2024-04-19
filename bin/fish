@@ -20,6 +20,7 @@ my(@DECK, @PLAYERS_HAND, @COMPUTERS_HAND, %BOOKS, %opt);
 my(@HIS_PAST_GUESSES, @MY_PAST_GUESSES);
 my($asker, $opponent, $professional, $whoseturn, $status, $myb, $yourb);
 my %so=( 'A'=>1, 'J'=>11, 'Q'=>12, 'K'=>13 );  # For sort ranking, below.
+my %iscard = map { $_ => 1 } qw(A J Q K 2 3 4 5 6 7 8 9 10);
 
 sub pickone {		# Computer's card-picking routine.  Dumb or smart.
 	my($myarr)=@_;
@@ -81,18 +82,18 @@ sub draw {
 	if ($foo eq $guess) {
 		print "$asker drew the guess\n";
 		print "$asker get to go again\n";
-		push(@$drawarr, $foo);
 	} else {
 		print "$asker drew a $foo\n" if ($asker eq 'You');
 		# Professional mode...is watching you
 		@MY_PAST_GUESSES=();
-		push(@$drawarr, $foo);
 	}
+	push @$drawarr, $foo;
 	return($foo);
 }
 
 sub askfor {
 	my($askarr, $vicarr, $card)=@_;   # The asker, the victim, and the card
+	$card = uc $card;
 
 	if ($card eq "") {
 		print "I have ", scalar(@COMPUTERS_HAND), " cards in my hand ";
@@ -100,13 +101,13 @@ sub askfor {
 		print "There are ", scalar(@DECK), " cards remaining in the stock\n";
 		return;
 	}
-	exit if ($card eq 'quit');
-	if ($card eq 'p') {
+	exit if ($card eq 'QUIT');
+	if ($card eq 'P') {
 		$professional=!$professional;
 		print $professional?"Entering":"Leaving", " professional mode\n";
 		return;
 	}
-	if (! grep($card eq $_, (keys %so, 2..10) )) {
+	unless (exists $iscard{$card}) {
 		print "I don't understand!\n";
 		return;
 	}
@@ -179,7 +180,7 @@ if ($status=~/^y/i) {
 	print "Press <return>"; $status=<STDIN>;
 }
 
-@DECK = qw(A K Q J 10 9 8 7 6 5 4 3 2) x 4;
+@DECK = (keys %iscard) x 4;
 fisher_yates_shuffle(\@DECK);
 
 foreach(1..7) {
@@ -197,30 +198,22 @@ while(1) {
 	printhand(\@PLAYERS_HAND,"You");
 	$asker=$whoseturn?"You":"I";
 	$opponent=(!$whoseturn)?"You":"I";
+	my $hand;
 	if ($whoseturn) {
 		$status=playguess();
-		if ($status) {
-			if (&draw(\@PLAYERS_HAND, $status) eq $status) {
-				havebook(\@PLAYERS_HAND);
-				redo;
-			} else {
-				redo if (havebook(\@PLAYERS_HAND));
-				$whoseturn=!$whoseturn;
-			}
-		}
-		redo;
+		$hand = \@PLAYERS_HAND;
 	} else {
 		$status=compguess();
-		if ($status) {
-			if (&draw(\@COMPUTERS_HAND, $status) eq $status) {
-				havebook(\@COMPUTERS_HAND);
-				redo;
-			} else {
-				redo if (havebook(\@COMPUTERS_HAND));
-				$whoseturn=!$whoseturn;
-			}
+		$hand = \@COMPUTERS_HAND;
+	}
+	if ($status) {
+		if (draw($hand, $status) eq $status) {
+			havebook($hand);
+			redo;
+		} else {
+			redo if (havebook($hand));
+			$whoseturn=!$whoseturn;
 		}
-		redo;
 	}
 }
 

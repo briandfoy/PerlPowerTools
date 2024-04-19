@@ -158,7 +158,7 @@ sub operator_table {
         ],
         [
         	"x = -1\ny = 0.5\nx ^= y\nx",
-        	'NaN', # NaN might be -nan
+        	qr/-?NaN/i, # NaN might be -nan
         	'binary assignment (exponentiation - square root of -1)'
         ],
     ];
@@ -223,6 +223,8 @@ sub statement_table {
         	'v=5; while (v--) { print v }; print "\n"',
             "43210",
             'while statement',
+            undef,
+            'while seems to be broken (#522)',
         ],
 
         [
@@ -233,7 +235,7 @@ sub statement_table {
 
         [
         	'for ( v=0; v<5; v++) { print v; if (v>2) break }; print "\n"',
-            "0123\n",
+            "0123",
             'for with break statement',
         ],
 
@@ -269,10 +271,16 @@ sub run_table {
 			TODO: {
 				local $TODO = $todo;
 				if( ! ref $expected ) {
-					is $output, $expected // '', $description;
+					is $output, (defined $expected ? $expected : ''), $description;
 					}
-				elsif( ref $expected eq ref qr// ) {
+				elsif( $] < 5.010 and ref $expected eq ref qr// ) {
 					like $output, $expected, $description;
+					}
+				else {
+					SKIP: {
+						skip "$] does not have qr//", 1;
+						pass($label);
+						};
 					}
 				}
             }

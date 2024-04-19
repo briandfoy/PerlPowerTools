@@ -21,7 +21,6 @@ License: perl
 #   Perl Power Tools -- http://language.perl.com/ppt/
 #
 
-$^W = 1;  # -w
 use strict;
 use Getopt::Std;
 use File::Basename;
@@ -31,18 +30,11 @@ my $me = basename($0);
 ## get_count expands byte/linecount 'k' and 'm' and checks sanity
 sub get_count {
     my $count = shift;
-
-    return undef unless $count =~ /^\d+[KkMm]?$/;   # sane?
-
-    if ($count =~ /[Kk]$/) {
-	$count =~ s/[Kk]//g;
-	$count *= 1024;
-    } elsif ($count =~ /[Mm]$/) {
-	$count =~ s/[Mm]//g;
-	$count *= 1024 * 1024;
-    }
-
-    return $count;
+    my %mult = ('k' => 1024, 'm' => 1024 * 1024);
+    return if $count !~ m/\A([0-9]+)([KkMm]?)\Z/;
+    my $n = $1;
+    $n *= $mult{lc($2)} if $2;
+    return $n;
 }
 
 # nextfile creates the next file for output, and returns the

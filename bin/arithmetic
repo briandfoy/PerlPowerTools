@@ -100,7 +100,9 @@ while ($questions < QUESTIONS) {
             report();
         }
         chomp $guess;
-        if ($guess =~ /\D/) {
+        $guess =~ s/\A\s+//;
+        $guess =~ s/\s+\Z//;
+        if (length($guess) == 0 || $guess =~ /\D/) {
             print "Please type a number.\n";
             redo;
         }

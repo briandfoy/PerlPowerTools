@@ -382,7 +382,9 @@ sub bless {
     }
 
     # Make sure original file exists.
-    if ($self->{force} || $self->{batch}) {
+    if (-e $orig && ! -f $orig) {
+        $self->skip("File '$orig' is not a regular file\n");
+    } elsif ($self->{'force'} || $self->{'batch'}) {
         -e $orig or $self->skip;
     } else {
         until (-e $orig) {
