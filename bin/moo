@@ -99,7 +99,7 @@ moo [size]
 
 =head1 DESCRIPTION
 
-I<moo> is a game where the user has to guess a number choosen by
+I<moo> is a game where the user guesses a random number chosen by
 the computer. By default, the computer takes a number of four digits
 (including 0's), but that can be changed by giving I<moo> the number of
 digits to take.  After each guess, the number of B<bull>s and B<cow>s
