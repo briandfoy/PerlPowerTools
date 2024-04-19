@@ -5,9 +5,9 @@
 =begin metadata
 
 Name: perlpowertools
-Description: a program launcher for Perl Power Tools
-Author: kal247, https://github.com/kal247
-License: artistic2
+Description: helper script for PerlPowerTools
+Author: jul, kaldor@cpan.org
+License: Artistic License 2.0
 
 =end metadata
 
@@ -18,11 +18,14 @@ use warnings;
 use utf8;
 use Getopt::Std;
 use File::Basename;
-use Cwd 'abs_path';
+use Cwd qw (abs_path cwd);
+my $ppt_dir;
+BEGIN { $ppt_dir = dirname(abs_path($0)) . '/..' };
+use lib $ppt_dir . '/lib';
+use PerlPowerTools;
 
-our $VERSION = qw( 1.024 );
+our $VERSION = $PerlPowerTools::VERSION;
 my $program  = 'perlpowertools';
-my @tools    = qw( addbib apply ar arch arithmetic asa awk banner basename bc cal cat chgrp ching chmod chown clear cmp col colrm comm cp cut date dc deroff diff dirname du echo ed env expand expr factor false file find fish fmt fold fortune from glob grep hangman head id install join kill ln lock look ls mail man maze mimedecode mkdir mkfifo moo morse nl od par paste patch perldoc pig ping pom ppt pr primes printenv printf pwd rain random rev rm rmdir robots rot13 shar sleep sort spell split strings sum tac tail tar tee test time touch tr true tsort tty uname unexpand uniq units unpar unshar uudecode uuencode wc what which whois words wump xargs yes );
 my $usage    = <<EOF;
 
 Usage: $program [-hVl]
@@ -44,17 +47,26 @@ my $list        = $options{l} || 0;
 
 die $usage if $help;
 die $VERSION . "\n" if $version;
-die join ("\n", @tools) . "\n" if $list;
+
+my $tool = shift || '';
 
 ########
 # MAIN #
 ########
 
-my $tool = shift || '';
+my $ppt_bin = defined $ENV{PAR_TEMP} ? "$ENV{PAR_TEMP}/inc/script" : dirname(abs_path($0));
+my $cwd = cwd;
+chdir $ppt_bin;
+my @tools = glob("*");
+chdir $cwd;
+@tools = grep { $_ ne "$program" } @tools;
+
+die join ("\n", @tools) . "\n" if $list;
 die $usage if not grep { $tool eq $_ } @tools;
 
-my $file = defined $ENV{PAR_TEMP} ? "$ENV{PAR_TEMP}/inc/script/$tool" : dirname(abs_path($0)) . "/$tool";
+my $file = "$ppt_bin/$tool";
 $0 = $tool; # for usage/warning/error messages
+package PerlPowerTools::Packed; # change caller(0), for modulinos
 my $return = do $file;
 die $@ if $@;
 die "$file: $!" unless defined $return;
