@@ -11,11 +11,11 @@ License:
 
 =cut
 
+use strict;
 
-use 5.004;
-# use strict;
 use Getopt::Std;
 use IO::File;
+
 use vars qw($opt);
 
 BEGIN
@@ -195,12 +195,19 @@ else
 
   if (defined $opt{'f'})
    {
-    die("Cannot open '$opt{'f'}': is a directory\n") if (-d $opt{'f'});
-    open($fh, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
+    if ($opt{'f'} eq '-')
+     {
+      $fh = *STDIN;
+     }
+    else
+     {
+      die("Cannot open '$opt{'f'}': is a directory\n") if (-d $opt{'f'});
+      open($fh, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
+     }
    }
   else
    {
-    $fh = *STDIN;
+    die "No archive file specified; -f must be set\n";
    }
   binmode $fh;
 
