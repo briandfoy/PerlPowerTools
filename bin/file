@@ -157,10 +157,7 @@ for my $file (@ARGV) {
     # '-' is a problem because we can't seek on it.
     # BSD's file just reads the first line.  Sounds reasonable, but
     # a hassle.  Just complain.
-    if ($file eq '-') {
-        warn "Can't operate on standard input.\n";
-        next;
-    }
+    die "$F: Can't operate on standard input.\n" if ($file eq '-');
 
     # the description line.  append info to this string
     my $desc = "$file:";
