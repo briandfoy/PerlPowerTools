@@ -14,16 +14,27 @@ License: perl
 
 
 use strict;
+
+use File::Basename qw(basename);
 use POSIX "mkfifo";
 use Getopt::Std;
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 use vars qw($opt_m);
 
-$0 =~ s(.*/)();
-my $usage = "usage: $0 [-m mode] filename ...\n";
-getopts('m:') and @ARGV or die $usage;
+my $Program = basename($0);
+
+getopts('m:') and @ARGV or usage();
 
 my $default_mode = 0666;
 $default_mode &= ~(umask 0);
+
+sub usage {
+	warn "$Program: [-m mode] filename...\n";
+	exit EX_FAILURE;
+}
 
 sub sym_perms {
 	my $sym = shift;
@@ -65,15 +76,26 @@ sub get_mode {
 	}
 	$real_mode = sym_perms $mode;
 	return $real_mode unless $real_mode < 0;
-	die "bad mode: $mode\n";
+	warn "$Program: bad file mode: '$mode'\n";
+	exit EX_FAILURE;
 }
 
 my $mode = defined $opt_m ? get_mode($opt_m) : $default_mode;
 
+my $rc = EX_SUCCESS;
 foreach my $fifo (@ARGV) {
-	mkfifo $fifo, $mode or die "can't make fifo $fifo: $!\n";
+	if (-e $fifo) {
+		warn "$Program: '$fifo': file already exists\n";
+		$rc = EX_FAILURE;
+		next;
+	}
+	unless (mkfifo($fifo, $mode)) {
+		warn "$Program: '$fifo': $!\n";
+		$rc = EX_FAILURE;
+		next;
+	}
 }
-
+exit $rc;
 
 =head1 NAME
 
