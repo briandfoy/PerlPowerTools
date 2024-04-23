@@ -22,6 +22,9 @@ use FindBin;
 use FileHandle;
 use Getopt::Long;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 my $F = $FindBin::Script;
 
 # translation of type in magic file to unpack template and byte count
@@ -121,8 +124,10 @@ GetOptions(
 
 # the names of the files are in $fileList.
 if ($fileList) {
-    my $fileListFH = FileHandle->new($fileList, 'r') or
-      die "$F: $fileList: $!\n";
+    my $fileListFH = FileHandle->new($fileList, 'r') or do {
+      warn "$F: $fileList: $!\n";
+      exit EX_FAILURE;
+    };
     unshift(@ARGV,<$fileListFH>);
     $fileListFH->close();
 }
@@ -132,7 +137,8 @@ if ( ! -f $magicFile ) {
     # have a fallback for now until a distribution heirarchy is done.
     # this works on many unix systems.
     if (! -f "/etc/magic" ) {
-        die "$F: Can't find magic file either in $magicFile or /etc/magic.\n";
+        warn "$F: Can't find magic file either in $magicFile or /etc/magic.\n";
+        exit EX_FAILURE;
     }
     $magicFile = "/etc/magic";
 }
@@ -146,7 +152,10 @@ print STDERR "Using magic file $magicFile\n" if $checkMagic;
 
 # $MF is the magic file state: [ filehandle, buffered last line, line num ]
 my $MF = [];
-$$MF[0] = FileHandle->new($magicFile, 'r') or die "$magicFile: $!\n";
+$$MF[0] = FileHandle->new($magicFile, 'r') or do {
+    warn "$F: $magicFile: $!\n";
+    exit EX_FAILURE;
+};
 $$MF[1] = undef;
 $$MF[2] = 0;
 readMagicEntry(\@magic,$MF);
@@ -157,16 +166,19 @@ for my $file (@ARGV) {
     # '-' is a problem because we can't seek on it.
     # BSD's file just reads the first line.  Sounds reasonable, but
     # a hassle.  Just complain.
-    die "$F: Can't operate on standard input.\n" if ($file eq '-');
+    if ($file eq '-') {
+        warn "$F: Can't operate on standard input.\n";
+        exit EX_FAILURE;
+    }
 
     # the description line.  append info to this string
     my $desc = "$file:";
 
     # 1) check for various special files first
-    if ($followLinks) {
-        stat($file) or die("$F: '$file': $!\n");
-    } else {
-        lstat($file) or die("$F: '$file': $!\n");
+    my $stat_ok = $followLinks ? stat($file) : lstat($file);
+    unless ($stat_ok) {
+        warn "$F: failed to stat '$file': $!\n";
+        exit EX_FAILURE;
     }
 
     if (! -f _  or -z _) {
@@ -187,7 +199,10 @@ for my $file (@ARGV) {
     }
 
     # current file handle.  or undef if checkMagic (-c option) is true.
-    my $fh = FileHandle->new($file, 'r') or die "$F: $file: $!\n" ;
+    my $fh = FileHandle->new($file, 'r') or do {
+        warn "$F: $file: $!\n";
+	exit EX_FAILURE;
+    };
 
     # 2) check for script
     if (-x $file && -T _) {
@@ -271,13 +286,13 @@ if ($checkMagic) {
     dumpMagic(\@magic);
 }
 
-exit 0;
+exit EX_SUCCESS;
 
 ####### SUBROUTINES ###########
 
 sub usage {
     warn "usage: $F [-cL] [-f filelist] [-m magicfile] file ...\n";
-    exit 1;
+    exit EX_FAILURE;
 }
 
 # compare the magic item with the filehandle.
