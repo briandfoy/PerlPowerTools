@@ -13,10 +13,16 @@ License:
 
 use strict;
 
+use File::Basename qw(basename);
 use Getopt::Std;
 use IO::File;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 use vars qw($opt);
+
+my $Program = basename($0);
 
 BEGIN
  {
@@ -36,12 +42,19 @@ BEGIN
 my %opt;
 getopts($opt,\%opt);
 
+sub fatal
+{
+ my $msg = shift;
+ warn "$Program: $msg\n";
+ exit EX_FAILURE;
+}
+
 sub read_header
 {
  my $read = shift;
  my $buf = '';
  my $err = &$read($buf,512);
- die "Cannot read:$err" if $err;
+ fatal("Cannot read:$err") if $err;
  if (length($buf) == 512)
   {
    return undef if $buf =~ /^\0{512}/;
@@ -71,7 +84,7 @@ sub read_header
   }
  else
   {
-   die "size is ".length($buf)." not 512" if (length($buf));
+   fatal("size is " . length($buf) . " not 512") if (length($buf));
   }
  return undef;
 }
@@ -81,17 +94,16 @@ sub read_data
  my ($read,$hdr,$fh) = @_;
  my $size = $hdr->{'size'};
  my $blocks = int(($size+511)/512);
- # print "$size => $blocks\n";
  my $first = 1;
  while ($blocks--)
   {
    my $buf = '';
    my $err = &$read($buf,512);
-   die "Cannot read:$err" if ($err);
+   fatal("Cannot read: $err") if $err;
    my $len = length($buf);
    if ($len != 512)
     {
-     die "Size is $len not 512:$!";
+     fatal("Size is $len not 512: $!");
     }
    if ($fh)
     {
@@ -123,7 +135,7 @@ sub make_dir
  make_dir($1) if ($name =~ m#^(.*)/[^/]+#);
  unless (-d $name)
   {
-   mkdir($name,0777) || die "Cannot mkdir($name):$!";
+   mkdir($name, 0777) or fatal("Cannot create directory '$name': $!");
    warn "mkdir $name\n" if ($opt{'v'});
   }
 }
@@ -183,7 +195,7 @@ sub list_entry
 
 if ($opt{'c'})
  {
-  die "-c not implemeted\n";
+  fatal('-c not implemeted');
  }
 else
  {
@@ -201,20 +213,20 @@ else
      }
     else
      {
-      die("Cannot open '$opt{'f'}': is a directory\n") if (-d $opt{'f'});
-      open($fh, '<', $opt{'f'}) || die "Cannot open $opt{'f'}:$!";
+      fatal("Cannot open '$opt{'f'}': is a directory") if (-d $opt{'f'});
+      open($fh, '<', $opt{'f'}) or fatal("Cannot open $opt{'f'}: $!");
      }
    }
   else
    {
-    die "No archive file specified; -f must be set\n";
+    fatal("No archive file specified; -f must be set");
    }
   binmode $fh;
 
   if ($opt{'z'} || $opt{'Z'})
    {
     # quick and dirty till we sort out Compress::Zlib
-    my $gz = gzopen($fh, 'rb') or die "Cannot gzopen:$gzerrno";
+    my $gz = gzopen($fh, 'rb') or fatal("Cannot gzopen: $gzerrno");
     $read = sub { $gz->gzread($_[0],$_[1]) < 0 ? $gzerrno : 0 };
    }
   else
@@ -223,7 +235,6 @@ else
    }
   while ($hdr = read_header($read))
    {
-    my $dh;
     if ($opt{'x'})
      {
       extract_entry($read,$hdr);
@@ -240,9 +251,10 @@ else
      {
       print $hdr->{'archname'},"\n";
      }
-    #last;
    }
  }
+exit EX_SUCCESS;
+
 __END__
 
 =encoding utf8
