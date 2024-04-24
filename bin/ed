@@ -506,7 +506,7 @@ sub edSubstitute {
         edWarn(E_ADDRBAD);
         return;
     }
-    unless (defined($args[0])) {
+    if (!defined($args[0]) || length($args[0]) == 0) {
         edWarn(E_PATTERN);
         return;
     }
@@ -514,9 +514,14 @@ sub edSubstitute {
     # do wierdness to match semantics if last character
     # is present or absent
 
-    $args[0] =~ /(.).*/;
-    $char = $1;
-    ($whole,$first,$middle,$last,$flags) = ($args[0] =~ /(($char)[^"$char"]*($char)[^"$char"]*($char)?)([imsx]*)/);
+    $char = substr $args[0], 0, 1;
+    eval {
+        ($whole,$first,$middle,$last,$flags) = ($args[0] =~ /(($char)[^"$char"]*($char)[^"$char"]*($char)?)([imsx]*)/);
+        1;
+    } or do {
+        edWarn(E_PATTERN);
+        return;
+    };
 
     if (defined($char) and defined($whole) and
         ($flags eq "") and (not defined($last))) {
