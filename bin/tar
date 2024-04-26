@@ -226,8 +226,8 @@ else
   if ($opt{'z'} || $opt{'Z'})
    {
     # quick and dirty till we sort out Compress::Zlib
-    my $gz = gzopen($fh, 'rb') or fatal("Cannot gzopen: $gzerrno");
-    $read = sub { $gz->gzread($_[0],$_[1]) < 0 ? $gzerrno : 0 };
+    my $gz = gzopen($fh, 'rb') or fatal("Cannot gzopen: $Compress::Zlib::gzerrno");
+    $read = sub { $gz->gzread($_[0],$_[1]) < 0 ? $Compress::Zlib::gzerrno : 0 };
    }
   else
    {
