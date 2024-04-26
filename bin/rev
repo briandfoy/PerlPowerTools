@@ -24,15 +24,9 @@ my $Program = basename($0);
 # unbuffer output to make it look speedier
 $|++;
 
-my ($VERSION) = '1.4';
+our $VERSION = '1.5';
 
-my %opt;
-getopts('v', \%opt) or usage();
-if ($opt{'v'}) {
-	print "$Program $VERSION\n";
-	exit EX_SUCCESS;
-}
-
+getopts('') or usage();
 my $rc = EX_SUCCESS;
 foreach my $file (@ARGV) {
 	if (-d $file) {
@@ -51,6 +45,11 @@ foreach my $file (@ARGV) {
 		warn "$Program: '$file': $!\n";
 		$rc = EX_FAILURE;
 	}
+	unless (close $fh) {
+		warn "$Program: cannot close '$file': $!\n";
+		$rc = EX_FAILURE;
+		next;
+	}
 }
 rev(*STDIN) unless @ARGV;
 exit $rc;
@@ -65,16 +64,13 @@ sub rev {
 }
 
 sub usage {
-	print <<EOF;
-Usage: $Program [OPTION] [FILE]...
-
-Reverse lines of the named file(s) or the text input on STDIN
-
-Options:
-	-v    Print version number, then exit.
-
-EOF
+	print "usage: $Program [file ...]\n";
 	exit EX_FAILURE;
+}
+
+sub VERSION_MESSAGE {
+	print "$Program version $VERSION\n";
+	exit EX_SUCCESS;
 }
 
 __END__
@@ -87,7 +83,7 @@ rev - reverse lines of a file
 
 =head1 SYNOPSIS
 
-rev [-v] [file]...
+rev [file ...]
 
 =head1 DESCRIPTION
 
@@ -101,7 +97,7 @@ I<rev> accepts the following options:
 
 =over 4
 
-=item  -v
+=item  --version
 
 Print version number then exit
 
