@@ -45,7 +45,7 @@ jobs:
             - name: Set up Perl
               run: |
                 brew install perl
-                ls -d /usr/local/Cellar/perl/*/bin | head -1 >> $GITHUB_PATH
+                ls -d /opt/homebrew/Cellar/perl/*/bin | head -1 >> $GITHUB_PATH
                 perl -v | perl -0777 -ne 'm/(v5\.\d+)/ && print "PERL_VERSION=$1"' >> $GITHUB_ENV
             - name: Perl version check
               run: perl -V
