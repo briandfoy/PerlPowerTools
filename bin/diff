@@ -145,6 +145,7 @@ chomp(@f1 = <$fh1>);
 close $fh1;
 chomp(@f2 = <$fh2>);
 close $fh2;
+exit(EX_SUCCESS) if (scalar(@f1) == 0 && scalar(@f2) == 0);
 
 # diff yields lots of pieces, each of which is basically a Block object
 my $diffs = diff(\@f1, \@f2);
