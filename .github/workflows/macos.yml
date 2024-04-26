@@ -105,6 +105,7 @@ jobs:
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                echo "PATH is " $PATH
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
                 cover -test -report coveralls
