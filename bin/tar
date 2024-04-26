@@ -30,7 +30,7 @@ BEGIN
   eval { require Compress::Zlib };
   if ($@)
    {
-    warn "No decompression available:$@\n";
+    warn "No decompression available: $@\n";
    }
   else
    {
