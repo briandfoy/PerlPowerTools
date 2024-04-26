@@ -2334,7 +2334,7 @@ sub exec_stmt
 	  if   ($_ eq '+_') { $res = $a + $b    ; 1 }
 	  elsif($_ eq '-_') { $res = $a - $b    ; 1 }
 	  elsif($_ eq '*_') { $res = $a * $b    ; 1 }
-	  elsif($_ eq '/_') { $res = $a / $b    ; 1 }
+	  elsif($_ eq '/_') { die 'divide by 0' if ($bignum ? $b->is_zero : $b == 0); $res = $a / $b }
 	  elsif($_ eq '^_') { $res = $a ** $b   ; 1 }
 	  elsif($_ eq '%_') { $res = $a % $b    ; 1 }
 
