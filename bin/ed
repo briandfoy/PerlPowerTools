@@ -530,9 +530,6 @@ sub edSubstitute {
     }
 
     # do the search and substitution
-
-    $LastMatch = $CurrentLineNum;
-
     for my $lineno ($adrs[0]..$adrs[1]) {
         my $evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
@@ -542,6 +539,10 @@ sub edSubstitute {
             $UserHasBeenWarned = 0;
         }
 
+    }
+    unless (defined $LastMatch) {
+        edWarn(E_NOMATCH);
+        return;
     }
 
     $CurrentLineNum = $LastMatch;
