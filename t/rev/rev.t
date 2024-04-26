@@ -49,17 +49,19 @@ subtest "from stdin" => sub {
 subtest "version" => sub {
  	my( $output, $error );
 
- 	my @command = ( $^X, $command, '-v' );
+ 	my @command = ( $^X, $command, '--version' );
   	run3 \@command, undef, \$output, \$error;
 
-	like $output, qr/\Q$basename\E \d+\.\d+/, "shows version message";
+	like $output, qr/\Q$basename\E version \d+\.\d+/, "shows version message";
 	};
 
 subtest "help" => sub {
-	foreach my $arg ( '-h' ) {
-	 	my( $output, $error );
- 		my @command = ( $^X, $command, $arg );
-  		run3 \@command, undef, \$output, \$error;
-		like $output, qr/Usage: \Q$basename/, "shows help message";
+	foreach my $arg ( '-h', '-v' ) {
+		subtest $arg => sub {
+			my( $output, $error );
+			my @command = ( $^X, $command, $arg );
+			run3 \@command, undef, \$output, \$error;
+			like $output, qr/usage: \Q$basename/, "$arg shows help message";
+			}
 		}
 	};
