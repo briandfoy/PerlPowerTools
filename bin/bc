@@ -800,8 +800,6 @@ repository:
 
 =cut
 
-#define YYBYACC 1
-
 use strict;
 
 # The symbol table : the keys are the identifiers, the value is in the
@@ -2398,6 +2396,7 @@ sub exec_stmt
      unless (defined($sym_table{$name})
 	     and $sym_table{$name}{'type'} eq 'var') {
        $sym_table{$name}{'value'} = 0;
+       $sym_table{$name}{'type'} = 'var';
      }
      push(@ope_stack, $sym_table{$name}{'value'});
      next INSTR;
