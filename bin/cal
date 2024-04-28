@@ -258,8 +258,7 @@ sub get_year {
 
 sub display_help {
 	print <<END_HELP;
-cal - part of the Perl Power Tools
-cal [-j] [-y] [[month] year]
+usage: cal [-jy] [[month] year]
 
     -j : Display calendar using julian days, where each day
          number is the day of the year.
