@@ -23,16 +23,16 @@ use constant EX_FAILURE => 1;
 
 $|++;
 
-my $VERSION = '1.0';
+our $VERSION = '1.0';
 my $Program = basename($0);
 
-sub version {
-  warn "$Program (Erlpay Owerpay Oolstay) $VERSION\n";
+sub VERSION_MESSAGE {
+  warn "$Program version $VERSION\n";
   exit EX_SUCCESS;
 }
 
 sub help {
-  warn "usage: $Program [-v]\n";
+  warn "usage: $Program\n";
   exit EX_FAILURE;
 }
 
@@ -58,9 +58,7 @@ sub igpay {
   return $ordway;
 }
 
-my %opt;
-getopts('v', \%opt) or help();
-version() if $opt{'v'};
+getopts('') or help();
 @ARGV = (); # stdin only
 
 while (<>) {
