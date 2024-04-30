@@ -46,36 +46,35 @@ use Mojo::UserAgent;
 use Mojo::JSON qw(encode_json);
 use Mojo::Util qw(dumper);
 
-my $token = $ENV{BMT_GITHUB_TOKEN};
-
 my $url = 'https://api.github.com/repos/briandfoy/PerlPowerTools/pulls';
 
+my $Changes = {};
 
-my $query = {
-	state => 'closed',
-	per_page => 100,
-	};
+foreach my $page ( 1 .. 2 ) {
+	my $query = {
+		state => 'closed',
+		per_page => 100,
+		page => $page,
+		};
 
-my $pulls_tx = ua()->get( $url => form => $query );
+	my $pulls_tx = ua()->get( $url => form => $query );
+	my $pulls_json = $pulls_tx->res->json;
 
-unless( $pulls_tx->res->is_success ) {
-die "What?";
-	}
+	my $found = 0;
+	foreach my $pull ( $pulls_json->@* ) {
+		next unless is_accepted( $pull );
+		$found++;
+		my $pr_number = $pull->{number};
+		my @programs = extract_programs( $pull );
 
-my $pulls_json = $pulls_tx->res->json;
-
-say "Found PRs: " . $pulls_json->@*;
-my $Changes;
-foreach my $pull ( $pulls_json->@* ) {
-	next unless is_accepted( $pull );
-	my $pr_number = $pull->{number};
-	my @programs = extract_programs( $pull );
-
-	my $changes = get_changes_tags( $pr_number );
-	push $changes->@*, 'NoComments' unless $changes->@*;
-	foreach my $change ( $changes->@* ) {
-		push $Changes->{$_}->@*, [ $change, $pr_number ] for @programs;
+		my $changes = get_changes_tags( $pr_number );
+		push $changes->@*, 'various internals improvements' unless $changes->@*;
+		foreach my $change ( $changes->@* ) {
+			push $Changes->{$_}->@*, [ $change, $pr_number ] for @programs;
+			}
 		}
+
+	last unless $found;
 	}
 
 foreach my $program ( sort keys $Changes->%* ) {
@@ -114,7 +113,7 @@ sub get_comments ( $pr_number ) {
 	}
 
 sub ua () {
-	state $token = $ENV{"PPT_GITHUB_TOKEN"};
+	state $token = $ENV{"BMT_GITHUB_TOKEN"};
 	state $ua = Mojo::UserAgent->new;
 	state $rc = $ua->on( start => sub ( $ua, $tx ) {
 		$tx->req->headers->authorization( "Bearer $token" );
