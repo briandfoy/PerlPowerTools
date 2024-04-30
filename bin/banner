@@ -47,8 +47,9 @@ if (defined $opt{'w'}) {
 
 # scale characters to width
 my @printmask;
-for (my $i = 0; $i < $width; $i++) {
-  $printmask[$i * 132 / $width] = 1;
+for (0 .. ($width - 1)) {
+  my $i = int($_ * DWIDTH / $width);
+  $printmask[$i] = 1;
 }
 
 # get message
