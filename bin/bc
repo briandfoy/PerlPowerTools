@@ -2377,7 +2377,8 @@ sub exec_stmt
 
    } elsif($_ eq 'P') {
      my $index = splice @ope_stack, -2, 1; # rval remains top of stack
-     if($index !~ /^\d+$/) {
+     $index = floor_idx($index);
+     if ($index == -1) {
        print STDERR "Non-integer index $index for array\n";
        $return = 3;
        @ope_stack = ();
@@ -2405,8 +2406,8 @@ sub exec_stmt
 
 # Array value : initialized to 0
      my ($name, $idx) = ($instr->[1], pop(@ope_stack));
-
-     if($idx !~ /^\d+$/) {
+     $idx = floor_idx($idx);
+     if ($idx == -1) {
        print STDERR "Non-integer index $idx for array\n";
        $return = 3;
        @ope_stack = ();
@@ -2732,6 +2733,14 @@ sub exec_stmt
 
   return ($return, $val);
 
+}
+
+sub floor_idx {
+  my $idx = shift;
+  if ($idx =~ m/\A([0-9]+)\.?/) {
+    return $1;
+  }
+  return -1;
 }
 
 # catch signals
