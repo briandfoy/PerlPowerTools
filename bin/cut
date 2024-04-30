@@ -26,16 +26,16 @@ getopts('b:c:d:f:ns', \%opt) or usage();
 
 # There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
-$opt{b} = $opt{c} if defined $opt{c};
-usage() if $opt{'b'} && $opt{'f'};
-
-handle_b() if $opt{b};
-handle_f() if $opt{f};
-
-warn "$me: byte, character or field list required\n";
-usage();
-
-
+if ($opt{'b'} || $opt{'c'}) {
+    usage() if $opt{'f'};
+    handle_b();
+} elsif ($opt{'f'}) {
+    handle_f();
+} else {
+    warn "$me: byte, character or field list required\n";
+    usage();
+}
+exit EX_SUCCESS;
 
 sub checknum {
     my $n = shift;
@@ -86,7 +86,6 @@ sub handle_b {
         }
         print "\n";
     }
-    exit EX_SUCCESS;
 }
 
 sub handle_f {
@@ -147,8 +146,6 @@ sub handle_f {
             print "$_\n" unless $opt{"s"};
         }
     }
-
-    exit EX_SUCCESS;
 }
 
 sub usage {
@@ -168,9 +165,6 @@ Each range is one of:
 EOT
     exit EX_FAILURE;
 }
-
-
-# (Thanks to Abigail for the pod template.)
 
 __END__
 
