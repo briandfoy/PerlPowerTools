@@ -21,13 +21,10 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-use vars qw($VERSION);
-$VERSION = '1.1';
+our $VERSION = '1.1';
 
 use vars qw($opt_b $opt_f $opt_p $opt_x $opt_l);
 use vars qw($opt_e $opt_E $opt_s $opt_t);
-
-$opt_f = 0;
 
 getopts('bfpxl:eEst') or usage();
 if (defined $opt_l) {
@@ -84,11 +81,9 @@ while (<>) {
         if ($c eq "\x1B" or $c eq "\x0B") {
             if ($c eq "\x0B" or $chars[++$i] =~ /$re[1]/xo) {
                                                 # reverse line feed
-                $row -= 2;
-                $row >= 0 or $row = 0;
+                $row -= 2 if $row >= 2;
             } elsif ($chars[$i] =~ /$re[2]/xo) { # half reverse line feed
-                $row -= 1;
-                $row >= 0 or $row = 0;
+                $row-- if $row >= 1;
             } elsif ($chars[$i] =~ /$re[3]/xo) { # half forward line feed
                 $row += 1;
             } else {                            # unrecognized escape
@@ -210,7 +205,7 @@ if ($max_row & 1) {
     print "\x0D" if !$front;
     $front = 1;
 }
-
+exit EX_SUCCESS;
 
 # print_line
 # print the current line
@@ -276,8 +271,6 @@ sub print_line {
         }
     }
 }
-
-exit EX_SUCCESS;
 
 sub usage {
     warn "usage: $Program [-bfpx] [-l num] [-Eest]\n";
