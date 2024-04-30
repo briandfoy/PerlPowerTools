@@ -1,5 +1,229 @@
 Revision history for Perl module PerlPowerTools
 
+1.045 2024-04-30T22:22:10Z
+	* All changes from Michael Mikonos
+	* ar
+		- validate args for -a and -b (#484)
+		- ensure file  has header with -q, which should have happened before but wasn't (#495)
+		- warn if archive member isn't found (#500)
+		- improve internals with strict; better option validation (#510)
+	
+	* arithmetic
+		- validate the -r argument using the right variable (#501)
+		- treat an empty line as bad input instead of the number undef (#541)
+	
+	* asa
+		- various internals improvements (#545)
+	
+	* awk
+		- don't need to load App::a2p (#524)
+		- various internals improvements (#525)
+		- use File::Temp instead of rolling our own (#557)
+	
+	* banner
+		- various internals improvements (#585)
+	
+	* bc
+		- handle cases where Math::Big* is missing (like minimal distros of perl) (#511)
+		- assignment to variable does not print, in line with GNU bc (#517)
+		- remove non-standard ** operator; use ^ instead (#518)
+		- catch negative index in array assignment (#521)
+		- allow digits in array names (#523)
+		- internal fixes to make the yydebug code simpler (#540)
+		- various internals improvements (#543)
+		- various internals improvements (#548)
+		- various internals improvements (#554)
+		- various internals improvements (#559)
+		- fix "Exiting subroutine via next" error (#562)
+		- catch divide by zero before we try the division (#580)
+		- fix problem where vars did not have a type in the internal symbol table (fixes #522) (#582)
+		- allow array indices to have fractional parts (still only use the floor) (#584)
+	
+	* cal
+		- simplify usage message (#583)
+	
+	* cmp
+		- remove -? option, although using it give you the help still  (#567)
+	
+	* col
+		- we now buffer the entire file to get around some weird effects (#483)
+		- various internals improvements (#586)
+	
+	* comm
+		- allow for the unbundling of options (#535)
+	
+	* cut
+		- don't allow -b and -f at the same time (#485)
+		- various internals improvements (#588)
+	
+	* date
+		- protect path to current perl in backticks (from kal24) (#506)
+		- various internals improvements (#509)
+	
+	* diff
+		- empty files are the same  (#578)
+	
+	* du
+		- warn if du cannot stat a file (#515)
+		- various internals improvements (#574)
+	
+	* echo
+		- various internals improvements (#509)
+	
+	* ed
+		- internal improvements to reduce complexity (#489)
+		- filename must have at least one character; better support to remember filename (#542)
+		- various internals improvements (#550)
+		- various internals improvements (#553)
+		- fixed inserting an empty file; print the number of characters read from a file (#560)
+		- handle argument to `s` command being zero length (#577)
+		- s/// correctly reports "no match" for no matches. (#579)
+	
+	* expand
+		- fix the tabstop argument to get the correct number of spaces (#491)
+		- allow for the -- option terminator (#492)
+	
+	* factor
+		- various internals improvements (#509)
+	
+	* file
+		- exit with error if the command line options are wrong (#546)
+		- various internals improvements (#571)
+	
+	* fish
+		- various internals improvements (#544)
+		- card names are now case insensitive (#551)
+		- various internals improvements (#558)
+	
+	* fmt
+		- better reporting when the program cannot open a file (#487)
+	
+	* fold
+		- better error messages when fold can't close a file properly (#561)
+	
+	* glob
+		- handle a bare tilde at the start of the path (#490)
+		- various internals improvements (#509)
+		- various internals improvements (#539)
+	
+	* hangman
+		- ensure that we can get at least one word from the word list (#502)
+	
+	* id
+		- allow only 0 or 1 arguments (#494)
+	
+	* install
+		- fix setting permissions on installed files (#514)
+	
+	* join
+		- allow -- to terminate options (#504)
+	
+	* kill
+		- help shows signal list (#513)
+		- pid must be a positive whole number (#534)
+		- various internals improvements (#566)
+	
+	* ln
+		- handle single argument call correctly (#497)
+	
+	* mail
+		- resolve conflicting hostname() definitions (#519)
+		- use error from IO::Socket if there's a problem (#536)
+	
+	* maze
+		- clarify argument processing (#516)
+	
+	* mkdir
+		- various internals improvements (#549)
+		- die for an empty mode argument (#552)
+	
+	* mkfifo
+		- various internals improvements (#572)
+	
+	* moo
+		- argument must be greater than zero (#569)
+	
+	* nl
+		- validate arguments to -b, -f, and -h (#496)
+	
+	* od
+		- correctly handle multiline repeating (#498)
+	
+	* patch
+		- only process regular files, and die otherwise (#556)
+	
+	* pig
+		- remove -v but support --version (#587)
+	
+	* printenv
+		- remove -? option to match BSD (#503)
+	
+	* printf
+		- remove internal string eval to allow more things in formats and args (#526)
+		- handle octal and hex escapes better (and limit to a single char) (#528)
+		- ignore arguments if the first argument does not have format specifiers (#532)
+		- better error message for bad printf format (#564)
+	
+	* pwd
+		- various internals improvements (#573)
+	
+	* rev
+		- remove -v option, but add it back as --version; -h and --version messages change slightly (#581)
+	
+	* rmdir
+		- don't rmdir() if the argument is not a directory (#568)
+	
+	* shar
+		- various internals improvements (#565)
+	
+	* spell
+		- remove -b option, use -d instead to use alternate dictionary (#527)
+		- fail if dictionary is empty (#530)
+	
+	* split
+		- disallow a split size of 0 (#482)
+		- various internals improvements (#555)
+	
+	* sum
+		- don't allow -a and -o at the same time (#488)
+	
+	* tac
+		- validate the value for -S; must be positive (#529)
+	
+	* tail
+		- exit with error if the command line options are wrong (#547)
+	
+	* tar
+		- fix file extraction (#493)
+		- -f switch is now mandatory; use - to read from stdin (#575)
+	
+	* test
+		- exit 1 (not 2) for no arguments. (#520)
+	
+	* touch
+		- de-emphasize -f, which is a no-op anyway (#512)
+		- -r can now take a filename named "0" (#563)
+		- various internals improvements (#576)
+	
+	* unexpand
+		- -- terminates options processing (#499)
+	
+	* units
+		- various internals improvements (#509)
+		- remove --copying and --warranty options (license is in this distro) (#589)
+	
+	* unshar
+		- terminate arguments with -- (#481)
+	
+	* which
+		- use the same exit codes as the GNU version (#486)
+	
+	* whois
+		- fix some network code; don't use a default server (must specify a server) (#531)
+		- query multiple domains in one command (#533)
+		- make strict safe; use error from IO::Socket instead of $! (#537)
+		- hostname must have at least one non-whitespace character (#538)
+
 1.044 2024-03-03T09:12:25Z
 	* All changes are from Michael Mikonos
 	* addbib
