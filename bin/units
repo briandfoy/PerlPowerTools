@@ -135,8 +135,6 @@ sub process_args {
     my( $class, @args ) = @_;
 
     my @unittabs;
-    my $USAGE;
-
     while (@args and $args[0] =~ /^-/) {
       my $flag = shift @args;
       if ($flag =~ /^-(f|-file)?$/) {
@@ -146,11 +144,11 @@ sub process_args {
         exit 0;
       } else {
         warn "Unknown flag: $flag.\n";
-        $USAGE++;
+        $class->usage();
       }
     }
 
-    $class->usage() if $USAGE || @args == 1 || @args > 2;
+    $class->usage() if @args == 1 || @args > 2;
 
     @unittabs = $class->env_unittabs unless @unittabs;
     @unittabs = $class->default_unittabs unless @unittabs;
@@ -160,7 +158,6 @@ sub process_args {
 
 sub read_unittab {
   my( $class, $file ) = @_;
-  my $read_unittab = 0;
 
   my( $name, $fh ) = do {
     if( defined $file and -e $file ) {
