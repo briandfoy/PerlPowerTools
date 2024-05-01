@@ -820,7 +820,6 @@ my $yydebug;
 my $yyerrflag;
 my $yylval;
 my $yyn;
-my $yynerrs;
 my $yym;
 my $yyssp;
 my $yystate;
@@ -1359,12 +1358,11 @@ undef, # "expr : '&' STRING", # removed feature but we didn't want to disturb se
 sub yyclearin { $yychar = -1; }
 sub yyerrok { $yyerrflag = 0; }
 my $YYSTACKSIZE = 500;
-my $YYMAXDEPTH = 500;
 my @yyss;
 my @yyvs;
 $yyss[$YYSTACKSIZE] = 0;
 $yyvs[$YYSTACKSIZE] = 0;
-sub YYERROR { ++$yynerrs; &yy_err_recover; }
+sub YYERROR { &yy_err_recover; }
 sub yy_err_recover
 {
   if ($yyerrflag < 3)
@@ -1412,7 +1410,7 @@ sub yy_err_recover
 sub clear_flags
 {
   yyclearin();
-  $yynerrs = $yyerrflag = $yyssp = $yyvsp = $yyss[0] = $yystate = 0;
+  $yyerrflag = $yyssp = $yyvsp = $yyss[0] = $yystate = 0;
 }
 
 sub yyparse
@@ -1451,7 +1449,6 @@ yyloop: while(1)
       }
       if (! $yyerrflag) {
         &yyerror('syntax error');
-        ++$yynerrs;
       }
       return(1) if &yy_err_recover;
     } # yyreduce
