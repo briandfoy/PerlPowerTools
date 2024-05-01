@@ -22,13 +22,11 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 
 my $dict_file = "/usr/dict/words";      # Filename (path) for standard dict
-my $alt_dict_file = "/usr/dict/linux.words"; # Filename (path) for an alternate dict
 
 my (
     %words,    # words from dictionary
     %check,    # words to be checked
     @supp,     # file(s) of supplemental dictionaries/words
-    @files,    # file(s) to check
     @keys,     # keys of the %words hash
     $check,    # Indicator if close matches should be found
     $inter,    # Indicator if in "interactive mode
@@ -85,7 +83,7 @@ while (@ARGV) {
     }
   }
   else {   # must be the file(s) to check.
-    push @files, $_;
+    last;
   }
   shift;
 }
@@ -115,8 +113,6 @@ unless (@keys) {
 }
 
 # Read data to check
-
-@ARGV = @files;
 
 if ($inter) {
   print "Word(s): ";
