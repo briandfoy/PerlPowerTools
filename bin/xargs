@@ -31,7 +31,7 @@ my $Program = basename($0);
 my %o;
 getopts('0tn:L:l:s:I:', \%o) or die <<USAGE;
 Usage:
-	$Program [-0t] [-n num] [-L num] [-s size] [-I repl] prog [args]
+	$Program [-0t] [-n num] [-L num] [-s size] [-I repl] [prog [args ...]]
 
 	-0	expect NUL characters as separators instead of spaces
 	-t	trace execution (prints commands to STDERR)
@@ -59,11 +59,12 @@ my @args = ();
 $o{I} ||= '{}' if exists $o{I};
 $o{l} = 1 if $o{I};
 my $sep = $o{'0'} ? '\0+' : '\s+';
-
-while (1) {
+my $eof = 0;
+while (!$eof) {
     my $line = "";
     my $totlines = 0;
     while (<STDIN>) {
+	$eof = eof;
 	chomp;
 	next unless (length && m/\S/);
 	$line .= $_ if $o{I};
