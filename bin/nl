@@ -32,12 +32,11 @@ my $program  = basename($0);
 # options
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
-getopts('Vb:d:f:h:i:n:ps:v:w:', \%options) or pod2usage(EX_FAILURE);
+getopts('b:d:f:h:i:n:ps:v:w:', \%options) or pod2usage(EX_FAILURE);
 my $file = shift;
 $file = '-' unless defined $file;
 pod2usage(EX_FAILURE) if @ARGV;
 
-my $version     = $options{V};
 my $type_b      = $options{b} || "t";
 my $delim       = $options{d} || '\:';
 my $type_f      = $options{f} || "n";
@@ -94,8 +93,8 @@ else {
 	$incr = 1;
 }
 
-if ($version) {
-	print "$program $VERSION\n";
+sub VERSION_MESSAGE {
+	print "$program version $VERSION\n";
 	exit EX_SUCCESS;
 }
 
@@ -264,7 +263,7 @@ nl - line numbering filter
 
 =head1 SYNOPSIS
 
-    nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
+    nl [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
        [-n format] [-s sep] [-v startnum] [-w width] [file]
 
 =head1 DESCRIPTION
@@ -276,7 +275,6 @@ If file is a dash "-" or if no file is given as argument, nl reads from standard
 
 The following options are supported.
 
-    -V              version
     -b type         'a'     all lines
                     't'     only non-empty lines (default)
                     'n'     no numbering
