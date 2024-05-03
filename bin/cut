@@ -26,12 +26,18 @@ getopts('b:c:d:f:ns', \%opt) or usage();
 
 # There's no difference between -b and -c on any unix I
 # use regularly -- it's for i18n. Thus, -n is a noop, too.
-if ($opt{'b'} || $opt{'c'}) {
+if (defined $opt{'b'}) {
     usage() if $opt{'f'};
-    handle_b();
-} elsif ($opt{'f'}) {
-    handle_f();
-} else {
+    handle_b($opt{'b'});
+}
+elsif (defined $opt{'c'}) {
+    usage() if $opt{'f'};
+    handle_b($opt{'c'});
+}
+elsif (defined $opt{'f'}) {
+    handle_f($opt{'f'}, $opt{'d'}, $opt{'s'});
+}
+else {
     warn "$me: byte, character or field list required\n";
     usage();
 }
@@ -50,7 +56,8 @@ sub checknum {
 }
 
 sub handle_b {
-    my @list = split (/,/, $opt{b});
+    my $spec = shift;
+    my @list = split /,/, $spec;
 
     while (<>) {
         chomp;
@@ -60,39 +67,37 @@ sub handle_b {
             if (substr($item, 0, 1) eq '-') {
                 checknum($item);
                 $start = 1;
-                $end = abs($item) + 1;
+                $end = abs $item;
             }
             elsif (index($item, '-') == -1) {
                 checknum($item);
-                $start = $item;
-                $end = $start + 1;
+                $start = $end = $item;
             }
             else {
                 ($start, $end) = split /\-/, $item;
                 checknum($start);
                 checknum($end);
-                $end++;
                 if ($start >= $end) {
                     warn "$me: invalid byte list\n";
                     exit EX_FAILURE;
                 }
             }
-
-            # change cut's list parameters to substr's parameters
-            $start = length if $start > length;
-            $end = length if $end > length;
-
-            printf "%s", substr($_, $start - 1, $end - $start);
+            printf "%s", substr($_, $start - 1, $end - $start + 1);
         }
         print "\n";
     }
 }
 
 sub handle_f {
-    my @list = split (/,/, $opt{f});
-    my $delim = "\t";
-    $delim = substr ($opt{d}, 0, 1) if defined $opt{d};
+    my ($spec, $delim, $sflag) = @_;
 
+    my @list = split /,/, $spec;
+    if (defined $delim) {
+        $delim = substr $delim, 0, 1;
+    }
+    else {
+        $delim = "\t";
+    }
     while (<>) {
         chomp;
 
@@ -143,7 +148,7 @@ sub handle_f {
             }
         }
         else {  # no delimiter in line
-            print "$_\n" unless $opt{"s"};
+            print "$_\n" unless $sflag;
         }
     }
 }
