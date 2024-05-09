@@ -59,30 +59,37 @@ sub handle_b {
     my $spec = shift;
     my @list = split /,/, $spec;
 
+    my @cols;
+    foreach my $item (@list) {
+        if (substr($item, 0, 1) eq '-') {
+            checknum($item);
+            push @cols, 1 .. abs($item);
+        }
+        elsif (index($item, '-') == -1) {
+            checknum($item);
+            push @cols, $item;
+        }
+        else {
+            my ($start, $end) = split /\-/, $item, 2;
+            checknum($start);
+            checknum($end);
+            if ($start >= $end) {
+                warn "$me: invalid byte list\n";
+                exit EX_FAILURE;
+            }
+            push @cols, $start .. $end;
+        }
+    }
+    my @sorted = sort { $a <=> $b } @cols;
+
     while (<>) {
         chomp;
-
-        foreach my $item (@list) {
-            my ($start, $end);
-            if (substr($item, 0, 1) eq '-') {
-                checknum($item);
-                $start = 1;
-                $end = abs $item;
-            }
-            elsif (index($item, '-') == -1) {
-                checknum($item);
-                $start = $end = $item;
-            }
-            else {
-                ($start, $end) = split /\-/, $item;
-                checknum($start);
-                checknum($end);
-                if ($start >= $end) {
-                    warn "$me: invalid byte list\n";
-                    exit EX_FAILURE;
-                }
-            }
-            printf "%s", substr($_, $start - 1, $end - $start + 1);
+        my $col = 0;
+        my @chars = split //;
+        foreach my $c (@sorted) {
+	    next if $c <= $col;
+            print $chars[$c - 1];
+            $col = $c;
         }
         print "\n";
     }
