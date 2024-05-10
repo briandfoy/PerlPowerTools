@@ -133,6 +133,33 @@ my %WANT_FILE = (
     'W' => 1,
 );
 
+my %cmdtab = (
+    '!' => \&edPipe,
+    '=' => \&edPrintLineNum,
+    'f' => \&edFilename,
+    'd' => \&edDelete,
+    'P' => \&edPrompt,
+    'p' => \&edPrint,
+    's' => \&edSubstitute,
+    'j' => \&edJoin,
+    't' => \&edMove,
+    'H' => \&edSetHelp,
+    'h' => \&edHelp,
+    'm' => \&edMoveDel,
+    'n' => \&edPrintNum,
+    'l' => \&edPrintBin,
+    'Q' => \&edQuit,
+    'q' => \&edQuitAsk,
+    'i' => \&edInsert,
+    'a' => \&edAppend,
+    'w' => \&edWrite,
+    'W' => \&edWriteAppend,
+    'c' => \&edChangeLines,
+    'E' => \&edEdit,
+    'e' => \&edEditAsk,
+    'r' => \&edRead,
+);
+
 $SIG{HUP} = sub {
     if ($NeedToSave) {
         my $fh;
@@ -144,11 +171,6 @@ $SIG{HUP} = sub {
     }
     exit 1;
 };
-#
-# Parse command line ...
-#
-#
-
 
 my %opt;
 getopts('dp:sv', \%opt) or Usage();
@@ -170,7 +192,6 @@ $SupressCounts = 1 if ($opt{'s'} || !defined($args[0]));
 #
 # parse commands and execute them...
 #
-
 while (1) {
     print $Prompt if defined $Prompt;
     last unless ($_ = <>);
@@ -215,74 +236,15 @@ while (1) {
         #   - do command specific checks of adrs and args in the routine
         #   - have command operate on important globals (see top of file),
         #     such as @lines, $CurrentLineNum, $NeedToSave...
-        #
-
-        # navigation operations
 
         if (!length($command)) {
             &edSetCurrentLine;
-        } elsif ($command eq '!') {
-            edPipe();
-        } elsif ($command eq '=') {
-            &edPrintLineNum;
-
-        # file operations
-
-        } elsif ($command eq 'w') {
-            &edWrite($NO_APPEND_MODE);
-        } elsif ($command eq 'W') {
-            &edWrite($APPEND_MODE);
-        } elsif ($command eq 'e') {
-            &edEdit($QUESTIONS_MODE,$NO_INSERT_MODE);
-        } elsif ($command eq 'E') {
-            &edEdit($NO_QUESTIONS_MODE,$NO_INSERT_MODE);
-        } elsif ($command eq 'r') {
-            &edEdit($QUESTIONS_MODE,$INSERT_MODE);
-        } elsif ($command eq 'f') {
-            &edFilename;
-
-        # text manipulation commands
-
-        } elsif ($command eq 'd') {
-            &edDelete;
-        } elsif ($command eq 'i') {
-            &edInsert($INSERT_MODE);
-        } elsif ($command eq 'a') {
-            &edInsert($APPEND_MODE);
-        } elsif ($command eq 'c') {
-            if (edDelete()) {
-                $adrs[1] = undef;
-                edInsert($INSERT_MODE);
-            }
-        } elsif ($command eq 's') {
-            &edSubstitute;
-
-        # misc commands
-
-        } elsif ($command eq 'p') {
-            &edPrint;
-        } elsif ($command eq 'P') {
-            edPrompt();
-        } elsif ($command eq 'q') {
-            &edQuit($QUESTIONS_MODE);
-        } elsif ($command eq 'Q') {
-            &edQuit($NO_QUESTIONS_MODE);
-        } elsif ($command eq 'h') {
-            edHelp();
-        } elsif ($command eq 'H') {
-            edHelp(1);
-        } elsif ($command eq 'j') {
-            &edJoin;
-        } elsif ($command eq 'l') {
-            edPrint($PRINT_BIN);
-        } elsif ($command eq 'm') {
-            edMove(1);
-        } elsif ($command eq 'n') {
-            edPrint($PRINT_NUM);
-        } elsif ($command eq 't') {
-            &edMove;
+        } elsif (exists $cmdtab{$command}) {
+            my $func = $cmdtab{$command};
+            $func->();
+        } else {
+            edWarn(E_CMDBAD);
         }
-
     } else {
         edWarn(E_CMDBAD);
     }
@@ -294,6 +256,13 @@ sub maxline {
         $n = 0;
     }
     return $n;
+}
+
+sub edChangeLines {
+    if (edDelete()) {
+        $adrs[1] = undef;
+        edInsert();
+    }
 }
 
 sub edPrompt {
@@ -489,6 +458,16 @@ sub edMove {
     $UserHasBeenWarned = 0;
     $CurrentLineNum = $dst + scalar(@copy)
 }
+
+sub edMoveDel { edMove(1); }
+sub edSetHelp { edHelp(1); }
+sub edPrintNum { edPrint($PRINT_NUM); }
+sub edPrintBin { edPrint($PRINT_BIN); }
+sub edQuitAsk { edQuit(1); }
+sub edAppend { edInsert(1); }
+sub edWriteAppend { edWrite(1); }
+sub edEditAsk { edEdit($QUESTIONS_MODE,$NO_INSERT_MODE); }
+sub edRead { edEdit($QUESTIONS_MODE,$INSERT_MODE); }
 
 #
 # Perform text substitution
@@ -769,7 +748,7 @@ sub edEdit {
 #
 
 sub edInsert {
-    my($Mode) = @_;
+    my $append = shift;
     my(@tmp_lines);
 
     if (defined($adrs[1])) {
@@ -794,7 +773,7 @@ sub edInsert {
     }
 
     my $src = $adrs[0];
-    $src++ if ($src && $Mode == $APPEND_MODE);
+    $src++ if ($src && $append);
     $src++ if $src == 0; # 0a == 0i == 1i
 
     splice @lines, $src, 0, @tmp_lines;
