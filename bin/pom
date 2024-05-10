@@ -22,6 +22,10 @@ use POSIX qw(floor fmod);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
+use constant LINES_DEFAULT => 25;
+use constant COLS_DEFAULT  => 80;
+use constant ASPECT_RATIO => 5 / 7;
+
 my $Program = basename($0);
 
 { my $vt100_compatible = 0;
@@ -58,8 +62,9 @@ sub usage {
 
 sub checknum {
   my $n = shift;
+  my $lab = shift || 'number';
   if ($n !~ m/\A[0-9]+\Z/) {
-    warn "$Program: bad number: '$n'\n";
+    warn "$Program: bad $lab: '$n'\n";
     exit EX_FAILURE;
   }
   return int($n);
@@ -241,9 +246,10 @@ if ($debugging) {
 #
 ## Draw the moon.
 
-my $terminal_width  = (($ENV{COLS} || $ENV{COLUMNS} || 80) & ~1) - 2;
-my $terminal_height = ($ENV{LINES} || $ENV{ROWS} || 25) - 3;
-my $aspect_ratio = 5 / 7;
+my $terminal_width = ($ENV{COLS} || $ENV{COLUMNS} || COLS_DEFAULT) - 2;
+my $terminal_height = ($ENV{LINES} || $ENV{ROWS} || LINES_DEFAULT) - 3;
+checknum($terminal_width, 'terminal width');
+checknum($terminal_height, 'terminal height');
 my @surface_char = (':', '-', '+', '=', '*', 'O', '0', '8', '#', '@');
 
 sub display_moon {
@@ -297,7 +303,7 @@ sub display_moon {
     for (my $y=1-($increment/2); $y>-1; $y -= $increment) {
       my $x = sqrt(1 - $y**2);
 
-      my $moon_size  = int($x * $terminal_width * $aspect_ratio);
+      my $moon_size  = int($x * $terminal_width * ASPECT_RATIO);
       ($moon_size & 1) && ($moon_size--); # symmetry fudge
       my $space_size = ($terminal_width - $moon_size) / 2;
 
