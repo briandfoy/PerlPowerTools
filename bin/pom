@@ -247,9 +247,15 @@ if ($debugging) {
 ## Draw the moon.
 
 my $terminal_width = ($ENV{COLS} || $ENV{COLUMNS} || COLS_DEFAULT) - 2;
+if (checknum($terminal_width, 'terminal width') == 0) {
+  warn "$Program: terminal width 0\n";
+  exit EX_FAILURE;
+}
 my $terminal_height = ($ENV{LINES} || $ENV{ROWS} || LINES_DEFAULT) - 3;
-checknum($terminal_width, 'terminal width');
-checknum($terminal_height, 'terminal height');
+if (checknum($terminal_height, 'terminal height') == 0) {
+  warn "$Program: terminal height 0\n";
+  exit EX_FAILURE;
+}
 my @surface_char = (':', '-', '+', '=', '*', 'O', '0', '8', '#', '@');
 
 sub display_moon {
