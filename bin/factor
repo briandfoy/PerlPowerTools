@@ -151,14 +151,12 @@ factored.
 When factor is invoked with no arguments, factor reads numbers, one
 per line, from standard input, until end of file or error.  Leading
 white-space and empty lines are ignored.  Numbers may be preceded by a
-single C<-> or C<+>.  Numbers are terminated by a non-digit character
+single C<+>.  Numbers are terminated by a non-digit character
 (such as a new-line).  After a number is read, it is factored.
 
 =head1 BUGS
 
-I<factor> has no known bugs.  This documentation corrects a bug in the
-BSD implementation of I<factor>, which incorrectly states that
-I<factor> will accept negative integers.
+I<factor> has no known bugs.
 
 Dana Jacobson provided a fix for numbers close to perfect squares.
 
