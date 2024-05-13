@@ -198,19 +198,25 @@ sub wc_fh {
     print "$out";
 }
 
+my $rc = EX_SUCCESS;
 if (@ARGV) {
     foreach my $filename (@ARGV) {
         if (-d $filename) {
             warn "$Program: '$filename' is a directory\n";
+            $rc = EX_FAILURE;
             next;
         }
         my $fh;
         unless (open $fh, '<', $filename) {
-            warn "$Program: '$filename': $!\n";
+            warn "$Program: failed to open '$filename': $!\n";
+            $rc = EX_FAILURE;
             next;
         }
         wc_fh($fh, $filename);
-        close $fh;
+        unless (close $fh) {
+            warn "$Program: failed to close '$filename': $!\n";
+            $rc = EX_FAILURE;
+        }
     }
 } else {
     wc_fh(\*STDIN);
@@ -225,6 +231,7 @@ if ($#ARGV >= 1) {
     $out = sprintf(" %9u%s",$total_paras,$out) if ($opt{'p'});
     print "$out";
 }
+exit $rc;
 
 __END__
 
