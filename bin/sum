@@ -77,14 +77,18 @@ foreach (@ARGV) {
 	my $fh;
 	if ($_ eq '-') {
 		$fh = *STDIN;
+	} elsif (-d $_) {
+		warn "$Program: '$_' is a directory\n";
+		$exitval = EX_FAILURE;
+		next;
 	} elsif (!open($fh, '<', $_)) {
-		warn "$0: $_: $!\n";
+		warn "$Program: failed to open '$_': $!\n";
 		$exitval = EX_FAILURE;
 		next;
 	}
 	my ($rval, $crc, $len) = $alg->($fh);
 	unless ( defined($rval) && ($rval == 0) ) {
-		warn "$0: $_: $!\n";
+		warn "$Program: '$_': $!\n";
 		$exitval = EX_FAILURE;
 		next;
 	}
