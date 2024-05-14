@@ -161,6 +161,7 @@ sub install_dirs {
         mkdir $dir, 0755 or die "$Program: mkdir $dir: $!\n";
     }
 
+    return unless $Unix;
     foreach my $directory (@ARGV) {
         my($dir,$implied) = @$directory;
 
@@ -176,9 +177,7 @@ sub install_dirs {
         else {
             $bits = oct $mode;
         }
-
-        # do these make sense elsewhere?
-        modify_file $dir, $bits if !$implied && $Unix;
+        modify_file($dir, $bits);
     }
 }
 
