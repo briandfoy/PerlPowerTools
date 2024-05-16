@@ -373,6 +373,7 @@ sub List {
 	} else {
 
 		# ------ compute rows, columns, width mask
+		$WinCols = get_columns() unless defined $WinCols;
 		$Cols = int($WinCols / $Maxlen) || 1;
 		$Rows = int(($#_+$Cols) / $Cols);
 		$Mask = sprintf("%%-%ds ", $Maxlen);
@@ -494,7 +495,6 @@ if ($Options{'f'}) {
 	$Options{'a'} = 1;
 }
 
-$WinCols = get_columns();
 $Attributes = stat(*STDOUT);
 if ($Attributes->mode & 0140000) {
 	$Options{'1'} = '1';
