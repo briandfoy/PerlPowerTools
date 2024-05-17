@@ -136,8 +136,8 @@ sub parse_args {
 
 	$optstring = "incCwsxvhe:f:l1HurtpP:aqTF";
 
-	$zeros = 'inCwxvhelut';    # options to init to 0 (prevent warnings)
-	$nulls = 'pP';             # options to init to "" (prevent warnings)
+	$zeros = 'inCwxvhlut';    # options to init to 0 (prevent warnings)
+	$nulls = 'epP';             # options to init to "" (prevent warnings)
 
 	@opt{ split //, $zeros } = (0) x length($zeros);
 	@opt{ split //, $nulls } = ('') x length($nulls);
@@ -162,7 +162,9 @@ sub parse_args {
 		close PATFILE;
 		}
 	else {    # make sure pattern is valid
-		$pattern = $opt{e} || shift(@ARGV) || usage();
+		$pattern = $opt{'e'};
+		$pattern = shift(@ARGV) unless length $pattern;
+		usage() unless defined $pattern;
 		unless ($no_re) {
 			eval { 'foo' =~ /$pattern/, 1 }
 				or die "$Me: bad pattern: $@";
