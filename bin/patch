@@ -504,12 +504,10 @@ sub error {
 # End of patch clean up.
 sub end {
     my $self = shift;
-
-    return if ref $self eq 'Patch';
-
+    my $class = ref $self;
+    return if $class eq 'Patch';
     return $self->restore_file if $self->{skip};
-
-    $self->print_tail;
+    $self->print_tail if $class ne 'Patch::Ed';
     $self->print_rejects;
     $self->remove_empty_files;
 }
@@ -1041,20 +1039,6 @@ sub apply {
     );
     return;
 }
-
-# End of patch clean up.  $self->print_tail is omitted because ed diffs are
-# applied all at once rather than one hunk at a time.
-sub end {
-    my $self = shift;
-
-    return $self->restore_file if $self->{skip};
-
-    $self->print_rejects;
-    $self->remove_empty_files;
-}
-
-
-
 
 package
 	Patch::Normal; # hide from PAUSE
