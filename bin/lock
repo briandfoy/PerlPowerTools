@@ -37,14 +37,12 @@ for ( my $i = 0 ; $i <= $#ARGV ; ++ $i )
     if ( $i > $#ARGV )
     {
       print STDERR "lock: option requires an argument -- $ARGV[$j]\n";
-      usage ();
-      exit 1;
+      usage();
     }
     elsif ( $ARGV[$i] !~ /^[1-9]\d*$/ )	# don't let the user specify 0.
     {
       print STDERR "lock: illegal timeout value\n";
       usage();
-      exit 1;
     }
     $main::Timeout = $ARGV[$i];
   }
@@ -52,7 +50,6 @@ for ( my $i = 0 ; $i <= $#ARGV ; ++ $i )
   {
     print STDERR "lock: illegal option -- $ARGV[$i]\n";
     usage();
-    exit 1;
   }
 }
 
@@ -147,6 +144,7 @@ sub echo
 sub usage
 {
   print STDERR "usage: lock [-n] [-p] [-t timeout]\n";
+  exit 1;
 }
 
 sub code
@@ -197,7 +195,7 @@ __END__
 
 lock - reserves a terminal
 
-=head1 SYNOPSYS
+=head1 SYNOPSIS
 
 B<lock> [B<-n>] [B<-p>] [B<-t> I<timeout>]
 
@@ -237,7 +235,7 @@ lock the terminal.
 
 =head1 AUTHOR
 
-The Perl implementation of B<lock> was writtem by Aron Atkins,
+The Perl implementation of B<lock> was written by Aron Atkins,
 I<atkins@gweep.net>.
 
 =head1 COPYRIGHT and LICENSE
