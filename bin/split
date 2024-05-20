@@ -147,7 +147,7 @@ elsif ($opt{'p'}) {
 }
 
 ## Line operations.
-elsif ((! $opt{'p'}) and (! $opt{'b'})) {
+else {
     my $fh;
     $nlines = 1000 unless $nlines;
     my $line = 0;
@@ -158,9 +158,6 @@ elsif ((! $opt{'p'}) and (! $opt{'b'})) {
 	$line++;
     }
 }
-
-else { clue };
-
 close $in;
 exit;
 
