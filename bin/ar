@@ -48,6 +48,10 @@ if ($opt_a || $opt_b) {
 
 # the archive filename
 my $archive = shift;
+unless (defined $archive) {
+     warn "$0: archive file required\n";
+     usage();
+}
 my $pAr = {};	    # the archive is just a hash of name => [ header, data ]
 my $pNames = [];         # a ref to an array of names in the order they appear
 
@@ -422,7 +426,7 @@ usage: ar -d [-v] archive file ...
    ar -t [-v] archive [file ...]
    ar -x [-ouv] archive [file ...]
 EOT
-  exit;
+  exit 1;
 }
 
 __END__
