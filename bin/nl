@@ -263,7 +263,7 @@ nl - line numbering filter
 
 =head1 SYNOPSIS
 
-    nl [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num]
+    nl [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr]
        [-n format] [-s sep] [-v startnum] [-w width] [file]
 
 =head1 DESCRIPTION
