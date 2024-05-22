@@ -48,6 +48,7 @@ sub run {
 	return EX_USAGE unless defined $opts;
 	unless (@files) {
 		warn "$0: missing file operand\n";
+		usage();
 		return EX_USAGE;
 		}
 
@@ -101,19 +102,24 @@ sub process_arguments {
 	my %opts;
 
 	require Getopt::Long;
-	my $ret = Getopt::Long::GetOptionsFromArray(
+	Getopt::Long::GetOptionsFromArray(
 		\@args,
 		'f' => \$opts{'f'},
 		'i' => \$opts{'i'},
 		'n' => \$opts{'n'},
 		'p' => \$opts{'p'},
 		'v' => \$opts{'v'},
-		);
-
-	return unless $ret;
-
+	) or do {
+		usage();
+		return;
+	};
 	return ( \%opts, @args )
 	}
+
+sub usage {
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 'NOEXIT', -verbose => 0 });
+}
 
 __PACKAGE__;
 
@@ -127,9 +133,8 @@ cp - copy files and/or directories
 
 =head1 SYNOPSIS
 
-	% cp [ B<-fipv> ] source_file  target_file
-
-	% cp [ B<-fipv> ] source...  target_dir
+	% cp [-fipv] source_file  target_file
+	% cp [-fipv] source...  target_dir
 
 =head1 DESCRIPTION
 
