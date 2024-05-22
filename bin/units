@@ -295,21 +295,8 @@ sub print_result {
 
 sub usage {
   my( $class ) = @_;
-  my @default_unittabs = $class->default_unittabs();
-
-  print STDERR <<EOM;
- Usage: $0 [-f definition-file] [option]...
-
-valid options are:
-
-        -? --help         display this help text
-        -f --file         use specified definition file instead of
-                          @default_unittabs
-           --version      display version information
-
-Report bugs to https://github.com/briandfoy/PerlPowerTools/issues
-EOM
-  exit 1;
+  require Pod::Usage;
+  Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
 sub read_defs {
@@ -785,7 +772,7 @@ units - conversion program
 		* 2.54
 		/ 0.393701
 
-	% units [-f /path/to/unittab] [want_unit have_unit]
+    % units [-f /path/to/unittab] [want_unit have_unit]
 
 =head1 OPTIONS
 
