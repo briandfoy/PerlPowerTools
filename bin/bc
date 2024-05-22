@@ -1362,7 +1362,7 @@ my @yyss;
 my @yyvs;
 $yyss[$YYSTACKSIZE] = 0;
 $yyvs[$YYSTACKSIZE] = 0;
-sub YYERROR { &yy_err_recover; }
+
 sub yy_err_recover
 {
   if ($yyerrflag < 3)
@@ -2567,7 +2567,7 @@ sub exec_stmt
        $return = 0; # so the result will be printed
      } elsif($return == 2) {
        print STDERR "No enclosing while or for";
-       YYERROR;
+       yy_err_recover();
      } elsif($return == 3) {
        $return = 0;
      }
