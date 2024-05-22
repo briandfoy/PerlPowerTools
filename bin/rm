@@ -189,6 +189,7 @@ sub process_options {
 		'r' => \$opts{'r'},
 		'v' => \$opts{'v'},
 		);
+	usage() unless $ret;
 
 	$opts{'R'} = 1 if $opts{'r'};
 
@@ -276,7 +277,7 @@ sub usage {
 	require Pod::Usage;
 	Pod::Usage::pod2usage({
 		-exitval => EX_USAGE,
-		-verbose => 2,
+		-verbose => 1,
 		});
 	}
 
