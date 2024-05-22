@@ -83,7 +83,7 @@ if (defined $opt_C) {
     $Context_Lines = 3;
     set_diff_type('CONTEXT');
 }
-if ($opt_e || $opt_q) {
+if ($opt_e) {
     set_diff_type('ED');
 }
 if ($opt_f) {
@@ -186,7 +186,11 @@ foreach my $piece (@$diffs) {
 $oldhunk->output_diff(\@f1, \@f2, $Diff_Type);
 
 # Print hunks backwards if we're doing an ed diff
-map {$_->output_ed_diff(\@f1, \@f2, $Diff_Type)} @Ed_Hunks if @Ed_Hunks;
+if ($Diff_Type eq 'ED') {
+    foreach $hunk (@Ed_Hunks) {
+        $hunk->output_ed_diff(\@f1, \@f2, 'ED');
+    }
+}
 
 exit EX_DIFFERENT;
 # END MAIN PROGRAM
