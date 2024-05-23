@@ -86,9 +86,9 @@ sub usage {
 }
 
 sub dolink {
-    my ($file, $targ) = @_;
-    return symlink($file, $targ) if $options{'s'};
-    return link($file, $targ);
+    my ($file, $target) = @_;
+    return symlink($file, $target) if $options{'s'};
+    return link($file, $target);
 }
 
 __END__
