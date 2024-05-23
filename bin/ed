@@ -666,6 +666,11 @@ sub edEdit {
             edWarn(E_ADDREXT);
             return 0;
         }
+        if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
+            $UserHasBeenWarned = 1;
+            edWarn(E_UNSAVED);
+            return 0;
+        }
     }
 
     if (defined $args[0]) {
@@ -727,12 +732,6 @@ sub edEdit {
         $CurrentLineNum = $adrs[0] + scalar(@tmp_lines);
         $NeedToSave = 1;
     } else {
-        if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
-            $UserHasBeenWarned = 1;
-            edWarn(E_UNSAVED);
-            return;
-        }
-
         @lines = (undef, @tmp_lines);
         $NeedToSave = 0;
         $CurrentLineNum = maxline();
