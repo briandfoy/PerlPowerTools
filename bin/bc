@@ -1378,7 +1378,7 @@ sub yy_err_recover
              " to state $yytable[$yyn]\n" if $yydebug;
         $yyss[++$yyssp] = $yystate = $yytable[$yyn];
         $yyvs[++$yyvsp] = $yylval;
-        yyparse();
+        return 1;
       }
       else
       {
@@ -1401,8 +1401,7 @@ sub yy_err_recover
       print "yydebug: state $yystate, error recovery discards ",
             "token $yychar ($yys)\n";
     }
-    yyclearin();
-    yyparse();
+    return 1;
   }
 0;
 } # yy_err_recover
