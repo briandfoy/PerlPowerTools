@@ -710,6 +710,8 @@ sub edEdit {
     }
     if ($chars == 0) {
         $UserHasBeenWarned = 0;
+        $CurrentLineNum = 0;
+        @lines = (0);
         print "0\n" unless $SupressCounts;
         return 1;
     }
