@@ -72,10 +72,7 @@ my $saw_difference;
 my %opt;
 getopts('ls', \%opt) or usage();
 if ($opt{'l'}) {
-    if ($opt{'s'}) {
-        warn "$Program: options -l and -s are incompatible\n";
-        exit EX_FAILURE;
-    }
+    usage() if $opt{'s'};
     $volume = 2;
 }
 $volume = 0 if $opt{'s'};
@@ -226,7 +223,7 @@ sub skipnum {
 }
 
 sub usage {
-    warn "usage: $Program [-l] [-s] file1 file2 [skip1 [skip2]]\n";
+    warn "usage: $Program [-l | -s] file1 file2 [skip1 [skip2]]\n";
     exit EX_USAGE;
 }
 
@@ -238,7 +235,7 @@ cmp - compare two files
 
 =head1 SYNOPSIS
 
-cmp B<[-l]> B<[-s]> I<file1> I<file2> I<[skip1 [skip2]]>
+cmp B<[-l | -s]> I<file1> I<file2> I<[skip1 [skip2]]>
 
 =head1 DESCRIPTION
 
