@@ -73,7 +73,7 @@ sub handle_b {
             my ($start, $end) = split /\-/, $item, 2;
             checknum($start);
             checknum($end);
-            if ($start >= $end) {
+            if ($start > $end) {
                 warn "$me: invalid byte list\n";
                 exit EX_FAILURE;
             }
