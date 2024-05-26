@@ -248,14 +248,19 @@ sub get_field_specs {
 }
 
 sub get_options {
+  my ($aflag, $vflag);
   while (@ARGV && $ARGV[0] =~ /^-(.)/) {
     local $_ = shift @ARGV;
     return if $_ eq '--';
     if (s/^-a//) {
+      help() if $vflag;
+      $aflag = 1;
       my $f = get_file_number('a');
       $unpairables[$f] = 1;
     }
     elsif (s/^-v//) {
+      help() if $aflag;
+      $vflag = 1;
       $print_pairables = 0;
       my $f = get_file_number('v');
       $unpairables[$f] = 1;
