@@ -938,11 +938,17 @@ sub edParse {
         $command = '/';
         undef $adrs[0];
     }
+    my $commarange = $fields[1] =~ /,/;
+
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
     if ($adrs[1] == -1) {
         edWarn(E_NOMATCH);
         $command = '/';
         undef $adrs[1];
+    }
+    if ($commarange && !defined($adrs[0])) {
+        $adrs[0] = 1;
+        $adrs[1] = maxline() unless defined $adrs[1];
     }
     if (defined($args[0]) && $WANT_FILE{$command} && !$space_sep) {
         return 0;
