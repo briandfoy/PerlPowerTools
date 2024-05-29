@@ -25,7 +25,7 @@ use constant EX_FALSE => 1;
 use constant EX_ERROR => 2;
 
 $SIG{__DIE__} = sub {
-    print STDERR "expr: ", $_[0], "\n";
+    warn "expr: $_[0]";
     exit EX_ERROR;
 };
 
@@ -36,7 +36,7 @@ if (scalar(@ARGV) == 0) {
 
 # check that it is a number
 sub num($) {
-    $_[0] =~ /^-?[0-9]+$/ or die "non numeric-argument";
+    $_[0] =~ /^-?[0-9]+$/ or die "non numeric-argument\n";
     $_[0];
 }
 
@@ -63,8 +63,8 @@ my @global_ops = (
     },
     # multiplication, division, modulo
     { 	"*"  => sub { num($_[0]) * num($_[1]); },
-	"/"  => sub { num($_[0]) / num($_[1]); },
-	"%"  => sub { num($_[0]) % num($_[1]); },
+	"/"  => sub { die("divide by zero\n") if num($_[1]) == 0; num($_[0]) / $_[1]; },
+	"%"  => sub { die("modulo by zero\n") if num($_[1]) == 0; num($_[0]) % $_[1]; },
     },
     # regexp match
     { 	":"  => sub { ($_[0] =~ /^$_[1]/) ? ($1 ? $1 : length $&) : 0; },
@@ -79,7 +79,7 @@ sub evaluate {
 
     # if we're passed an operator to test...
     if ($op) {
-	die "syntax error" if $op->{$stack[0]};
+	die "syntax error\n" if $op->{$stack[0]};
 
 	return evaluate(@ops) unless $op->{$stack[1]}; # recurse
 
@@ -91,13 +91,13 @@ sub evaluate {
 	return $retval;
     }
 
-    defined $stack[0] or die "syntax error";
+    defined $stack[0] or die "syntax error\n";
 
     # handle brackets, the lowest precedence and not a binary operator
     if ($stack[0] eq "(") {
 	shift @stack; 				# remove the bracket
 	my $retval = evaluate(@global_ops); 	# restart
-	$stack[0] eq ")" or die "syntax error";
+	$stack[0] eq ")" or die "syntax error\n";
 	shift @stack; 				# remove the bracket
 	return $retval;
     }
@@ -106,7 +106,7 @@ sub evaluate {
 }
 
 my $retval = evaluate(@global_ops);
-die "syntax error" if (@stack);
+die "syntax error\n" if (@stack);
 print $retval || 0, "\n";
 exit ($retval ? EX_TRUE : EX_FALSE);
 
