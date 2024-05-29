@@ -61,7 +61,7 @@ exit EX_SUCCESS;
 
 sub usage {
     warn "$Program version $VERSION\n";
-    warn "usage: $Program [-br] [-s separator] [-B] [-S bytes] [file...]\n";
+    warn "usage: $Program [-Bbr] [-s separator] [-S bytes] [file...]\n";
     exit EX_FAILURE;
 }
 
@@ -369,7 +369,7 @@ tac - concatenate and print files in reverse
 
 =head1 SYNOPSIS
 
-B<tac> [-br] [-s separator] [-B] [-S bytes] [file...]
+B<tac> [-Bbr] [-s separator] [-S bytes] [file...]
 
 =head1 DESCRIPTION
 
