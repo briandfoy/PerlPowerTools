@@ -49,7 +49,9 @@ License: perl
 
 use strict;
 
-# globals
+use Getopt::Std;
+
+our $VERSION = '1.001';
 use vars qw($Me $Errors $Grand_Total $Mult %Compress $Matches);
 
 my ( $matcher, $opt );    # matcher - anon. sub to check for matches
@@ -60,8 +62,6 @@ init();                   # initialize globals
 ( $opt, $matcher ) = parse_args();    # get command line options and patterns
 
 matchfile( $opt, $matcher, @ARGV );   # process files
-
-our $VERSION = '1.001';
 
 exit(2) if $Errors;
 exit(0) if $Grand_Total;
@@ -86,36 +86,42 @@ sub init {
 
 ###################################
 
+sub VERSION_MESSAGE {
+	print "$Me version $VERSION\n";
+	exit 0;
+}
+
 sub usage {
 	die <<EOF;
-usage: $Me [flags] [files]
+usage: $Me [-incCwsxvhlF1HurtpaqT] [-e pattern]
+        [-f pattern-file] [-P sep] [pattern] [file...]
 
 Standard grep options:
-	i   case insensitive
-	n   number lines
-	c   give count of lines matching
-	C   ditto, but >1 match per line possible
-	w   word boundaries only
-	s   silent mode
-	x   exact matches only
-	v   invert search sense (lines that DON'T match)
-	h   hide filenames
-	e   expression (for exprs beginning with -)
-	f   file with expressions
-	l   list filenames matching
-	F   search for fixed strings (disable regular expressions)
+	-i   case insensitive
+	-n   number lines
+	-c   give count of lines matching
+	-C   ditto, but >1 match per line possible
+	-w   word boundaries only
+	-s   silent mode
+	-x   exact matches only
+	-v   invert search sense (lines that DON'T match)
+	-h   hide filenames
+	-e   expression (for exprs beginning with -)
+	-f   file with expressions
+	-l   list filenames matching
+	-F   search for fixed strings (disable regular expressions)
 
 Specials:
-	1   1 match per file
-	H   highlight matches
-	u   underline matches
-	r   recursive on directories or dot if none
-	t   process directories in `ls -t` order
-	p   paragraph mode (default: line mode)
-	P   ditto, but specify separator, e.g. -P '%%\\n'
-	a   all files, not just plain text files
-	q   quiet about failed file and dir opens
-	T   trace files as opened
+	-1   1 match per file
+	-H   highlight matches
+	-u   underline matches
+	-r   recursive on directories or dot if none
+	-t   process directories in `ls -t` order
+	-p   paragraph mode (default: line mode)
+	-P   ditto, but specify separator, e.g. -P '%%\\n'
+	-a   all files, not just plain text files
+	-q   quiet about failed file and dir opens
+	-T   trace files as opened
 
 May use GREP_OPTIONS environment variable to set default options.
 EOF
@@ -124,8 +130,6 @@ EOF
 ###################################
 
 sub parse_args {
-	use Getopt::Std;
-
 	my ( $optstring, $zeros, $nulls, %opt, $pattern, @patterns, $match_code );
 	my ( $SO, $SE );
 
