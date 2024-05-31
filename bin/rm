@@ -134,6 +134,12 @@ sub preprocess_options {
 		@rest = @new_args[ $args{'--'} .. $#new_args ];
 		@new_args = @new_args[0 .. ($args{'--'} - 1)];
 		}
+	foreach (@new_args) {
+		if (m/\A\-\-/) {
+			warn "unknown option: '$_'\n";
+			usage();
+		}
+	}
 
 	# Expand clustering
 	@new_args = map {
