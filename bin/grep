@@ -149,6 +149,7 @@ sub parse_args {
 	getopts( $optstring, \%opt ) or usage();
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
+	$match_code = '';
 
 	if (defined $opt{'f'}) {           # -f patfile
 		die("$Me: $opt{f}: is a directory\n") if ( -d $opt{f} );
@@ -174,19 +175,6 @@ sub parse_args {
 				or die "$Me: bad pattern: $@";
 			}
 		@patterns = ($pattern);
-		}
-
-	if ($no_re) {
-		for (@patterns) {
-
-			# XXX: quotemeta?
-			s/(\W)/\\$1/g;
-			}
-		}
-
-	# mumble mumble DeMorgan mumble mumble
-	if ( $opt{v} ) {
-		@patterns = join '|', map "(?:$_)", @patterns;
 		}
 
 	if ( $opt{H} || $opt{u} ) {    # highlight or underline
@@ -218,6 +206,37 @@ sub parse_args {
 			}
 		}
 
+	if ($no_re) {
+		if ($opt{'w'} || $opt{'x'} || $opt{'H'} || $opt{'u'}) {
+			die("$Me: -H, -u, -w and -x are incompatible with -F\n");
+		}
+		for (0 .. $#patterns) {
+			$patterns[$_] = quotemeta $patterns[$_];
+		}
+		my $testop = $opt{'v'} ? '==' : '!=';
+		if ($opt{'i'}) {
+			for (0 .. $#patterns) {
+				$patterns[$_] = lc $patterns[$_];
+			}
+			for my $pattern (@patterns) {
+				$match_code .= "\$Matches++ if (index(lc(\$_), '$pattern') $testop -1);";
+			}
+		}
+		else { # case sensitive
+			for my $pattern (@patterns) {
+				$match_code .= "\$Matches++ if (index(\$_, '$pattern') $testop -1);";
+			}
+		}
+		$matcher = eval "sub { $match_code }";
+		die if $@;
+		return (\%opt, $matcher);
+	}
+
+	# mumble mumble DeMorgan mumble mumble
+	if ( $opt{v} ) {
+		@patterns = join '|', map "(?:$_)", @patterns;
+		}
+
 	if ( $opt{i} ) {
 		@patterns = map {"(?i)$_"} @patterns;
 		}
@@ -239,7 +258,6 @@ sub parse_args {
 
 	@ARGV = ( $opt{r} ? '.' : '-' ) unless @ARGV;
 
-	$match_code = '';
 	$match_code .= 'study;' if @patterns > 5;    # might speed things up a bit
 
 	foreach (@patterns) {s(/)(\\/)g}
