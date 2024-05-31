@@ -19,12 +19,10 @@ use Getopt::Std qw(getopts);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-my ($VERSION) = '1.3';
-
+our $VERSION = '1.3';
 my $Program = basename($0);
 
 getopts('benstuv', \my %options)  or do {
-    warn "$Program version $VERSION\n";
     warn "usage: $Program [-benstuv] [file ...]\n";
     exit EX_FAILURE;
 };
@@ -50,6 +48,11 @@ foreach my $f (@ARGV) {
     $err |= do_file($f);
 }
 exit ($err ? EX_FAILURE : EX_SUCCESS);
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
 
 sub do_file {
     my $name = shift;
