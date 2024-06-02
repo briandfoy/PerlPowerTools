@@ -210,22 +210,12 @@ sub parse_args {
 		if ($opt{'w'} || $opt{'x'} || $opt{'H'} || $opt{'u'}) {
 			die("$Me: -H, -u, -w and -x are incompatible with -F\n");
 		}
-		for (0 .. $#patterns) {
-			$patterns[$_] = quotemeta $patterns[$_];
-		}
 		my $testop = $opt{'v'} ? '==' : '!=';
 		if ($opt{'i'}) {
-			for (0 .. $#patterns) {
-				$patterns[$_] = lc $patterns[$_];
-			}
-			for my $pattern (@patterns) {
-				$match_code .= "\$Matches++ if (index(lc(\$_), '$pattern') $testop -1);";
-			}
+			$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(lc \$_, lc \$pat) $testop -1) }";
 		}
 		else { # case sensitive
-			for my $pattern (@patterns) {
-				$match_code .= "\$Matches++ if (index(\$_, '$pattern') $testop -1);";
-			}
+			$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(\$_, \$pat) $testop -1) }";
 		}
 		$matcher = eval "sub { $match_code }";
 		die if $@;
