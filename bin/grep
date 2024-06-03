@@ -147,6 +147,7 @@ sub parse_args {
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
 	getopts( $optstring, \%opt ) or usage();
+	$opt{'s'} = 1 if $opt{'c'};
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
@@ -243,7 +244,6 @@ sub parse_args {
 	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
 	$opt{H}   += $opt{u};
 	$opt{c}   += $opt{C};
-	$opt{'s'} += $opt{c};
 	$opt{1}   += $opt{'s'} && !$opt{c};                                                       # that's a one
 
 	@ARGV = ( $opt{r} ? '.' : '-' ) unless @ARGV;
