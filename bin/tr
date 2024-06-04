@@ -11,9 +11,6 @@ License: perl
 
 =cut
 
-
-# tr - translate or delete characters
-
 use strict;
 
 use File::Basename qw(basename);
@@ -57,7 +54,7 @@ my $cflag = ($opt{'C'} || $opt{'c'}) ? 'c' : '';
 my $dflag = $opt{'d'} ? 'd' : '';
 my $sflag = $opt{'s'} ? 's' : '';
 eval qq{
-    while (<>) {
+    while (<STDIN>) {
 	tr[$string1][$string2]$cflag$dflag$sflag;
 	print;
     }
@@ -66,7 +63,7 @@ eval qq{
     warn "$Program: $@\n";
     exit EX_FAILURE;
 };
-exit EX_SUCCESS; # XXX: Doen't detect failed opens
+exit EX_SUCCESS;
 
 __END__
 
@@ -148,9 +145,7 @@ operation.
 
 =head1 BUGS
 
-There is no way to catch the file open error on ARGV handle
-processing, so the exit status does not reflect file open
-failures.
+I<tr> has no known bugs.
 
 =head1 AUTHOR
 
