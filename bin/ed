@@ -24,8 +24,6 @@ License: gpl
 # Why?:
 #        - Because ed is "always there" (or supposed to be anyways)
 #        - Because I violently dislike vi (on Unix) and NOTEPAD on WinDoze
-#        - Also see the "Perl Power Tools: The Unix Reconstruction Project"
-#           at http://language.perl.com/ppt/
 #        - Because working on this is more fun than Y2K testing !
 #
 # Who:
@@ -55,7 +53,6 @@ License: gpl
 #                k - mark
 #                u - undo
 #                v - global command "inVerted"
-#                x - get encryption key
 #
 #        - Create regression test suite...test against "real" ed.
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
@@ -111,7 +108,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-my $VERSION = '0.3';
+our $VERSION = '0.4';
 
 my %ESC = (
     7  => '\a',
@@ -173,15 +170,10 @@ $SIG{HUP} = sub {
 };
 
 my %opt;
-getopts('dp:sv', \%opt) or Usage();
+getopts('dp:s', \%opt) or Usage();
 if (defined $opt{'p'}) {
     $Prompt = $opt{'p'};
 }
-if ($opt{'v'}) {
-    warn "perl ed version $VERSION\n";
-    $EXTENDED_MESSAGES = 1;
-}
-
 $args[0] = shift;
 $args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
@@ -248,6 +240,11 @@ while (1) {
     } else {
         edWarn(E_CMDBAD);
     }
+}
+
+sub VERSION_MESSAGE {
+    print "ed version $VERSION\n";
+    exit 0;
 }
 
 sub maxline {
@@ -1081,7 +1078,7 @@ sub edSearchBackward {
 #
 
 sub Usage {
-    die "Usage: ed [-p prompt] [-dsv] [file]\n";
+    die "Usage: ed [-p prompt] [-ds] [file]\n";
 }
 
 #
@@ -1110,7 +1107,7 @@ ed - text editor
 
 =head1 SYNOPSIS
 
-ed [-p prompt] [-dsv] [file]
+ed [-p prompt] [-ds] [file]
 
 =head1 DESCRIPTION
 
@@ -1163,10 +1160,6 @@ By default no prompt is displayed.
 =item -s
 
 Suppress byte counts
-
-=item -v
-
-Print full error messages; equivalent to the "H" command
 
 =back
 
