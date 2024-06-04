@@ -130,7 +130,7 @@ EOF
 ###################################
 
 sub parse_args {
-	my ( $optstring, $zeros, $nulls, %opt, $pattern, @patterns, $match_code );
+	my ( $zeros, $nulls, %opt, $pattern, @patterns, $match_code );
 	my ( $SO, $SE );
 
 	if ( defined( $_ = $ENV{'GREP_OPTIONS'} ) ) {
@@ -138,16 +138,15 @@ sub parse_args {
 		unshift @ARGV, $_;
 		}
 
-	$optstring = "incCwsxvhe:f:l1HurtpP:aqTF";
-
 	$zeros = 'inCwxvhlut';    # options to init to 0 (prevent warnings)
 	$nulls = 'epP';             # options to init to "" (prevent warnings)
 
 	@opt{ split //, $zeros } = (0) x length($zeros);
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
-	getopts( $optstring, \%opt ) or usage();
+	getopts('incCwsxvhe:f:l1HurtpP:aqTF', \%opt) or usage();
 	$opt{'s'} = 1 if $opt{'c'};
+	$Mult = 1 if ($opt{'r'} || @ARGV > 1 || @ARGV > 0 && -d $ARGV[0]) && !$opt{'h'};
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
@@ -240,7 +239,6 @@ sub parse_args {
 	$opt{P}   && ( $/        = eval(qq("$opt{P}")) );                                         # for -P '%%\n'
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
-	$Mult = 1 if ( $opt{r} || @ARGV > 1 || @ARGV > 0 && -d $ARGV[0] ) && !$opt{h};
 	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
 	$opt{H}   += $opt{u};
 	$opt{c}   += $opt{C};
