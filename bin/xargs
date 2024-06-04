@@ -107,3 +107,53 @@ while (!$eof) {
 =head1 NAME
 
 xargs - construct argument list(s) and execute utility
+
+=head1 SYNOPSIS
+
+xargs [-0t] [-n num] [-L num] [-s size] [-I repl] [prog [args ...]]
+
+=head1 DESCRIPTION
+
+xargs runs a specified program, or the echo command if none is given.
+Arguments passed to the target program are read from standard input and are generally separated by spaces.
+The program is run repeatedly until all arguments have been used up.
+The number of arguments taken by each invocation of the program can be controlled with various options.
+
+=head2 OPTIONS
+
+The following options are supported:
+
+=over 4
+
+=item -0
+
+Expect NUL characters as separators instead of spaces.
+This is useful in cases where arguments may contain a space, e.g. a filename.
+
+=item -I replstr
+
+Read input one line at a time, replacing all occurrences of the string replstr in the initial arguments with the line read.
+
+=item -L NUMBER
+
+Pass a maximum NUMBER of non-empty lines to the program per invocation.
+
+=item -n NUMBER
+
+Set a maximum NUMBER of arguments to be passed to the program per invocation.
+
+=item -s SIZE
+
+Pass a maximum of SIZE bytes of arguments to the program per invocation.
+
+=item -t
+
+Write a listing of the command arguments to standard error before each invocation of the program.
+
+=back
+
+=head1 AUTHOR
+
+Written by Gurusamy Sarathy, gsar@umich.edu
+
+=cut
