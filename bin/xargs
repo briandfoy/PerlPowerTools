@@ -29,7 +29,7 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 
 my %o;
-getopts('0tn:L:l:s:I:', \%o) or die <<USAGE;
+getopts('0tn:L:s:I:', \%o) or die <<USAGE;
 Usage:
 	$Program [-0t] [-n num] [-L num] [-s size] [-I repl] [prog [args ...]]
 
@@ -42,7 +42,7 @@ Usage:
 		  before execution
 USAGE
 
-for my $opt (qw( L l n s )) {
+for my $opt (qw( L n s )) {
     next unless (defined $o{$opt});
     if (!length($o{$opt}) || $o{$opt} =~ m/\D/) {
 	warn "$Program: option $opt: invalid number '$o{$opt}'\n";
@@ -53,11 +53,10 @@ for my $opt (qw( L l n s )) {
 	exit EX_FAILURE;
     }
 }
-$o{'L'} = $o{'l'} if defined $o{'l'};
 my @args = ();
 
 $o{I} ||= '{}' if exists $o{I};
-$o{l} = 1 if $o{I};
+$o{'L'} = 1 if $o{'I'};
 my $sep = $o{'0'} ? '\0+' : '\s+';
 my $eof = 0;
 while (!$eof) {
