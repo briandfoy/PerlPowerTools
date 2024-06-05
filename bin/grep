@@ -176,6 +176,7 @@ sub parse_args {
 			}
 		@patterns = ($pattern);
 		}
+	@ARGV = ($opt{'r'} ? '.' : '-') unless @ARGV;
 
 	if ( $opt{H} || $opt{u} ) {    # highlight or underline
 		my $term = $ENV{TERM} || 'vt100';
@@ -243,8 +244,6 @@ sub parse_args {
 	$opt{H}   += $opt{u};
 	$opt{c}   += $opt{C};
 	$opt{1}   += $opt{'s'} && !$opt{c};                                                       # that's a one
-
-	@ARGV = ( $opt{r} ? '.' : '-' ) unless @ARGV;
 
 	$match_code .= 'study;' if @patterns > 5;    # might speed things up a bit
 
