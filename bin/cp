@@ -58,7 +58,7 @@ sub run {
 		# it doesn't.
 		my @command = 'cp';
 		push @command, map { "-$_" } grep { $opts->{$_} } qw(i f p v );
-		push @command, @files, $destination;
+		push @command, '--', @files, $destination;
 
 		my $rc = system { $command[0] } @command;
 		return $rc >> 8;
