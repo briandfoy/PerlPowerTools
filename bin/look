@@ -37,8 +37,6 @@ my (
     $filearg,   # optional file argument
     $search,    # the string to look for
     %opt,       # option hash
-    $opened,    # did we ever open something?
-    $found,     # did we ever find something?
 );
 
 getopts('df', \%opt) or usage();
@@ -47,8 +45,6 @@ getopts('df', \%opt) or usage();
     /usr/dict/words
     /usr/share/dict/words
 );
-
-$opened = $found = 0;
 
 $search = shift;
 if (!defined($search)) {
@@ -68,45 +64,44 @@ if (defined $filearg) {
 }
 
 $search = squish($search);
-
-FILE: for my $file (@dicts) {
-    if (-d $file) {
-        warn "$Program: '$file' is a directory\n";
-        next FILE;
-    }
-    unless (open(DICT, '<', $file)) {
-        warn "$Program: can't open '$file': $!\n" unless is_default_dict();
-        next FILE;
-    }
-
-    $opened++;
-
-    if (-1 == look(*DICT, $search, $opt{'d'}, $opt{'f'})) {
-        last FILE;
-    }
-
-LINE:
-    while (<DICT>) {
-        if (0 == index(squish($_), $search)) {
-            print;
-            $found++;
-        } else {
-            last LINE;
-        }
-    }
-    if (!close(DICT)) {
-        warn "$Program: can't close '$file': $!\n";
-        exit EX_FAILURE;
-    }
-    last FILE;
+my $dict = open_dict();
+my $rc = lookfile($dict);
+unless (close $dict) {
+    warn "$Program: can't close dictionary: $!\n";
+    exit EX_FAILURE;
 }
+exit $rc;
 
-if ($opened == 0) {
+sub open_dict {
+    my $fh;
+    for my $file (@dicts) {
+        if (-d $file) {
+            warn "$Program: '$file' is a directory\n";
+            next;
+        }
+        unless (open $fh, '<', $file) {
+            warn "$Program: can't open '$file': $!\n" unless is_default_dict();
+            next;
+        }
+        return $fh;
+    }
     warn "$Program: No dictionaries available (@dicts)\n" if is_default_dict();
     exit EX_FAILURE;
 }
 
-exit($found ? EX_FOUND : EX_NOTFOUND);
+sub lookfile {
+    my $fh = shift;
+    if (look($fh, $search, $opt{'d'}, $opt{'f'}) == -1) {
+        return EX_NOTFOUND;
+    }
+    my $match = EX_NOTFOUND;
+    while (<$fh>) {
+        last if (index(squish($_), $search) != 0);
+        $match = EX_FOUND;
+        print;
+    }
+    return $match;
+}
 
 sub squish {
     my $str = shift;
@@ -139,12 +134,12 @@ The B<-d> and B<-f> options affect comparisons as in sort(1):
 
 =over
 
-=item d
+=item -d
 
 `Dictionary' order: only non-alphanumerics and underscores
 participate in comparisons.
 
-=item f
+=item -f
 
 Fold.  Upper case letters compare equal to lower case.
 
