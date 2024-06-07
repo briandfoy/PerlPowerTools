@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 my $Program = basename($0);
 
 sub VERSION_MESSAGE {
