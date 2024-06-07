@@ -17,13 +17,16 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-my ($VERSION) = '1.3';
+our $VERSION = '1.4';
 my $Program = basename($0);
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit 0;
+}
 
 sub usage {
     print <<EOUsage;
-$Program (Perl bin utils) $VERSION
-
 Usage: $Program [-CcDps] [-g group] [-m mode] [-o owner] file1 file2
        $Program [-CcDps] [-g group] [-m mode] [-o owner] file ... directory
        $Program -d [-g group] [-m mode] [-o owner] directory ...
@@ -44,7 +47,7 @@ my $Errors = 0;
 
 # process options
 my %opt;
-getopts('CcDdf:g:Mm:o:ps', \%opt) or usage();
+getopts('CcDdf:g:m:o:ps', \%opt) or usage();
 usage() unless @ARGV;
 
 if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
@@ -524,12 +527,7 @@ B<install>.
 Specify the group to which the target file should belong.  Both numeric
 and mnemonic group IDs are acceptable.
 
-=item B<-M>
-
-Do not use mmap(2).  This option is only provided for compatibility and
-does not affect the execution of B<install>.
-
-=item B<-m>
+=item B<-m> MODE
 
 Specify the target file's mode.  Either octal modes or symbolic modes
 are acceptable.  See the documentation for the I<PerlPowerTools::SymbolicMode> module
