@@ -23,8 +23,10 @@ use constant EX_FAILURE => 1;
 use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
-use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_N
-$opt_o $opt_v $opt_x /;
+use vars qw/ $opt_A $opt_a $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l
+$opt_N $opt_o $opt_v $opt_x /;
+
+our $VERSION = '1.0';
 
 my ($offset1, $radix, $data, @arr, $len, $lim);
 my ($lastline, $strfmt, $ml);
@@ -41,12 +43,49 @@ my %charescs = (
     92 => ' \\\\',
 );
 
+my %charname = (
+    0  => 'nul',
+    1  => 'soh',
+    2  => 'stx',
+    3  => 'etx',
+    4  => 'eot',
+    5  => 'enq',
+    6  => 'ack',
+    7  => 'bel',
+    8  => 'bs',
+    9  => 'ht',
+    10 => 'nl',
+    11 => 'vt',
+    12 => 'ff',
+    13 => 'cr',
+    14 => 'so',
+    15 => 'si',
+    16 => 'dle',
+    17 => 'dc1',
+    18 => 'dc2',
+    19 => 'dc3',
+    20 => 'dc4',
+    21 => 'nak',
+    22 => 'syn',
+    23 => 'etb',
+    24 => 'can',
+    25 => 'em',
+    26 => 'sub',
+    27 => 'esc',
+    28 => 'fs',
+    29 => 'gs',
+    30 => 'rs',
+    31 => 'us',
+    32 => 'sp',
+    127 => 'del',
+);
+
 $offset1 = 0;
 $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:bcdfij:lN:ovx') or help();
+getopts('A:abcdfij:lN:ovx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -75,7 +114,10 @@ if (defined $opt_N) {
 }
 
 my $fmt;
-if ($opt_b) {
+if ($opt_a) {
+    $fmt = \&char7bit;
+}
+elsif ($opt_b) {
     $fmt = \&octal1;
 }
 elsif ($opt_c) {
@@ -130,6 +172,11 @@ unless (@ARGV) {
 dump_line() if (defined $data);
 emit_offset(1);
 exit $rc;
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
 
 sub limit_reached {
     return defined($lim) && $nread >= $lim;
@@ -216,6 +263,21 @@ sub char1 {
     $strfmt = '%s';
 }
 
+sub char7bit {
+    @arr = ();
+    my @arr1 = unpack 'C*', $data;
+    for my $val (@arr1) {
+        my $n = $val & 0x7f;
+        if (exists $charname{$n}) {
+            $arr[0] .= sprintf '%4s', $charname{$n};
+        }
+        else {
+	    $arr[0] .= "  " . chr($n) . " ";
+        }
+    }
+    $strfmt = '%s';
+}
+
 sub udecimal {
     if (length($data) & 1) { # pad to 16 bit
         @arr = unpack 'S*', $data . "\0";
@@ -286,7 +348,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-bcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    print "usage: od [-abcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -297,7 +359,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-bcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
+B<od> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
@@ -307,6 +369,67 @@ of  the  output  consists of the offset in the input file in the leftmost
 column of each  line,  followed by  one or more columns of data from the
 file, in a format controlled by the options.  By default, od prints the
 file offsets  in octal and the file data as two-byte octal numbers.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -A Radix
+
+Select offset prefix format: 'd' for decimal, 'o' for octal, 'x' for hexadecimal, 'n' for none.
+
+=item -a
+
+Dump characters in 7-bit ASCII format, ignoring the highest bit of each byte.
+The names of ASCII control characters are displayed.
+
+=item -b
+
+Single-byte octal display.
+
+=item -c
+
+Display characters literally, with non-printable characters displayed as C escape sequences.
+
+=item -d
+
+Two-byte unsigned decimal display.
+
+=item -f
+
+Show input as floating point numbers in exponent form.
+
+=item -i
+
+Show two-byte signed integers.
+
+=item -j Skip
+
+Ignore the first Skip bytes of input.
+
+=item -l
+
+Show four-byte signed integers.
+
+=item -N Bytes
+
+Set the number of maximum input bytes read.
+
+=item -o
+
+Format input as two-byte octal numbers.
+
+=item -x
+
+Use two-byte hexadecimal format.
+
+=item -v
+
+Show all lines, even if they are identical to the previous line.
+
+=back
 
 =head1 SEE ALSO
 
