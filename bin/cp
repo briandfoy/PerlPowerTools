@@ -102,6 +102,7 @@ sub process_arguments {
 	my %opts;
 
 	require Getopt::Long;
+	Getopt::Long::Configure('bundling');
 	Getopt::Long::GetOptionsFromArray(
 		\@args,
 		'f' => \$opts{'f'},
