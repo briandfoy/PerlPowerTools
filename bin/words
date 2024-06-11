@@ -27,6 +27,11 @@ my $Program = basename($0);
 
 getopts('m:w:') or usage();
 usage() unless @ARGV;
+my $letters = shift;
+if (@ARGV) {
+    warn "$Program: extra argument: '$ARGV[0]'\n";
+    usage();
+}
 
 my $wordlist;
 if (defined $opt_w) {
@@ -58,7 +63,6 @@ unless (open $dict, '<', $wordlist) {
 
 $| = 1;
 
-my $letters = shift;
 $letters = lc $letters;              # convert to lowercase
 $letters =~ tr/a-z//cd;              # strip non-letter characters
 
