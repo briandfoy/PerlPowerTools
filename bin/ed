@@ -155,6 +155,8 @@ my %cmdtab = (
     'E' => \&edEdit,
     'e' => \&edEditAsk,
     'r' => \&edRead,
+    '_' => \&edSetCurrentLine,
+    'nop' => sub {},
 );
 
 $SIG{HUP} = sub {
@@ -229,9 +231,7 @@ while (1) {
         #   - have command operate on important globals (see top of file),
         #     such as @lines, $CurrentLineNum, $NeedToSave...
 
-        if (!length($command)) {
-            &edSetCurrentLine;
-        } elsif (exists $cmdtab{$command}) {
+        if (exists $cmdtab{$command}) {
             my $func = $cmdtab{$command};
             $func->();
         } else {
@@ -913,8 +913,7 @@ sub edParse {
     if (defined($fields[27])) {
         $command = $fields[27];
     } else {
-        $command = "";
-
+        $command = '_';
     }
     if (defined $fields[28]) {
         $commandsuf = $fields[28];
@@ -932,7 +931,7 @@ sub edParse {
     $adrs[0] = &CalculateLine(splice(@fields,1,13));
     if ($adrs[0] == -1) {
         edWarn(E_NOMATCH);
-        $command = '/';
+        $command = 'nop';
         undef $adrs[0];
     }
     my $commarange = $fields[1] =~ /,/;
@@ -940,7 +939,7 @@ sub edParse {
     $adrs[1] = &CalculateLine(splice(@fields,1,13));
     if ($adrs[1] == -1) {
         edWarn(E_NOMATCH);
-        $command = '/';
+        $command = 'nop';
         undef $adrs[1];
     }
     if ($commarange && !defined($adrs[0])) {
