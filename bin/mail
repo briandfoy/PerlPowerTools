@@ -644,7 +644,7 @@ $BUFFERL=2;	  # Lines needed for "fluff"
 	"chdir"  => { alias => 'c',           args => 'path',                           },
 	copy     => { alias => 'co',          args => 'msg,path', func => \&msg_copy    },
 	"delete" => { alias => 'd',           args => 'msg',      func => \&msg_delete  },
-	"exit"   => { alias => 'ex,x',                            func => sub { exit; } },
+	"exit"   => { alias => 'ex,x,xit',                        func => sub { exit; } },
 	from     => { alias => 'f',           args => 'msg',      func => \&from        },
 	headers  => { alias => 'h',           args => 'msg',      func => \&listing     },
 	hold     => { alias => 'ho,preserve', args => 'msg',      func => \&unread      },
