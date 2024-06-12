@@ -44,7 +44,7 @@ my $type_h      = $options{h} || "n";
 my $incr        = $options{i};
 my $format      = $options{n};
 my $single_page = $options{p};
-my $sep         = $options{s} || "\t";
+my $sep         = exists $options{'s'} ? $options{'s'} : "\t";
 my $startnum    = $options{v};
 my $width       = $options{w};
 if (defined $format) {
