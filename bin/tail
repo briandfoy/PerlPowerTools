@@ -125,8 +125,6 @@ sub parse_args()
     }
 
     usage(EX_FAILURE, 'The number cannot be zero') if $point == 0;
-
-    $point = $point ? $point : -10;
     }
 
     $files = [ @ARGV ];
@@ -425,7 +423,7 @@ sub handle_args($$$)
 
         # Do not print the tail of the files if we are using xtail
         unless($me eq "xtail") {
-            print "*** $file ***\n" if(scalar @files >= 2);
+            print "==> $file <==\n" if(scalar @files >= 2);
             print_tail \*FH, $file, $point, $type;
             print "\n" if(++$i < scalar(@files));
         }
