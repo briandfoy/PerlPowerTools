@@ -34,20 +34,21 @@ use Getopt::Long;  # because of some special handling on numeric options
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-use vars qw($opt_b $opt_c $opt_f $opt_h $opt_n $opt_r);
+use vars qw($opt_b $opt_c $opt_f $opt_n $opt_r);
 
 my $me = basename $0;
 
-sub usage($;$)
+sub usage
 {
-    print STDERR "$_[1]\n" if $_[1];
+    my $msg = shift;
+    print STDERR "$msg\n" if defined $msg;
     print STDERR <<EOF;
 Usage:
-    tail [-f | -r] [-h] [-b number | -c number | -n number | [-+]number]
+    tail [-f | -r] [-b number | -c number | -n number | [-+]number]
         [file ...]
-    xtail [-h] file ...
+    xtail file ...
 EOF
-    exit $_[0];
+    exit EX_FAILURE;
 }
 
 # Maybe I should use stat() to retrieve the block size ? But the BSD man
@@ -64,7 +65,7 @@ sub check_number($)
     } elsif ($opt =~ m/\A\-?(\d+)\Z/) {
         return -($1+0);
     } else {
-        usage(EX_FAILURE, "invalid number '$opt'");
+        usage("invalid number '$opt'");
     }
 }
 
@@ -95,36 +96,34 @@ sub parse_args()
     my $point=-10;
     my $type="n"; # one of "b", "c" or "n"
 
-    # If called as xtail, then no option is used except -h
+    # If called as xtail, then no option is used
     if ($me eq "xtail") {
 
-    GetOptions('h') or usage(EX_FAILURE);
-    usage(EX_SUCCESS) if $opt_h;
+    GetOptions('') or usage();
 
     } else {
 
     @ARGV = new_argv();
     Getopt::Long::config('bundling');
-    GetOptions("b=s", "c=s", "f", "h", "n=s", "r") or usage(EX_FAILURE);
-    usage(EX_SUCCESS) if $opt_h;
-    usage(EX_FAILURE, '-f and -r cannot be used together')
+    GetOptions("b=s", "c=s", "f", "n=s", "r") or usage();
+    usage('-f and -r cannot be used together')
         if $opt_f and $opt_r;
 
     if (defined $opt_b) {
-        usage(EX_FAILURE) if (defined($opt_c) || defined($opt_n));
+        usage() if (defined($opt_c) || defined($opt_n));
         $point = check_number($opt_b);
         $type = 'b';
     } elsif (defined $opt_c) {
-        usage(EX_FAILURE) if (defined($opt_b) || defined($opt_n));
+        usage() if (defined($opt_b) || defined($opt_n));
         $point = check_number($opt_c);
         $type = 'c';
     } elsif (defined $opt_n) {
-        usage(EX_FAILURE) if (defined($opt_b) || defined($opt_c));
+        usage() if (defined($opt_b) || defined($opt_c));
         $point = check_number($opt_n);
         $type = 'n';
     }
 
-    usage(EX_FAILURE, 'The number cannot be zero') if $point == 0;
+    usage('The number cannot be zero') if $point == 0;
     }
 
     $files = [ @ARGV ];
@@ -458,7 +457,7 @@ xtail - watch the growth of files
 tail [B<-f> | B<-r>] [B<-b number> | B<-c number> | B<-n number> |
 B<[-+]number>] [B<file>...]
 
-xtail [B<-h>] file ...
+xtail file ...
 
 =head1 DESCRIPTION
 
@@ -491,7 +490,7 @@ An interrupt character (usually CTRL/C or DEL) will display a list of
 the most recently modified files being watched.  Send a quit signal
 (usually CTRL/backslash) to stop the program.
 
-The options are the following for I<tail> (only the B<-h> option is
+The options are the following for I<tail> (no options are
 supported by I<xtail>) :
 
 =over 4
@@ -513,10 +512,6 @@ reopen the file and continue.  If the file is truncated, I<tail> will
 reset its position back to the beginning.  This makes I<tail> more useful
 for watching log files that may get rotated.  The B<-f> option is
 ignored if the standard input is a pipe, but not if it is a FIFO.
-
-=item B<-h>
-
-Displays a short usage message.
 
 =item B<-n> number
 
