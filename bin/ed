@@ -749,13 +749,12 @@ sub edInsert {
     my $append = shift;
     my(@tmp_lines);
 
-    if (defined($adrs[1])) {
-        edWarn(E_ADDREXT);
-        return;
-    }
     if (defined($args[0])) {
         edWarn(E_ARGEXT);
         return;
+    }
+    if (defined($adrs[1])) {
+        $adrs[0] = $adrs[1];
     }
     if (!defined($adrs[0])) {
         $adrs[0] = $CurrentLineNum;
