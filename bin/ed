@@ -181,65 +181,47 @@ $args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
 $SupressCounts = 1 if ($opt{'s'} || !defined($args[0]));
 
-&edEdit($NO_QUESTIONS_MODE,$NO_APPEND_MODE);
+edEdit($NO_QUESTIONS_MODE, $NO_APPEND_MODE);
+input() while 1;
 
-#
-# parse commands and execute them...
-#
-while (1) {
+sub input {
     print $Prompt if defined $Prompt;
     last unless ($_ = <>);
     chomp;
 
-    if (&edParse) {
-
-        if ($opt{'d'}) {
-            print "command: /$command/ ";
-            print "adrs[0]: /$adrs[0]/ " if defined($adrs[0]);
-            print "adrs[1]: /$adrs[1]/ " if defined($adrs[1]);
-            print "args[0]: /$args[0]/ " if defined($args[0]);
-            print "\n";
-        }
-
-        # sanity check addresses
-
-        if (defined($adrs[0])) {
-            if ($adrs[0] > maxline() || $adrs[0] < 0) {
-                edWarn(E_ADDRBAD);
-                next;
-            }
-        }
-        if (defined($adrs[1])) {
-            if ($adrs[1] > maxline() || $adrs[1] < 0) {
-                edWarn(E_ADDRBAD);
-                next;
-            }
-        }
-        if (defined($adrs[0]) and defined($adrs[1])) {
-            if ($adrs[1] < $adrs[0]) {
-                edWarn(E_ADDRBAD);
-                next;
-            }
-        }
-
-        #
-        # To add a new command:
-        #   - add to the following if...elsif... list,
-        #   - add to the command parsing regexp in edParse
-        #   - add a new routine to implement the command
-        #   - do command specific checks of adrs and args in the routine
-        #   - have command operate on important globals (see top of file),
-        #     such as @lines, $CurrentLineNum, $NeedToSave...
-
-        if (exists $cmdtab{$command}) {
-            my $func = $cmdtab{$command};
-            $func->();
-        } else {
-            edWarn(E_CMDBAD);
-        }
-    } else {
+    if (!edParse()) {
         edWarn(E_CMDBAD);
+        return;
     }
+    if ($opt{'d'}) {
+        print "command: /$command/ ";
+        print "adrs[0]: /$adrs[0]/ " if defined($adrs[0]);
+        print "adrs[1]: /$adrs[1]/ " if defined($adrs[1]);
+        print "args[0]: /$args[0]/ " if defined($args[0]);
+        print "\n";
+    }
+
+    # sanity check addresses
+    foreach my $ad (@adrs) {
+        next unless defined $ad;
+        if ($ad > maxline() || $ad < 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+    }
+    if (defined($adrs[0]) and defined($adrs[1])) {
+        if ($adrs[1] < $adrs[0]) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+    }
+
+    my $func = $cmdtab{$command};
+    if (!defined($func)) {
+        edWarn(E_CMDBAD);
+        return;
+    }
+    $func->();
 }
 
 sub VERSION_MESSAGE {
@@ -927,7 +909,7 @@ sub edParse {
 
     $args[0] = $fields[30];
 
-    $adrs[0] = &CalculateLine(splice(@fields,1,13));
+    $adrs[0] = CalculateLine(splice(@fields, 1, 13));
     if ($adrs[0] == -1) {
         edWarn(E_NOMATCH);
         $command = 'nop';
@@ -935,7 +917,7 @@ sub edParse {
     }
     my $commarange = $fields[1] =~ /,/;
 
-    $adrs[1] = &CalculateLine(splice(@fields,1,13));
+    $adrs[1] = CalculateLine(splice(@fields, 1, 13));
     if ($adrs[1] == -1) {
         edWarn(E_NOMATCH);
         $command = 'nop';
