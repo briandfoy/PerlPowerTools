@@ -123,7 +123,7 @@ my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
-my $VERSION = '0.70';	# because we're V7-compatible :)
+our $VERSION = '0.70';	# because we're V7-compatible :)
 my $WinCols;		# window columns of output
 
 # ------ compensate for lack of getpwuid/getgrgid on some platforms
@@ -137,6 +137,10 @@ if ($@) {
 }
 
 # ------ functions
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
 
 # ------ get directory entries
 sub DirEntries {
