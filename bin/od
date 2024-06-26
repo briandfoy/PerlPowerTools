@@ -24,7 +24,7 @@ use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
 use vars qw/ $opt_A $opt_a $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l
-$opt_N $opt_o $opt_v $opt_x /;
+$opt_N $opt_o $opt_s $opt_v $opt_x /;
 
 our $VERSION = '1.0';
 
@@ -85,7 +85,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:abcdfij:lN:ovx') or help();
+getopts('A:abcdfij:lN:osvx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -129,7 +129,7 @@ elsif ($opt_d) {
 elsif ($opt_f) {
     $fmt = \&float;
 }
-elsif ($opt_i) {
+elsif ($opt_i || $opt_s) {
     $fmt = \&decimal;
 }
 elsif ($opt_l) {
@@ -348,7 +348,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-abcdfiloxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    print "usage: od [-abcdfilosxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -359,7 +359,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
+B<od> [ I<-abcdfilosxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
@@ -403,7 +403,7 @@ Show input as floating point numbers in exponent form.
 
 =item -i
 
-Show two-byte signed integers.
+Show two-byte signed decimal integers.
 
 =item -j Skip
 
@@ -411,7 +411,7 @@ Ignore the first Skip bytes of input.
 
 =item -l
 
-Show four-byte signed integers.
+Show four-byte signed decimal integers.
 
 =item -N Bytes
 
@@ -420,6 +420,10 @@ Set the number of maximum input bytes read.
 =item -o
 
 Format input as two-byte octal numbers.
+
+=item -s
+
+Same as -i
 
 =item -x
 
