@@ -498,11 +498,7 @@ unless (getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options)) {
 if ($Options{'f'}) {
 	$Options{'a'} = 1;
 }
-
-$Attributes = stat(*STDOUT);
-if ($Attributes->mode & 0140000) {
-	$Options{'1'} = '1';
-}
+$Options{'1'} = 1 unless (-t *STDOUT);
 
 # ------ current directory if no arguments
 if ($#ARGV < 0) {
