@@ -90,8 +90,8 @@ my $Error = undef;              # saved error string for h command
 my $Prompt = undef;             # saved prompt string for -p option
 my $SupressCounts = 0;          # byte counts are printed by default
 my @lines;                      # buffer for file being edited.
-my $command = "";               # single letter command entered by user
-my $commandsuf = "";            # single letter modifier of command
+my $command;                    # single letter command entered by user
+my $commandsuf;                 # single letter modifier of command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
 
@@ -185,8 +185,14 @@ edEdit($NO_QUESTIONS_MODE, $NO_APPEND_MODE);
 input() while 1;
 
 sub input {
+    $command = $commandsuf = '';
+    @adrs = ();
+    @args = ();
+
     print $Prompt if defined $Prompt;
-    last unless ($_ = <>);
+    unless ($_ = <>) {
+        edQuitAsk() or return;
+    }
     chomp;
 
     if (!edParse()) {
@@ -868,9 +874,6 @@ sub edSetCurrentLine {
 #
 
 sub edParse {
-
-    @adrs = ();
-
     s/\A\s+//;
     my @fields =
              (/^(
