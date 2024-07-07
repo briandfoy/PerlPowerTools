@@ -23,8 +23,8 @@ use constant EX_FAILURE => 1;
 use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
-use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j
- $opt_l $opt_N $opt_o $opt_s $opt_v $opt_x /;
+use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
+ $opt_i $opt_j $opt_l $opt_N $opt_o $opt_s $opt_v $opt_x /;
 
 our $VERSION = '1.0';
 
@@ -85,7 +85,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:aBbcdfij:lN:osvx') or help();
+getopts('A:aBbcdeFfij:lN:osvx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -125,6 +125,9 @@ elsif ($opt_c) {
 }
 elsif ($opt_d) {
     $fmt = \&udecimal;
+}
+elsif ($opt_e || $opt_F) {
+    $fmt = \&float8;
 }
 elsif ($opt_f) {
     $fmt = \&float;
@@ -297,7 +300,19 @@ sub float {
     else {
 	@arr = unpack 'f*', $data;
     }
-    $strfmt = '%6.6e ' x (scalar @arr);
+    $strfmt = '%15.7e ' x (scalar @arr);
+}
+
+sub float8 {
+    my $remain = length($data) % 8;
+    if ($remain) { # pad to 64 bit
+        my $pad = "\0" x (8 - $remain);
+        @arr = unpack 'd*', $data . $pad;
+    }
+    else {
+	@arr = unpack 'd*', $data;
+    }
+    $strfmt = '%24.16e ' x (scalar @arr);
 }
 
 sub decimal {
@@ -348,7 +363,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-aBbcdfilosxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    print "usage: od [-aBbcdeFfilosxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -359,7 +374,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-aBbcdfilosxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
+B<od> [ I<-aBbcdeFfilosxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
@@ -400,6 +415,14 @@ Display characters literally, with non-printable characters displayed as C escap
 =item -d
 
 Two-byte unsigned decimal display.
+
+=item -e
+
+Eight-byte floating point display.
+
+=item -F
+
+Same as -e
 
 =item -f
 
