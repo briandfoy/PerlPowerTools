@@ -285,91 +285,50 @@ sub char7bit {
 }
 
 sub udecimal {
-    if (length($data) & 1) { # pad to 16 bit
-        @arr = unpack 'S*', $data . "\0";
-    }
-    else {
-        @arr = unpack 'S*', $data;
-    }
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
     $strfmt = '%5u ' x (scalar @arr);
 }
 
 sub float {
-    my $remain = length($data) % 4;
-    if ($remain) { # pad to 32 bit
-        my $pad = "\0" x $remain;
-        @arr = unpack 'f*', $data . $pad;
-    }
-    else {
-	@arr = unpack 'f*', $data;
-    }
+    @arr = unpack 'f*', $data . zeropad(length($data), 4);
     $strfmt = '%15.7e ' x (scalar @arr);
 }
 
 sub float8 {
-    my $remain = length($data) % 8;
-    if ($remain) { # pad to 64 bit
-        my $pad = "\0" x (8 - $remain);
-        @arr = unpack 'd*', $data . $pad;
-    }
-    else {
-	@arr = unpack 'd*', $data;
-    }
+    @arr = unpack 'd*', $data . zeropad(length($data), 8);
     $strfmt = '%24.16e ' x (scalar @arr);
 }
 
 sub decimal {
-    if (length($data) & 1) { # pad to 16 bit
-        @arr = unpack 's*', $data . "\0";
-    }
-    else {
-        @arr = unpack 's*', $data;
-    }
+    @arr = unpack 's*', $data . zeropad(length($data), 2);
     $strfmt = '%5d ' x (scalar @arr);
 }
 
 sub long {
-    my $remain = length($data) % 4;
-    if ($remain) { # pad to 32 bit
-        my $pad = "\0" x $remain;
-        @arr = unpack 'L*', $data . $pad;
-    }
-    else {
-	@arr = unpack 'L*', $data;
-    }
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
     $strfmt = '%10ld ' x (scalar @arr);
 }
 
 sub octal2 {
-    if (length($data) & 1) { # pad to 16 bit
-        @arr = unpack 'S*', $data . "\0";
-    }
-    else {
-        @arr = unpack 'S*', $data;
-    }
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
     $strfmt = '%.6o ' x (scalar @arr);
 }
 
 sub hex2 {
-    if (length($data) & 1) { # pad to 16 bit
-        @arr = unpack 'S*', $data . "\0";
-    }
-    else {
-        @arr = unpack 'S*', $data;
-    }
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
     $strfmt = '%.4x ' x (scalar @arr);
 }
 
 sub hex4 {
-    my $remain = length($data) % 4;
-    if ($remain) { # pad to 32 bit
-        my $pad = "\0" x (4 - $remain);
-        @arr = unpack 'L*', $data . $pad;
-    }
-    else {
-        @arr = unpack 'L*', $data;
-    }
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
     $strfmt = '%.8x ' x (scalar @arr);
+}
+
+sub zeropad {
+    my ($len, $wantbytes) = @_;
+    my $remain = $len % $wantbytes;
+    return '' unless $remain;
+    return "\0" x ($wantbytes - $remain);
 }
 
 sub diffdata {
