@@ -1,8 +1,13 @@
 # brian's standard GitHub Actions macOS config for Perl 5 modules
-# version 20220902.001
+# version 20240426.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
+#
+# This uses the AUTOMATED_TESTING environment that you can set up
+# in your repo settings. Or not. It still works if it isn't defined.
+# In that environment, add whatever environment variables or secrets
+# that you want.
 name: macos
 
 on:
@@ -27,16 +32,16 @@ on:
             - '.github/workflows/linux.yml'
             - '.github/workflows/release.yml'
             - '.github/workflows/windows.yml'
-            - '.github/workflows/merge.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
             - 'LICENSE'
             - 'README.pod'
-        pull_request:
+    pull_request:
 
 jobs:
     perl:
+        environment: automated_testing
         runs-on: macOS-latest
         steps:
             - uses: actions/checkout@v3
@@ -105,7 +110,6 @@ jobs:
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                echo "PATH is " $PATH
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
                 cover -test -report coveralls
