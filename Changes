@@ -1,5 +1,157 @@
 Revision history for Perl module PerlPowerTools
 
+1.046 2024-07-11T18:10:02Z
+	* All changes from Michael Mikonos
+	
+	* ar
+		- check that there's a defined archive argument before proceeding (#611)
+	
+	* bc
+		- various internals improvements (#592, #600, #619)
+		- fix regression in modulus 0 operation (#617)
+	
+	* cat
+		- add --version, adjust usage message (#631)
+		- bypass input processing if none of options -b -e -n -s -t & -v are provided (#638)
+	
+	* cmp
+		- adjusted the usage example to show hat -l and -s are mutually exclusive (#621)
+	
+	* cp
+		- print usage and exit for bad options (#609)
+		- stop option parsing after -- (#642)
+		- support bundled options (#649)
+	
+	* cut
+		- ensure -b returns the right range of characters (#595)
+		- various internals improvements (#596)
+		- -b allows a range of 1 now (#622)
+	
+	* diff
+		- -q now causes program to ignore any switch that produces output (#604)
+	
+	* du
+		- various internals improvements (#625)
+	
+	* ed
+		- various internals improvements (#598)
+		- fix the "need to save" flag for the new file case (#618)
+		- improve state tracking for empty files (#620)
+		- commands can use inferred line ranges when you omit the first or 
+	    last value in n,m (#624)
+		- remove -v in favor of --version (#637)
+		- fix a regression with searches that produce no matches (#647)
+		- if i or a command get two addresses, use the second one as the 
+	    effective address; GNU/BSD compatibility (#655)
+		- various internals improvements (#656)
+		- line 0 is no longer valid for write command (#658)
+		- treat Control-D as the q command so ed exits gracefully (#659)
+	
+	* expr
+		- catch a divide-by-zero situation (#626)
+	
+	* factor
+		- docs note that this version fixes a bug in the BSD version (#599)
+	
+	* grep
+		- the default for -e is now the empty string, and the value 0 is 
+	    taken to be a valid pattern (#607)
+		- allow the search pattern "0" by checking for a defined arg not 
+	    the arg value (#627)
+		- allow --version option (#629)
+		- -f (fixed string mode) now disables pattern matching (#630)
+		- be more careful with quotemeta and patterns  (#633)
+		- set -s implicitly when -c is used (#634)
+		- show filenames even without -h set (#635)
+		- various internals improvements (#641)
+	
+	* install
+		- various internals improvements (#602, #644)
+	
+	* join
+		- various internals improvements (#605)
+		- don't allow both -a and -v in the some invocation (#623)
+	
+	* ln
+		- various internals improvements (#616)
+	
+	* lock
+		- fix some doc typos (#610)
+	
+	* look
+		- various internals improvements (#645)
+	
+	* ls
+		- various internals improvements (#606)
+		- support --version (#657)
+		- infer -1 switch automatically if the output filehandle is not a tty (#660)
+	
+	* mail
+		- support `xit` as a shorter form of `exit` (#648)
+	
+	* nl
+		- remove -V in favor of --version (#593)
+		- undocument unsupported -l switch (#615)
+		- -s only uses default separator when -s is not specified (#651)
+	
+	* od
+		- add -a option to print control character names (#646)
+		- add -s option and make it the same as -I (two byte signed decimal display) (#661)
+		- add -B as alias for -o (#662)
+		- add -e and -f for printing two 8-byte floating point numbers per line (#663)
+		- add -H and -X options for 4-byte hex output (#664)
+		- fix odd cases in output padding (#665)
+		- add -O for four-byte octal output (#666)
+	
+	* patch
+		- various internals improvements (#608)
+	
+	* pom
+		- ensure values for columns, rows, and terminal width make sense (#597)
+	
+	* rm
+		- fail and print usage message for unsupported options (#612)
+		- disable "long" options; single letter options only (#632)
+	
+	* spell
+		- various internals improvements (#591)
+	
+	* split
+		- various internals improvements (#613)
+	
+	* sum
+		- various internals improvements (#603)
+	
+	* tac
+		- not that -B can be combined with -b and/or -r (#628)
+	
+	* tail
+		- filename header for multiple file output now matches GNU and BSD, 
+	    and the head program in PerlPowerTools (#653)
+		- remove the -h option to be consistent with GNU / BSD (#654)
+	
+	* tr
+		- tr only reads from standard input now (#636)
+	
+	* units
+		- various internals improvements (#590)
+		- fix usage message (#614)
+	
+	* wc
+		- failures exit with non-zero now (#601)
+	
+	* whoami
+		- various internals improvements (#652)
+	
+	* words
+		- die if there are two many arguments (#650)
+	
+	* xargs
+		- check eof() to know when to stop (#594)
+		- add pod docs (#639)
+		- remove hidden alias -l for -L since it's not a BSD option (#640)
+	
+
 1.045 2024-04-30T22:22:10Z
 	* All changes from Michael Mikonos
 	* ar
