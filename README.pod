@@ -116,7 +116,7 @@ L<GitHub Attestations|https://github.blog/2024-05-02-introducing-artifact-attest
 which allow you to verify that the archive file you have was made from
 the official repo.
 
-You need a GitHub account and the [gh tool](https://github.com/larsks/ghcli).
+You need a GitHub account and the L<gh tool|https://github.com/larsks/ghcli>.
 
 	$ gh auth login
 	...follow instructions...
