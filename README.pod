@@ -111,6 +111,17 @@ tracker|https://github.com/briandfoy/PerlPowerTools/issues>:
 
 =back
 
+Starting with v1.046, PerlPowerTools now use
+L<GitHub Attestations|https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>,
+which allow you to verify that the archive file you have was made from
+the official repo.
+
+You need a GitHub account and the [gh tool](https://github.com/larsks/ghcli).
+
+	$ gh auth login
+	...follow instructions...
+	$ gh attestation verify PerlPowerTools-1.046.tar.gz --owner briandfoy
+
 =head2 Getting help
 
 Although I'm happy to hear from module users in private email,
