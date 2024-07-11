@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20240130.001
+# version 20240709.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -9,6 +9,10 @@
 # In that environment, add whatever environment variables or secrets
 # that you want.
 name: ubuntu
+
+# https://github.com/actions/checkout/issues/1590
+env:
+    ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 on:
     push:
