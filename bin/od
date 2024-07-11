@@ -24,7 +24,7 @@ use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
 use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
- $opt_H $opt_i $opt_j $opt_l $opt_N $opt_o $opt_s $opt_v $opt_X $opt_x /;
+$opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_v $opt_X $opt_x /;
 
 our $VERSION = '1.1';
 
@@ -85,7 +85,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:aBbcdeFfHij:lN:osvXx') or help();
+getopts('A:aBbcdeFfHij:lN:OosvXx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -140,6 +140,9 @@ elsif ($opt_i || $opt_s) {
 }
 elsif ($opt_l) {
     $fmt = \&long;
+}
+elsif ($opt_O) {
+    $fmt = \&octal4;
 }
 elsif ($opt_B || $opt_o) {
     $fmt = \&octal2;
@@ -314,6 +317,11 @@ sub octal2 {
     $strfmt = '%.6o ' x (scalar @arr);
 }
 
+sub octal4 {
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%.11o ' x (scalar @arr);
+}
+
 sub hex2 {
     @arr = unpack 'S*', $data . zeropad(length($data), 2);
     $strfmt = '%.4x ' x (scalar @arr);
@@ -337,7 +345,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-aBbcdeFfHilosXxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    print "usage: od [-aBbcdeFfHilOosXxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -348,7 +356,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-aBbcdeFfHilosXxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
+B<od> [ I<-aBbcdeFfHilOosXxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
@@ -421,6 +429,10 @@ Show four-byte signed decimal integers.
 =item -N Bytes
 
 Set the number of maximum input bytes read.
+
+=item -O
+
+Four-byte octal display.
 
 =item -o
 
