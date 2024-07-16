@@ -82,13 +82,14 @@ sub traverse {
     return $total;
   }
   # Do recursion
-  if (opendir(DIR, $fn)) {
-    foreach (readdir(DIR)) {
+  my $dh;
+  if (opendir $dh, $fn) {
+    foreach (readdir $dh) {
+      next if $_ eq '.' or $_ eq '..';
       my $subdir = File::Spec->catfile($fn, $_);
-      # Don't try to traverse '.' or '..'
-      $total += traverse($subdir) unless /^\.{1,2}$/;
+      $total += traverse($subdir);
     }
-    closedir DIR;
+    closedir $dh;
     print "$total\t$fn\n" unless $opt_s;
   } else {
     print STDERR "$0: could not read directory $fn: $!\n";
