@@ -143,7 +143,7 @@ sub preprocess_options {
 
 	# Expand clustering
 	@new_args = map {
-			if( /-(.+)/ ) {
+			if( /\A\-(.+)/ ) {
 				my $cluster = $1;
 				map { "-$_" } split //, $cluster;
 			}
