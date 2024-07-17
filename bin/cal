@@ -147,7 +147,7 @@ sub fmt_month {
 
 sub make_month_array {
 	my( $year, $month ) = @_;
-	my( @month_array, $numdays, $remain, $x, $y ) = ();
+	my( @month_array, $numdays, $x, $y ) = ();
 	my( $firstweekday ) = &day_of_week_num( $year, $month, 1 );
 	$numdays = &days_in_month( $year, $month );
 	if ($opts{'j'}) {
