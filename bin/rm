@@ -86,12 +86,13 @@ sub run {
 	$self->error( "$Program: -P ignored\n" ) if $self->is_overwrite;
 
 	unless ( () = $self->files ) {
+		exit(EX_SUCCESS) if $self->is_force;
 		$self->error( "$Program: missing argument\n" );
-		exit EX_FAILURE;
+		usage();
 	}
 
 	my $errors = grep { $self->process_file( $_ ) } $self->files;
-	$self->exit( $errors ? EX_FAILURE : EX_SUCCESS );
+	exit( $errors ? EX_FAILURE : EX_SUCCESS );
 }
 
 sub new {
@@ -109,8 +110,6 @@ sub defaults {
 		output_fh    => \*STDOUT,
 		);
 }
-
-sub exit  { my $self = shift; exit(shift) }
 
 sub files { my $self = shift; @{ $self->{files} } }
 
