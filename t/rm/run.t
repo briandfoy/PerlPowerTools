@@ -11,6 +11,10 @@ is( $class, 'PerlPowerTools::rm' );
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 chdir $dir or BAIL_OUT( "Could not change to $dir: $!" );
 
+my $EXIT;
+BEGIN {
+	*CORE::GLOBAL::exit = sub { $EXIT = $_[0] };
+	}
 
 # These are the elements in each row of the table
 my $n; BEGIN { $n = 0 }
@@ -163,12 +167,8 @@ subtest 'table' => sub {
 			my $error = '';
 			open my $error_fh, '>:utf8', \$error;
 
-			my $exit = do {
-				no warnings qw(once redefine);
-				local *PerlPowerTools::rm::exit = sub { return $_[1] };
-				$class->run( args => \@run_args, error_fh => $error_fh );
-				};
-			is $exit, $row->[EXIT], "Exit code is " . $row->[EXIT];
+			$class->run( args => \@run_args, error_fh => $error_fh );
+			is $EXIT, $row->[EXIT], "Exit code is " . $row->[EXIT];
 
 			subtest 'what remains' => sub {
 				pass() if @{ $row->[REMAINS] } == 0;
