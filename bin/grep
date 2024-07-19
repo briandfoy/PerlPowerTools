@@ -49,6 +49,7 @@ License: perl
 
 use strict;
 
+use File::Spec;
 use Getopt::Std;
 
 our $VERSION = '1.001';
@@ -309,7 +310,8 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 			@list = ();
 			for ( readdir(DIR) ) {
-				push( @list, "$file/$_" ) unless /^\.{1,2}$/;
+				next if $_ eq '.' or $_ eq '..';
+				push @list, File::Spec->catfile($file, $_);
 				}
 			closedir(DIR);
 			if ( $opt->{t} ) {
