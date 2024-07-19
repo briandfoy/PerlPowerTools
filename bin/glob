@@ -121,15 +121,6 @@ So for MS-DOS for example, you could set these to:
         $FastGlob::rootpat = '[A-Z]:';  # <Drive letter><colon> pattern
         $FastGlob::curdir = '.';        # name of current directory in dir
         $FastGlob::parentdir = '..';    # name of parent directory in dir
-
-        $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
-
-And for MacOS to:
-
-        $FastGlob::dirsep = ':';        # directory path separator
-        $FastGlob::rootpat = '\A\Z';    # root directory prefix pattern
-        $FastGlob::curdir = '.';        # name of current directory in dir
-        $FastGlob::parentdir = '..';    # name of parent directory in dir
         $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
 
 Furthermore, after a call to B<glob>, the variable C<$FastGlob::matched>
