@@ -26,6 +26,9 @@ use Getopt::Std;
 use File::Basename;
 
 my $me = basename($0);
+my $Fh;
+my $curext;
+my $curname;
 
 ## get_count expands byte/linecount 'k' and 'm' and checks sanity
 sub get_count {
@@ -43,29 +46,26 @@ sub get_count {
 # separator.
 
 sub nextfile {
-    no strict 'vars';
     package
     	nextfile; # hide from PAUSE
 
     my $prefix = shift;
 
-    if (! fileno(FH)) {
+    if (!defined($Fh)) {
 	$curext = "aaa";   # initialize on first call
     }
     else {
-
-	close FH or die "$me: Can't close $curname: $!\n";
+	close($Fh) or die "$me: Can't close $curname: $!\n";
 
 	if ($curext eq "zzz") { die "$me: can only create 17576 files\n" }
     	else { $curext++ }
-
     }
 
     # MS-DOS: $curname = "$prefix." . $curext;
     $curname = $prefix . $curext;
-    open (FH, '>', $curname) or die "$me: Can't open $curname: $!\n";
-    binmode(FH);
-    return *FH;
+    open($Fh, '>', $curname) or die "$me: Can't open $curname: $!\n";
+    binmode $Fh;
+    return $Fh;
 }
 
 ## clue explains usage.
