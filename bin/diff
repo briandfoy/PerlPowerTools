@@ -39,8 +39,6 @@ use strict;
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
-Algorithm::Diff->import('diff');
-
 use constant EX_SUCCESS   => 0;
 use constant EX_DIFFERENT => 1;
 use constant EX_FAILURE   => 2;
@@ -148,7 +146,7 @@ close $fh2;
 exit(EX_SUCCESS) if (scalar(@f1) == 0 && scalar(@f2) == 0);
 
 # diff yields lots of pieces, each of which is basically a Block object
-my $diffs = diff(\@f1, \@f2);
+my $diffs = Algorithm::Diff::diff(\@f1, \@f2);
 exit(EX_SUCCESS) unless @$diffs;
 
 if ($opt_q) {
@@ -617,21 +615,6 @@ BEGIN {
 				 traverse_sequences => 1,
 				);
 }
-
-sub import {
-  no strict;
-  my $package = shift;
-  my $caller = caller;
-  for my $func (@_) {
-    unless ($ {$package . '::EXPORT_OK'}{$func}) {
-      require Carp;
-      Carp::croak("$package does not export function `$func'; aborting");
-    }
-    *{"$ {caller}::$func"} = \&{"$ {package}::$func"};
-  }
-  1;
-}
-
 
 sub LCS_matrix {
   my @x;
