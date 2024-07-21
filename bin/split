@@ -110,12 +110,12 @@ unless (defined $prefix && length $prefix) {
     $prefix = 'x';
 }
 
-die("$me: $infile: is a directory\n") if (-d $infile);
 my $in;
 if ($infile eq '-') {
     $in = *STDIN;
 }
 else {
+    die("$me: $infile: is a directory\n") if (-d $infile);
     open($in, '<', $infile) or die("$me: Can't open $infile: $!\n");
 }
 binmode $in;
