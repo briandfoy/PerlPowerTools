@@ -11,10 +11,6 @@ License: public domain
 
 =cut
 
-
-# public domain code by salzr@certo.com
-# (formerly rsalz@osf.org, rsalz@bbn.com, mirror!rs)
-
 use strict;
 
 use File::Basename qw(basename);
@@ -27,7 +23,6 @@ my $Program = basename($0);
 
 getopts('') or usage();
 @ARGV or usage();
-binmode STDOUT;
 
 print '# --cut here--
 # To extract, remove everything before the "cut here" line
@@ -47,27 +42,28 @@ ARGUMENT: for my $f ( @ARGV ) {
 	$done++;
 	next ARGUMENT;
     }
-    unless (open FH, '<', $f) {
+    my $fh;
+    unless (open $fh, '<', $f) {
 	warn "$Program: can't open '$f': $!\n";
 	next ARGUMENT;
     }
-    binmode FH;
+    binmode $fh;
 
     print "echo x - $quoted\n";
     if (-B $f) {
 	my $mode = (stat $f)[2];
 	$mode = (join '', 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
-	print "sed -e 's/^X//' | uudecode <<'FUNKY_STUFF'\n";
+	print "uudecode <<'FUNKY_STUFF'\n";
 	print "begin $mode $f\n";
 	my $block;
-	print pack 'u', $block while read FH, $block, 45;
-	print "end\n";
+	print pack 'u', $block while read $fh, $block, 45;
+	print "`\nend\n";
     } else {
 	print "sed -e 's/^X//' >$quoted <<'FUNKY_STUFF'\n";
-	print 'X', $_ while ( <FH> );
+	print 'X', $_ while ( <$fh> );
     }
     print "FUNKY_STUFF\n";
-    unless (close FH) {
+    unless (close $fh) {
 	warn "$Program: can't close '$f': $!\n";
 	next ARGUMENT;
     }
