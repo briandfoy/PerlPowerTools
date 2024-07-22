@@ -387,29 +387,14 @@ sub writeAr {
 sub strmode {
     my ($mode) = @_;
 
-    # just the RWX bits.
-    $mode = oct($mode) & 0777;
-    my @modemap = (0400 => 'r',    #  R for owner
-		   0200 => 'w',    #  W for owner
-		   0100 => 'x',    #  X for owner
-
-		   0040 => 'r',    #  R for group
-		   0020 => 'w',    #  W for group
-		   0010 => 'x',    #  X for group
-
-		   0004 => 'r',    #  R for other
-		   0002 => 'w',    #  W for other
-		   0001 => 'x');   #  X for other
-
-    my $modestr;
-    while (@modemap) {
-	my ($bit,$letter) = splice(@modemap,0,2);
-	if ($mode & $bit) {
-	    $modestr .= $letter;
-	}
-	else {
-	    $modestr .= "-";
-	}
+    die "bad file mode: $mode" if $mode !~ m/([0-7]+)/;
+    my $ugo = substr $1, -3; # only rwx bits
+    my $modestr = '';
+    foreach (split //, $ugo) {
+	my $i = oct;
+	$modestr .= $i & 4 ? 'r' : '-';
+	$modestr .= $i & 2 ? 'w' : '-';
+	$modestr .= $i & 1 ? 'x' : '-';
     }
     return $modestr;
 }
