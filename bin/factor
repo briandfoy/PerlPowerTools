@@ -25,11 +25,6 @@ my @next_primes = ();                   # Avoid redoing work
 
 my $VERSION = '1.002';
 
-END {
-	close STDOUT || die "$0: can't close stdout: $!\n";
-	$? = 1 if $? == 255;  # from die
-	}
-
 # run if called directly, indirectly, directly par-packed, undirectly par-packed
 __PACKAGE__->run( \*STDOUT, @ARGV ) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR'; # modulino
 
