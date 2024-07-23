@@ -67,6 +67,11 @@ sub run {
 		require File::Copy;
 		my $err = 0;
 		foreach my $source (@files) {
+			if (-d $source) {
+				print { error_fh() } "$0: '$source' is a directory (not copied)\n";
+				$err = 1;
+				next;
+			}
 			my $catdst = $destination;
 			if( -d $destination ) {
 				$catdst = catfile( $destination, basename($source) )
