@@ -85,7 +85,10 @@ sub run {
 					return EX_FAILURE;
 					}
 				}
-			$err = 1 if (File::Copy::copy($source, $catdst) == 0);
+			if (File::Copy::copy($source, $catdst) == 0) {
+				print { error_fh() } "$0: $source -> $catdst: copy failed: $!\n";
+				$err = 1;
+				}
 			}
 		return $err ? EX_FAILURE : EX_SUCCESS;
 		}
