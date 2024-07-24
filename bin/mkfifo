@@ -72,12 +72,15 @@ sub get_mode {
 	my $real_mode;
 
 	if ($mode =~ /^0?[0-7]{1,3}$/) {
-		return $real_mode = oct($mode);
+		$real_mode = oct $mode;
+	} else {
+		$real_mode = sym_perms($mode);
 	}
-	$real_mode = sym_perms $mode;
-	return $real_mode unless $real_mode < 0;
-	warn "$Program: bad file mode: '$mode'\n";
-	exit EX_FAILURE;
+	if ($real_mode < 0) {
+		warn "$Program: bad file mode: '$mode'\n";
+		exit EX_FAILURE;
+	}
+	return $real_mode;
 }
 
 my $mode = defined $opt_m ? get_mode($opt_m) : $default_mode;
