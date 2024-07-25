@@ -26,9 +26,7 @@ while ($ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     s/n// && (++$nostdout,    redo);
     die "usage tee [-aiun] [filenames] ...\n";
 }
-if ($ignore_ints) {
-    for my $sig ('INT', 'TERM', 'HUP', 'QUIT') { $SIG{$sig} = 'IGNORE'; }
-}
+$SIG{'INT'} = 'IGNORE' if $ignore_ints;
 $SIG{'PIPE'} = 'PLUMBER';
 $mode = $append ? '>>' : '>';
 $fh = 'FH000';
