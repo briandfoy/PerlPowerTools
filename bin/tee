@@ -17,28 +17,18 @@ License: perl
 # Tom Christiansen <tchrist@convex.com>
 # 6 June 91
 
-while ($ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
-    next if /^$/;
-    last if $_ eq '-'; # '--' terminator
-    s/i// && (++$ignore_ints, redo);
-    s/a// && (++$append,      redo);
-    s/u// && (++$unbuffer,    redo);
-    s/n// && (++$nostdout,    redo);
-    die "usage tee [-aiun] [filenames] ...\n";
-}
-$SIG{'INT'} = 'IGNORE' if $ignore_ints;
+use Getopt::Std qw(getopts);
+
+my %opt;
+getopts('aiu', \%opt) or die "usage: tee [-aiu] [file ...]\n";
+$SIG{'INT'} = 'IGNORE' if $opt{'i'};
 $SIG{'PIPE'} = 'PLUMBER';
-$mode = $append ? '>>' : '>';
-$fh = 'FH000';
-if ($nostdout) {
-    unless (@ARGV) {
-	warn "$0: file argument must be given with -n\n";
-	exit 1;
-    }
-} else {
-    %fh = ('STDOUT', 'standard output'); # always go to stdout
-}
-$| = 1 if $unbuffer;
+$| = 1 if $opt{'u'};
+
+my $mode = $opt{'a'} ? '>>' : '>';
+my $fh = 'FH000';
+my %fh = ('STDOUT', 'standard output'); # always go to stdout
+my $status = 0;
 
 for (@ARGV) {
     if (!open($fh, $mode, $_)) {
@@ -51,7 +41,7 @@ for (@ARGV) {
 }
 while (<STDIN>) {
     for my $fh (keys %fh) {
-	print $fh $_;
+	print {$fh} $_;
     }
 }
 for my $fh (keys %fh) {
