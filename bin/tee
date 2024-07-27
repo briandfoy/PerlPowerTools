@@ -17,44 +17,57 @@ License: perl
 # Tom Christiansen <tchrist@convex.com>
 # 6 June 91
 
+use strict;
+
 use Getopt::Std qw(getopts);
+use IO::File;
 
 my %opt;
 getopts('aiu', \%opt) or die "usage: tee [-aiu] [file ...]\n";
 $SIG{'INT'} = 'IGNORE' if $opt{'i'};
-$SIG{'PIPE'} = 'PLUMBER';
 $| = 1 if $opt{'u'};
 
-my $mode = $opt{'a'} ? '>>' : '>';
-my $fh = 'FH000';
-my %fh = ('STDOUT', 'standard output'); # always go to stdout
+my $mode = $opt{'a'} ? 'a' : 'w';
 my $status = 0;
+my $default_fd = fileno(*STDOUT);
+my %fh = ($default_fd => {
+    'name' => 'standard output',
+    'fh' => *STDOUT,
+});
 
 for (@ARGV) {
-    if (!open($fh, $mode, $_)) {
+    if (-d $_) {
+	warn "$0: '$_' is a directory\n";
+	$status++;
+	next;
+    }
+    my $fh = IO::File->new($_, $mode);
+    unless (defined $fh) {
 	warn "$0: cannot open $_: $!\n"; # like sun's; i prefer die
 	$status++;
 	next;
     }
-    select((select($fh), $| = 1)[0]) if $unbuffer;
-    $fh{$fh++} = $_;
+    select((select($fh), $| = 1)[0]) if $opt{'u'};
+    my $fd = fileno($fh);
+    $fh{$fd}->{'name'} = $_;
+    $fh{$fd}->{'fh'} = $fh;
 }
 while (<STDIN>) {
-    for my $fh (keys %fh) {
+    for my $fh (get_filehandles()) {
 	print {$fh} $_;
     }
 }
-for my $fh (keys %fh) {
-    next if close($fh) || !defined $fh{$fh};
-    warn "$0: couldn't close $fh{$fh}: $!\n";
-    $status++;
+for my $fd (keys %fh) {
+    unless (close $fh{$fd}->{'fh'}) {
+	warn sprintf("%s: close '%s': %s\n", $0, $fh{$fd}->{'name'}, $!);
+        $status++;
+    }
 }
 exit $status;
 
-sub PLUMBER {
-    warn "$0: pipe to \"$fh{$fh}\" broke!\n";
-    $status++;
-    delete $fh{$fh};
+sub get_filehandles {
+    my @handles = map { $fh{$_}->{'fh'} } (keys %fh);
+    return @handles;
 }
 
 =encoding utf8
