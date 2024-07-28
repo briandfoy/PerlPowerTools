@@ -22,10 +22,12 @@ use strict;
 use Getopt::Std qw(getopts);
 use IO::File;
 
+our $VERSION = '1.0';
+
 my %opt;
-getopts('aiu', \%opt) or die "usage: tee [-aiu] [file ...]\n";
+getopts('ai', \%opt) or die "usage: tee [-ai] [file ...]\n";
 $SIG{'INT'} = 'IGNORE' if $opt{'i'};
-$| = 1 if $opt{'u'};
+$| = 1;
 
 my $mode = $opt{'a'} ? 'a' : 'w';
 my $status = 0;
@@ -47,7 +49,7 @@ for (@ARGV) {
 	$status++;
 	next;
     }
-    select((select($fh), $| = 1)[0]) if $opt{'u'};
+    select((select($fh), $| = 1)[0]);
     my $fd = fileno($fh);
     $fh{$fd}->{'name'} = $_;
     $fh{$fd}->{'fh'} = $fh;
@@ -70,8 +72,46 @@ sub get_filehandles {
     return @handles;
 }
 
+sub VERSION_MESSAGE {
+    print "tee version $VERSION\n";
+    exit 0;
+}
+
+__END__
+
 =encoding utf8
 
 =head1 NAME
 
 tee - pipe fitting
+
+=head1 SYNOPSIS
+
+tee [-ai] [file ...]
+
+=head1 DESCRIPTION
+
+tee reads data from standard input, copying it to standard output
+and to any files given as arguments. If no file arguments are provided,
+tee behaves like the cat utility and copies only to standard output.
+Files are opened in write mode by default, and output is not buffered.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -a
+
+Append output to the files instead of overwriting them
+
+=item -i
+
+Ignore the SIGINT signal
+
+=back
+
+=head1 EXIT STATUS
+
+tee exits 0 on success, and >0 to indicate an error
