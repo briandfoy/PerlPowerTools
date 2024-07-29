@@ -610,8 +610,7 @@ sort - sort or merge text files
   sort [-cmudfinrbD] [-o output_file]
     [-t field_separator] [-X regex_field_separator] [-R record_separator]
     [-k pos1[,pos2]] [+pos1 [-pos2]]
-    [-y max_records] [-F max_files]
-    input_file1 [input_file2 ...]
+    [-y max_records] [-F max_files] [file ...]
 
 =head1 DESCRIPTION
 
@@ -619,7 +618,7 @@ The sort utility sorts text files by lines (or records).  Comparisons
 are based on one or more sort keys extracted from each line of input,
 and are performed lexicographically. By default, if keys are not given,
 sort regards each input line as a single field.  The sort is a merge
-sort.  If you don't like that, feel free to change it.
+sort.  The standard input will be used if no file arguments are provided.
 
 =head1 OPTIONS
 
