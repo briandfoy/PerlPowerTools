@@ -531,7 +531,7 @@ package
 	Block; # hide from PAUSE
 
 sub new {
-# Input is a chunk from &Algorithm::LCS::diff
+# Input is a chunk from &Algorithm::Diff::diff
 # Fields in a block:
 # length_diff - how much longer file 2 is than file 1 due to this block
 # Each change has:
@@ -606,15 +606,8 @@ package
 	Algorithm::Diff; # Hide from PAUSE
 
 use strict;
-BEGIN {
-  $Algorithm::Diff::VERSION = '0.57';
 
-
-  %Algorithm::Diff::EXPORT_OK = (LCS => 1,
-				 diff => 1,
-				 traverse_sequences => 1,
-				);
-}
+our $VERSION = '0.57';
 
 sub LCS_matrix {
   my @x;
@@ -695,15 +688,6 @@ sub traverse_sequences {
   }
 }
 
-sub LCS {
-  my $lcs = [];
-  my ($a, $b);
-  my $functions = { MATCH => sub {push @$lcs, $a->[$_[0]]} };
-
-  traverse_sequences($functions, @_);
-  wantarray ? @$lcs : $lcs;
-}
-
 sub diff {
   my ($a, $b) = @_;
   my @cur_diff = ();
@@ -728,6 +712,8 @@ sub usage {
 }
 
 1;
+
+__END__
 
 =head1 NAME
 
