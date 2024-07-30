@@ -103,11 +103,13 @@ sub _sort_file {
         local *F;
         my $last;
 
-        if ($opts->{I}[0] eq '-') {
+        my $filein = $opts->{I}[0];
+        if ($filein eq '-') {
             open F, '<-';
         } else {
-            sysopen(F, $opts->{I}[0], O_RDONLY)
-                or die "Can't open `$opts->{I}[0]' for reading: $!";
+            die "$0: '$filein' is a directory\n" if -d $filein;
+            sysopen(F, $filein, O_RDONLY)
+                or die "Can't open `$filein' for reading: $!\n";
         }
 
         while (defined(my $rec = <F>)) {
@@ -143,6 +145,7 @@ sub _sort_file {
         foreach my $filein (@{$opts->{I}}) {
 
             # just open files and get array of handles
+            die "$0: '$filein' is a directory\n" if -d $filein;
             my $sym = gensym();
 
             sysopen($sym, $filein, O_RDONLY)
@@ -164,6 +167,7 @@ sub _sort_file {
             if ($filein eq '-') {
                 open F, '<-' or die "Could not open '-': $!/$^E";
             } else {
+                die "$0: '$filein' is a directory\n" if -d $filein;
                 sysopen(F, $filein, O_RDONLY)
                     or die "Can't open `$filein' for reading: $!";
             }
