@@ -39,13 +39,13 @@ if (defined $opt{'d'}) {
 }
 
 foreach my $f (@ARGV) {
-	if (-d $f) {
-		warn "$Program: '$f': is a directory\n";
-		exit EX_FAILURE;
-	}
 	if ($f eq '-') {
 		push @fh, *STDIN;
 	} else {
+		if (-d $f) {
+			warn "$Program: '$f': is a directory\n";
+			exit EX_FAILURE;
+		}
 		my $fil;
 		unless (open $fil, '<', $f) {
 			warn "$Program: '$f': $!\n";
