@@ -19,13 +19,10 @@ License:
 use strict;
 use Config;
 
-# die if no signals or no arguments
-die "No signals defined ?!?" unless defined $Config{"sig_name"};
 usage() unless @ARGV;
-
-my(@signals) = split(/\s+/,$Config{"sig_name"});
-my(%hsignals) = map { $_ => 1 } @signals;
-my($signal) = "TERM"; # default of SIGTERM
+my @signals = getsigs();
+my %hsignals = map { $_ => 1 } @signals;
+my $signal = 'TERM';
 
 if ( $ARGV[0] =~ /^-l$/i ) { # list signals
 	siglist();
@@ -80,6 +77,13 @@ sub siglist {
 		printf "%2d:%-6s%s",$i,$signals[$i],
 			( ($i % 8 == 0) || ($i == $#signals) )?"\n":" ";
 	}
+}
+
+sub getsigs {
+	die 'no signal names detected' unless defined $Config{'sig_name'};
+	my @names = split/\s+/, $Config{'sig_name'};
+	die 'empty signal list' unless @names;
+	return @names;
 }
 
 =head1 NAME
