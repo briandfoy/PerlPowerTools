@@ -290,7 +290,11 @@ sub matchfile {
 FILE: while ( defined( $file = shift(@_) ) ) {
 		my $compressed = 0;
 
-		if ( -d $file ) {
+		if ( $file eq '-' ) {
+			warn "$Me: reading from stdin\n" if -t STDIN && !$opt->{'q'};
+			$name = '<STDIN>';
+			}
+		elsif ( -d $file ) {
 			if ( -l $file && @ARGV != 1 ) {
 				warn qq($Me: "$file" is a symlink to a directory\n)
 					if $opt->{T};
@@ -324,11 +328,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 			matchfile( $opt, $matcher, @list );    # process files
 			next FILE;
-			}
-
-		if ( $file eq '-' ) {
-			warn "$Me: reading from stdin\n" if -t STDIN && !$opt->{'q'};
-			$name = '<STDIN>';
 			}
 		else {
 			$name = $file;
