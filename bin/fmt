@@ -30,6 +30,10 @@ Getopt::Long::config('bundling');
 GetOptions(
     'w=i' => \$MAX_WIDTH,
 ) or usage();
+if ($MAX_WIDTH <= 0) {
+    warn "$Program: width must be positive\n";
+    exit EX_FAILURE;
+}
 
 my $fmt_line = '<' x $MAX_WIDTH;
 
