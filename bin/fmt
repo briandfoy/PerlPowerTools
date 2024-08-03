@@ -48,7 +48,11 @@ FORMAT
 
 my $rc = EX_SUCCESS;
 foreach my $file (@ARGV) {
-    next if (-d $file);
+    if (-d $file) {
+        warn "$Program: '$file' is a directory\n";
+        $rc = EX_FAILURE;
+        next;
+    }
     my $fh;
     unless (open $fh, '<', $file) {
         warn "$Program: failed to open '$file': $!\n";
@@ -125,12 +129,13 @@ fmt - simple text formatter
 
 =head1 SYNOPSIS
 
-B<fmt> [-WIDTH] [OPTION]... [FILE]...
+B<fmt> [-w WIDTH] [file...]
 
 =head1 DESCRIPTION
 
-Reformat each paragraph in FILE(s), writing to standard output.  The
-option -WIDTH is an abbreviated form of -w DIGITS.
+Reformat paragraphs of text read from the input files (or standard input if
+none are provided), writing to standard output.
+The option -WIDTH is an abbreviated form of -w DIGITS.
 
 =head1 OPTIONS
 
@@ -142,6 +147,10 @@ Maximum line width.  This option can be specified in shortened version,
 -DIGITS.  The default is 75.
 
 =back
+
+=head1 EXIT STATUS
+
+The fmt utility exits 0 on success, and >0 to indicate an error
 
 =head1 BUGS
 
