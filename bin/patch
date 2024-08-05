@@ -52,7 +52,7 @@ if (@ARGV) {
         directory|d=s           normal|n                unified|u
         ifdef|D=s               forward|N               version|v
         ed|e                    output|o=s              version-control|V=s
-        remove-empty-files|E    strip|p=i               debug|x=i
+        remove-empty-files|E    strip|p=i
     /;
 
     # Each patch may have its own set of options.  These are separated by
@@ -1476,13 +1476,6 @@ Always make simple backups.
 
 =back
 
-=item -xnumber or --debug number
-
-sets  internal  debugging  flags,
-and is of no interest to I<patch> patchers [see L<"note 8">].
-
-=back
-
 =head1 ENVIRONMENT
 
 B<SIMPLE_BACKUP_SUFFIX>
@@ -1620,10 +1613,6 @@ file is handy, GNU patch will attempt to get or check out the file.
 
 GNU patch requires a space between the B<-D> and the argument.  This has been
 made optional.
-
-=head2 note 8
-
-There are currently no debugging flags to go along with B<-x>.
 
 =head1 AUTHOR
 
