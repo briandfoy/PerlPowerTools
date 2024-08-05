@@ -127,6 +127,10 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     # Accept -2, -3, etc...
     if (s/\A([0-9]+)//) {
         $columns = $1;
+        if ($columns == 0) {
+	    warn "$Program: invalid number of columns: $columns\n";
+	    exit EX_FAILURE;
+        }
         redo OPTION;
     }
 
