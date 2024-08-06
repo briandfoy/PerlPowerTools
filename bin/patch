@@ -398,6 +398,9 @@ sub bless {
         $self->note("Checking patch against file $orig using Plan C...\n");
         ($in, $out) = ($orig, '');
     } elsif (defined $self->{output}) {
+        if (-d $self->{'output'}) {
+            die "$0: output file '$self->{output}' is a directory\n";
+        }
         $self->note("Patching file $orig using Plan B...\n");
         local $_ = $self->{output};
         $self->skip if -e && not rename $_, $self->backup($_) and
