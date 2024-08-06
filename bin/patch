@@ -48,7 +48,7 @@ if (@ARGV) {
         suffix|b=s              force|f                 reject-file|r=s
         prefix|B=s              batch|t                 reverse|R
         context|c               fuzz|F=i                silent|quiet|s
-        check|C                 ignore-whitespace|l     skip|S
+        check|dry-run|C         ignore-whitespace|l     skip|S
         directory|d=s           normal|n                unified|u
         ifdef|D=s               forward|N               version|v
         ed|e                    output|o=s              version-control|V=s
