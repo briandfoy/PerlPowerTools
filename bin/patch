@@ -1479,6 +1479,8 @@ Always make simple backups.
 
 =back
 
+=back
+
 =head1 ENVIRONMENT
 
 B<SIMPLE_BACKUP_SUFFIX>
