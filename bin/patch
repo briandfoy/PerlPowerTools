@@ -1278,7 +1278,7 @@ specified any argument from B<-b> will be ignored.
 forces I<patch> to interpret the patch file as a context
 diff.
 
-=item -C or --check
+=item -C or --check or --dry-run
 
 checks  that  the patch would apply cleanly, but does
 not modify anything.
