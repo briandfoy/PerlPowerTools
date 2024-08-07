@@ -2739,16 +2739,6 @@ sub floor_idx {
   return -1;
 }
 
-# catch signals
-sub catch
-{
-  my $signum = shift;
-  print STDERR "\n" if (-t STDERR && -t STDIN);
-  &yyerror("Floating point exception") if $signum == 8;
-  main();
-}
-
-# main program
 sub main
 {
   my $status;
@@ -2766,9 +2756,6 @@ sub main
       exit $status if ! $@;
     }
 }
-
-$SIG{'INT'} = 'catch';
-$SIG{'FPE'} = 'catch';
 
 select(STDERR);
 $| = 1;
