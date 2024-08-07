@@ -49,14 +49,18 @@ for (@ARGV) {
 	$status++;
 	next;
     }
-    select((select($fh), $| = 1)[0]);
-    my $fd = fileno($fh);
+    my $fd = fileno $fh;
     $fh{$fd}->{'name'} = $_;
     $fh{$fd}->{'fh'} = $fh;
 }
 while (<STDIN>) {
-    for my $fh (get_filehandles()) {
-	print {$fh} $_;
+    for my $fd (keys %fh) {
+	my $n = syswrite $fh{$fd}->{'fh'}, $_;
+	unless (defined $n) {
+	    warn sprintf("%s: write '%s': %s\n", $0, $fh{$fd}->{'name'}, $!);
+	    delete $fh{$fd};
+	    $status++;
+	}
     }
 }
 for my $fd (keys %fh) {
@@ -66,11 +70,6 @@ for my $fd (keys %fh) {
     }
 }
 exit $status;
-
-sub get_filehandles {
-    my @handles = map { $fh{$_}->{'fh'} } (keys %fh);
-    return @handles;
-}
 
 sub VERSION_MESSAGE {
     print "tee version $VERSION\n";
