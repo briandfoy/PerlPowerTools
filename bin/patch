@@ -18,6 +18,8 @@ License: perl
 
 use strict;
 
+use File::Temp qw();
+
 my $VERSION = '0.28';
 
 $|++;
@@ -428,14 +430,10 @@ sub bless {
     $self->{i_fh} = *IN;    # input filehandle
     $self->{i_file} = $in;  # input filename
 
-    # Like /dev/null
-    local *NULL;
-    tie *NULL, 'Dev::Null';
-
     # Open output file.
     if ($self->{check}) {
-        $self->{o_fh} = *NULL;     # output filehandle
-        $self->{d_fh} = *NULL;     # ifdef filehandle
+        $self->{'o_fh'} = File::Temp->new();
+        $self->{'d_fh'} = File::Temp->new();
     } else {
         local *OUT;
         open OUT, '+>', $out or $self->skip("Couldn't open OUTFILE: $!\n");
@@ -443,7 +441,7 @@ sub bless {
         $|++, select $_ for select OUT;
         $self->{o_fh}   = *OUT;
         $self->{o_file} = $out;
-        $self->{d_fh}   = length $self->{ifdef} ? *OUT : *NULL;
+        $self->{d_fh}   = length $self->{ifdef} ? *OUT : File::Temp->new();
     }
 
     $self->{'reject-file'} = "$out.rej" unless defined $self->{'reject-file'};
@@ -1104,25 +1102,6 @@ sub CLOSE {
     my $self = shift;
     $self = undef;
 }
-
-
-
-
-package
-	Dev::Null; # hide from PAUSE
-
-# Create filehandles that go nowhere.
-
-sub TIEHANDLE { bless \my $null }
-sub PRINT {}
-sub PRINTF {}
-sub WRITE {}
-sub READLINE {''}
-sub READ {''}
-sub GETC {''}
-
-
-
 
 __END__
 
