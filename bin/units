@@ -166,6 +166,7 @@ sub read_unittab {
         die "Could not open <$file>: $!\n";
       };
       $class->read_defs($file, $fh);
+      return;
     }
   }
   debug_d('Reading from DATA');
