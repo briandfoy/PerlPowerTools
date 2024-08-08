@@ -94,13 +94,13 @@ sub run {
     while (1) {
       print "You have: ";
       my $have = <>;
-      exit 0 unless $have =~ /\S/;
+      exit 0 unless defined($have) && $have =~ /\S/;
       my $have_hr = $class->unit_have($have);
       next if is_Zero($have_hr->{hu});
 
       print "You want: ";
       my $want = <>;
-      exit 0 unless $want =~ /\S/;
+      exit 0 unless defined($want) && $want =~ /\S/;
       my $want_hr = $class->unit_want($want);
       next if is_Zero($want_hr->{wu});
 
@@ -159,23 +159,22 @@ sub process_args {
 sub read_unittab {
   my( $class, $file ) = @_;
 
-  my( $name, $fh ) = do {
-    if( defined $file and -e $file ) {
-      open my($fh), '<:encoding(UTF-8)', $file or do {
-        die "Could not open <$file>: Aborting.";
+  my $fh;
+  if (defined $file) {
+    unless (-d $file) {
+      open $fh, '<:encoding(UTF-8)', $file or do {
+        die "Could not open <$file>: $!\n";
       };
-      ( $file, $fh )
+      $class->read_defs($file, $fh);
+      return;
     }
-    else {
-      debug_d( "Reading from DATA" );
-      open my $fh, '<:encoding(UTF-8)', __FILE__ or die;
-      while( <$fh> ) { last if /\A__(?:DATA|END)__/ }
-      ( 'DATA', $fh );
-    }
-
-  };
-
-  $class->read_defs( $name, $fh );
+  }
+  debug_d('Reading from DATA');
+  open $fh, '<:encoding(UTF-8)', __FILE__ or die;
+  while (<$fh>) {
+    last if /\A__(?:DATA|END)__/;
+  }
+  $class->read_defs('DATA', $fh);
 }
 
 sub unit_have {
