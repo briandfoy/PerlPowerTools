@@ -432,8 +432,7 @@ sub bless {
 
     # Open output file.
     if ($self->{check}) {
-        $self->{'o_fh'} = File::Temp->new();
-        $self->{'d_fh'} = File::Temp->new();
+        $self->{'o_fh'} = $self->{'d_fh'} = File::Temp->new();
     } else {
         local *OUT;
         open OUT, '+>', $out or $self->skip("Couldn't open OUTFILE: $!\n");
