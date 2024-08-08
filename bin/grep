@@ -97,13 +97,13 @@ sub usage {
 usage: $Me [-incCwsxvhlF1HurtpaqT] [-e pattern]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
-Standard grep options:
+Options:
 	-i   case insensitive
 	-n   number lines
 	-c   give count of lines matching
 	-C   ditto, but >1 match per line possible
 	-w   word boundaries only
-	-s   silent mode
+	-q   quiet; nothing is written to standard output
 	-x   exact matches only
 	-v   invert search sense (lines that DON'T match)
 	-h   hide filenames
@@ -111,8 +111,6 @@ Standard grep options:
 	-f   file with expressions
 	-l   list filenames matching
 	-F   search for fixed strings (disable regular expressions)
-
-Specials:
 	-1   1 match per file
 	-H   highlight matches
 	-u   underline matches
@@ -121,7 +119,7 @@ Specials:
 	-p   paragraph mode (default: line mode)
 	-P   ditto, but specify separator, e.g. -P '%%\\n'
 	-a   all files, not just plain text files
-	-q   quiet about failed file and dir opens
+	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
 
 May use GREP_OPTIONS environment variable to set default options.
@@ -146,7 +144,6 @@ sub parse_args {
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
 	getopts('incCwsxvhe:f:l1HurtpP:aqTF', \%opt) or usage();
-	$opt{'s'} = 1 if $opt{'c'};
 	$Mult = 1 if ($opt{'r'} || @ARGV > 1 || @ARGV > 0 && -d $ARGV[0]) && !$opt{'h'};
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
@@ -244,7 +241,6 @@ sub parse_args {
 	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
 	$opt{H}   += $opt{u};
 	$opt{c}   += $opt{C};
-	$opt{1}   += $opt{'s'} && !$opt{c};                                                       # that's a one
 
 	$match_code .= 'study;' if @patterns > 5;    # might speed things up a bit
 
@@ -291,7 +287,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 		my $compressed = 0;
 
 		if ( $file eq '-' ) {
-			warn "$Me: reading from stdin\n" if -t STDIN && !$opt->{'q'};
+			warn "$Me: reading from stdin\n" if -t STDIN && !$opt->{'s'};
 			$name = '<STDIN>';
 			}
 		elsif ( -d $file ) {
@@ -306,7 +302,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				next FILE;
 				}
 			unless ( opendir( DIR, $file ) ) {
-				unless ( $opt->{'q'} ) {
+				unless ( $opt->{'s'} ) {
 					warn "$Me: can't opendir $file: $!\n";
 					$Errors++;
 					}
@@ -332,7 +328,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 		else {
 			$name = $file;
 			unless ( -e $file ) {
-				warn qq($Me: "$file" does not exist\n) unless $opt->{'q'};
+				warn qq($Me: "$file" does not exist\n) unless $opt->{'s'};
 				$Errors++;
 				next FILE;
 				}
@@ -366,7 +362,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			else {
 				$ok = open $fh, '<', $file;
 				}
-			if ( !$ok && !$opt->{'q'} ) {
+			if ( !$ok && !$opt->{'s'} ) {
 				warn "$Me: $file: $!\n";
 				$Errors++;
 				}
@@ -394,12 +390,12 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 
 			print("$name\n"), next FILE if $opt->{l};
-
-			$opt->{'s'} || print $Mult && "$name:",
+			my $showmatch = !$opt->{'q'} && !$opt->{'c'};
+			$showmatch && print $Mult && "$name:",
 				$opt->{n} ? "$.:" : "", $_,
 				( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
 
-			next FILE if $opt->{1};    # that's a one
+			next FILE if (!$opt->{'c'} && $opt->{'1'} || $opt->{'q'}); # single match
 			}
 		}
 	continue {
@@ -524,10 +520,9 @@ $/ scalar.  See L<perlvar>.
 Paragraph mode.  This causes B<grep> to set Perl's magic $/ to C<''>.
 (Note that the default is to process files in line mode.)  See L<perlvar>.
 
-=item B<-q>
+=item B<-s>
 
-Quiet mode.  Suppress diagnostic messages to the standard error.  See
-B<-s>.
+Suppress diagnostic messages to the standard error.
 
 =item B<-r>
 
@@ -538,11 +533,11 @@ presence of B<-r> implies a file argument of F<.>, the current
 directory, if the user does not provide filenames on the command line.
 See L<"EXAMPLES">.
 
-=item B<-s>
+=item B<-q>
 
-Silent mode.  Do not write to the standard output.  This option would
+Quiet mode.  Do not write to the standard output.  This option would
 be useful from a shell script, for example, if you are only interested
-in whether or not there exists a match for a pattern.  See also B<-q>.
+in whether or not there exists a match for a pattern.
 
 =item B<-T>
 
