@@ -144,7 +144,6 @@ sub parse_args {
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
 	getopts('incCwsxvhe:f:l1HurtpP:aqTF', \%opt) or usage();
-	$Mult = 1 if ($opt{'r'} || @ARGV > 1 || @ARGV > 0 && -d $ARGV[0]) && !$opt{'h'};
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
@@ -174,6 +173,7 @@ sub parse_args {
 			}
 		@patterns = ($pattern);
 		}
+	$Mult = ($opt{'r'} || scalar(@ARGV) > 1) ^ $opt{'h'};
 	@ARGV = ($opt{'r'} ? '.' : '-') unless @ARGV;
 
 	if ( $opt{H} || $opt{u} ) {    # highlight or underline
@@ -391,9 +391,11 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 
 			print("$name\n"), next FILE if $opt->{l};
 			my $showmatch = !$opt->{'q'} && !$opt->{'c'};
-			$showmatch && print $Mult && "$name:",
-				$opt->{n} ? "$.:" : "", $_,
-				( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
+			if ($showmatch) {
+				print($name, ':') if $Mult;
+				print $opt->{n} ? "$.:" : "", $_,
+					( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
+			}
 
 			next FILE if (!$opt->{'c'} && $opt->{'1'} || $opt->{'q'}); # single match
 			}
