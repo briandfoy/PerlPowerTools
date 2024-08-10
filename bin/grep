@@ -403,7 +403,10 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			}
 		}
 	continue {
-		print $Mult && "$name:", $total, "\n" if $opt->{c};
+		if ($opt->{'c'}) {
+			print($name, ':') if $Mult;
+			print $total, "\n";
+		}
 		close FILE;
 		}
 	$Grand_Total += $total;
