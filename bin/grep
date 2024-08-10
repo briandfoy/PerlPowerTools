@@ -383,21 +383,23 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			next LINE unless $Matches;
 
 			$total += $Matches;
+			last FILE if $opt->{'q'}; # single match for all files
 
 			if ( $opt->{p} || $opt->{P} ) {
 				s/\n{2,}$/\n/ if $opt->{p};
 				chomp         if $opt->{P};
 				}
-
-			print("$name\n"), next FILE if $opt->{l};
-			my $showmatch = !$opt->{'q'} && !$opt->{'c'};
-			if ($showmatch) {
+			if ($opt->{'l'}) {
+				print $name, "\n";
+				next FILE;
+			}
+			unless ($opt->{'c'}) {
 				print($name, ':') if $Mult;
 				print $opt->{n} ? "$.:" : "", $_,
 					( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
 			}
 
-			next FILE if (!$opt->{'c'} && $opt->{'1'} || $opt->{'q'}); # single match
+			next FILE if $opt->{'1'}; # single match per file
 			}
 		}
 	continue {
