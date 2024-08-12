@@ -45,7 +45,7 @@ if ( $opt_u ) { # print uid
 	$tp = scalar getpwuid $tp || $tp if ( $opt_n );
 }
 elsif ( $opt_g ) { # print gid
-	$tp = ($gid)?$gid:(split(/\s+/,($opt_r)?$(:$)))[0];
+	$tp = defined $gid ? $gid : (split(/\s+/,($opt_r)?$(:$)))[0];
 	$tp = scalar getgrgid $tp || $tp if ( $opt_n );
 }
 elsif ( $opt_p ) { # human-readable form (names when possible, etc.)
