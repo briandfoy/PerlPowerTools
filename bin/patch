@@ -1263,7 +1263,7 @@ directory, and cd to it before doing anything else.
 
 causes  I<patch>  to use the "#ifdef...#endif" construct
 to mark changes.  The argument following will be used
-as the differentiating symbol.  [see L<"note 7">]
+as the differentiating symbol.
 
 =item -e or --ed
 
@@ -1584,11 +1584,6 @@ thinks the failed hunks belong in the new file rather than the old one.
 
 If the original file cannot be found or is read-only, but a suitable SCCS or RCS
 file is handy, GNU patch will attempt to get or check out the file.
-
-=head2 note 7
-
-GNU patch requires a space between the B<-D> and the argument.  This has been
-made optional.
 
 =head1 AUTHOR
 
