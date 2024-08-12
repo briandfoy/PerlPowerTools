@@ -17,7 +17,7 @@ License: perl
 
 use strict;
 
-use File::Temp qw(tempfile);
+use File::Temp qw();
 
 my(
     $program,		# the code to eval
@@ -44,8 +44,10 @@ usage() unless @ARGV;
 open(SAVE_OUT, '>&', STDOUT) || die "can't save stdout: $!";
 die unless defined fileno SAVE_OUT;
 
-my ($tmpin_fh, $tmpin) = tempfile();
-my ($tmpout_fh, $tmpout) = tempfile();
+my $tmpin_fh = File::Temp->new();
+my $tmpin = $tmpin_fh->filename();
+my $tmpout_fh = File::Temp->new();
+my $tmpout = $tmpout_fh->filename();
 
 # And some people think getopts does everything. Sheesh.
 while (@ARGV) {
