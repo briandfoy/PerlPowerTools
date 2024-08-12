@@ -168,12 +168,13 @@ if ($skip2) {
 }
 
 READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
-                      $read_in2 = sysread $fh2, $buffer2, $chunk_size;
+    $read_in2 = sysread $fh2, $buffer2, $chunk_size;
+    $read_in2 = 0 unless defined $read_in2; # sysread failed
 
     my $checklength = min($read_in1, $read_in2);
     $checklength-- if $checklength;
 
-    if ($buffer1 ne $buffer2) {
+    if ($checklength != 0 && $buffer1 ne $buffer2) {
         my @bytes1 = unpack 'C*', $buffer1;
         my @bytes2 = unpack 'C*', $buffer2;
 
