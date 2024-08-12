@@ -200,8 +200,8 @@ sub printMember {
 # writes a directory-style listing for the specified archive member
 sub printList {
     my ($name, $pAr, $verbose) = @_;
-    my $attr = $pAr->{$name};
     if ($verbose) {
+	my $attr = $pAr->{$name};
 	printf "%9s %7d/%-7d %7d %s %s\n",
 		strmode($attr->[4]),
 		$attr->[2],
@@ -289,7 +289,8 @@ sub readAr {
 
     # read magic
     my $magic;
-    read($arfh,$magic,8);
+    my $nread = read $arfh, $magic, length(MAGIC);
+    die "$0: $archive: $!\n" unless defined $nread;
     if ($magic ne MAGIC) {
 	die "$0: $archive: Inappropriate file type or format\n";
     }
