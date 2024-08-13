@@ -63,6 +63,7 @@ if ($opt{'f'} || scalar(@ARGV) == 0) {
 sub mors2txt {
     my $line = shift;
 
+    $line =~ s/\A\s+//;
     foreach my $m (split /\s+/, $line) {
         if (!exists($translations{$m})) {
             die "$m: unknown token";
