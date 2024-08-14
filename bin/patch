@@ -89,6 +89,9 @@ if (defined $patch->{'directory'}) {
         die "failed to change to directory '$patch->{directory}': $!\n";
     }
 }
+if (defined $patch->{'fuzz'} && $patch->{'fuzz'} < 0) {
+    die "$0: fuzz factor is negative: $patch->{fuzz}\n";
+}
 tie *PATCH, Pushback => $patchfile or die "Can't open '$patchfile': $!";
 
 # Extract patches from patchfile.  We unread/pushback lines by printing to
@@ -344,7 +347,7 @@ sub bless {
     $self->{o_lines} = 0;           # lines written to 'out' file
     $self->{hunk}    = 1;           # current hunk number
     $self->{rejects} = [];          # save rejected hunks here
-    $self->{fuzz}    = 2  unless defined $self->{fuzz} && $self->{fuzz} >= 0;
+    $self->{'fuzz'}  = 2 unless defined $self->{'fuzz'};
     $self->{ifdef}   = '' unless defined $self->{ifdef};
 
     # Skip patch?
