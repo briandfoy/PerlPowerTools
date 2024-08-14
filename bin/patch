@@ -84,6 +84,11 @@ $patchfile = '-' unless defined $patchfile;
 
 my $patch = Patch->new(@options);
 
+if (defined $patch->{'directory'}) {
+    unless (chdir $patch->{'directory'}) {
+        die "failed to change to directory '$patch->{directory}': $!\n";
+    }
+}
 tie *PATCH, Pushback => $patchfile or die "Can't open '$patchfile': $!";
 
 # Extract patches from patchfile.  We unread/pushback lines by printing to
@@ -352,12 +357,6 @@ sub bless {
     # Speculate to user.
     my $n = $type eq 'ed' ? 'n' : '';
     $self->note("Hmm...  Looks like a$n $type diff to me...\n");
-
-    # Change directories.
-    for ($self->{directory}) {
-        defined or last;
-        chdir $_ or $self->skip("Can't chdir '$_': $!\n");
-    }
 
     # Get original file to patch...
     my $orig = $self->{origfile};                   # ...from -o
