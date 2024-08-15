@@ -395,6 +395,7 @@ sub bless {
         }
     }
 
+    my $to_stdout = 0;
     my ($in, $out);
 
     # Create backup file.  I have no clue what Plan A is really supposed to be.
@@ -402,15 +403,18 @@ sub bless {
         $self->note("Checking patch against file $orig using Plan C...\n");
         ($in, $out) = ($orig, '');
     } elsif (defined $self->{output}) {
-        if (-d $self->{'output'}) {
+        $to_stdout = 1 if $self->{output} eq '-';
+        if (!$to_stdout && -d $self->{'output'}) {
             die "$0: output file '$self->{output}' is a directory\n";
         }
         $self->note("Patching file $orig using Plan B...\n");
         local $_ = $self->{output};
-        $self->skip if -e && not rename $_, $self->backup($_) and
-            $self->{force} || $self->{batch} || prompt (
-                'Failed to backup output file--skip this patch? [n] '
-            ) =~ /^[yY]/;
+        unless ($to_stdout) {
+            $self->skip if -e && not rename $_, $self->backup($_) and
+                $self->{force} || $self->{batch} || prompt (
+                    'Failed to backup output file--skip this patch? [n] '
+                ) =~ /^[yY]/;
+        }
         ($in, $out) = ($orig, $self->{output});
     } else {
         $self->note("Patching file $orig using Plan A...\n");
@@ -435,6 +439,10 @@ sub bless {
     # Open output file.
     if ($self->{check}) {
         $self->{'o_fh'} = $self->{'d_fh'} = File::Temp->new();
+    } elsif ($to_stdout) {
+        $self->{'o_fh'} = *STDOUT;
+        $self->{'o_file'} = '-';
+        $self->{'d_fh'} = length $self->{'ifdef'} ? *STDOUT : File::Temp->new;
     } else {
         local *OUT;
         open OUT, '+>', $out or $self->skip("Couldn't open OUTFILE: $!\n");
@@ -479,7 +487,7 @@ sub skip {
 # Let user know what's happening.
 sub note {
     my $self = shift;
-    print @_ unless $self->{silent} || $self->{skip};
+    print { *STDERR } @_ unless $self->{silent} || $self->{skip};
 }
 
 # Add to lines of leading garbage.
