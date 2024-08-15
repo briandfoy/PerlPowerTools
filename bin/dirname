@@ -58,7 +58,13 @@ deleted.
 
 =head2 OPTIONS
 
-I<dirname> does not accept any options.
+=over 4
+
+=item * --version
+
+=item * --help
+
+=back
 
 =head1 ENVIRONMENT
 
