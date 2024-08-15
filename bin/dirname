@@ -4,7 +4,8 @@
 
 Name: dirname
 Description: print the directory name of a path
-Author: Abigail, perlpowertools@abigail.be
+Author: Michael Mikonos
+Auhtor: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -72,29 +73,19 @@ I<dirname> has no known bugs.
 This I<dirname> implementation is compliant with the B<IEEE Std1003.2-1992>
 specification, also known as B<POSIX.2>.
 
-This I<bdirame> implementation is compatible with the
+This I<dirname> implementation is compatible with the
 B<OpenBSD> implementation.
-
-=head1 REVISION HISTORY
-
-    $Log: dirname,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:03  cwest
-    initial import
-
-    Revision 1.1  1999/02/27 01:49:59  abigail
-    Initial revision
 
 =head1 AUTHOR
 
-The Perl implementation of I<dirname> was written by Abigail,
-I<perlpowertools@abigail.be>.
+This implementation of I<dirname> was adapted by Michael Mikonos.
+
+The original version was written by Abigail, but the code was completely replaced. 
+Most of the documeantion is the original version.
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright by Abigail 1999.
+This program is copyright by Abigail, 1999, and Michael Mikonos, 2024.
 
 This program is free and open software. You may use, copy, modify, distribute
 and sell this program (and any modified variants) in any way you wish,
