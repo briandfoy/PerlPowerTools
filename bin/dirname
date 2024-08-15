@@ -62,8 +62,6 @@ deleted.
 
 =item * --version
 
-=item * --help
-
 =back
 
 =head1 ENVIRONMENT
@@ -86,7 +84,7 @@ B<OpenBSD> implementation.
 
 This implementation of I<dirname> was adapted by Michael Mikonos.
 
-The original version was written by Abigail, but the code was completely replaced. 
+The original version was written by Abigail, but the code was completely replaced.
 Most of the documeantion is the original version.
 
 =head1 COPYRIGHT and LICENSE
