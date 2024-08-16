@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-my ($VERSION) = '1.3';
+our $VERSION = '1.3';
 my $Program = basename($0);
 
 $SIG{__WARN__} = sub { warn "$Program: @_\n" };
@@ -31,13 +31,15 @@ use constant EX_SUCCESS => 0;
 use constant EX_ERROR   => 1;
 use constant EX_USAGE   => 2;
 
+sub VERSION_MESSAGE {
+	print "$Program version $VERSION\n";
+	exit EX_SUCCESS;
+}
+
 sub usage {
-	require Pod::Usage;
-	Pod::Usage::pod2usage({
-		-exitval => EX_USAGE,
-		-verbose => 1,
-		});
-	}
+	print { *STDERR } "usage: $Program [-p] [-m mode] directory ...\n";
+	exit EX_USAGE;
+}
 
 my $symbolic = 0;
 if (defined $options{'m'}) {
@@ -343,7 +345,7 @@ mkdir - create directories
 
 =head1 SYNOPSIS
 
-B<mkdir> [B<-p>] [B<-m> I<mode>] I<directory> [I<directories> ...]
+B<mkdir> [B<-p>] [B<-m> I<mode>] I<directory> ...
 
 =head1 DESCRIPTION
 
