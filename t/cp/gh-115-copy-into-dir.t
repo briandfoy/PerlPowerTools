@@ -15,13 +15,10 @@ sanity_test($Program);
 
 my $starting_dir = getcwd();
 my $program_path = catfile( $starting_dir, $Program );
-diag( "Starting working dir is $starting_dir" );
-diag( "Program path is $program_path" );
 
 my $test_file = 'a.txt';
 my $dir = tempdir( CLEANUP => 1 );
 ok( chdir $dir, 'Was able to change into temporary directory' );
-diag( "Current working dir is " . getcwd() );
 
 my $subdir = 'child';
 make_path $subdir;
@@ -51,13 +48,14 @@ subtest 'same directory' => sub {
 	ok -e $^X, "$^X exists";
 	ok ! -e $second_filename, "$second_filename does not exist at start";
 
+	my @command = ( $^X, $program_path, $filename, $second_filename );
+
 	my $rc = system $^X, $program_path, $filename, $second_filename;
 	is $rc, 0, 'system exited with 0' or diag(
 		"system failed:\n\t$!\n\t$^E"
 		);
 	ok -e $second_filename, "$second_filename exists";
 	my @files = glob '*';
-	diag( "Files in current working dir are <@files>" );
 
 	unlink $second_filename;
 	ok ! -e $second_filename, "$second_filename removed at end of test";
@@ -80,7 +78,6 @@ subtest 'into directory' => sub {
 	my $target = catfile( $subdir, $filename );
 	ok -e $target, "$target exists";
 	my @files = glob '* */*';
-	diag( "Files in current working dir are <@files>" );
 
 	unlink $target;
 	ok ! -e $target, "$target removed at end of test";

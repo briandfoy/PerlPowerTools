@@ -4,7 +4,8 @@
 
 Name: dirname
 Description: print the directory name of a path
-Author: Abigail, perlpowertools@abigail.be
+Author: Michael Mikonos
+Auhtor: Abigail, perlpowertools@abigail.be
 License: perl
 
 =end metadata
@@ -13,20 +14,29 @@ License: perl
 
 
 use strict;
-use File::Basename;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename dirname);
+use Getopt::Std qw(getopts);
 
-unless (@ARGV == 1) {
-    $0 = basename ($0);
-    print <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 string
-EOF
-    exit;
-};
+my $Program = basename($0);
+our $VERSION = '1.3';
 
-print +(dirname $ARGV [0]), "\n";
+getopts('') or usage();
+usage() unless scalar(@ARGV) == 1;
+my $path = shift;
+my $dir = dirname($path);
+print $dir, "\n";
+exit 0;
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit 0;
+}
+
+sub usage {
+    warn "usage: $Program string\n";
+    exit 1;
+}
 
 __END__
 
@@ -48,7 +58,13 @@ deleted.
 
 =head2 OPTIONS
 
-I<dirname> does not accept any options.
+=over 4
+
+=item * --version
+
+=item * --help
+
+=back
 
 =head1 ENVIRONMENT
 
@@ -63,29 +79,19 @@ I<dirname> has no known bugs.
 This I<dirname> implementation is compliant with the B<IEEE Std1003.2-1992>
 specification, also known as B<POSIX.2>.
 
-This I<bdirame> implementation is compatible with the
+This I<dirname> implementation is compatible with the
 B<OpenBSD> implementation.
-
-=head1 REVISION HISTORY
-
-    $Log: dirname,v $
-    Revision 1.2  2004/08/05 14:17:43  cwest
-    cleanup, new version number on website
-
-    Revision 1.1  2004/07/23 20:10:03  cwest
-    initial import
-
-    Revision 1.1  1999/02/27 01:49:59  abigail
-    Initial revision
 
 =head1 AUTHOR
 
-The Perl implementation of I<dirname> was written by Abigail,
-I<perlpowertools@abigail.be>.
+This implementation of I<dirname> was adapted by Michael Mikonos.
+
+The original version was written by Abigail, but the code was completely replaced. 
+Most of the documeantion is the original version.
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright by Abigail 1999.
+This program is copyright by Abigail, 1999, and Michael Mikonos, 2024.
 
 This program is free and open software. You may use, copy, modify, distribute
 and sell this program (and any modified variants) in any way you wish,

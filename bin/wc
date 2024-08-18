@@ -11,51 +11,24 @@ License: perl
 
 =cut
 
-END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
-
-sub usage {
-    warn "$0: @_\n" if @_;
-    print "usage: $0 [-a | [-p] [-l] [-w] [-m] [-c] ] [file1 [file2...]]\n";
-    exit 0;
-}
-
 use strict;
 use locale;
-use File::Basename;
 
-use vars qw($opt %opt);
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-@opt{ qw/? a p l w m c/ } = qw(0 0 0 0 0 0 0);
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-# The $MacPerl::Version variable should be on if ($^O =~ /MacOS/)
-# this unusual construct gets around -w -Mstrict in other places too.
-if ( $MacPerl::Version && $MacPerl::Version =~ /App/) {
-    $opt = MacPerl::Pick("Which wc option?",
-      "all","default (lwc)",
-      "-l (lines)","-w (words)","-c (bytes)",
-      "-m (chars)","-p (paragraphs)");
-    if ($opt eq "all") { $opt{'a'} = 1; }
-    if ($opt =~ /^-p/) { $opt{'p'} = 1; }
-    if ($opt =~ /^-l/) { $opt{'l'} = 1; }
-    if ($opt =~ /^-w/) { $opt{'w'} = 1; }
-    if ($opt =~ /^-m/) { $opt{'m'} = 1; }
-    if ($opt =~ /^-c/) { $opt{'c'} = 1; }
+my $Program = basename($0);
+
+sub usage {
+    warn "usage: $Program [-a | [-p] [-l] [-w] [-m] [-c] ] [file...]\n";
+    exit EX_FAILURE;
 }
-else {
-    # use regular switches under the MPW tool and everywhere else.
-    while ($ARGV[0] =~ /^-/) {
-        $ARGV[0] =~ s/^-//;
-        for my $flag (split(//,$ARGV[0])) {
-            usage() if '?' =~ /\Q$flag/;
-            usage("unknown flag: `$flag'") unless 'aplwmc' =~ /\Q$flag/;
-            warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
-        }
-        shift;
-    }
-}
+
+my %opt;
+getopts('aplwmc', \%opt) or usage();
 
 if ((!($opt{'p'} || $opt{'l'} || $opt{'w'} || $opt{'c'})) || ($opt{'a'})) {
    $opt{'l'} = 1; $opt{'w'} = 1; $opt{'c'} = 1;
@@ -196,8 +169,9 @@ sub wc_fh {
             }
         }
         if ($opt{'w'}) {
-            @words = split(/\w+/,$_);
-            $words += $#words;
+            s/\A\s+//;
+            @words = split /\s+/;
+            $words += scalar @words;
         }
         if ($opt{'m'}) {
             @chars = m/$encoding/gox;
@@ -208,18 +182,14 @@ sub wc_fh {
         }
     }
     if ($paras > 1) { $paras--; }
- #   if ($words > 0) { $words--; }
-    if ($words > 1) { $words--; }
     $total_paras += $paras;
     $total_lines += $lines; $total_words += $words;
     $total_chars += $chars; $total_bytes += $bytes;
-    $out = do {
-        if (defined($filename)) {
-            sprintf(" %s\n",basename($filename))
-        } else {
-            "\n"
-        }
-    };
+    if (defined $filename) {
+        $out = " $filename\n";
+    } else {
+        $out = "\n";
+    }
     $out = sprintf(" %9u%s",$bytes,$out) if ($opt{'c'});
     $out = sprintf(" %9u%s",$chars,$out) if ($opt{'m'});
     $out = sprintf(" %9u%s",$words,$out) if ($opt{'w'});
@@ -228,11 +198,25 @@ sub wc_fh {
     print "$out";
 }
 
+my $rc = EX_SUCCESS;
 if (@ARGV) {
     foreach my $filename (@ARGV) {
-        open(FH, '<', $filename) or die "cannot open $filename: $!\n";
-        wc_fh(\*FH, $filename);
-        close(FH);
+        if (-d $filename) {
+            warn "$Program: '$filename' is a directory\n";
+            $rc = EX_FAILURE;
+            next;
+        }
+        my $fh;
+        unless (open $fh, '<', $filename) {
+            warn "$Program: failed to open '$filename': $!\n";
+            $rc = EX_FAILURE;
+            next;
+        }
+        wc_fh($fh, $filename);
+        unless (close $fh) {
+            warn "$Program: failed to close '$filename': $!\n";
+            $rc = EX_FAILURE;
+        }
     }
 } else {
     wc_fh(\*STDIN);
@@ -247,6 +231,7 @@ if ($#ARGV >= 1) {
     $out = sprintf(" %9u%s",$total_paras,$out) if ($opt{'p'});
     print "$out";
 }
+exit $rc;
 
 __END__
 
@@ -258,7 +243,7 @@ wc - paragraph, line, word, character, and byte counter
 
 =head1 SYNOPSIS
 
-wc [-a | [-p] [-l] [-w] [-m] [-c] ] [file1 [file2...]]
+    wc [-a | [-p] [-l] [-w] [-m] [-c] ] [file...]
 
 =head1 DESCRIPTION
 

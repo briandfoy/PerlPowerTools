@@ -17,23 +17,15 @@ License: perl
 
 use strict;
 
-SANITY: {
-	my $external_module = 'App::a2p';
-	my $rc = eval "require $external_module; $external_module->import; 1";
-	die "This program needs the $external_module module.\n" unless $rc;
-	}
+use File::Temp qw();
 
 my(
     $program,		# the code to eval
-    $tmpin, 		# the files a2p reads
-    $tmpout, 		# the files a2p writes
     @nargs,		# new args for a2p
     @vargs		# temporary holder of variables
 );
 
 END {
-	no warnings qw(uninitialized);
-    unlink $tmpin, $tmpout; # XXX: don't check failure
     close STDOUT 	    || die "$0: can't close stdout: $!\n";
     $? = 1 if $? == 255;    # from die
 }
@@ -52,13 +44,10 @@ usage() unless @ARGV;
 open(SAVE_OUT, '>&', STDOUT) || die "can't save stdout: $!";
 die unless defined fileno SAVE_OUT;
 
-open(TMPIN, '>', ($tmpin = "a2pin.$$"))	     ||
-open(TMPIN, '>', ($tmpin = "/tmp/a2pin.$$"))      ||
-die "can't find a tmp input file";
-
-open(TMPOUT, '+>', ($tmpout = "a2pout.$$"))	     ||
-open(TMPOUT, '+>', ($tmpout = "/tmp/a2pout.$$"))    ||
-die "can't find a tmp output file";
+my $tmpin_fh = File::Temp->new();
+my $tmpin = $tmpin_fh->filename();
+my $tmpout_fh = File::Temp->new();
+my $tmpout = $tmpout_fh->filename();
 
 # And some people think getopts does everything. Sheesh.
 while (@ARGV) {
@@ -81,11 +70,6 @@ while (@ARGV) {
 	    push(@nargs, $_);
 	    last;
 	}
-	elsif (s/^-//) {
-	    if (length) { usage("Long options not supported") }
-	    shift;
-	    next;
-	}
 	else {
 	    usage("unknown flag: -$_");
 	}
@@ -97,7 +81,7 @@ while (@ARGV) {
 	    next;
 	}
 	else {
-	    print TMPIN "$_\n";
+	    print {$tmpin_fh} "$_\n";
 	    shift;
 	    push @nargs, $tmpin;
 	    last;
@@ -107,9 +91,9 @@ while (@ARGV) {
 
 unshift @ARGV, @vargs;  # put back var=val statements
 
-close(TMPIN)		    || die "can't close $tmpin: $!";
+close($tmpin_fh) or die "can't close $tmpin: $!";
 
-open(STDOUT, '>&', TMPOUT)    || die "can't dup to $tmpout: $!";
+open(STDOUT, '>&', $tmpout_fh) or die "can't dup to $tmpout: $!";
 $| = 1;
 
 system 'a2p', @nargs;
@@ -124,13 +108,13 @@ the App::a2p module.
 HERE
 }
 
-die "empty program" unless -s TMPOUT;
+die "empty program" unless -s $tmpout_fh;
 die "empty program" unless -s $tmpout;
 
-seek(TMPOUT, 0, 0)	   || die "can't rewind $tmpout: $!";
-$program = do { local $/;  <TMPOUT> };
-close(TMPOUT)	   || die "can't close $tmpout: $!";
-open(STDOUT, '>&', SAVE_OUT) || die "can't restore stdout: $!";
+seek($tmpout_fh, 0, 0) or die "can't rewind $tmpout: $!";
+$program = do { local $/;  <$tmpout_fh> };
+close($tmpout_fh) or die "can't close $tmpout: $!";
+open(STDOUT, '>&', SAVE_OUT) or die "can't restore stdout: $!";
 
 eval qq{
     no strict;

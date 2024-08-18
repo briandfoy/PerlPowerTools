@@ -17,58 +17,87 @@ License:
 # Gurusamy Sarathy <gsar@umich.edu>
 #
 
-use Getopt::Std;
-use Text::ParseWords;
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+use Text::ParseWords qw(quotewords);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my %o;
-getopts('tn:l:s:I:', \%o) or die <<USAGE;
+getopts('0tn:L:s:I:', \%o) or die <<USAGE;
 Usage:
-	$0 [-t] [-n num] [-l num] [-s size] [-I repl] prog [args]
+	$Program [-0t] [-n num] [-L num] [-s size] [-I repl] [prog [args ...]]
 
+	-0	expect NUL characters as separators instead of spaces
 	-t	trace execution (prints commands to STDERR)
 	-n num	pass at most 'num' arguments in each invocation of 'prog'
-	-l num	pass at most 'num' lines of STDIN as 'args' in each invocation
+	-L num	pass at most 'num' lines of STDIN as 'args' in each invocation
 	-s size	pass 'args' amounting at most to 'size' bytes in each invocation
 	-I repl	for each line in STDIN, replace all 'repl' strings in 'args'
 		  before execution
 USAGE
 
+for my $opt (qw( L n s )) {
+    next unless (defined $o{$opt});
+    if (!length($o{$opt}) || $o{$opt} =~ m/\D/) {
+	warn "$Program: option $opt: invalid number '$o{$opt}'\n";
+	exit EX_FAILURE;
+    }
+    if ($o{$opt} == 0) {
+	warn "$Program: option $opt: number must be > 0\n";
+	exit EX_FAILURE;
+    }
+}
 my @args = ();
 
 $o{I} ||= '{}' if exists $o{I};
-$o{l} = 1 if $o{I};
-
-while (1) {
+$o{'L'} = 1 if $o{'I'};
+my $sep = $o{'0'} ? '\0+' : '\s+';
+my $eof = 0;
+while (!$eof) {
     my $line = "";
     my $totlines = 0;
     while (<STDIN>) {
+	$eof = eof;
 	chomp;
+	next unless (length && m/\S/);
 	$line .= $_ if $o{I};
 	$totlines++;
-	push @args, grep defined, quotewords('\s+', 1, $_);
+	my @words = quotewords($sep, 1, $_);
+	push @args, grep { defined } @words;
 	last if $o{n} and @args >= $o{n};
 	last if $o{s} and length("@args") >= $o{s};
-	last if $o{l} and $totlines >= $o{l};
+	last if $o{'L'} and $totlines >= $o{'L'};
     }
     my @run = @ARGV;
     push @run, 'echo' unless (@run);
     if ($o{I}) {
-	exit(0) unless length $line;
+	exit(EX_SUCCESS) unless length $line;
 	for (@run) { s/\Q$o{I}\E/$line/g; }
     }
     elsif ($o{n}) {
-	exit(0) unless @args;
+	exit(EX_SUCCESS) unless @args;
 	push @run, splice(@args, 0, $o{n});
     }
     else {
-	exit(0) unless @args;
+	exit(EX_SUCCESS) unless @args;
 	push @run, @args;
 	@args = ();
     }
     if ($o{t}) { local $" = "', '"; warn "exec '@run'\n"; }
-    if (system(@run) != 0) {
-	warn "$0: $run[0]: $!\n";
-	exit($? >> 8);
+    my $rc = system @run;
+    if ($rc == -1) {
+	warn "$Program: $run[0]: $!\n";
+	exit EX_FAILURE;
+    }
+    if ($rc && $rc >> 8 == 255) {
+	warn "$Program: $run[0]: exited with status 255\n";
+	exit EX_FAILURE;
     }
 }
 
@@ -77,3 +106,53 @@ while (1) {
 =head1 NAME
 
 xargs - construct argument list(s) and execute utility
+
+=head1 SYNOPSIS
+
+xargs [-0t] [-n num] [-L num] [-s size] [-I repl] [prog [args ...]]
+
+=head1 DESCRIPTION
+
+xargs runs a specified program, or the echo command if none is given.
+Arguments passed to the target program are read from standard input and are generally separated by spaces.
+The program is run repeatedly until all arguments have been used up.
+The number of arguments taken by each invocation of the program can be controlled with various options.
+
+=head2 OPTIONS
+
+The following options are supported:
+
+=over 4
+
+=item -0
+
+Expect NUL characters as separators instead of spaces.
+This is useful in cases where arguments may contain a space, e.g. a filename.
+
+=item -I replstr
+
+Read input one line at a time, replacing all occurrences of the string replstr in the initial arguments with the line read.
+
+=item -L NUMBER
+
+Pass a maximum NUMBER of non-empty lines to the program per invocation.
+
+=item -n NUMBER
+
+Set a maximum NUMBER of arguments to be passed to the program per invocation.
+
+=item -s SIZE
+
+Pass a maximum of SIZE bytes of arguments to the program per invocation.
+
+=item -t
+
+Write a listing of the command arguments to standard error before each invocation of the program.
+
+=back
+
+=head1 AUTHOR
+
+Written by Gurusamy Sarathy, gsar@umich.edu
+
+=cut

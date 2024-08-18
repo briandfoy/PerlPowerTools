@@ -86,10 +86,7 @@ bin/pmake
 \.icloud$
 \A\.github\b
 
-util/create_tool_list
-util/date
-util/make_test_files
-util/test_templates
+util/
 
 output.txt
 \.gitattributes\b
@@ -98,3 +95,7 @@ bin/perldoc
 bin/perlpowertools
 packed/
 packer/
+
+PROGRAMMING_STYLE.md
+.perltidyrc
+.token

@@ -11,62 +11,114 @@ License: perl
 
 =cut
 
-
 use strict;
-use Getopt::Std;
 
-my ($VERSION) = '1.3';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-getopts ('benstuv?', \my %options)  or do {
-	$0 =~ s{.*/}{};
-	print <<EOF;
-$0 (PerlPowerTools) $VERSION
-$0 [-benstuv] [files ...]
-EOF
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-	exit 1;
+our $VERSION = '1.3';
+my $Program = basename($0);
+
+my %opt;
+getopts('benstuv', \%opt)  or do {
+    warn "usage: $Program [-benstuv] [file ...]\n";
+    exit EX_FAILURE;
 };
 
-my ($tabs, $ends, $nonprinting);
+my $ends              = $opt{'e'};
+my $tabs              = $opt{'t'};
+my $nonprinting       = $opt{'v'} || $ends || $tabs;
+my $squeeze_empty     = $opt{'s'};
+my $number_lines      = $opt{'n'} && !$opt{'b'};
+my $number_non_blanks = $opt{'b'};
 
-if (exists $options{'e'}) {$ends = $nonprinting = 1;}
-if (exists $options{'t'}) {$tabs = $nonprinting = 1;}
-if (exists $options{'v'}) {        $nonprinting = 1;}
-
-my $squeeze_empty     = exists $options{'s'};
-my $number_lines      = exists $options{'n'};
-my $number_non_blanks = exists $options{'b'};
+my $cook = grep {$_ || ()} @opt{'b', 'e', 'n', 's', 't', 'v'};
+my $cat = $cook ? \&cook_file : \&raw_file;
 
 # Unbuffer output for -u.
-$| = exists $options{'u'};
+$| = 1 if $opt{'u'};
 
 my $was_empty = 0;
 my $count     = 0;
 
-while (<>) {
+if (scalar(@ARGV) == 0) {
+    push @ARGV, '-';
+}
+my $err = 0;
+foreach my $f (@ARGV) {
+    $err |= do_file($f);
+}
+exit ($err ? EX_FAILURE : EX_SUCCESS);
 
-    if ($squeeze_empty) {
-        my $is_empty = /^$/;
-        if ($is_empty && $was_empty) {
-            next;
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
+
+sub do_file {
+    my $name = shift;
+
+    my $fh;
+    if ($name eq '-') {
+        $fh = *STDIN;
+    } else {
+        if (-d $name) {
+            warn "$Program: $name: is a directory\n";
+            return 1;
         }
-        $was_empty = $is_empty;
+        if (!open($fh, '<', $name)) {
+            warn "$Program: $name: $!\n";
+            return 1;
+        }
     }
+    $cat->($fh);
 
-    $_ = sprintf "%6d  %s", ++ $count, $_ if $number_lines ||
-                                             $number_non_blanks && /\S/;
-
-    s/$/\$/ if $ends;
-    if ($nonprinting) {
-        s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
-        s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
-        s/\x7F/^?/g;
+    if ($name ne '-' && !close($fh)) {
+        warn "$Program: failed to close '$name': $!\n";
+        return 1;
     }
-    if ($tabs) {
-        s/\x09/^I/g;
-    }
+    return 0;
+}
 
-    print;
+sub raw_file {
+    my $fh = shift;
+    my $BUFSZ = 8192;
+    my $buf;
+    while (read $fh, $buf, $BUFSZ) {
+	print $buf;
+    }
+}
+
+sub cook_file {
+    my $fh = shift;
+
+    while (<$fh>) {
+        if ($squeeze_empty) {
+            my $is_empty = /^$/;
+            if ($is_empty && $was_empty) {
+                next;
+            }
+            $was_empty = $is_empty;
+        }
+
+        s/$/\$/ if $ends;
+        if ($nonprinting) {
+            s/([\x80-\xFF])/"M-" . ("\x7F" & $1)/ge;
+            s/([\x00-\x08\x0B-\x1F])/"^" . chr (0100 + ord $1)/ge;
+            s/\x7F/^?/g;
+        }
+        if ($tabs) {
+            s/\x09/^I/g;
+        }
+
+        if ($number_lines || ($number_non_blanks && /\S/)) {
+            printf "%6d\t", ++$count;
+        }
+        print;
+    }
 }
 
 __END__

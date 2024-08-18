@@ -14,6 +14,20 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+use Math::Trig qw(atan deg2rad rad2deg tan);
+use POSIX qw(floor fmod);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+use constant LINES_DEFAULT => 25;
+use constant COLS_DEFAULT  => 80;
+use constant ASPECT_RATIO => 5 / 7;
+
+my $Program = basename($0);
+
 { my $vt100_compatible = 0;
   $vt100_compatible ||= $ENV{TERM}    =~ /vt100|xterm|ansi/i;
   $vt100_compatible ||= $ENV{TERMCAP} =~ /vt100|xterm|ansi/i;
@@ -35,22 +49,26 @@ sub ELONGP   () { 282.596403   } # ecliptic longitude of the Sun at perigee
 sub ECCENT   () {   0.01671542 } # Earth's orbit's eccentricity
 sub MMLONG   () {  64.975464   } # moon's mean longitude at EPOCH
 sub MMLONGP  () { 349.383063   } # mean longitude of the perigee at EPOCH
-sub MLNODE   () { 151.950429   } # mean longitude of the node at EPOCH
-sub SYNMONTH () {  29.53058868 } # synodic month (new Moon to new Moon)
-sub PI       () { 3.141592654  } # assume uncurved space
 
 #
 ## Helper functions
 
-sub sign     { ($_[0]<0) ? -1 : (($_[0]>0) ? 1 : 0); }
-sub floor    { my $x = int($_[0]); ($x<$_[0]) ? $x : $x-1; }
-sub fmod     { $_[0] - (int($_[0] / $_[1]) * $_[1]); }
 sub fixangle { fmod(($_[0] - (360 * (floor($_[0] / 360)))), 360); }
-sub torad    { ($_[0] * (PI / 180)); }
-sub todeg    { ($_[0] * (180 / PI)); }
-sub FNITG    { (sign($_[0]) * floor(abs($_[0]))); }
-sub tan      { sin($_[0]) / cos($_[0]); }
-sub atan     { atan2($_[0], 1) }
+
+sub usage {
+  warn "usage: $Program [-d] [-e] [[[[[[cc]yy]mm]dd]HH]]\n";
+  exit EX_FAILURE;
+}
+
+sub checknum {
+  my $n = shift;
+  my $lab = shift || 'number';
+  if ($n !~ m/\A[0-9]+\Z/) {
+    warn "$Program: bad $lab: '$n'\n";
+    exit EX_FAILURE;
+  }
+  return int($n);
+}
 
 #
 ## Parse the command line, filling in with the current GMT
@@ -59,25 +77,16 @@ my ($cc, $yy, $mm, $dd, $hh);
 my ($gm_yy, $gm_mm, $gm_dd, $gm_hh) = (gmtime(time))[5,4,3,2];
 $gm_yy += 1900; $gm_mm++;
 
-my $debugging = 0;
-my $enhanced_behavior = 0;
-
-foreach my $switch (grep /^\-/, @ARGV) {
-  $debugging = 1 if ($switch =~ /d/i);
-  $enhanced_behavior = 1 if ($switch =~ /e/i);
-}
-
-if (grep /^\-e(nhanced)?$/i, @ARGV) {
-  $enhanced_behavior = 1;
-}
-                                        # remove any -switches
-@ARGV = grep !/^\-/, @ARGV;
+my %opt;
+getopts('de', \%opt) or usage();
+my $debugging = $opt{'d'};
+my $enhanced_behavior = $opt{'e'};
 
 if (@ARGV) {
   if ( (@ARGV != 1) ||
        (length($ARGV[0]) & 1) || !length($ARGV[0]) || (length($ARGV[0]) > 10)
   ) {
-    die "$0 usage: $0 [-d] [-e] [[[[[[cc]yy]mm]dd]HH]]\n";
+    usage();
   }
 
   ($hh, $dd, $mm, $yy, $cc) = reverse($ARGV[0] =~ /(..)/g);
@@ -86,14 +95,36 @@ if (@ARGV) {
   defined($yy) && ($yy = $cc . $yy);
 }
 
-defined($hh) || ($hh = $gm_hh);
-defined($dd) || ($dd = $gm_dd);
-defined($mm) || ($mm = $gm_mm);
-defined($yy) || ($yy = $gm_yy);
+if (defined $hh) {
+  if (checknum($hh) > 23) {
+    warn "$Program: bad hour: '$hh'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $hh = $gm_hh;
+}
 
-die "$0: bad month $mm\n" if ($mm=~/\D/ || $mm<1 || $mm>12);
-die "$0: bad day $dd\n"   if ($dd=~/\D/ || $dd<1 || $dd>31);
-die "$0: bad hour $hh\n"  if ($hh=~/\D/ || $hh<0 || $hh>23);
+if (defined $dd) {
+  $dd = checknum($dd);
+  if ($dd == 0 || $dd > 31) {
+    warn "$Program: bad day: '$dd'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $dd = $gm_dd;
+}
+
+if (defined $mm) {
+  $mm = checknum($mm);
+  if ($mm == 0 || $mm > 12) {
+    warn "$Program: bad month: '$mm'\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $mm = $gm_mm;
+}
+
+defined($yy) || ($yy = $gm_yy);
 
 #
 ## Convert phase time to Julian
@@ -124,7 +155,7 @@ sub mdy_to_julian {
     $j_c = floor(365.25 * $j_yy) - 694025;
   }
   else {
-    $j_c = FNITG((365.25 * $j_yy) - 0.75) - 694025;
+    $j_c = floor((365.25 * $j_yy) - 0.75) - 694025;
   }
   $j_d = floor(30.6001 * ($j_mm + 1));
 
@@ -137,15 +168,15 @@ sub mdy_to_julian {
 sub kepler {
   my ($m, $ecc) = @_;
 
-  sub EPSILON { 1e-6 }
+  my $EPSILON = 1e-6;
 
-  my $e = $m = torad($m);
+  my $e = $m = deg2rad($m);
 
   my $delta;
   do {
     $delta = $e - $ecc * sin($e) - $m;
     $e -= $delta / (1 - $ecc * cos($e));
-  } while (abs($delta) > EPSILON);
+  } while (abs($delta) > $EPSILON);
 
   $e;
 }
@@ -172,7 +203,7 @@ sub calc_phase {
 
   my $sun_ecc = kepler($sun_epoch_coords, ECCENT);
   $sun_ecc = sqrt((1 + ECCENT) / (1 - ECCENT)) * tan($sun_ecc / 2);
-  $sun_ecc = 2 * todeg(atan($sun_ecc)); # true anomaly
+  $sun_ecc = 2 * rad2deg(atan($sun_ecc)); # true anomaly
                                         # sun's geocentric ecliptic longitude
   my $sun_lambda = fixangle($sun_ecc + ELONGP);
 
@@ -182,19 +213,19 @@ sub calc_phase {
   my $moon_mean_anomaly =
     fixangle($moon_mean_longitude - 0.1114041 * $day - MMLONGP);
   my $moon_evection = 1.2739
-    * sin(torad(2 * $moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly);
-  my $moon_annual_equation = 0.1858 * sin(torad($sun_epoch_coords));
-  my $moon_correction_1 = 0.37 * sin(torad($sun_epoch_coords));
+    * sin(deg2rad(2 * $moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly);
+  my $moon_annual_equation = 0.1858 * sin(deg2rad($sun_epoch_coords));
+  my $moon_correction_1 = 0.37 * sin(deg2rad($sun_epoch_coords));
   my $moon_corrected_anomaly = $moon_mean_anomaly + $moon_evection -
     $moon_annual_equation - $moon_correction_1;
   my $moon_correction_for_center =
-    6.2886 * sin(torad($moon_corrected_anomaly));
-  my $moon_correction_2 = 0.214 * sin(torad(2 * $moon_corrected_anomaly));
+    6.2886 * sin(deg2rad($moon_corrected_anomaly));
+  my $moon_correction_2 = 0.214 * sin(deg2rad(2 * $moon_corrected_anomaly));
   my $moon_corrected_longitude =
     $moon_mean_longitude + $moon_evection + $moon_correction_for_center
     - $moon_annual_equation - $moon_correction_2;
   my $moon_variation = 0.6583
-    * sin(torad(2 * ($moon_corrected_longitude - $sun_lambda)));
+    * sin(deg2rad(2 * ($moon_corrected_longitude - $sun_lambda)));
   my $moon_true_longitude = $moon_corrected_longitude + $moon_variation;
 
   # age of moon, in degrees
@@ -215,9 +246,16 @@ if ($debugging) {
 #
 ## Draw the moon.
 
-my $terminal_width  = (($ENV{COLS} || $ENV{COLUMNS} || 80) & ~1) - 2;
-my $terminal_height = ($ENV{LINES} || $ENV{ROWS} || 25) - 3;
-my $aspect_ratio = 5 / 7;
+my $terminal_width = ($ENV{COLS} || $ENV{COLUMNS} || COLS_DEFAULT) - 2;
+if (checknum($terminal_width, 'terminal width') == 0) {
+  warn "$Program: terminal width 0\n";
+  exit EX_FAILURE;
+}
+my $terminal_height = ($ENV{LINES} || $ENV{ROWS} || LINES_DEFAULT) - 3;
+if (checknum($terminal_height, 'terminal height') == 0) {
+  warn "$Program: terminal height 0\n";
+  exit EX_FAILURE;
+}
 my @surface_char = (':', '-', '+', '=', '*', 'O', '0', '8', '#', '@');
 
 sub display_moon {
@@ -271,7 +309,7 @@ sub display_moon {
     for (my $y=1-($increment/2); $y>-1; $y -= $increment) {
       my $x = sqrt(1 - $y**2);
 
-      my $moon_size  = int($x * $terminal_width * $aspect_ratio);
+      my $moon_size  = int($x * $terminal_width * ASPECT_RATIO);
       ($moon_size & 1) && ($moon_size--); # symmetry fudge
       my $space_size = ($terminal_width - $moon_size) / 2;
 
@@ -329,7 +367,7 @@ else {
   &display_moon($mm, $dd, $yy, $hh);
 }
 
-exit;
+exit EX_SUCCESS;
 
 __END__
 

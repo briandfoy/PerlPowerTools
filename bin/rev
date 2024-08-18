@@ -13,37 +13,65 @@ License: gpl
 
 use strict;
 
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 # unbuffer output to make it look speedier
 $|++;
 
-my ($VERSION) = '1.3';
+our $VERSION = '1.5';
 
-if (scalar(@ARGV) == 0 || ( $ARGV[0] ne '?' && $ARGV[0] !~ m/^-/ ) ) {
-	while (<>) {
-		chomp;
-		my $r = reverse($_);
-		print $r . $/;
+getopts('') or usage();
+my $rc = EX_SUCCESS;
+foreach my $file (@ARGV) {
+	if (-d $file) {
+		warn "$Program: '$file' is a directory\n";
+		$rc = EX_FAILURE;
+		next;
 	}
-	die("$0: $!") if $!;
+	my $fh;
+	unless (open $fh, '<', $file) {
+		warn "$Program: cannot open '$file': $!\n";
+		$rc = EX_FAILURE;
+		next;
+	}
+	rev($fh);
+	if ($!) {
+		warn "$Program: '$file': $!\n";
+		$rc = EX_FAILURE;
+	}
+	unless (close $fh) {
+		warn "$Program: cannot close '$file': $!\n";
+		$rc = EX_FAILURE;
+		next;
+	}
 }
-elsif ($ARGV[0] eq '--version') {
-	print " $0 $VERSION\n";
-}
-else {
-	print <<EOF;
-Usage: $0 [OPTION] [FILE]
+rev(*STDIN) unless @ARGV;
+exit $rc;
 
-Reverses lines of the named file or the text input on STDIN
-
-Options:
-	--version:  Print version number, then exit.
-	--help || -h || ? :     Print usage, then exit;
-
-EOF
-	exit 1;
+sub rev {
+	my $fh = shift;
+	while (<$fh>) {
+		chomp;
+		my $r = reverse;
+		print $r, $/;
+	}
 }
 
-exit;
+sub usage {
+	print "usage: $Program [file ...]\n";
+	exit EX_FAILURE;
+}
+
+sub VERSION_MESSAGE {
+	print "$Program version $VERSION\n";
+	exit EX_SUCCESS;
+}
 
 __END__
 
@@ -55,7 +83,7 @@ rev - reverse lines of a file
 
 =head1 SYNOPSIS
 
-rev [options] [file]
+rev [file ...]
 
 =head1 DESCRIPTION
 
@@ -69,13 +97,9 @@ I<rev> accepts the following options:
 
 =over 4
 
-=item  --help || -h || ?
-
-Print a short help message, then exits.
-
 =item  --version
 
-Prints out its version number, then exits.
+Print version number then exit
 
 =back
 

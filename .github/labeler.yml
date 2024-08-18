@@ -1,0 +1,396 @@
+# Created by util/make_labeler_config at Mon Oct  2 00:29:55 2023
+# https://github.com/marketplace/actions/labeler
+
+"Priority: low":
+  - '**'
+
+"Type: enhancement":
+  - 'bin/*'
+
+"Type: testing":
+  - any: [ 't/*', 'xt/*' ]
+
+"Tyoe: distribution maintenance":
+  - any: [ 'Makefile.PL', 'MANIFEST', 'MANIFEST.SKIP', 'INSTALL.SKIP', 'Changes', 'util/*' ]
+
+"Tyoe: documentation":
+  - any: [ 'CONTRIB*', 'LICENS*', 'PROGRAM*', 'README*' ]
+
+"Program: addbib":
+  - bin/addbib
+
+"Program: apply":
+  - bin/apply
+
+"Program: ar":
+  - bin/ar
+
+"Program: arch":
+  - bin/arch
+
+"Program: arithmetic":
+  - bin/arithmetic
+
+"Program: asa":
+  - bin/asa
+
+"Program: awk":
+  - bin/awk
+
+"Program: banner":
+  - bin/banner
+
+"Program: base64":
+  - bin/base64
+
+"Program: basename":
+  - bin/basename
+
+"Program: bc":
+  - bin/bc
+
+"Program: bc.bak":
+  - bin/bc.bak
+
+"Program: bcd":
+  - bin/bcd
+
+"Program: cal":
+  - bin/cal
+
+"Program: cat":
+  - bin/cat
+
+"Program: chgrp":
+  - bin/chgrp
+
+"Program: ching":
+  - bin/ching
+
+"Program: chmod":
+  - bin/chmod
+
+"Program: chown":
+  - bin/chown
+
+"Program: clear":
+  - bin/clear
+
+"Program: cmp":
+  - bin/cmp
+
+"Program: col":
+  - bin/col
+
+"Program: colrm":
+  - bin/colrm
+
+"Program: comm":
+  - bin/comm
+
+"Program: cp":
+  - bin/cp
+
+"Program: cut":
+  - bin/cut
+
+"Program: date":
+  - bin/date
+
+"Program: dc":
+  - bin/dc
+
+"Program: deroff":
+  - bin/deroff
+
+"Program: diff":
+  - bin/diff
+
+"Program: dirname":
+  - bin/dirname
+
+"Program: du":
+  - bin/du
+
+"Program: echo":
+  - bin/echo
+
+"Program: ed":
+  - bin/ed
+
+"Program: env":
+  - bin/env
+
+"Program: expand":
+  - bin/expand
+
+"Program: expr":
+  - bin/expr
+
+"Program: factor":
+  - bin/factor
+
+"Program: false":
+  - bin/false
+
+"Program: file":
+  - bin/file
+
+"Program: find":
+  - bin/find
+
+"Program: fish":
+  - bin/fish
+
+"Program: fmt":
+  - bin/fmt
+
+"Program: fold":
+  - bin/fold
+
+"Program: fortune":
+  - bin/fortune
+
+"Program: from":
+  - bin/from
+
+"Program: glob":
+  - bin/glob
+
+"Program: grep":
+  - bin/grep
+
+"Program: hangman":
+  - bin/hangman
+
+"Program: head":
+  - bin/head
+
+"Program: hexdump":
+  - bin/hexdump
+
+"Program: id":
+  - bin/id
+
+"Program: install":
+  - bin/install
+
+"Program: join":
+  - bin/join
+
+"Program: kill":
+  - bin/kill
+
+"Program: ln":
+  - bin/ln
+
+"Program: lock":
+  - bin/lock
+
+"Program: look":
+  - bin/look
+
+"Program: ls":
+  - bin/ls
+
+"Program: mail":
+  - bin/mail
+
+"Program: maze":
+  - bin/maze
+
+"Program: mimedecode":
+  - bin/mimedecode
+
+"Program: mkdir":
+  - bin/mkdir
+
+"Program: mkfifo":
+  - bin/mkfifo
+
+"Program: moo":
+  - bin/moo
+
+"Program: morse":
+  - bin/morse
+
+"Program: nl":
+  - bin/nl
+
+"Program: od":
+  - bin/od
+
+"Program: par":
+  - bin/par
+
+"Program: paste":
+  - bin/paste
+
+"Program: patch":
+  - bin/patch
+
+"Program: perldoc":
+  - bin/perldoc
+
+"Program: perlpowertools":
+  - bin/perlpowertools
+
+"Program: pig":
+  - bin/pig
+
+"Program: ping":
+  - bin/ping
+
+"Program: pom":
+  - bin/pom
+
+"Program: ppt":
+  - bin/ppt
+
+"Program: pr":
+  - bin/pr
+
+"Program: primes":
+  - bin/primes
+
+"Program: printenv":
+  - bin/printenv
+
+"Program: printf":
+  - bin/printf
+
+"Program: pwd":
+  - bin/pwd
+
+"Program: rain":
+  - bin/rain
+
+"Program: random":
+  - bin/random
+
+"Program: rev":
+  - bin/rev
+
+"Program: rm":
+  - bin/rm
+
+"Program: rmdir":
+  - bin/rmdir
+
+"Program: robots":
+  - bin/robots
+
+"Program: rot13":
+  - bin/rot13
+
+"Program: seq":
+  - bin/seq
+
+"Program: shar":
+  - bin/shar
+
+"Program: sleep":
+  - bin/sleep
+
+"Program: sort":
+  - bin/sort
+
+"Program: spell":
+  - bin/spell
+
+"Program: split":
+  - bin/split
+
+"Program: strings":
+  - bin/strings
+
+"Program: sum":
+  - bin/sum
+
+"Program: tac":
+  - bin/tac
+
+"Program: tail":
+  - bin/tail
+
+"Program: tar":
+  - bin/tar
+
+"Program: tee":
+  - bin/tee
+
+"Program: test":
+  - bin/test
+
+"Program: time":
+  - bin/time
+
+"Program: touch":
+  - bin/touch
+
+"Program: tr":
+  - bin/tr
+
+"Program: true":
+  - bin/true
+
+"Program: tsort":
+  - bin/tsort
+
+"Program: tty":
+  - bin/tty
+
+"Program: uname":
+  - bin/uname
+
+"Program: unexpand":
+  - bin/unexpand
+
+"Program: uniq":
+  - bin/uniq
+
+"Program: units":
+  - bin/units
+
+"Program: unlink":
+  - bin/unlink
+
+"Program: unpar":
+  - bin/unpar
+
+"Program: unshar":
+  - bin/unshar
+
+"Program: uudecode":
+  - bin/uudecode
+
+"Program: uuencode":
+  - bin/uuencode
+
+"Program: wc":
+  - bin/wc
+
+"Program: what":
+  - bin/what
+
+"Program: which":
+  - bin/which
+
+"Program: whoami":
+  - bin/whoami
+
+"Program: whois":
+  - bin/whois
+
+"Program: words":
+  - bin/words
+
+"Program: wump":
+  - bin/wump
+
+"Program: xargs":
+  - bin/xargs
+
+"Program: yes":
+  - bin/yes
+

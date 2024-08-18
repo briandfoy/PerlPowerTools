@@ -13,24 +13,44 @@ License: perl
 
 
 use strict;
-use File::Basename;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename fileparse);
+use Getopt::Std qw(getopts);
 
-unless (@ARGV == 1 || @ARGV == 2) {
-    $0 = basename ($0);
-    print <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 string [suffix | /pattern/]
-EOF
-    exit;
-};
+my $Program = basename($0);
+our $VERSION = '1.4';
 
+getopts('') or usage();
+usage() unless (@ARGV == 1 || @ARGV == 2);
 if (@ARGV == 2) {
     $ARGV [1] = quotemeta $ARGV [1] unless $ARGV [1] =~ s{^/(.*)/$}{$1};
 }
 
-print +(fileparse @ARGV) [0], "\n";
+my $path = shift;
+if (!length($path)) {
+    print "\n";
+    exit;
+}
+$path =~ s/\/+/\//g;  # "///" -> "/"
+if ($path eq '/') {
+    print "/\n";
+    exit;
+}
+$path =~ s/\/\Z//;  #  "a/" -> "a"
+my @parsed = fileparse($path);
+my $name = shift @parsed;
+print $name, "\n";
+exit 0;
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit 0;
+}
+
+sub usage {
+    warn "usage: $Program string [suffix | /pattern/]\n";
+    exit 1;
+}
 
 __END__
 
@@ -38,7 +58,7 @@ __END__
 
 =head1 NAME
 
-basename - print the basename of a file
+basename - remove directory and suffix from filenames
 
 =head1 SYNOPSIS
 

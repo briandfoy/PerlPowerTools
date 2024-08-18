@@ -1,43 +1,21 @@
-#!/usr/bin/perl
+require './t/lib/common.pl';
+my $Script = program_name();
 
-use strict;
-use warnings;
+use Test::More;
 
-use Test::More tests => 1;
+my @table = (
+		{
+		label => "-n",
+		args  => [qw( -n t/data/cat/cat-n-1.txt )],
+		stdout => "     1\tThis is the first line\n",
+		},
+	);
 
-sub _lines2re
-{
-    return join( qq#\r?\n#, @_ ) . qq#\r?\n?#;
-}
+foreach my $hash ( @table ) {
+	subtest $hash->{label} => sub {
+		my $result = run_command( $Script, $hash->{args}, undef );
+		is $result->{stdout}, $hash->{stdout};
+		};
+	}
 
-sub test_cat
-{
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    my ($args) = @_;
-
-    my $re = _lines2re( @{ $args->{lines} } );
-    return like(
-        scalar(`"$^X" -Ilib bin/cat @{$args->{flags}} @{$args->{files}}`),
-        qr#\A$re\z#ms, $args->{blurb} );
-}
-
-# TEST
-test_cat(
-    {
-        blurb => "format string expansion in cat -n",
-        files => [qw( t/data/cat/cat-n-1.txt )],
-        flags => [qw( -n )],
-        lines => ["     1  %d"],
-    }
-);
-
-__END__
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2018 by Shlomi Fish
-
-This code is licensed under the Artistic License 2.0
-L<https://opensource.org/licenses/Artistic-2.0>, or at your option any later
-version of the Artistic License from TPF ( L<https://www.perlfoundation.org/> )
-.
+done_testing();

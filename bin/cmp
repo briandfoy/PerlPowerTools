@@ -31,167 +31,201 @@ License: perl
 #
 # Todo:
 #
-# support grouped single-letter opts
 # revise how zero-length files are handled ?
 #
 
 use strict;
 
-END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+use List::Util qw(min);
+
+use constant EX_SUCCESS   => 0;
+use constant EX_DIFFERENT => 1;
+use constant EX_FAILURE   => 2;
+use constant EX_USAGE     => 2;
+
+use constant ST_INO  => 1;
+use constant ST_SIZE => 7;
+
+my $Program = basename($0);
 
 my $chunk_size = 10_000;     # how many bytes in a gulp
 
 my $volume=1;                # controlled by -s and -l
 
+my $fh1;
+my $fh2;
 my $file1;
 my $file2;
 my $skip1;
 my $skip2;
 my $buffer1;
 my $buffer2;
-my $ino1;
-my $ino2;
-my $size1;
-my $size2;
 my $read_in1;
 my $read_in2;
 
 my $bytes_read = 0;
 my $lines_read = 0;
-my $actual_length;
 my $saw_difference;
 
-# does not yet support grouped opts
-while (@ARGV) {
-    my $item= shift;
-
-    $item =~ /^--$/     and  $file1  = shift  , last;
-    $item =~ /^-\?$/    and  manual();        # exits
-    $item =~ /^-l$/     and  $volume = 2      , next;
-    $item =~ /^-s$/     and  $volume = 0      , next;
-    $item =~ /^-./      and  usage();         # exits
-
-    $file1 = $item;
-    last;
+my %opt;
+getopts('ls', \%opt) or usage();
+if ($opt{'l'}) {
+    usage() if $opt{'s'};
+    $volume = 2;
 }
+$volume = 0 if $opt{'s'};
 
-usage() unless @ARGV >= 1 and @ARGV <= 3;  # exits;
-
+usage() if (scalar(@ARGV) < 2);
+$file1 = shift;
 $file2 = shift;
+$skip1 = skipnum(shift) if @ARGV;
+$skip2 = skipnum(shift) if @ARGV;
+usage() if @ARGV;
 
-(undef,$ino1,undef,undef,undef,undef,undef,$size1) = stat $file1;
-(undef,$ino2,undef,undef,undef,undef,undef,$size2) = stat $file2;
+if ($file1 eq '-') {
+    if ($file2 eq '-') {
+        warn "$Program: standard input is allowed for one argument only\n";
+        exit EX_FAILURE;
+    }
+    $fh1 = *STDIN;
+}
+if ($file2 eq '-') {
+    $fh2 = *STDIN;
+}
 
-exit 0 if defined $ino1 && $ino1 == $ino2;  # hopefully, on platforms where
-                                            # inode is meaningless, stat
-                                            # returns undef.
+if (!$fh1 && !$fh2) {
+    my @stat1 = stat $file1;
+    unless (@stat1) {
+        warn "$Program: '$file1': $!\n";
+        exit EX_FAILURE;
+    }
+    my @stat2 = stat $file2;
+    unless (@stat2) {
+        warn "$Program: '$file2': $!\n";
+        exit EX_FAILURE;
+    }
 
-if ($size1 == 0 || $size2 == 0) {       # special handling for zero-length
-    if ($size2+$size1 == 0) {           # files.
-        exit 0;
-    } else {                            # Can't we say 'differ at byte zero'
-                                        # and so on here?  That might make
-                                        # more sense than this behavior.
-                                        # Also, this should be made consistent
-                                        # with the behavior when skip >=
-                                        # filesize.
-        if ($volume) {
-            warn "$0: EOF on $file1\n" unless $size1;
-            warn "$0: EOF on $file2\n" unless $size2;
+    if (defined($stat1[ST_INO]) && $stat1[ST_INO] == $stat2[ST_INO]) {
+        exit EX_SUCCESS;                        # hopefully, on platforms where
+    }                                           # inode is meaningless, stat
+                                                # returns undef.
+
+    if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
+        # special handling for zero-length files
+        if ($stat1[ST_SIZE] == 0 && $stat2[ST_SIZE] == 0) {
+            exit EX_SUCCESS;
+        } else {                            # Can't we say 'differ at byte zero'
+                                            # and so on here?  That might make
+                                            # more sense than this behavior.
+                                            # Also, this should be made consistent
+                                            # with the behavior when skip >=
+                                            # filesize.
+            if ($volume) {
+                warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
+                warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
+            }
+            exit EX_DIFFERENT;
         }
-        exit 1;
     }
 }
 
-if (@ARGV) {
-    $skip1 = shift;
-    usage() unless $skip1 =~ /^(0x[A-F\d]+|\d+)$/;   # exits;
-}
-
-if (@ARGV) {
-    $skip2 = shift;
-    usage() unless $skip2 =~ /^(0x[A-F\d]+|\d+)$/;   # exits;
-}
-
-$skip1 = eval "$skip1" if defined $skip1;
-$skip2 = eval "$skip2" if defined $skip2;
-
-open FILE1, '<', $file1 || die "$0: cannot open $file1\n";
-open FILE2, '<', $file2 || die "$0: cannot open $file2\n";
-
-sysseek FILE1, $skip1, 0 if $skip1;
-sysseek FILE2, $skip2, 0 if $skip2;
-
-READ: while (defined ($read_in1 = sysread FILE1, $buffer1, $chunk_size)) {
-                      $read_in2 = sysread FILE2, $buffer2, $chunk_size;
-
-    my $checklength = $chunk_size;
-    if ($read_in1 < $chunk_size or $read_in2 < $chunk_size) {
-        $checklength = ( $read_in1 < $read_in2 ?
-                                     $read_in1 :
-                                     $read_in2 ) - 1;
+unless ($fh1) {
+    if (-d $file1) {
+        warn "$Program: '$file1' is a directory\n";
+        exit EX_FAILURE;
     }
+    unless (open $fh1, '<', $file1) {
+        warn "$Program: cannot open '$file1': $!\n";
+        exit EX_FAILURE;
+    }
+}
+unless ($fh2) {
+    if (-d $file2) {
+        warn "$Program: '$file2' is a directory\n";
+        exit EX_FAILURE;
+    }
+    unless (open $fh2, '<', $file2) {
+        warn "$Program: cannot open '$file2': $!\n";
+        exit EX_FAILURE;
+    }
+}
 
-    if ($buffer1 ne $buffer2) {
-        for (0..$checklength) {
-            next unless (substr $buffer1,$_,1) ne (substr $buffer2,$_,1);
-            my $report_lines = $lines_read + 1 +  (substr $buffer1,0,$_) =~ tr[\n][\n];
+if ($skip1) {
+    if (-p $fh1) {
+        sysread $fh1, $buffer1, $skip1;
+    } else {
+        sysseek $fh1, $skip1, 0;
+    }
+}
+if ($skip2) {
+    if (-p $fh2) {
+        sysread $fh2, $buffer2, $skip2;
+    } else {
+        sysseek $fh2, $skip2, 0;
+    }
+}
+
+READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
+    $read_in2 = sysread $fh2, $buffer2, $chunk_size;
+    $read_in2 = 0 unless defined $read_in2; # sysread failed
+
+    my $checklength = min($read_in1, $read_in2);
+    $checklength-- if $checklength;
+
+    if ($checklength != 0 && $buffer1 ne $buffer2) {
+        my @bytes1 = unpack 'C*', $buffer1;
+        my @bytes2 = unpack 'C*', $buffer2;
+
+        for (0 .. $checklength) {
+            $lines_read++ if ($bytes1[$_] == ord("\n"));
+            next if ($bytes1[$_] == $bytes2[$_]);
+            my $report_lines = $lines_read + 1;
             my $report_bytes = $bytes_read + 1 + $_;
-            if ($volume == 1 ) {
+            if ($volume == 1) {
                 print "$file1 $file2 differ: char $report_bytes, line $report_lines\n";
-                exit 1;
-            } elsif ($volume eq 0) {
-                exit 1;
-	    } else {
+                exit EX_DIFFERENT;
+            } elsif ($volume == 0) {
+                exit EX_DIFFERENT;
+            } else {
                 $saw_difference ||= 1;
-                printf "%6d %3o %3o\n", $report_bytes, ord(substr $buffer1,$_,1),
-                                                       ord(substr $buffer2,$_,1);
+                printf "%6d %3o %3o\n", $report_bytes, $bytes1[$_], $bytes2[$_];
                 next READ if $_ == $checklength;
                 next;
-	    }
+            }
         }
+    } else {
+        $lines_read += $buffer1 =~ tr[\n][\n];
     }
-
-    $lines_read += $buffer1 =~ tr[\n][\n];
     $bytes_read += $checklength;
 
     if ($read_in1 < $read_in2) {
-        warn "$0: EOF on $file1\n" unless $saw_difference or !$volume;
-        exit 1;
+        warn "$Program: EOF on $file1\n" unless $saw_difference or !$volume;
+        exit EX_DIFFERENT;
     } elsif ($read_in1 > $read_in2) {
-        warn "$0: EOF on $file2\n" unless $saw_difference or !$volume;
-        exit 1;
+        warn "$Program: EOF on $file2\n" unless $saw_difference or !$volume;
+        exit EX_DIFFERENT;
     } elsif ($read_in1 == 0) {
-        exit $saw_difference;
+        exit EX_DIFFERENT;
     }
 }
 
-close FILE1;
-close FILE2;
-
+close $fh1;
+close $fh2;
 exit $saw_difference;
 
-sub usage {
-    die "usage: $0 [-l] [-s] file1 file2 [skip1 [skip2]]\n";
+sub skipnum {
+    my $n = shift;
+    return hex($n) if ($n =~ m/\A0x/);
+    return int($n) if ($n =~ m/\A[0-9]+\z/);
+    warn "$Program: invalid offset number '$n'\n";
+    usage();
 }
 
-sub manual {
-
-    # I thought using inline docs like this was a natural extension
-    # of perlishness, like better regular expressions, but tchrist
-    # disapproves.
-
-    # why is pod2text the only reasonable way to feed pod in
-    # on STDIN ?  Would rather use "|perldoc -", as it already
-    # knows about pager, etc.
-
-    open  MAN, '|-', "pod2text" or die "$0: Cannot open pod2text converter\n";
-    print MAN  <DATA>;
-    close MAN;
-    exit;
+sub usage {
+    warn "usage: $Program [-l | -s] file1 file2 [skip1 [skip2]]\n";
+    exit EX_USAGE;
 }
 
 __END__
@@ -202,7 +236,7 @@ cmp - compare two files
 
 =head1 SYNOPSIS
 
-cmp B<[-l]> B<[-s]> I<file1> I<file2> I<[skip1 [skip2]]>
+cmp B<[-l | -s]> I<file1> I<file2> I<[skip1 [skip2]]>
 
 =head1 DESCRIPTION
 
@@ -227,6 +261,8 @@ will begin.  Offsets may be given in decimal, octal, or hexadecimal
 form.  Indicate octal notation with a leading '0', and hexadecimal
 notation with a leading '0x'.
 
+file1 or file2 may be given as '-', which reads from standard input.
+
 =head2 OPTIONS
 
 =over
@@ -241,14 +277,6 @@ all output and warnings.
 list differences; return the byte number and the differing byte values
 for each difference between the two files.  The byte number is given
 in decimal, and the byte values are given in octal.
-
-=item -?
-
-show the documentation
-
-=item -.
-
-show a short usage summary
 
 =back
 
@@ -271,5 +299,4 @@ This program is copyright (c) D Roland Walker 1999.
 This program is free and open software. You may use, modify, distribute,
 and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
-
 

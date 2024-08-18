@@ -15,31 +15,21 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 my ($VERSION) = '1.2';
 
 my $warnings = 0;
 
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    $warnings = 1;
-    warn "$0: @_";
-};
-
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-R [-H | -L | -P]] group file [files ...]
-EOF
-    }
-    die "$0: @_";
-};
+sub usage {
+    warn "$Program (Perl bin utils) $VERSION\n";
+    warn "usage: $Program [-R [-H | -L | -P]] group file...\n";
+    exit EX_FAILURE;
+}
 
 # Get the options.
 # We can't use Getopts, as the order is important.
@@ -47,23 +37,27 @@ my %options;
 while (@ARGV && $ARGV [0] =~ /^-/) {
     my $opt = reverse shift;
     chop $opt;
-    if ($opt eq '-') {shift; last;}
-    die "Usage" unless $opt =~ /^[RHLP]+$/;
+    last if ($opt eq '-');
+    usage() unless $opt =~ /^[RHLP]+$/;
     local $_;
     while (length ($_ = chop $opt)) {
         /R/ && do {$options {R} = 1; next};
-        die "Usage" unless $options {R};
+        usage() unless $options {R};
         /H/ && do {$options {L} = $options {P} = 0; $options {H} = 1; next};
         /L/ && do {$options {H} = $options {P} = 0; $options {L} = 1; next};
         /P/ && do {$options {H} = $options {L} = 0; $options {P} = 1; next};
     }
 }
 
-die "Usage" unless @ARGV > 1;
+usage() unless @ARGV > 1;
 
 my $group = shift;
 
-defined (my $gid = getgrnam $group) or die "$group is an invalid group\n";
+my $gid = getgrnam $group;
+unless (defined $gid) {
+    warn "$Program: '$group' is an invalid group\n";
+    exit EX_FAILURE;
+}
 
 my %ARGV;
 %ARGV = map {$_ => 1} @ARGV if $options {H};
@@ -102,17 +96,22 @@ sub modify_file {
         return;
     }
     unless (-e $file) {
-        warn "$file does not exist\n";
+        warn "$Program: '$file' does not exist\n";
+        $warnings++;
         return;
     }
     my $uid = (stat $file) [4] or do {
-          warn "failed to stat $file: $!\n";
-          return;
+        warn "$Program: failed to stat '$file': $!\n";
+        $warnings++;
+        return;
     };
-    chown $uid, $gid, $file or warn "$!\n";
+    unless (chown $uid, $gid, $file) {
+        warn "$Program: '$file': $!\n";
+	$warnings++;
+    }
 }
 
-exit $warnings;
+exit ($warnings ? EX_FAILURE : EX_SUCCESS);
 
 __END__
 

@@ -16,90 +16,92 @@ License: perl
 
 use strict;
 use locale;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 use Search::Dict;
 
-END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
+use constant EX_FOUND    => 0;
+use constant EX_NOTFOUND => 1;
+use constant EX_FAILURE  => 2;
+
+my $Program = basename($0);
 
 sub usage {
-    warn "$0: @_\n" if @_;
-    die "usage: $0 [-df] string [file ...]\n";
+    warn "usage: $Program [-df] string [file]\n";
+    exit EX_FAILURE;
 }
 
 my (
     @dicts,     # file list
+    $filearg,   # optional file argument
     $search,    # the string to look for
     %opt,       # option hash
-    $opened,    # did we ever open something?
-    $found,     # did we ever find something?
-    $def_dict,  # did we use the default dict list?
 );
 
-@opt{ qw/d f/ } = (0, 0);
-
-while ($ARGV[0] =~ /^-/) {
-    $ARGV[0] =~ s/^-//;
-    for my $flag (split(//,$ARGV[0])) {
-    usage("unknown flag: `$flag'") unless 'df' =~ /\Q$flag/;
-        warn "$0: `$flag' flag already set\n" if $opt{$flag}++;
-    }
-    shift;
-}
+getopts('df', \%opt) or usage();
 
 @dicts = qw(
     /usr/dict/words
     /usr/share/dict/words
 );
 
-$opened = $found = 0;
-
 $search = shift;
-
+if (!defined($search)) {
+    warn "$Program: missing search pattern\n";
+    usage();
+}
+$filearg = shift;
 if (@ARGV) {
-    @dicts = @ARGV;
-    $def_dict = 0;
+    warn "$Program: extra argument: '$ARGV[0]'\n";
+    usage();
+}
+
+if (defined $filearg) {
+    @dicts = ($filearg);
 } else {
     @opt{ qw/d f/ } = (1, 1);
-    $def_dict = 1;
 }
 
 $search = squish($search);
+my $dict = open_dict();
+my $rc = lookfile($dict);
+unless (close $dict) {
+    warn "$Program: can't close dictionary: $!\n";
+    exit EX_FAILURE;
+}
+exit $rc;
 
-FILE: for my $file (@dicts) {
-
-    unless (open(DICT, '<', $file)) {
-        warn "$0: can't open $file: $!\n" unless $def_dict;
-        next FILE;
-    }
-
-    $opened++;
-
-    if (-1 == look(*DICT, $search, $opt{'d'}, $opt{'f'})) {
-        last FILE;
-    }
-
-LINE:
-    while (<DICT>) {
-        if (0 == index(squish($_), $search)) {
-            print;
-            $found++;
-        } else {
-            last LINE;
+sub open_dict {
+    my $fh;
+    for my $file (@dicts) {
+        if (-d $file) {
+            warn "$Program: '$file' is a directory\n";
+            next;
         }
+        unless (open $fh, '<', $file) {
+            warn "$Program: can't open '$file': $!\n" unless is_default_dict();
+            next;
+        }
+        return $fh;
     }
-    close(DICT) || die "can't close $file: $!";
-    last FILE;
+    warn "$Program: No dictionaries available (@dicts)\n" if is_default_dict();
+    exit EX_FAILURE;
 }
 
-if ($opened == 0) {
-    warn "$0: No dictionaries in default list (@dicts)\n"
-    if $def_dict;
-    exit 2;
+sub lookfile {
+    my $fh = shift;
+    if (look($fh, $search, $opt{'d'}, $opt{'f'}) == -1) {
+        return EX_NOTFOUND;
+    }
+    my $match = EX_NOTFOUND;
+    while (<$fh>) {
+        last if (index(squish($_), $search) != 0);
+        $match = EX_FOUND;
+        print;
+    }
+    return $match;
 }
-
-exit($found == 0 ? 1 : 0);
 
 sub squish {
     my $str = shift;
@@ -108,6 +110,9 @@ sub squish {
     return $str;
 }
 
+sub is_default_dict {
+    return !defined($filearg);
+}
 
 __END__
 
@@ -117,7 +122,7 @@ look - find lines in a sorted list
 
 =head1 SYNOPSIS
 
-look [ -df ] I<string> [ I<file> ... ]
+    look [-df] string [file]
 
 =head1 DESCRIPTION
 
@@ -129,12 +134,12 @@ The B<-d> and B<-f> options affect comparisons as in sort(1):
 
 =over
 
-=item d
+=item -d
 
 `Dictionary' order: only non-alphanumerics and underscores
 participate in comparisons.
 
-=item f
+=item -f
 
 Fold.  Upper case letters compare equal to lower case.
 

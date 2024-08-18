@@ -72,21 +72,21 @@ print "\nTHANKS FOR PLAYING!\n";
 
 sub get_a_word {
 	my $wordlist = "wordlist.txt";
-	my( $word );
-	my( $line_num ) = 1;
+	my( $fh, $word );
 	my( $random ) = rand();
-	my( $val ) = int( $random * 9151 ) + 1;
-	open my $fh, '<', $wordlist or die "Could not open <$wordlist>: $!\n";
-	while( <$fh> ) {
-		if( $line_num == $val ) {
-			$word = $_;
-			chomp( $word );
-			last;
-		} else {
-			$line_num++;
-		}
-	}
-	close( FILE );
+
+	open($fh, '<', $wordlist) or die "Could not open <$wordlist>: $!\n";
+	my $lines = 0;
+	$lines++ while (<$fh>);
+	die "Empty word list: $wordlist\n" unless $lines;
+	my $val = int($random * $lines) + 1;
+	close($fh) or die "Could not close <$wordlist>: $!\n";
+
+	open($fh, '<', $wordlist) or die "Could not open <$wordlist>: $!\n";
+	$word = <$fh> for (1 .. $val);
+	die "Could not find a word in $wordlist\n" unless defined $word;
+	chomp $word;
+	close($fh) or die "Could not close <$wordlist>: $!\n";
 	return( $word );
 }
 

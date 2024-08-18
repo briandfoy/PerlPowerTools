@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 
 use File::Basename qw(basename dirname);
 use File::Spec::Functions qw(catfile);
@@ -17,6 +19,14 @@ use Test::Warnings qw(had_no_warnings);
 
 =over
 
+=item * dumper
+
+=cut
+
+# Stolen from Mojo::Util
+use Data::Dumper;
+sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
+
 =item * extract_meta( PROGRAM )
 
 Extracts the metadata as a hash reference of the named PROGRAM
@@ -28,7 +38,7 @@ sub extract_meta {
 	my( $program ) = @_;
 
 	open my $fh, '<:utf8', $program or do {
-		warn "Could not open <$file>: $!\n";
+		warn "Could not open <$program>: $!\n";
 		return;
 		};
 	my $data = do { local $/; <$fh> };
@@ -41,6 +51,7 @@ sub extract_meta {
 
 	my %hash;
 	foreach my $line ( split /[\n\r]/, $extracted ) {
+		next unless $line =~ m/\S/;
 		my( $field, $value ) = split /:\s*/, $line, 2;
 		if( exists $hash{$field} and ! ref $hash{$field} ) {
 			$hash{$field} = [ $hash{$field}, $value ];
@@ -72,6 +83,20 @@ sub programs_to_test {
 		}
 	}
 
+use IPC::Run3 qw(run3);
+sub run_command {
+	my( $program, $args, $input ) = @_;
+
+	run3(
+		[$^X, $program, @$args ],
+		\$input, \my $output, \my $error
+		);
+
+	my %result;
+	@result{qw( program args stdout stderr exit)} = ( $program, [@$args], $output, $error, $? >> 8 );
+	return \%result;
+	}
+
 sub run_program_test {
 	my( $label, $sub ) = @_;
 
@@ -83,7 +108,8 @@ sub run_program_test {
 			my( $override_file ) =
 				grep { m/ \/ ([0-9]+\.) \Q$label\E \.t \z/x }
 				glob( catfile( 't', basename($program), '*.t' ) );
-			if( -e $override_file ) {
+
+			if( defined $override_file and -e $override_file ) {
 				diag( "Found $program specific override file" );
 				eval { use lib qw(.); require $override_file }
 					or fail ( "Could not run override file $override_file: $@" );

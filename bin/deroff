@@ -16,19 +16,49 @@ License: gpl
 # You may use this according to the GNU Public License: see http://www.gnu.org
 # Documentation at bottom.
 
-if ( $ARGV[0] eq '-w' )
-{
-    $Words_Only = 1;
-    shift;
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+my $HC = '\%';  # default hyphenation characters
+my $Words_Only;
+my %included;
+my @input;
+my %opt;
+
+getopts('w', \%opt) or usage();
+$Words_Only = $opt{'w'};
+
+for my $filename (@ARGV) {
+    next if (-d $filename);
+    my $fh;
+    unless (open $fh, '<', $filename) {
+        warn "$Program: Can't open '$filename': $!\n";
+        exit EX_FAILURE;
+    }
+    deroff_file($filename, $fh);
+    unless (close $fh) {
+        warn "$Program: Can't close '$filename': $!\n";
+        exit EX_FAILURE;
+    }
 }
-$ARGV[0] ||= '-';
+unless (@ARGV) {
+    deroff_file('-', *STDIN);
+}
+exit EX_SUCCESS;
 
-$HC = '\%';     # default hyphenation characters
+sub usage {
+    warn "usage: $Program [-w] [file]...\n";
+    exit EX_FAILURE;
+}
 
-for my $filename ( @ARGV )
-{
-    open( $filename, '<', $filename ) or die "Can't open $filename: $!\n";
-    $input = $filename;
+sub deroff_file {
+    my ($name, $input) = @_;
 
     while ( <$input> )
     {
@@ -93,10 +123,7 @@ for my $filename ( @ARGV )
             print;
         }
     }
-    close $input;
 }
-
-1;
 
 __END__
 

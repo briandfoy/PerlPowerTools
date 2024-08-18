@@ -13,33 +13,22 @@ License: perl
 
 use strict;
 
-sub printWhat($$$);
+use Getopt::Std qw(getopts);
 
-my $stop = 0;
-if (($#ARGV >= 0) && ($ARGV[0] eq '-s'))
-{
-    $stop = 1;
-    shift;
-}
+my %opt;
+getopts('s', \%opt) or usage();
+@ARGV or usage();
 
-my $file = "";
-if ($#ARGV < 0) ## use stdin
-{
-    printWhat(\*STDIN,$file,$stop);
-}
-else
-{
-    for my $file (@ARGV)
+for my $file (@ARGV)
     {
         open(FILE, '<', $file) or die "Unable to read $file: $!";
-        printWhat(\*FILE,$file,$stop);
+        printWhat(\*FILE, $file, $opt{'s'});
         close FILE;
     }
-}
 
 #### read open file and print "what" statements...
 #### pass in file handle, file name, and whether to stop printing after 1st "what"
-sub printWhat($$$)
+sub printWhat
 {
     my $file_handle = $_[0];
     my $file_name   = $_[1];
@@ -81,6 +70,11 @@ sub printWhat($$$)
         }
         else { $done = 1; }
     }
+}
+
+sub usage {
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
 exit;

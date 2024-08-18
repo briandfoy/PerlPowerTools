@@ -2,10 +2,6 @@
 #
 # nl - line numbering filter
 #
-# nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
-# files sequentially, and writes them to STDOUT, with lines numbered. If file
-# is a dash "-" or if no file is given as argument, nl reads from STDIN.
-#
 # 2020.10.25 v1.00 jul : first public release
 
 =begin metadata
@@ -22,52 +18,85 @@ License: artistic2
 use strict;
 use warnings;
 use utf8;
-use Getopt::Std;
-use File::Basename;
 
-our $VERSION = '1.01';
+use Getopt::Std qw(getopts);
+use File::Basename qw(basename);
+use Pod::Usage qw(pod2usage);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+our $VERSION = '1.3';
 my $program  = basename($0);
-my $usage    = <<EOF;
-
-Usage: $program [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
-
-    -V              version
-    -b type         'a'     all lines
-                    't'     only non-empty lines (default)
-                    'n'     no numbering
-                    'pexpr' only lines matching pattern specified by expr
-                    'eexpr' exclude lines matching pattern specified by expr
-    -d delim        characters (max 2) indicating new section (default : '\\:')
-    -f type         same as -b but for footer lines (default : 'n')
-    -h type         same as -b but for header lines (default : 'n')
-    -i incr         increment value (default : 1)
-    -n format       'ln'    left justified
-                    'rn'    right justified without leading zeros (default)
-                    'rz'    right justified with leading zeros
-    -p              single page (don't restart numbering at pages delimiters)
-    -s sep          characters between number and text line (default : TAB)
-    -v startnum     initial value to number pages (default : 1)
-    -w width        line number width (default : 6)
-EOF
 
 # options
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
-getopts("Vb:d:f:h:i:n:ps:v:w:", \%options) or die $usage;
+getopts('b:d:f:h:i:n:ps:v:w:', \%options) or pod2usage(EX_FAILURE);
+my $file = shift;
+$file = '-' unless defined $file;
+pod2usage(EX_FAILURE) if @ARGV;
 
-my $version     = $options{V} || 0;
 my $type_b      = $options{b} || "t";
 my $delim       = $options{d} || '\:';
 my $type_f      = $options{f} || "n";
 my $type_h      = $options{h} || "n";
-my $incr        = $options{i} || 1;
-my $format      = $options{n} || "rn";
-my $single_page = $options{p} || 0;
-my $sep         = $options{s} || "\t";
-my $startnum    = $options{v} || 1;
-my $width       = $options{w} || 6;
+my $incr        = $options{i};
+my $format      = $options{n};
+my $single_page = $options{p};
+my $sep         = exists $options{'s'} ? $options{'s'} : "\t";
+my $startnum    = $options{v};
+my $width       = $options{w};
+if (defined $format) {
+	my %expect = (
+		'ln' => 1,
+		'rn' => 1,
+		'rz' => 1,
+	);
+	unless ($expect{$format}) {
+		warn "$program: invalid line number format: '$format'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$format = 'rn';
+}
 
-die $VERSION . "\n" if $version;
+if (defined $width) {
+	if ($width !~ m/\A\+?[0-9]+\Z/ || $width == 0) {
+		warn "$program: invalid line number field width: '$width'\n";
+		exit EX_FAILURE;
+	}
+	$width = int $width; # strip '+'
+}
+else {
+	$width = 6;
+}
+
+if (defined $startnum) {
+	if ($startnum !~ m/\A[\+\-]?[0-9]+\Z/) {
+		warn "$program: invalid starting line number: '$startnum'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$startnum = 1;
+}
+
+if (defined $incr) {
+	if ($incr !~ m/\A[\+\-]?[0-9]+\Z/) {
+		warn "$program: invalid line number increment: '$incr'\n";
+		exit EX_FAILURE;
+	}
+}
+else {
+	$incr = 1;
+}
+
+sub VERSION_MESSAGE {
+	print "$program version $VERSION\n";
+	exit EX_SUCCESS;
+}
 
 # options -b -f -h
 my $regex_b = "";
@@ -79,6 +108,20 @@ my $regex_h = "";
 ($type_h, $regex_h) = split //, $type_h, 2;
 
 my @type = ($type_h, $type_b, $type_f,); # don't change order
+for (@type) {
+	my %expect = (
+		'a' => 1,
+		't' => 1,
+		'n' => 1,
+		'p' => 1,
+		'e' => 1,
+	);
+	unless ($expect{$_}) {
+		warn "$program: invalid numbering style: '$_'\n";
+		pod2usage(EX_FAILURE);
+	}
+}
+
 my @regex = ($regex_h, $regex_b, $regex_f); # don't change order
 
 # options -d
@@ -96,6 +139,10 @@ $format_str .= 'd';
 # options -v
 my $number = $startnum;
 
+my $section = 1;
+my $new_section = 1;
+
+exit (do_file($file) ? EX_FAILURE : EX_SUCCESS);
 
 ###############
 # SUBROUTINES #
@@ -130,7 +177,7 @@ sub print_line {
 	}
 	elsif ($type eq 't')
 	{
-		my $match = /^$/ ? 0 : 1;
+		my $match = $line =~ /\A\Z/ ? 0 : 1;
 		print_number($match);
 	}
 	elsif ($type eq 'n')
@@ -139,65 +186,95 @@ sub print_line {
 	}
 	elsif ($type eq 'p')
 	{
-		my $match = /$regex/ ? 1 : 0;
+		my $match = $line =~ /$regex/ ? 1 : 0;
 		print_number($match);
 	}
 	elsif ($type eq 'e')
 	{
-		my $match = /$regex/ ? 0 : 1;
+		my $match = $line =~ /$regex/ ? 0 : 1;
 		print_number($match);
 	}
 	else
 	{
-		die $usage;
+		warn "$program: invalid type '$type'\n";
+		pod2usage(EX_FAILURE);
 	}
 
 	print $line;
 }
 
+sub do_file {
+	my $name = shift;
+	my ($fh, $line);
 
-########
-# MAIN #
-########
-
-my $section = 1;
-my $new_section = 1;
-
-while (<>)
-{
-	my $line = $_;
-
-	if ( $line =~ /^($delim)($delim)?($delim)?$/ )
+	if ($name eq '-')
 	{
-		if    ($3) {$new_section = 0} # header
-		elsif ($2) {$new_section = 1} # body
-		else       {$new_section = 2} # footer
-
-		# change page
-		if ($new_section <= $section)
-		{
-			$number = $startnum unless $single_page;
-		}
-
-		$section = $new_section;
+		$fh = *STDIN;
 	}
 	else
 	{
-		print_line($_, $type[$section], $regex[$section]);
+		if (-d $name)
+		{
+			warn "$program: '$name': is a directory\n";
+			return 1;
+		}
+		unless (open $fh, '<', $name)
+		{
+			warn "$program: '$name': $!\n";
+			return 1;
+		}
 	}
+
+	while ($line = <$fh>)
+	{
+		if ($line =~ /^($delim)($delim)?($delim)?$/)
+		{
+			if    ($3) {$new_section = 0} # header
+			elsif ($2) {$new_section = 1} # body
+			else       {$new_section = 2} # footer
+
+			# change page
+			if ($new_section <= $section)
+			{
+				$number = $startnum unless $single_page;
+			}
+
+			$section = $new_section;
+		}
+		else
+		{
+			print_line($line, $type[$section], $regex[$section]);
+		}
+	}
+	unless (close $fh)
+	{
+		warn "$program: cannot close '$name': $!\n";
+		return 1;
+	}
+
+	return 0;
 }
 
 __END__
 
 =head1 NAME
 
-nl - line numbering filter.
+nl - line numbering filter
 
 =head1 SYNOPSIS
 
-    $ nl [-V] [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr] [-l num] [-n format] [-s sep] [-v startnum] [-w width] [file]
+    nl [-p] [-b type] [-d delim] [-f type] [-h type] [-i incr]
+       [-n format] [-s sep] [-v startnum] [-w width] [file]
 
-    -V              version
+=head1 DESCRIPTION
+
+nl prints its input file to standard output, with line numbers added.
+If file is a dash "-" or if no file is given as argument, nl reads from standard input.
+
+=head1 OPTIONS
+
+The following options are supported.
+
     -b type         'a'     all lines
                     't'     only non-empty lines (default)
                     'n'     no numbering
@@ -206,7 +283,7 @@ nl - line numbering filter.
     -d delim        characters (max 2) indicating new section (default : '\\:')
     -f type         same as -b but for footer lines (default : 'n')
     -h type         same as -b but for header lines (default : 'n')
-    -i incr         increment value (dafault : 1)
+    -i incr         increment value (default : 1)
     -n format       'ln'    left justified
                     'rn'    right justified without leading zeros (default)
                     'rz'    right justified with leading zeros
@@ -214,12 +291,6 @@ nl - line numbering filter.
     -s sep          characters between number and text line (default : TAB)
     -v startnum     initial value to number pages (default : 1)
     -w width        line number width (default : 6)
-
-=head1 DESCRIPTION
-
-nl is a clone of the standard 'nl' line numbering utility, in Perl. It reads
-files sequentially, and writes them to STDOUT, with lines numbered. If file
-is a dash "-" or if no file is given as argument, nl reads from STDIN.
 
 =head1 BUGS
 

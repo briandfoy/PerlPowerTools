@@ -14,24 +14,30 @@ License: perl
 
 use strict;
 
-use Getopt::Std;
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-use vars qw($VERSION);
-$VERSION = '1.1';
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+our $VERSION = '1.1';
 
 use vars qw($opt_b $opt_f $opt_p $opt_x $opt_l);
 use vars qw($opt_e $opt_E $opt_s $opt_t);
 
-$opt_f = 0;
-
-getopts('bfpxl:eEst') || die "Bad options.\n";
-
-if ($opt_l and $opt_l !~ /\D/) {
+getopts('bfpxl:eEst') or usage();
+if (defined $opt_l) {
+    if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
+        warn "$Program: bad -l argument: '$opt_l'\n";
+        exit EX_FAILURE;
+    }
     # multiply by 2 for half-lines
     $opt_l *= 2;
 } else {
     $opt_l = 512;
 }
+usage() if @ARGV;
 
 my @buf = [];       # character buffer
 my $col = 0;        # current column number
@@ -75,11 +81,9 @@ while (<>) {
         if ($c eq "\x1B" or $c eq "\x0B") {
             if ($c eq "\x0B" or $chars[++$i] =~ /$re[1]/xo) {
                                                 # reverse line feed
-                $row -= 2;
-                $row >= 0 or $row = 0;
+                $row -= 2 if $row >= 2;
             } elsif ($chars[$i] =~ /$re[2]/xo) { # half reverse line feed
-                $row -= 1;
-                $row >= 0 or $row = 0;
+                $row-- if $row >= 1;
             } elsif ($chars[$i] =~ /$re[3]/xo) { # half forward line feed
                 $row += 1;
             } else {                            # unrecognized escape
@@ -112,32 +116,6 @@ while (<>) {
 
         # start row if necessary
         $buf[$row] ||= [];
-
-        # check buffer size
-        if (@buf > $opt_l) {
-            print_line(0);
-
-            if ($buf[1] and @{$buf[1]}) {
-                # print next half line
-                print "\e9";
-                print "\x0D" if !$front;
-                $front = 1;
-
-                print_line(1);
-                print "\e9";
-                print "\x0D" if !$front;
-                $front = 1;
-            } else {
-                # skip to next full line
-                print "\x0A";
-                $front = 1;
-            }
-
-            # splice off top two rows
-            splice(@buf, 0, 2);
-            $max_row -= 2;
-        }
-
     }
 }
 
@@ -194,14 +172,13 @@ for ($row=0; $row < $max_row; ) {
         # half line feed
         print "\e9";
         print "\x0D" if !$front;
-        $front = 1;
     } else {
         # full line feed
         print "\x0A";
         # skip half line
         ++$row;
-        $front = 1;
     }
+    $front = 1;
     ++$row;
 }
 
@@ -228,7 +205,7 @@ if ($max_row & 1) {
     print "\x0D" if !$front;
     $front = 1;
 }
-
+exit EX_SUCCESS;
 
 # print_line
 # print the current line
@@ -295,7 +272,10 @@ sub print_line {
     }
 }
 
-exit 0;
+sub usage {
+    warn "usage: $Program [-bfpx] [-l num] [-Eest]\n";
+    exit EX_FAILURE;
+}
 
 __END__
 
@@ -370,7 +350,7 @@ overrides the B<-e> option.
 
 Accept only BSD-style escape sequences; a reverse line feed is an
 escape followed by the ASCII character whose decimal value is 7
-(control-g).  The B<-e> option is overriden by the B<-E> option.
+(control-g).  The B<-e> option is overridden by the B<-E> option.
 
 If neither the B<-E> nor the B<-e> option is used, B<col> accepts both BSD
 and IRIX style escapes sequences.

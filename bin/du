@@ -16,29 +16,30 @@ License: perl
 # Perl Power Tools - du
 # Greg Hewgill <greg@hewgill.com> 1999-03-07
 
-use Getopt::Std;
 use strict;
 
+use File::Spec;
+use Getopt::Std;
+
 use vars qw($opt_H $opt_L $opt_P $opt_a $opt_c $opt_k $opt_l $opt_r $opt_s $opt_x);
-use vars qw(%inodes $depth $blocksize $grandtotal $filesystem $dirsep);
+use vars qw(%inodes $depth $blocksize $grandtotal $filesystem);
 
 %inodes = ();      # A record of where we've been
 $depth = 0;        # Current recursion depth
 $blocksize = 512;  # Default block size
 $grandtotal = 0;   # Total of all command line argument totals
 $filesystem = 0;   # Current file system (used for -x processing)
-$dirsep = '/';     # Assume '/' is the directory separator
 
 $blocksize = $ENV{BLOCKSIZE} if $ENV{BLOCKSIZE}; # use environment if present
 
 # Process command line options
-getopts('HLPacklrsx') or usage_exit(1);
+getopts('HLPacklrsx') or usage();
 
 $blocksize = 1024 if $opt_k;
 
 if ($opt_a && $opt_s) {
   print STDERR "$0: cannot both summarize and show all entries\n";
-  usage_exit(1);
+  usage();
 }
 
 # Default to traversing current directory if no files specified
@@ -57,8 +58,10 @@ sub traverse {
   my $total = 0;
   local $depth = $depth + 1;
   my @s = ($opt_L || $opt_H && $depth == 1) ? stat $fn : lstat $fn;
-  # If we can't stat the file, return silently
-  return 0 unless @s;
+  unless (@s) {
+    warn "$0: cannot access '$fn': $!\n";
+    return 0;
+  }
   # Check for cross-filesystem traversals (-x option)
   if ($depth == 1) {
     $filesystem = $s[0];
@@ -79,13 +82,14 @@ sub traverse {
     return $total;
   }
   # Do recursion
-  if (opendir(DIR, $fn)) {
-    foreach (readdir(DIR)) {
-      my $subdir = ($fn =~ /$dirsep$/o) ? "$fn$_" : "$fn$dirsep$_";
-      # Don't try to traverse '.' or '..'
-      $total += traverse($subdir) unless /^\.{1,2}$/;
+  my $dh;
+  if (opendir $dh, $fn) {
+    foreach (readdir $dh) {
+      next if $_ eq '.' or $_ eq '..';
+      my $subdir = File::Spec->catfile($fn, $_);
+      $total += traverse($subdir);
     }
-    closedir DIR;
+    closedir $dh;
     print "$total\t$fn\n" unless $opt_s;
   } else {
     print STDERR "$0: could not read directory $fn: $!\n";
@@ -94,9 +98,9 @@ sub traverse {
   return $total;
 }
 
-sub usage_exit {
+sub usage {
   print STDERR "Usage: $0 [-H | -L | -P] [-a | -s] [-cklrx] [file ...]\n";
-  exit(@_);
+  exit 1;
 }
 
 =head1 NAME
@@ -158,8 +162,6 @@ If the environment variable BLOCKSIZE is set, and the B<-k> option is not
 specified, the block counts will be displayed in units of that size block.
 
 =head1 BUGS
-
-The directory separator is assumed to be '/'.
 
 The number of blocks reported is based on the size of the file. This may
 or may not reflect the actual number of blocks allocated by the file system

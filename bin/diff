@@ -36,19 +36,28 @@ License: perl
 # means "line number". But theoretically the code could be used more generally
 use strict;
 
-Algorithm::Diff->import('diff');
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS   => 0;
+use constant EX_DIFFERENT => 1;
+use constant EX_FAILURE   => 2;
+
+use vars qw($opt_C $opt_c $opt_e $opt_f $opt_q $opt_U $opt_u);
 
 # GLOBAL VARIABLES  ####
 # After we've read up to a certain point in each file, the number of items
 # we've read from each file will differ by $FLD (could be 0)
 my $File_Length_Difference = 0;
+my $Program = basename($0);
 
 #ed diff outputs hunks *backwards*, so we need to save hunks when doing ed diff
 my @Ed_Hunks = ();
 ########################
 
-my $usage = << "ENDUSAGE";
-Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
+sub usage {
+    warn << "ENDUSAGE";
+Usage: $Program [-c | -C lines | -e | -f | -q | -u | -U lines] oldfile newfile
     -c do a context diff with 3 lines of context
     -C do a context diff with 'lines' lines of context (implies -c)
     -e create a script for the ed editor to change oldfile to newfile
@@ -57,61 +66,45 @@ Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
     -U do a unified diff with 'lines' lines of context (implies -u)
     -q report only whether or not the files differ
 
-By default it will do an "old-style" diff, with output like UNIX diff
 ENDUSAGE
+    exit EX_FAILURE;
+}
 
 my $Context_Lines = 0; # lines of context to print. 0 for old-style diff
 my $Diff_Type = "OLD"; # by default, do standard UNIX diff
-my ($opt_c, $opt_u, $opt_e, $opt_f, $opt_q);
-while ($ARGV[0] =~ /^-/) {
-  my $opt = shift;
-  last if $opt eq '--';
-  if ($opt =~ /^-C(.*)/) {
-    $Context_Lines = $1 || shift;
+getopts('C:cefqU:u') or usage();
+if (defined $opt_C) {
+    $Context_Lines = checklen($opt_C);
     $opt_c = 1;
-    $Diff_Type = "CONTEXT";
-  } elsif ($opt =~ /^-c$/) {
+    set_diff_type('CONTEXT');
+} elsif ($opt_c) {
     $Context_Lines = 3;
-    $opt_c = 1;
-    $Diff_Type = "CONTEXT";
-  } elsif ($opt =~ /^-e$/) {
-    $opt_e = 1;
-    $Diff_Type = "ED";
-  } elsif ($opt =~ /^-f$/) {
-    $opt_f = 1;
-    $Diff_Type = "REVERSE_ED";
-  } elsif ($opt =~ /^-U(.*)$/) {
-    $Context_Lines = $1 || shift;
+    set_diff_type('CONTEXT');
+}
+if ($opt_e) {
+    set_diff_type('ED');
+}
+if ($opt_f) {
+    set_diff_type('REVERSE_ED');
+}
+if (defined $opt_U) {
+    $Context_Lines = checklen($opt_U);
     $opt_u = 1;
-    $Diff_Type = "UNIFIED";
-  } elsif ($opt =~ /^-u$/) {
+    set_diff_type('UNIFIED');
+} elsif ($opt_u) {
     $Context_Lines = 3;
-    $opt_u = 1;
-    $Diff_Type = "UNIFIED";
-  } elsif ($opt =~ /^-q$/) {
-    $Context_Lines = 0;
-    $opt_q = 1;
-    $opt_e = 1;
-    $Diff_Type = "ED";
-  } else {
-    $opt =~ s/^-//;
-    bag("Illegal option -- $opt");
-  }
+    set_diff_type('UNIFIED');
 }
 
-if ($opt_q and grep($_,($opt_c, $opt_f, $opt_u)) > 1) {
-    bag("Combining -q with other options is nonsensical");
+if (scalar(@ARGV) < 2) {
+    warn "$Program: missing argument\n";
+    usage();
+} elsif (scalar(@ARGV) > 2) {
+    warn "$Program: extra argument: '$ARGV[2]'\n";
+    usage();
 }
-
-if (grep($_,($opt_c, $opt_e, $opt_f, $opt_u)) > 1) {
-    bag("Only one of -c, -u, -f, -e are allowed");
-}
-
-bag($usage) unless @ARGV == 2;
 
 ######## DO THE DIFF!
-my ($file1, $file2) = @ARGV;
-
 my ($char1, $char2); # string to print before file names
 if ($Diff_Type eq "CONTEXT") {
     $char1 = '*' x 3; $char2 = '-' x 3;
@@ -119,21 +112,46 @@ if ($Diff_Type eq "CONTEXT") {
     $char1 = '-' x 3; $char2 = '+' x 3;
 }
 
-open (F1, '<', $file1) or bag("Couldn't open $file1: $!");
-open (F2, '<', $file2) or bag("Couldn't open $file2: $!");
+my ($file1, $file2) = @ARGV;
+my ($fh1, $fh2);
+
+if ($file1 eq '-') {
+    exit(EX_SUCCESS) if ($file2 eq '-');
+    bag("cannot compare '-' to a directory") if (-d $file2);
+    $fh1 = *STDIN;
+} elsif (-d $file1) {
+    bag("cannot compare '-' to a directory") if ($file2 eq '-');
+    bag("'$file2': is a directory") if (-d $file2);
+    my $path = join('/', $file1, basename($file2));
+    open($fh1, '<', $path) or bag("Couldn't open '$path': $!");
+} else {
+    open($fh1, '<', $file1) or bag("Couldn't open '$file1': $!");
+}
+
+if ($file2 eq '-') {
+    $fh2 = *STDIN;
+} elsif (-d $file2) {
+    bag("'$file1': is a directory") if (-d $file1);
+    my $path = join('/', $file2, basename($file1));
+    open($fh2, '<', $path) or bag("Couldn't open '$path': $!");
+} else {
+    open($fh2, '<', $file2) or bag("Couldn't open '$file2': $!");
+}
+
 my (@f1, @f2);
-chomp(@f1 = <F1>);
-close F1;
-chomp(@f2 = <F2>);
-close F2;
+chomp(@f1 = <$fh1>);
+close $fh1;
+chomp(@f2 = <$fh2>);
+close $fh2;
+exit(EX_SUCCESS) if (scalar(@f1) == 0 && scalar(@f2) == 0);
 
 # diff yields lots of pieces, each of which is basically a Block object
-my $diffs = diff(\@f1, \@f2);
-exit 0 unless @$diffs;
+my $diffs = Algorithm::Diff::diff(\@f1, \@f2);
+exit(EX_SUCCESS) unless @$diffs;
 
-if ($opt_q and @$diffs) {
+if ($opt_q) {
     print "Files $file1 and $file2 differ\n";
-    exit 1;
+    exit EX_DIFFERENT;
 }
 
 if ($Diff_Type =~ /UNIFIED|CONTEXT/) {
@@ -166,16 +184,35 @@ foreach my $piece (@$diffs) {
 $oldhunk->output_diff(\@f1, \@f2, $Diff_Type);
 
 # Print hunks backwards if we're doing an ed diff
-map {$_->output_ed_diff(\@f1, \@f2, $Diff_Type)} @Ed_Hunks if @Ed_Hunks;
+if ($Diff_Type eq 'ED') {
+    foreach $hunk (@Ed_Hunks) {
+        $hunk->output_ed_diff(\@f1, \@f2, 'ED');
+    }
+}
 
-exit 1;
+exit EX_DIFFERENT;
 # END MAIN PROGRAM
 
 sub bag {
   my $msg = shift;
-  $msg .= "\n";
-  warn $msg;
-  exit 2;
+  warn "$Program: $msg\n";
+  exit EX_FAILURE;
+}
+
+sub checklen {
+  my $n = shift;
+  return int($n) if ($n =~ m/\A[0-9]+\Z/);
+  warn "$Program: invalid context length '$n'\n";
+  usage();
+}
+
+sub set_diff_type {
+  my $val = shift;
+  if ($Diff_Type ne 'OLD') {
+    warn "$Program: incompatible diff type options\n";
+    usage();
+  }
+  $Diff_Type = $val;
 }
 
 ########
@@ -298,9 +335,8 @@ sub output_diff {
 		     "REVERSE_ED" => \&output_ed_diff,
                      "UNIFIED"    => \&output_unified_diff,
 	            );
-    if (exists $funchash{$diff_type}) {
-        &{$funchash{$diff_type}}(@_); # pass in all args
-    } else {die "unknown diff type $diff_type"}
+    my $func = $funchash{$diff_type} or die "unknown diff type '$diff_type'\n";
+    $func->(@_);
 }
 
 sub output_old_diff {
@@ -456,9 +492,7 @@ sub output_ed_diff {
 
     if ($block->insert) {
 	my @outlist = @$fileref2[$hunk->{"start2"}..$hunk->{"end2"}];
-	map {s/$/\n/} @outlist; # add \n's
-	print @outlist;
-	print ".\n"; # end of ed 'c' or 'a' command
+	print join("\n", @outlist), "\n.\n"; # '.' signifies end of 'c' or 'a'
     }
 }
 
@@ -497,7 +531,7 @@ package
 	Block; # hide from PAUSE
 
 sub new {
-# Input is a chunk from &Algorithm::LCS::diff
+# Input is a chunk from &Algorithm::Diff::diff
 # Fields in a block:
 # length_diff - how much longer file 2 is than file 1 due to this block
 # Each change has:
@@ -506,15 +540,8 @@ sub new {
 # We don't bother storing the text of the item
 #
     my ($class,$chunk) = @_;
-    my @changes = ();
 
-# This just turns each change into a hash.
-    foreach my $item (@$chunk) {
-	my ($sign, $item_no, $text) = @$item;
-	my $hashref = {"sign" => $sign, "item_no" => $item_no};
-	push @changes, $hashref;
-    }
-
+    my @changes = map { {'sign' => $_->[0], 'item_no' => $_->[1]} } @$chunk;
     my $block = { "changes" => \@changes };
     bless $block, $class;
 
@@ -579,30 +606,8 @@ package
 	Algorithm::Diff; # Hide from PAUSE
 
 use strict;
-BEGIN {
-  $Algorithm::Diff::VERSION = '0.57';
 
-
-  %Algorithm::Diff::EXPORT_OK = (LCS => 1,
-				 diff => 1,
-				 traverse_sequences => 1,
-				);
-}
-
-sub import {
-  no strict;
-  my $package = shift;
-  my $caller = caller;
-  for my $func (@_) {
-    unless ($ {$package . '::EXPORT_OK'}{$func}) {
-      require Carp;
-      Carp::croak("$package does not export function `$func'; aborting");
-    }
-    *{"$ {caller}::$func"} = \&{"$ {package}::$func"};
-  }
-  1;
-}
-
+our $VERSION = '0.57';
 
 sub LCS_matrix {
   my @x;
@@ -683,15 +688,6 @@ sub traverse_sequences {
   }
 }
 
-sub LCS {
-  my $lcs = [];
-  my ($a, $b);
-  my $functions = { MATCH => sub {push @$lcs, $a->[$_[0]]} };
-
-  traverse_sequences($functions, @_);
-  wantarray ? @$lcs : $lcs;
-}
-
 sub diff {
   my ($a, $b) = @_;
   my @cur_diff = ();
@@ -717,23 +713,62 @@ sub usage {
 
 1;
 
+__END__
+
 =head1 NAME
 
-diff - Perl Power Tools to compute `intelligent' differences between two files / lists
+diff - compute `intelligent' differences between two files
 
 =head1 SYNOPSIS
 
-Usage: $0 [{-c | -C lines -e | -f | -u | -U lines}] oldfile newfile
+diff [-c | -C lines | -e | -f | -q | -u | -U lines] file1 file2
 
-    -c do a context diff with 3 lines of context
-    -C do a context diff with 'lines' lines of context (implies -c)
-    -e create a script for the ed editor to change oldfile to newfile
-    -f like -e but in reverse order
-    -u do a unified diff with 3 lines of context
-    -U do a unified diff with 'lines' lines of context (implies -u)
-    -q report only whether or not the files differ
+=head1 DESCRIPTION
 
-By default it will do an "old-style" diff, with output like UNIX diff
+The diff command compares file1 and file2, producing a listing on
+standard output describing how to convert one file to the other.
+Various formats are available for representing the file changes.
+By default the output is in the traditional UNIX diff format.
+
+Two directories cannot be compared. If either file1 or file2 is a
+directory, diff is applied to the non-directory file and a file of
+the same name within the directory.
+
+=head1 OPTIONS
+
+The following options are supported.
+
+=over 8
+
+=item -c
+
+Produce a context diff with 3 lines of context
+
+=item -C NUM
+
+Produce a context diff with NUM lines of context
+
+=item -e
+
+Create a script for the ed editor
+
+=item -f
+
+Like -e but in reverse order (output cannot be processed by ed)
+
+=item -u
+
+Output a unified diff with 3 lines of context
+
+=item -U NUM
+
+Output a unified diff with NUM lines of context
+
+=item -q
+
+Report only whether or not the files differ
+
+=back
 
 =head1 AUTHOR
 

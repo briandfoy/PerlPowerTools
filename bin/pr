@@ -31,10 +31,15 @@ License: perl
 #       know what it should look like.
 #
 
-use Data::Dumper;
+use strict;
+
+use File::Basename qw(basename);
 use FileHandle;
 
-use strict;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my $length=66;		# Total page length   (Int)
 my $trailer=1;		# 5 lines of header; 5 lines of trailer (Bool)
@@ -65,6 +70,7 @@ my(@FINFO, @COLINFO);
 OPTION:
 while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     next OPTION unless length;
+    last if ($_ eq '-');
 
     # Lousy options
     if (s/^[ei]//) {
@@ -103,7 +109,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 
     if (s/^o//) {
 	warn "-o option already used" if $offsetspaces;
-	$offsetspaces=shift;
+	$offsetspaces = checknum(shift);
 	redo OPTION;
     }
 
@@ -119,9 +125,13 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     }
 
     # Accept -2, -3, etc...
-    if (s/^(\d.*)//) {
+    if (s/\A([0-9]+)//) {
         $columns = $1;
-        next OPTION;
+        if ($columns == 0) {
+	    warn "$Program: invalid number of columns: $columns\n";
+	    exit EX_FAILURE;
+        }
+        redo OPTION;
     }
 
     usage("unexpected option: -$_");
@@ -143,19 +153,31 @@ if (! $column_sep) {
 #
 # Initialize file and column structures
 #
-my @files;
 my $pageno=$startpageno;
 
 foreach(1..$columns) {
 	push(@COLINFO, &create_col);
 }
-foreach(@ARGV) {
-	my $fh= FileHandle->new("$_", "r");
-	if (! $fh) {
-		next if ($quietskip);
-		die "$0: Can't open $_";
+if (scalar(@ARGV) == 0) {
+	@ARGV = ('-');
+}
+foreach my $file (@ARGV) {
+	my $fh;
+	if ($file eq '-') {
+		$fh = *STDIN;
+	} else {
+		if (-d $file) {
+			warn "$Program: '$file' is a directory\n";
+			exit EX_FAILURE;
+		}
+		$fh = FileHandle->new($file, 'r');
+		if (! $fh) {
+			next if ($quietskip);
+			warn "$Program: Can't open '$file': $!\n";
+			exit EX_FAILURE;
+		}
 	}
-	push(@FINFO, {  name  => $_,
+	push(@FINFO, {  name  => $file,
 			handle=> $fh,
 			lineno=> 0,
 			});
@@ -201,26 +223,36 @@ NEXTFILE: foreach my $fstruct (@FINFO) {
 	}
 }
 
-exit 0;
+exit EX_SUCCESS;
 
 sub usage {
 	print STDERR @_, "\n";
 	print STDERR <<USAGE;
-$0 [-columns] [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
+usage: $Program [-columns] [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
 	[-o count] [-l length] [-h text] files
-$0 -m [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
+       $Program -m [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]
 	[-o count] [-l length] [-h text] files
 USAGE
-	exit 1;
+	exit EX_FAILURE;
 }
 
-#
-# FUNCTIONS
-#
+sub checknum {
+	my $n = shift;
+	if (length($n) == 0 || $n !~ m/\A[0-9]+\Z/) {
+		warn "$Program: invalid number: '$n'\n";
+		exit EX_FAILURE;
+	}
+	return int($n);
+}
+
 sub create_col  {
 	my($col)=@_;
 
 	my $pagelen=$length-($trailerlength*2);
+	if ($pagelen <= 0) {
+		$trailer = 0;
+		$pagelen = 1;
+	}
 	if($doublespace) {
 		$pagelen=($pagelen%2 == 0)?$pagelen/2:int($pagelen/2)+1;
 	}
@@ -277,7 +309,10 @@ sub print_header {
 	my($col)=@_;		# the current column.
 	return if (!$trailer);
 
-	print "\n\n", scalar(localtime), " ";
+	print "\n\n";
+	print ' ' x $offsetspaces if $offsetspaces;
+	print scalar(localtime), " ";
+
 	if ($header) {
 		print "$header ";
 	} else {
@@ -310,7 +345,7 @@ sub printpage {
 
 	print_header($COLINFO[0]);
 	foreach my $line (1..$COLINFO[0]{oheight}) {
-		print "O"x${offsetspaces} if ($offsetspaces);
+		print ' ' x $offsetspaces if $offsetspaces;
 		foreach my $column (@COLINFO) {
 			my $pfmt;
 			my $numbering="";
@@ -324,7 +359,7 @@ sub printpage {
 			print $numbering;
 			print $numberchar if ($number);
 
-			if (!$column_sep) {
+			if (!$column_sep && $trailer) {
 				$pfmt="%-${colwidth}s";
 				printf("$pfmt", $$column{text}[$line-1]{text});
 			} else {
@@ -340,6 +375,8 @@ sub printpage {
 	foreach(1..$columns) { push(@COLINFO, &create_col); }
 }
 
+__END__
+
 =pod
 
 =head1 NAME
@@ -348,10 +385,10 @@ pr - convert text files for printing
 
 =head1 SYNOPSIS
 
-C<pr [-columns] [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
+C<pr [-columns] [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
 	C<[-o count] [-l length] [-h text] files>
 
-C<pr -m [+page} [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
+C<pr -m [+page] [-adFfrts] [-n[char][count]] [-schar] [-ei] [-w width]>
 	C<[-o count] [-l length] [-h text] files>
 
 =head1 DESCRIPTION

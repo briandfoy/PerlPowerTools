@@ -14,28 +14,26 @@ License: perl
 
 # pig - eformatray inputway asway Igpay Atinlay
 use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 $|++;
 
-my $VERSION = '1.0';
+our $VERSION = '1.0';
+my $Program = basename($0);
 
-END {
-  close STDOUT || die "$0: can't close stdout: $!\n";
-  $? = 1 if $? == 255;  # from die
+sub VERSION_MESSAGE {
+  warn "$Program version $VERSION\n";
+  exit EX_SUCCESS;
 }
 
 sub help {
-  print "$0\n";
-  exit 0;
-}
-
-sub version { print "$0 (Erlpay Owerpay Oolstay) $VERSION\n"; exit 0; }
-
-# options
-while (@ARGV && $ARGV[0] =~ /^[-+]/) {
-  local $_ = shift;
-  /^-[h?]$/    && help();        # terminates
-  /^-v$/       && version();     # terminates
-  die "$0: invalid option -- $_\n";
+  warn "usage: $Program\n";
+  exit EX_FAILURE;
 }
 
 # Dr. Bronner's top secret pig-latin algorithm!
@@ -51,18 +49,23 @@ sub igpay {
   else {
     /([^aieou]+)(.*)/i;
     $ordway = ($2 || '') . lcfirst $1 . 'ay';
-    $ordway = ucfirst $ordway if $initcaps;
-    $ordway = uc $ordway      if $allcaps;
+    if ($allcaps) {
+       $ordway = uc $ordway;
+    } elsif ($initcaps) {
+       $ordway = ucfirst $ordway;
+    }
   }
   return $ordway;
 }
+
+getopts('') or help();
+@ARGV = (); # stdin only
 
 while (<>) {
   s/([A-Z]+)/igpay($1)/gexi;
   print;
 }
-
-exit 0;
+exit EX_SUCCESS;
 
 __END__
 

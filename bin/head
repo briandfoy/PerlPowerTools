@@ -13,41 +13,98 @@ License: perl
 
 
 use strict;
-use Getopt::Std;
 
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 my ($VERSION) = '1.3';
 
+@ARGV = new_argv();
 my %opt;
-getopts('n:', \%opt) or die("usage: $0 [-n count] [files ...]\n");
+unless (getopts('n:', \%opt)) {
+    warn "usage: $Program [-n count] [file ...]\n";
+    exit EX_FAILURE;
+}
+my $count;
+if (defined $opt{'n'}) {
+    $count = $opt{'n'};
+    if ($count =~ m/[^0-9]/) {
+        warn "$Program: invalid number '$count'\n";
+        exit EX_FAILURE;
+    }
+    if ($count == 0) {
+        warn "$Program: count is too small\n";
+        exit EX_FAILURE;
+    }
+} else {
+    $count = 10;
+}
 
-my $count = (defined $opt{'n'}) ? $opt{'n'} : 10;
-
-die "invalid number `$count'\n" if $count =~ /\D/;
-
-@ARGV = '-' unless @ARGV;
+my $rc = EX_SUCCESS;
+my $sep = 0;
 
 foreach my $file (@ARGV) {
-    my ($fh, $is_stdin);
-    if ($file eq '-') {
-        $fh = *STDIN;
-        $is_stdin = 1;
+    if (-d $file) {
+        warn "$Program: '$file' is a directory\n";
+        $rc = EX_FAILURE;
+        next;
     }
-    if (!$is_stdin && !open($fh, '<', $file)) {
-        warn "$0: $file: $!\n";
+    my $fh;
+    unless (open $fh, '<', $file) {
+        warn "$Program: failed to open '$file': $!\n";
+        $rc = EX_FAILURE;
         next;
     }
     if (scalar(@ARGV) > 1) {
-        my $fname = $is_stdin ? 'standard input' : $file;
-        print "==> $fname <== \n";
+        if ($sep == 0) {
+            $sep = 1;
+        } else {
+            print "\n";
+        }
+        print "==> $file <==\n";
     }
+    head_fh($fh);
+    unless (close $fh) {
+        warn "$Program: failed to close '$file': $!\n";
+        $rc = EX_FAILURE;
+    }
+}
+head_fh(*STDIN) unless @ARGV;
+exit $rc;
+
+sub head_fh {
+    my $fh = shift;
+
     foreach (1 .. $count) {
         my $line = <$fh>;
         last unless (defined $line);
         print $line;
     }
-    close($fh) unless $is_stdin;
 }
 
+sub new_argv {
+    my @new;
+    my $end = 0;
+
+    foreach my $arg (@ARGV) {
+        if ($arg eq '--' || $arg !~ m/\A\-/) {
+            push @new, $arg;
+            $end = 1;
+            next;
+        }
+
+        if (!$end && $arg =~ m/\A\-([0-9]+)\Z/) { # historic
+            push @new, "-n$1";
+        } else {
+            push @new, $arg;
+        }
+    }
+    return @new;
+}
 
 __END__
 

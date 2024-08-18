@@ -41,7 +41,7 @@ package
 @ISA=qw(PerlPowerTools::mailprog);
 
 use IO::Socket;
-use Sys::Hostname;   # Claims to be standard?
+use Sys::Hostname qw();
 
 %mailer::fields=(
 	  user => undef,
@@ -83,7 +83,7 @@ sub new {
 		}
 		# Find my address...
 		if (! defined $ENV{HOSTNAME}) {
-			my $hostname=hostname();
+			my $hostname = Sys::Hostname::hostname();
 			if (! $hostname) {
 				die "Unable to find a reasonable hostname.  Use \$HOSTNAME.\n";
 			}
@@ -112,9 +112,7 @@ sub new {
 			Type => SOCK_STREAM,
 			Timeout => 15,
 	);
-	if (! $socket) {
-		die $emsg;
-	}
+	die $emsg . $IO::Socket::errstr . "\n" unless $socket;
 	my($ofh)=select($socket); $|=1; select($ofh);
 
 	# Get the SMTP header
@@ -390,8 +388,17 @@ sub load {
 
 	print "Loading the mailfile ", $self->file, "\n";
 	my $start=1;
-	if (! defined $self->file) { die "No mailbox specified in class\n"; }
-	open(MBOX, '<', $self->file) || return;
+	unless (defined $self->file) {
+		die "No mailbox specified\n";
+	}
+	if (-d $self->file) {
+		warn $self->file . ": is a directory\n";
+		return;
+	}
+	unless (open MBOX, '<', $self->file) {
+		warn $self->file . ": cannot open: $!\n";
+		return;
+	}
 	$self->size(-s $self->file);
 	my @MESS=();
 	while(<MBOX>) {
@@ -417,7 +424,6 @@ sub load {
 sub stuff {
 	my $self=shift;
 
-	print "In the stuff method\n";
 	push(@{$self->{messages}}, $_[0]);
 	$self->size(0);
 }
@@ -425,13 +431,10 @@ sub write {
 	my $self=shift;
 	my $wa=shift;
 
-	$of=">" . $self->file;
-	if (exists $$wa{append} ) {
-		$of=">$of";
-	}
+	my $mode = exists $$wa{append} ? '>>' : '>';
 	my $alt_msg="\"" . $self->file . "\" ";
 	$alt_msg.=(-e $self->file)?"[Appended]":"[New File]";
-	if (! open(MBOX, '<', $of )) {
+	if (!open(MBOX, $mode, $self->file)) {
 		warn "Failed to write to ", $self->file, ": $!\n";
 		return;
 	}
@@ -504,6 +507,8 @@ sub nextmsg {              # Returns sequence number of next (not deleted) messa
 package
 	editor; # hide from PAUSE
 @ISA=qw(PerlPowerTools::mailprog);
+
+use File::Temp;
 
 %editor::fields=(message => undef, mesgno => undef);
 sub new {
@@ -598,19 +603,17 @@ EDLOOP: {
 				print "read $arg $bytes bytes\n";
 			};
 			/v/ && do {
-				if (! $ENV{VISUAL}) {
-					$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
-					if (! $ENV{VISUAL}) {
-						warn "No VISUAL in environment\n";
-						last SWITCH;
-					}
-				}
-				open(F, '>', "/tmp/ppt_mail$$") || do { warn "Unable to open temp file"; last SWITCH; };
+				my $vipath = main::vipath() || last SWITCH;
+				my $tmp = File::Temp->new;
+				my $tmpfile = $tmp->filename;
 				@BODY=grep(s/$/\n/g, @BODY);
-				print F @BODY;
-				close(F);
-				system("$ENV{VISUAL} /tmp/ppt_mail$$");
-				open(F, '>', "/tmp/ppt_mail$$") || die "Unable to re-open temp file";
+				print { $tmp } @BODY;
+				my $rc = system($vipath, $tmpfile);
+				if ($rc != 0) {
+					warn "Failed to execute '$vipath': $!\n";
+					last SWITCH;
+				}
+				open(F, '<', $tmpfile) || die "Unable to re-open $tmpfile: $!";
 				@BODY=<F>;
 				chomp(@BODY);
 				close(F);
@@ -628,6 +631,7 @@ EDLOOP: {
 package main;
 
 use English;
+use File::Temp;
 use Getopt::Std;
 use vars qw($VERSION $ROWS $BUFFERL $box);
 
@@ -640,7 +644,7 @@ $BUFFERL=2;	  # Lines needed for "fluff"
 	"chdir"  => { alias => 'c',           args => 'path',                           },
 	copy     => { alias => 'co',          args => 'msg,path', func => \&msg_copy    },
 	"delete" => { alias => 'd',           args => 'msg',      func => \&msg_delete  },
-	"exit"   => { alias => 'ex,x',                            func => sub { exit; } },
+	"exit"   => { alias => 'ex,x,xit',                        func => sub { exit; } },
 	from     => { alias => 'f',           args => 'msg',      func => \&from        },
 	headers  => { alias => 'h',           args => 'msg',      func => \&listing     },
 	hold     => { alias => 'ho,preserve', args => 'msg',      func => \&unread      },
@@ -677,6 +681,13 @@ sub listing {
 		print $message->summary, "\n";
 	}
 	return $first;
+}
+sub vipath {
+	return $ENV{'VISUAL'} if (defined $ENV{'VISUAL'});
+	my $default = '/usr/bin/vi';
+	return $default if (-x $default);
+	warn "No VISUAL in environment\n";
+	return;
 }
 sub shell {
 	# How to get an interactive shell in Perl.  Hmmm...
@@ -777,29 +788,25 @@ sub quit {
 sub visual {
 	my($list)=@_;
 
-	if (! $ENV{VISUAL}) {
-		$ENV{VISUAL}='/usr/bin/vi' if ( -x '/usr/bin/vi');
-		if (! $ENV{VISUAL}) {
-			warn "No VISUAL in environment\n";
-			return;
-		}
-	}
-
+	my $cmd = vipath() || return;
 	foreach my $msgno (@$list) {
 		$message=$box->messagex($msgno);
 		if (! defined $message) {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
-		my $tmbox=mailbox->new(file => "/tmp/ppt_mail$$");
+		my $tmp = File::Temp->new;
+		my $path = $tmp->filename;
+		my $tmbox = mailbox->new('file' => $path);
 		$tmbox->stuff($message);
-		$tmbox->file("/tmp/ppt_mail$$");
 		$tmbox->write;
-		system("$ENV{VISUAL} /tmp/ppt_mail$$");
-		$tmbox2=mailbox->new(file => "/tmp/ppt_mail$$");  # Hope this isn't a leak
-		print Dumper $tmbox2;
+		my $rc = system($cmd, $path);
+		if ($rc != 0) {
+			warn "Failed to execute '$cmd': $!\n";
+			return;
+		}
+		$tmbox2 = mailbox->new('file' => $path);  # Hope this isn't a leak
 		$tmbox2->load;
-		print Dumper $tmbox2;
 		$box->replace($msgno, $tmbox2->messagex(1));
 	}
 }
@@ -940,11 +947,10 @@ sub parseargs {
 sub parse_msg_list {
 	my($list, $current)=@_;
 
+	$list =~ s/^\s+//g;
+	$list =~ s/\s$//g;
+	return [ $current ] if (length($list) == 0);
 
-	$list=~s/^\s+//g;  $list=~s/\s$//g;
-	if (! $list) {
-		return([ $current ]);
-	}
 	# Get ugly.
 	my @list=();
 	foreach my $stuff (split(/[, ]+/, $list)) {
@@ -1035,7 +1041,7 @@ USAGE
 if (@ARGV) {   # Assume batch-mode
 	Batch(@ARGV);
 } else {
-	if ($opt_f) {
+	if (defined $opt_f) {
 		Interactive($opt_f);
 	} else {
 		if (exists $ENV{MAIL}) {

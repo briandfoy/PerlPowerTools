@@ -20,6 +20,7 @@ License: perl
 
 while (@ARGV && $ARGV[0] =~ s/^-//) {
     local $_ = shift;
+    last if $_ eq '-'; # '--' terminator
     while (/([cdfq])/g) {
 	if ($1 eq 'd') {
 	    $opts{'d'} = /\G(.*)/g && $1 ? $1 : shift;

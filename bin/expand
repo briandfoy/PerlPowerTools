@@ -27,33 +27,30 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my %line_desc;
 my $tabstop = 8;
 my @tabstops;
 my @files;
 
-sub usage($;$)
-{
-    print <<"EOF";
-Usage:
-expand [-h] [-tabstop] [-tab1, tab2, ...] [file ...]
-EOF
-    print STDERR $_[1] if $_[1];
-    exit $_[0];
-}
-
-usage(1) unless scalar @ARGV > 0;
-usage(0) if grep /^-h$/, @ARGV;
-
-# at most one argument
-if($ARGV[0] =~ /-(.*)/) {
-    @tabstops = split(/,/, $1);
+while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
+    my $val = $1;
+    if ($val eq '-') {
+        shift @ARGV;
+        last;
+    }
+    @tabstops = split /,/, $val;
     usage(1) if grep /\D/, @tabstops; # only integer arguments are allowed
     shift @ARGV;
 }
 
 @files = @ARGV;
-
-my %line_desc;
 
 # $tabstop is used only if multiple tab stops have not been defined
 if(scalar @tabstops == 0) {
@@ -62,8 +59,7 @@ if(scalar @tabstops == 0) {
     $tabstop = $tabstops[0];
 } else {
     my $howfar = 1;
-    my %tabs;
-    map { $tabs{$_} = 1 } @tabstops;
+    my %tabs = map { $_ => 1 } @tabstops;
     for (my $i = $tabstops[$#tabstops]-1; $i >= 0; $i--) {
         # how far is the $i-th column from the next tab
 	$line_desc{$i} = $howfar;
@@ -72,47 +68,56 @@ if(scalar @tabstops == 0) {
     }
 }
 
-sub do_expand(@)
-{
-    my $incr;
-    for my $line(@_) {
-	my $curs = 0;
-	for my $c (split //, $line)  {
-
-	    if($c eq "\010") {  # backspace
-		$curs -= 2;
-		$curs = -1 unless $curs >= 0;
-	    }
-
-	    if($c eq "\t") {
-		if(scalar @tabstops > 0) {
-		    if(defined($line_desc{$curs}) ){
-			$incr = $line_desc{$curs};
-		    } else { # Jupiter, and beyond the infinite
-			$incr = 1;
-		    }
-		} else {
-		    $incr = $curs%$tabstop ? ($tabstop - $curs%$tabstop)
-			: $tabstop;
-		}
-		print " " x $incr;
-		$curs += $incr;
-  	    } else {
-		print $c;
-		$curs++;
-	    }
-
-	}
+for my $file (@files) {
+    my $in;
+    unless (open $in, '<', $file) {
+	warn "$Program: couldn't open '$file' for reading: $!\n";
+	exit EX_FAILURE;
     }
+    while (<$in>) {
+	expand_line($_);
+    }
+    close $in;
+}
+unless (@files) {
+    while (<>) {
+	expand_line($_);
+    }
+}
+exit EX_SUCCESS;
 
+sub usage {
+    warn "usage: $Program [-tabstop] [-tab1,tab2,...] [file ...]\n";
+    exit EX_FAILURE;
 }
 
-for my $file (@files) {
+sub expand_line {
+    my $line = shift;
+    my $incr;
+    my $curs = 0;
 
-    open IN, '<', $file or usage(1, "couldn't open '$file' for reading: $!'");
-    do_expand <IN>;
-    close IN;
-
+    for my $c (split //, $line) {
+	if($c eq "\b") {  # backspace
+	    print "\b";
+	    $curs-- if $curs;
+	} elsif($c eq "\t") {
+	    if(scalar @tabstops > 0) {
+		if(defined($line_desc{$curs})) {
+		    $incr = $line_desc{$curs};
+		} else { # Jupiter, and beyond the infinite
+		    $incr = $tabstop;
+		}
+	    } else {
+		$incr = $curs%$tabstop ? ($tabstop - $curs%$tabstop)
+		    : $tabstop;
+	    }
+	    print ' ' x $incr;
+	    $curs += $incr;
+	} else {
+	    print $c;
+	    $curs++;
+        }
+    }
 }
 
 __END__
@@ -123,10 +128,7 @@ expand - convert tabs to spaces
 
 =head1 SYNOPSIS
 
-expand [B<-h>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
-
-unexpand [B<-h>] [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>]
-[B<file> ...]
+expand [B<-tabstop>] [B<-tab1,tab2,...>] [B<file> ...]
 
 =head1 DESCRIPTION
 
@@ -136,33 +138,17 @@ are preserved into the output and decrement the column count for tab
 calculations.  I<expand> is useful for pre-processing character files
 (before sorting, looking at specific columns, etc.) that contain tabs.
 
-If a single B<tabstop> argument is given, tabs are set B<tabstop> spaces
-apart instead of the default 8.  If multiple tabstops are given then
-the tabs are set at those specific columns.
-
-I<unexpand> puts tabs back into the data from the standard input or the
-named files and writes the result on the standard output.
-
-Option (with I<expand> and I<unexpand>):
+=head1 OPTIONS
 
 =over 4
 
-=item -h
+=item -tabstop
 
-Print a usage message and exit with a status code indicating success.
+Tabs are set B<tabstop> spaces apart instead of the default 8.
 
-=back
+=item -tab1,tab2,...
 
-Option (with I<unexpand> only):
-
-=over 4
-
-=item -a
-
-By default, only leading blanks and tabs are reconverted to maximal
-strings of tabs.  If the B<-a> option is given, tabs are inserted
-whenever they would compress the resultant file by replacing two or
-more characters.
+Tabs are set at the specific column numbers B<tab1>, B<tab2> and so on.
 
 =back
 

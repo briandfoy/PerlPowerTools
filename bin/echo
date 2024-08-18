@@ -15,33 +15,16 @@ package PerlPowerTools::echo;
 
 use strict;
 
-my ($VERSION) = '1.2';
+our $VERSION = '1.3';
 
-__PACKAGE__->run( @ARGV ) unless caller();
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+__PACKAGE__->run( @ARGV ) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR';
 
 sub run {
     my ( $self, @args ) = @_;
 
-    unless (@args) {
-        print "\n";
-        exit 0;
-    }
-
-    if ($args[0] eq '-?') {
-    print <<EOF;
-Usage: echo [-n] [arguments]
-
-Displays the command line arguments, seperated by spaces.
-
-Options:
-       -n:     Do not print a newline after the arguments.
-       -?:     Display usage information.
-EOF
-        exit 0;
-    }
-
     my $N = 1;
-    if ($args[0] eq '-n') {
+    if (@args && $args[0] eq '-n') {
         $N = 0;
         shift @args;
     }
@@ -50,7 +33,6 @@ EOF
     print "\n" if $N == 1;
 
     exit 0;
-
 }
 
 1;
@@ -69,7 +51,7 @@ echo [-n] [arguments...]
 
 =head1 DESCRIPTION
 
-echo prints the command line arguments seperated by spaces. A newline is
+echo prints the command line arguments separated by spaces. A newline is
 printed at the end unless the '-n' option is given.
 
 =head2 OPTIONS
@@ -81,10 +63,6 @@ I<echo> accepts the following options:
 =item -n
 
 Do not print a newline after the arguments.
-
-=item -?
-
-Print out a short help message, then exit.
 
 =back
 

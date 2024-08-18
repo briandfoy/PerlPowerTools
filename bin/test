@@ -96,7 +96,7 @@ my %TEST_OPS = (
     '-B'   =>    sub { -B $_[0] },
     '-L'   =>    sub { -l $_[0] },
     '-O'   =>    sub { -O $_[0] },
-    '-G'   =>    sub { bad_arg "'-G' - operator not supported", 0 },
+    '-G'   =>    sub { bad_arg("'-G' - operator not supported") },
     '-R'   =>    sub { -R $_[0] },
     '-S'   =>    sub { -S $_[0] },
     '-T'   =>    sub { -T $_[0] },
@@ -126,7 +126,7 @@ my %TEST_OPS = (
     ## File comparisons
     '-nt'  =>    sub { -M $_[0] < -M $_[1] },
     '-ot'  =>    sub { -M $_[0] > -M $_[1] },
-    '-ef'  =>    sub { bad_arg "'-ef' - operator not supported", 0 },
+    '-ef'  =>    sub { bad_arg("'-ef' - operator not supported") },
 );
 
 ## Apply a test operator to the given arguments
@@ -228,7 +228,7 @@ sub test (@) {
     return ($@) ? undef : 0+$result;
 }
 
-exit(2) if (@ARGV == 0);
+exit(1) if (@ARGV == 0);
 my $rc = test @ARGV;
 
 ## For command-lines, zero is success and non-zero is false, so
@@ -511,5 +511,4 @@ escaped from any special shell interpretation.
 L<sh>, L<find>
 
 =cut
-
 

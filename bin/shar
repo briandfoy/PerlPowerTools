@@ -11,60 +11,83 @@ License: public domain
 
 =cut
 
+use strict;
 
-# public domain code by salzr@certo.com
-# (formerly rsalz@osf.org, rsalz@bbn.com, mirror!rs)
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-require 'getopts.pl';
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-sub
-Usage
-{
-    print STDERR "@_.\nUsage: $av0 files...\n";
-    exit(1);
-}
+my $Program = basename($0);
 
-binmode STDOUT;
+getopts('') or usage();
+@ARGV or usage();
 
-# Parse JCL.
-$av0 = $0;
-$av0 =~ s@.*/@@;
-&Getopts("") || &Usage("Usage error");
+print '# --cut here--
+# To extract, remove everything before the "cut here" line
+# and run the command "sh file".
+';
 
-# Do work.
-$dirty = 0;
+my $done = 0;
 ARGUMENT: for my $f ( @ARGV ) {
-    if ( ! open(FH, '<', $f) ) {
-	warn "$av0: can't open $f, $!\n";
+    if (length($f) == 0) {
+	warn "$Program: empty file name\n";
 	next ARGUMENT;
     }
-    binmode FH;
+    my $quoted = quotefile($f);
+    if (-d $f) {
+	print "echo x - $quoted/\n";
+	print "mkdir -p $quoted\n";
+	$done++;
+	next ARGUMENT;
+    }
+    my $fh;
+    unless (open $fh, '<', $f) {
+	warn "$Program: can't open '$f': $!\n";
+	next ARGUMENT;
+    }
+    binmode $fh;
 
-    if ( $dirty++ == 0 ) {
-	print '# --cut here--
-#! /bin/sh
-# To unshar, remove everything before the "cut here" line
-# and feed the result to /bin/sh
-'
-    }
+    print "echo x - $quoted\n";
     if (-B $f) {
-	$mode = (stat $f)[2];
+	my $mode = (stat $f)[2];
 	$mode = (join '', 0, ($mode&0700)>>6, ($mode&0070)>>3, ($mode&0007));
-	print "sed -e 's/^X//' | uudecode <<'FUNKY_STUFF'\n";
+	print "uudecode <<'FUNKY_STUFF'\n";
 	print "begin $mode $f\n";
-	print pack 'u', $block while read FH, $block, 45;
-	print "end\n";
-	print "FUNKY_STUFF\n";
+	my $block;
+	print pack 'u', $block while read $fh, $block, 45;
+	print "`\nend\n";
     } else {
-	print "sed -e 's/^X//' >$f <<'FUNKY_STUFF'\n";
-	print 'X', $_ while ( <FH> );
-	print "FUNKY_STUFF\n";
+	print "sed -e 's/^X//' >$quoted <<'FUNKY_STUFF'\n";
+	print 'X', $_ while ( <$fh> );
     }
-    close(FH);
+    print "FUNKY_STUFF\n";
+    unless (close $fh) {
+	warn "$Program: can't close '$f': $!\n";
+	next ARGUMENT;
+    }
+    $done++;
+}
+if ($done == 0) {
+    warn "$Program: no input files were processed\n";
+    exit EX_FAILURE;
+}
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program file...\n";
+    exit EX_FAILURE;
 }
 
-&Usage("No input files") unless $dirty;
-exit(0);
+sub quotefile {
+    my $name = shift;
+    if ($name =~ m/[\s\'\"\(\)\[\]\{\}\;\:\*]/) {
+	$name =~ s/\"/\\\"/g;
+	$name = "\"$name\"";
+    }
+    return $name;
+}
 
 __END__
 
@@ -74,13 +97,16 @@ shar - create a shell archive of files
 
 =head1 SYNOPSIS
 
-B<shar> file [files...]
+B<shar> file...
 
 =head1 DESCRIPTION
 
-B<shar> creates a shell archive of the I<files> on the command line. The shell
-archive is a shell script, and executing it will recreate the I<files>.
-Directories are I<not> recreated.
+B<shar> reads input files and writes a shell archive to standard output.
+The shell archive is a shell script, and executing it will recreate the I<files>.
+File permissions are not preserved for archived files.
+Extracted files are created with the default file permissions and owner.
+Directories will be recreated, but directory arguments must be provided before
+the files they contain.
 
 =head1 SEE ALSO
 

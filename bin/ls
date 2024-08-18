@@ -14,6 +14,11 @@ License: perl
 
 # Perl Power Tool - ls(1)
 
+use strict;
+
+use Config qw(%Config);
+use File::Basename qw(basename);
+use File::Spec::Functions;
 use File::stat;
 use Getopt::Std;
 use File::Spec;
@@ -31,9 +36,53 @@ use File::Spec;
 #
 # You may distribute this module under the same terms as Perl itself.
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
 my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
 $ftype[0] = '';
+
+sub get_columns {
+	my @methods = qw(windows unix default);
+	foreach my $m ( @methods ) {
+		my $cols = __PACKAGE__->can($m)->();
+		next unless defined $cols;
+		return $cols;
+		}
+}
+
+sub windows {
+	return unless $^O eq 'MSWin32';
+	my @lines = `powershell -command "&{(get-host).ui.rawui.WindowSize;}"`;
+
+	while( my $l = shift @lines ) { last if $l =~ /\A-----/ }
+	return $lines[0] =~ m/\A\s*(\d+)/ ? $1 : ();
+	}
+
+sub unix {
+	return if $^O eq 'MSWin32';
+	my $c = do {
+		if( has('tput') ) { `tput cols` }
+		elsif( has('ssty') ) { `stty size  | cut -d' ' -f 2` }
+		else { undef };
+		};
+	chomp $c;
+	return $c;
+	}
+
+sub default { 80 }
+
+sub has {
+	my $program = shift;
+	foreach my $dir ( split /\Q$Config{path_sep}/, $ENV{PATH} ) {
+		next unless -x catfile( $dir, $program );
+		return 1;
+		}
+	return;
+	}
 
 sub format_mode {
   my $mode = shift;
@@ -74,15 +123,8 @@ my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
-my $VERSION = '0.70';	# because we're V7-compatible :)
-my $WinSize = "\0" x 8;	# window size buffer
-my $TIOCGWINSZ =	# get window size via ioctl()
- 0x40087468;		# should be require sys/ioctl.pl,
-			# but that won't exist on all platforms
-my $WinCols = 0;	# window columns of output
-my $WinRows = 0;	# window rows of output
-my $Xpixel = 0;		# window start X
-my $Ypixel = 0;		# window start Y
+our $VERSION = '0.70';	# because we're V7-compatible :)
+my $WinCols;		# window columns of output
 
 # ------ compensate for lack of getpwuid/getgrgid on some platforms
 eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
@@ -95,33 +137,37 @@ if ($@) {
 }
 
 # ------ functions
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
 
 # ------ get directory entries
 sub DirEntries {
 	my $Options = shift;	# option arguments hashref
-	local *DH;		# directory handle
+	my $dh;			# directory handle
 	my %Attributes = ();	# entry/attributes hash
 	my @Entries = ();	# entries in original order
 	my $Name = "";		# entry name
 
-	if (!opendir(DH, $_[0]) || exists($Options{'d'})) {
+	if (!opendir($dh, $_[0]) || exists($Options{'d'})) {
 		if (-e $_[0]) {
-			closedir(DH) if (defined(DH));
+			closedir($dh) if (defined($dh));
 			push(@Entries, $_[0]);
 			$Attributes{$_[0]} = stat($_[0]);
 			push(@Entries, \%Attributes);
 			return @Entries;
 		}
-		print "pls: can't access '$_[0]': $!\n";
+		warn "$Program: can't access '$_[0]': $!\n";
 		return ();
 	}
-	while ($Name = readdir(DH)) {
+	while ($Name = readdir($dh)) {
 		next if (!exists($Options->{'a'}) &&
 		 $Name =~ m/^\./o);
 		push(@Entries, $Name);
 		$Attributes{$Name} = stat( File::Spec->catfile( $_[0], $Name ) );
 	}
-	closedir(DH);
+	closedir($dh);
 
 	# ------ return list with %Attributes ref at end
 	push(@Entries, \%Attributes);
@@ -201,8 +247,6 @@ UNDEFSTAT
 			$Mode =
 			 format_mode($Attributes->{$Entry}->mode);
 			print "$Mode ";
-			#printf("%8o ",
-			# $Attributes->{$Entry}->mode);
 			printf("%3d ",
 			  $Attributes->{$Entry}->nlink);
 			if (exists($Options->{'n'})) {
@@ -271,6 +315,7 @@ UNDEFSTAT
 sub List {
 	my $Name = shift;	# directory name
 	my $Options = shift;	# options/flags hashref
+	my $is_dir = shift;
 	my $Expand = shift;	# do 1 level of dir expansion,
 				# for "ls DIRNAME"
 	my $Attributes = "";	# entry attributes hashref
@@ -307,12 +352,12 @@ sub List {
 
 	# ------ print directory name if -R
 	if (exists($Options->{'R'})) {
-		print "$Name:\n";
+		print "$Name:\n" if $is_dir;
 	}
 
 	# ----- print total in blocks if -s or -l
 	if (exists($Options->{'l'}) || exists($Options->{'s'})) {
-		print "total $TotalBlocks\n";
+		print "total $TotalBlocks\n" if $is_dir;
 	}
 
 	# ------ sort entry list
@@ -332,6 +377,7 @@ sub List {
 	} else {
 
 		# ------ compute rows, columns, width mask
+		$WinCols = get_columns() unless defined $WinCols;
 		$Cols = int($WinCols / $Maxlen) || 1;
 		$Rows = int(($#_+$Cols) / $Cols);
 		$Mask = sprintf("%%-%ds ", $Maxlen);
@@ -365,7 +411,7 @@ sub List {
 			 $Attributes->{$Entry}->mode & 0040000) {
 				$Path = File::Spec->canonpath(File::Spec->catdir($Name,$Entry));
 				@Dirs = DirEntries(\%Options, $Path);
-				List($Path, \%Options, 0, @Dirs);
+				List($Path, \%Options, 1, 0, @Dirs);
 			}
 		}
 	}
@@ -445,22 +491,18 @@ sub Order {
 }
 
 # ------ process arguments
-getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options);
-
-# ------ get (or guess) window size
-if (ioctl(STDOUT, $TIOCGWINSZ, $WinSize)) {
-	($WinRows, $WinCols, $Xpixel, $Ypixel) = unpack('S4', $WinSize);
-} else {
-	$WinCols = 80;
+unless (getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options)) {
+	warn "usage: $Program [-1RSacdfiklnrstu] [file ...]\n";
+	exit EX_FAILURE;
 }
-$Attributes = stat(STDOUT);
-if ($Attributes->mode & 0140000) {
-	$Options{'1'} = '1';
+if ($Options{'f'}) {
+	$Options{'a'} = 1;
 }
+$Options{'1'} = 1 unless (-t *STDOUT);
 
 # ------ current directory if no arguments
 if ($#ARGV < 0) {
-	List('.', \%Options, 0, DirEntries(\%Options, "."));
+	List('.', \%Options, 1, 0, DirEntries(\%Options, "."));
 
 # ------ named files/directories if arguments
 } else {
@@ -479,7 +521,7 @@ if ($#ARGV < 0) {
 	}
 	for my $Arg (Order(\%Options, \%Attributes, @Files)) {
 		$First = 0;
-		List($Arg, \%Options, 0,
+		List($Arg, \%Options, 0, 0,
 		 DirEntries(\%Options, $Arg));
 	}
 	for my $Arg (@Dirs) {
@@ -491,7 +533,7 @@ if ($#ARGV < 0) {
 			$First = 0;
 			print "$Arg:\n" if ($ArgCount > 0);
 		}
-		List($Arg, \%Options, 0,
+		List($Arg, \%Options, 1, 0,
 		 DirEntries(\%Options, $Arg));
 	}
 }
@@ -510,13 +552,13 @@ ls [-1RSacdfiklnrstu] [file ...]
 
 =head1 DESCRIPTION
 
-This programs lists information about files and directories.
+This program lists information about files and directories.
 If it is invoked without file/directory name arguments,
 it lists the contents of the current directory.
 Otherwise, B<ls> lists information about the files and
 information about the contents of the directories (but
 see B<-d>).  Furthermore, without any option arguments
-B<ls> justs lists the names of files and directories.
+B<ls> just lists the names of files and directories.
 All files are listed before all directories.
 The default sort order is ascending ASCII on filename.
 
@@ -547,7 +589,7 @@ List all files (normally files starting with '.' are ignored).
 
 =item -c
 
-Sort by decending last modification time of inode.
+Sort by descending last modification time of inode.
 
 =item -d
 
@@ -556,7 +598,7 @@ Do not list directory contents.
 =item -f
 
 Do not sort -- list in whatever order files/directories are returned
-by the directory read function.
+by the directory read function. This option implies -a.
 
 =item -i
 
@@ -586,15 +628,17 @@ on non-Unix systems.)
 
 =item -t
 
-Sort by decending last modification time.
+Sort by descending last modification time.
 
 =item -u
 
-Sort by decending last access time.
+Sort by descending last access time.
 
 =back
 
 =head1 ENVIRONMENT
+
+The working of I<ls> is not influenced by any environment variables.
 
 =head1 BUGS
 

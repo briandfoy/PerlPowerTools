@@ -17,20 +17,26 @@ License:
 # Michael Robinson (smrf@sans.vuw.ac.nz) 1999-03-03
 #
 
-# use strict;
+use strict;
+use integer;
 
-sub debug { 1; }
-# sub debug { print @_; }
+use constant EX_TRUE  => 0;
+use constant EX_FALSE => 1;
+use constant EX_ERROR => 2;
+
 $SIG{__DIE__} = sub {
-    print STDERR "expr: ", $_[0], "\n";
-    exit 2;
+    warn "expr: $_[0]";
+    exit EX_ERROR;
 };
 
-@ARGV || print STDERR "usage: expr expression\n" && exit 1;
+if (scalar(@ARGV) == 0) {
+    warn "usage: expr expression\n";
+    exit EX_ERROR;
+}
 
 # check that it is a number
 sub num($) {
-    $_[0] =~ /^-?[0-9]+$/ or die "non numeric-argument";
+    $_[0] =~ /^-?[0-9]+$/ or die "non numeric-argument\n";
     $_[0];
 }
 
@@ -47,18 +53,18 @@ my @global_ops = (
 	"<=" => sub { $_[0] <= $_[1] || 0; },
 	"="  => sub { $_[0] == $_[1] || 0; },
 	"==" => sub { $_[0] == $_[1] || 0; },
-	">=" => sub { $_[0] <= $_[1] || 0; },
+	">=" => sub { $_[0] >= $_[1] || 0; },
 	"!=" => sub { $_[0] != $_[1] || 0; },
 	"<"  => sub { $_[0] <  $_[1] || 0; },
     },
     # add, subtract
-    { 	"+"  => sub { num($_[0]) + num($_[1]) || 0; },
-	"-"  => sub { num($_[0]) - num($_[1]) || 0; },
+    { 	"+"  => sub { num($_[0]) + num($_[1]); },
+	"-"  => sub { num($_[0]) - num($_[1]); },
     },
     # multiplication, division, modulo
-    { 	"*"  => sub { num($_[0]) * num($_[1]) || 0; },
-	"/"  => sub { int(num($_[0]) / num($_[1])) || 0; },
-	"%"  => sub { num($_[0]) % num($_[1]) || 0; },
+    { 	"*"  => sub { num($_[0]) * num($_[1]); },
+	"/"  => sub { die("divide by zero\n") if num($_[1]) == 0; num($_[0]) / $_[1]; },
+	"%"  => sub { die("modulo by zero\n") if num($_[1]) == 0; num($_[0]) % $_[1]; },
     },
     # regexp match
     { 	":"  => sub { ($_[0] =~ /^$_[1]/) ? ($1 ? $1 : length $&) : 0; },
@@ -68,31 +74,30 @@ my @global_ops = (
 
 my @stack = @ARGV;	# yuck, a global to handle the argument stack
 			# could just use @ARGV, but it'd look ugly
-sub evaluate(@); 	# protect us from use strict
-sub evaluate(@) {
+sub evaluate {
     my ($op, @ops) = @_;
 
     # if we're passed an operator to test...
     if ($op) {
-	die "syntax error" if $op->{$stack[0]};
+	die "syntax error\n" if $op->{$stack[0]};
 
-	return evaluate @ops unless $op->{$stack[1]}; # recurse
+	return evaluate(@ops) unless $op->{$stack[1]}; # recurse
 
-	my $retval = evaluate @ops;
+	my $retval = evaluate(@ops);
 	while ($op->{$stack[0]}) {		      # handle equal precendence
 	    my $o = shift @stack;
-	    $retval = $op->{$o}->($retval, evaluate @ops);
+	    $retval = $op->{$o}->($retval, evaluate(@ops));
 	}
 	return $retval;
     }
 
-    defined $stack[0] or die "syntax error";
+    defined $stack[0] or die "syntax error\n";
 
     # handle brackets, the lowest precedence and not a binary operator
     if ($stack[0] eq "(") {
 	shift @stack; 				# remove the bracket
-	my $retval = evaluate @global_ops; 	# restart
-	$stack[0] eq ")" or die "syntax error";
+	my $retval = evaluate(@global_ops); 	# restart
+	$stack[0] eq ")" or die "syntax error\n";
 	shift @stack; 				# remove the bracket
 	return $retval;
     }
@@ -100,12 +105,12 @@ sub evaluate(@) {
     return shift @stack; # remove the primitive and return as value
 }
 
-my $retval = evaluate @global_ops;
-die "syntax error" if (@stack);
+my $retval = evaluate(@global_ops);
+die "syntax error\n" if (@stack);
 print $retval || 0, "\n";
-exit ($retval ? 0 : 1);
+exit ($retval ? EX_TRUE : EX_FALSE);
 
-__END__;
+__END__
 
 =pod
 

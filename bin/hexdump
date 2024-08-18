@@ -5,7 +5,7 @@
 Name: hexdump
 Description: print input as hexadecimal
 Author: Michael Mikonos
-License: 
+License: artistic2
 
 =end metadata
 
@@ -14,15 +14,22 @@ License:
 use strict;
 use warnings;
 
+use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
-my (%opt, @chars, @cesc, $adr, $nread, $curf, $skip);
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
+my (%opt, @chars, @cesc, $adr, $dump, $fmt, $nread, $curf, $skip);
 
 sub getchar {
     my $c;
     my $n = read $curf, $c, 1;
     unless (defined $n) {
-        die "$0: $!\n";
+        warn "$Program: $!\n";
+        exit EX_FAILURE;
     }
     return unless $n;
     $nread++;
@@ -44,31 +51,32 @@ sub doskip {
     }
 }
 
-sub dumper {
-    return unless (@chars);
-    if ($opt{'c'}) {
-        printf '%07lx ', $adr;
-        foreach my $c (@chars) {
-            if ($c =~ m/[[:print:]]/) {
-                printf '%3s ', $c;
-            } else {
-                my $i = ord $c;
-                my $e = $cesc[$i];
-                $e ||= sprintf '%03o ', $i;
-                print $e;
-            }
+sub dump_c {
+    printf "$fmt ", $adr;
+    foreach my $c (@chars) {
+        if ($c =~ m/[[:print:]]/) {
+            printf '%3s ', $c;
+        } else {
+            my $i = ord $c;
+            my $e = $cesc[$i];
+            $e ||= sprintf '%03o ', $i;
+            print $e;
         }
-        print "\n";
-    } else {
-        printf '%08lx ', $adr;
-        my $str = join '', @chars;
-        my $hex = unpack 'H*', $str;
-        $hex =~ s/^(.{16})/$1 /;
-        $hex =~ s/(\S{2})/ $1/g;
-        $str =~ s/[^[:print:]]/./g;
-        printf "%-51s|%s|\n", $hex, $str;
     }
-    $adr += 16;
+    print "\n";
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_x {
+    printf "$fmt ", $adr;
+    my $str = join '', @chars;
+    my $hex = unpack 'H*', $str;
+    $hex =~ s/^(.{16})/$1 /;
+    $hex =~ s/(\S{2})/ $1/g;
+    $str =~ s/[^[:print:]]/./g;
+    printf "%-51s|%s|\n", $hex, $str;
+    $adr += scalar @chars;
     undef @chars;
 }
 
@@ -77,7 +85,7 @@ sub dofile {
     my $c;
     while (defined($c = getchar())) {
         push @chars, $c;
-        dumper() if (scalar(@chars) == 16);
+        &$dump if (scalar(@chars) == 16);
         if ($opt{'n'} && $opt{'n'} == $nread) {
             return 1;
         }
@@ -89,7 +97,8 @@ sub revert {
     while (readline) {
         my $start = index $_, ' '; # after offset
         if ($start == -1) {
-            die "$0: parse error: $_";
+            warn "$Program: parse error: $_";
+            exit EX_FAILURE;
         }
         my $end = index $_, '|';
         if ($end == -1) {
@@ -99,12 +108,14 @@ sub revert {
         }
         s/\s//g;
         if (m/[^[:xdigit:]]/) {
-            die "$0: non-hex digits: '$_'\n";
+            warn "$Program: non-hex digits '$_'\n";
+            exit EX_FAILURE;
         }
         my $len = length;
         next unless $len;
         if ($len & 1) {
-            die "$0: odd digits: '$_'\n";
+            warn "$Program: odd digits '$_'\n";
+            exit EX_FAILURE;
         }
         print pack('H*', $_);
     }
@@ -113,6 +124,8 @@ sub revert {
 sub xd {
     $adr = $nread = 0;
     if ($opt{'c'}) {
+        $fmt = '%07lx';
+        $dump = \&dump_c;
         $cesc[0]  = ' \0 ';
         $cesc[7]  = ' \a ';
         $cesc[8]  = ' \b ';
@@ -121,11 +134,16 @@ sub xd {
         $cesc[11] = ' \v ';
         $cesc[12] = ' \f ';
         $cesc[13] = ' \r ';
+    } else {
+        $fmt = '%08lx';
+        $dump = \&dump_x;
     }
     if (@ARGV) {
-        while (my $path = shift @ARGV) {
+        while (@ARGV) {
+            my $path = shift @ARGV;
             unless (open $curf, '<', $path) {
-                die "$0: $path: $!\n";
+                warn "$Program: $path: $!\n";
+                exit EX_FAILURE;
             }
             last if (dofile() != 0);
         }
@@ -133,15 +151,21 @@ sub xd {
         $curf = *STDIN;
         dofile();
     }
-    dumper(); # odd bytes at end
+    &$dump if @chars; # odd bytes at end
+    printf "$fmt\n", $adr;
 }
 
 getopts('cn:rs:u', \%opt)
-    or die("usage: $0 [-cru] [-n length] [-s skip] [file ...]\n");
+    or do {
+    	warn("usage: $Program [-cru] [-n length] [-s skip] [file ...]\n");
+    	exit EX_FAILURE;
+    	};
+
 $| = 1 if $opt{'u'};
 foreach (qw(n s)) {
     if ($opt{$_} && $opt{$_} =~ m/\D/) {
-        die "hexdump: bad -$_ argument";
+        warn "$Program: bad -$_ argument\n";
+        exit EX_FAILURE;
     }
 }
 $skip = $opt{'s'};
@@ -157,16 +181,16 @@ hexdump - print input as hexadecimal
 
 =head1 SYNOPSIS
 
-hexdump [-cu] [-n NUMBER] [-s NUMBER] file ..
+hexdump [-cu] [-n NUMBER] [-s NUMBER] [file ...]
 
-hexdump [-ru] file ...
+hexdump [-ru] [file ...]
 
 =head1 DESCRIPTION
 
-Data is read from stdin if no input files are provided. The default output
-mode is canonical hex+ASCII. Each line begins with an offset number followed
-by a space-separated list of 16 hex bytes. Finally, printable input
-characters are listed between two '|' characters.
+Data is read from standard input if no file arguments are provided. The
+default output mode is canonical hex+ASCII. Each line begins with an offset
+number followed by a space-separated list of 16 hex bytes. Finally, printable
+input characters are listed between two '|' characters.
 
 =head2 OPTIONS
 
@@ -200,7 +224,7 @@ possible to specify multiple input files.
 
 Skip a set NUMBER of bytes at the beginning of input. The number argument
 must be given in decimal. The offset number printed on output is advanced
-to reflect the skipped bytes. 
+to reflect the skipped bytes.
 
 =item -u
 
@@ -211,10 +235,16 @@ Output runs in unbuffered mode.
 =head1 BUGS
 
 No option exists for setting an output filename, so the -r option will
-write binary data to a terminal if stdout is not redirected.
+write binary data to a terminal if output is not redirected.
 
 No support for multi-byte hex display, or plain hex output.
 
 =head1 AUTHOR
 
 Written by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2023 Michael Mikonos.
+
+This code is licensed under the Artistic License 2.

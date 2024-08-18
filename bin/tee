@@ -17,54 +17,100 @@ License: perl
 # Tom Christiansen <tchrist@convex.com>
 # 6 June 91
 
-while ($ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
-    next if /^$/;
-    s/i// && (++$ignore_ints, redo);
-    s/a// && (++$append,      redo);
-    s/u// && (++$unbuffer,    redo);
-    s/n// && (++$nostdout,    redo);
-    die "usage tee [-aiun] [filenames] ...\n";
-}
-if ($ignore_ints) {
-    for my $sig ('INT', 'TERM', 'HUP', 'QUIT') { $SIG{$sig} = 'IGNORE'; }
-}
-$SIG{'PIPE'} = 'PLUMBER';
-$mode = $append ? '>>' : '>';
-$fh = 'FH000';
-unless ($nostdout) {
-    %fh = ('STDOUT', 'standard output'); # always go to stdout
-}
-$| = 1 if $unbuffer;
+use strict;
+
+use Getopt::Std qw(getopts);
+use IO::File;
+
+our $VERSION = '1.0';
+
+my %opt;
+getopts('ai', \%opt) or die "usage: tee [-ai] [file ...]\n";
+$SIG{'INT'} = 'IGNORE' if $opt{'i'};
+$| = 1;
+
+my $mode = $opt{'a'} ? 'a' : 'w';
+my $status = 0;
+my $default_fd = fileno(*STDOUT);
+my %fh = ($default_fd => {
+    'name' => 'standard output',
+    'fh' => *STDOUT,
+});
 
 for (@ARGV) {
-    if (!open($fh, (/^[^>|]/ && $mode), $_)) {
+    if (-d $_) {
+	warn "$0: '$_' is a directory\n";
+	$status++;
+	next;
+    }
+    my $fh = IO::File->new($_, $mode);
+    unless (defined $fh) {
 	warn "$0: cannot open $_: $!\n"; # like sun's; i prefer die
 	$status++;
 	next;
     }
-    select((select($fh), $| = 1)[0]) if $unbuffer;
-    $fh{$fh++} = $_;
+    my $fd = fileno $fh;
+    $fh{$fd}->{'name'} = $_;
+    $fh{$fd}->{'fh'} = $fh;
 }
 while (<STDIN>) {
-    for my $fh (keys %fh) {
-	print $fh $_;
+    for my $fd (keys %fh) {
+	my $n = syswrite $fh{$fd}->{'fh'}, $_;
+	unless (defined $n) {
+	    warn sprintf("%s: write '%s': %s\n", $0, $fh{$fd}->{'name'}, $!);
+	    delete $fh{$fd};
+	    $status++;
+	}
     }
 }
-for my $fh (keys %fh) {
-    next if close($fh) || !defined $fh{$fh};
-    warn "$0: couldn't close $fh{$fh}: $!\n";
-    $status++;
+for my $fd (keys %fh) {
+    unless (close $fh{$fd}->{'fh'}) {
+	warn sprintf("%s: close '%s': %s\n", $0, $fh{$fd}->{'name'}, $!);
+        $status++;
+    }
 }
 exit $status;
 
-sub PLUMBER {
-    warn "$0: pipe to \"$fh{$fh}\" broke!\n";
-    $status++;
-    delete $fh{$fh};
+sub VERSION_MESSAGE {
+    print "tee version $VERSION\n";
+    exit 0;
 }
+
+__END__
 
 =encoding utf8
 
 =head1 NAME
 
 tee - pipe fitting
+
+=head1 SYNOPSIS
+
+tee [-ai] [file ...]
+
+=head1 DESCRIPTION
+
+tee reads data from standard input, copying it to standard output
+and to any files given as arguments. If no file arguments are provided,
+tee behaves like the cat utility and copies only to standard output.
+Files are opened in write mode by default, and output is not buffered.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -a
+
+Append output to the files instead of overwriting them
+
+=item -i
+
+Ignore the SIGINT signal
+
+=back
+
+=head1 EXIT STATUS
+
+tee exits 0 on success, and >0 to indicate an error

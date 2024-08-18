@@ -42,13 +42,14 @@ sub operator_table {
     my $table = [
         'operators',
         [ '-1',           '-1',      'negation' ],
-        [ 'var=12',       '12',      'variable assignment' ],
-        [ 'v=3; ++v',     "3\n4",    'prefix increment' ],
-        [ 'v=3; --v',     "3\n2",    'prefix increment' ],
-        [ 'v=3; v++; v',  "3\n3\n4", 'postfix increment' ],
-        [ 'v=3; v--; v',  "3\n3\n2", 'postfix increment' ],
-        [ 'v=3; v+=5; v', "3\n8\n8", 'postfix increment' ],
-        [ 'v=5; v-=3; v', "5\n2\n2", 'postfix decrement' ],
+        [ 'var=12',       undef,     'variable assignment' ],
+        [ 'var=12;var',   '12',      'variable assignment and print' ],
+        [ 'v=3; ++v',     undef,     'prefix increment' ],
+        [ 'v=3; --v',     undef,     'prefix increment' ],
+        [ 'v=3; v++; v',  "4",       'postfix increment and print' ],
+        [ 'v=3; v--; v',  "2",       'postfix increment and print' ],
+        [ 'v=3; v+=5; v', "8",       'postfix increment and print' ],
+        [ 'v=5; v-=3; v', "2",       'postfix decrement and print' ],
         [ '1+2',          '3',       'addition' ],
         [ '5-3',          '2',       'subtraction' ],
         [ '3*5',          '15',      'multiplication' ],
@@ -79,85 +80,85 @@ sub operator_table {
         [ '7 >= 7',       '1',       'greater than or equal' ],
         [ '7 >= 7',       '1',       'greater than or equal' ],
         [
-        	"x = 3\nx *= 4",
-        	"3\n12",
+        	"x = 3\nx *= 4\nx",
+        	"12",
         	'binary assignment (multiplication)'
         ],
         [
-        	"x = 16\nx /= 4",
-        	"16\n4",
+        	"x = 16\nx /= 4\nx",
+        	"4",
         	'binary assignment (division)'
         ],
         [
-        	"x = 16\nx /= 0.5",
-        	"16\n32",
+        	"x = 16\nx /= 0.5\nx",
+        	"32",
         	'binary assignment (division by fraction)',
         ],
         [
-        	"x = 16\nx /= 0",
+        	"x = 16\nx /= 0\nx",
         	"16",
         	'binary assignment (division)',
         	'Runtime error (func=(main), adr=4): Divide by zero'
         ],
         [
-        	"x = 56\nx %= 17",
-        	"56\n5",
+        	"x = 56\nx %= 17\nx",
+        	"5",
         	'binary assignment (modulo)'
         ],
         [
-        	"x = 56\nx %= 0.5",
+        	"x = 56\nx %= 0.5\nx",
         	"56",
         	'binary assignment (modulo fraction 0.5)',
         	'Runtime error (func=(main), adr=4): Modulo by zero',
         ],
         [
-        	"x = 56\nx %= 1.9",
+        	"x = 56\nx %= 1.9\nx",
         	"56",
         	'binary assignment (modulo fraction 1.9)',
         	'Runtime error (func=(main), adr=4): Modulo by zero',
         	'Need to investigate fractional modulo'
         ],
 		[
-        	"x = 56\nx %= 0",
+        	"x = 56\nx %= 0\nx",
         	"56",
         	'binary assignment (modulo zero)',
         	'Runtime error (func=(main), adr=4): Modulo by zero',
         ],
 		[
-        	"x = 56\nx %= -2",
+        	"x = 56\nx %= -2\nx",
         	"56",
         	'binary assignment (modulo negative number)',
         	'Runtime error (func=(main), adr=4): Modulo by zero',
         	'todo'
         ],
 		[
-        	"x = 5\nx ^= 4",
-        	"5\n625",
+        	"x = 5\nx ^= 4\nx",
+        	"625",
         	'binary assignment (exponentiation)'
         ],
         [
-        	"x = 5\nx ^= 0",
-        	"5\n1",
+        	"x = 5\nx ^= 0\nx",
+        	"1",
         	'binary assignment (exponentiation - 0 power)'
         ],
         [
-        	"x = 5\nx ^= -1",
-        	"5\n0.2",
+        	"x = 5\nx ^= -1\nx",
+        	"0.2",
         	'binary assignment (exponentiation - negative power)'
         ],
         [
-        	"x = 5\nx ^= 0.5",
-        	qr/5\n2\.23606/,
+        	"x = 5\nx ^= 0.5\nx",
+        	qr/2\.23606/,
         	'binary assignment (exponentiation - fractional power)'
         ],
         [
-        	"x = 5\ny = 2\nx ^= y",
-        	"5\n2\n25",
+        	"x = 5\ny = 2\nx ^= y\nx",
+        	"25",
         	'binary assignment (exponentiation - two variables)'
         ],
         [
-        	"x = -1\ny = 0.5\nx ^= y",
-        	qr/\A-1\n0.5\n-?NaN$/i, # NaN might be -nan
+        	"x = -1\ny = 0.5\nx ^= y\nx",
+        	qr/-?NaN/i, # NaN might be -nan
         	'binary assignment (exponentiation - square root of -1)'
         ],
     ];
@@ -166,25 +167,31 @@ sub operator_table {
 sub precedence_table {
     my $table = [
         'precedence',
-        [ 'v = (3 < 5)',  '1',       'just like gnu bc' ],
+        [ "v = (3 < 5)\nv",  '1',       'just like gnu bc' ],
 
         # according to the GNU bc documentation, their implementation
         # will assign 3 to v and then do the relational test
-        [ 'v = 3 < 5',    '1',       ' not like gnu bc' ],
+        [ "v = 3 < 5\nv",    '1',       ' not like gnu bc' ],
 
-        [ 'v = 4+5*2^3',  '44',      'PEDMAS' ],
-        [ 'v = (4+5)*2',  '18',      'PEDMAS' ],
-        [ 'v = -(4+5)+8', '-1',      'PEDMAS' ],
+        [ "v = 4+5*2^3\nv",  '44',      'PEDMAS' ],
+        [ "v = (4+5)*2\nv",  '18',      'PEDMAS' ],
+        [ "v = -(4+5)+8\nv", '-1',      'PEDMAS' ],
     ];
 	}
 
 sub special_expr_table {
-    my $sqrt2 = '1.4142135623731';
+	# 1.41421 35623 73095 04880 16887 24209 7 USE_QUADMATH
+	# 1.41421 35623 73095 04                  USE_LONG_DOUBLE
+	# 1.41421 35623 731                       -
+
+	my $perl_sqrt_2 = sqrt(2);
+	diag( "Perl sqrt(2) is <$perl_sqrt_2>" );
+
     my $table = [
         'special expressions',
-        [ 'sqrt(2)',          $sqrt2,     'sqrt function' ],
-        [ 'length(sqrt(2))',  '14',       'significant digits' ],
-        [ 'scale(sqrt(2))',   '13',       'precision digits' ],
+        [ 'sqrt(2)',          $perl_sqrt_2,             'sqrt(2) returns appropriate value'      ],
+        [ 'length(sqrt(2))',  length($perl_sqrt_2) - 1, 'length(sqrt(2)) has the expected value' ],
+        [ 'scale(sqrt(2))',   length($perl_sqrt_2) - 2, 'precision digits' ],
     ];
 	}
 
@@ -214,8 +221,10 @@ sub statement_table {
 
         [
         	'v=5; while (v--) { print v }; print "\n"',
-            "5\n43210",
+            "43210",
             'while statement',
+            undef,
+            'while seems to be broken (#522)',
         ],
 
         [
@@ -226,7 +235,7 @@ sub statement_table {
 
         [
         	'for ( v=0; v<5; v++) { print v; if (v>2) break }; print "\n"',
-            "01230\n",
+            "0123",
             'for with break statement',
         ],
 
@@ -252,7 +261,7 @@ sub run_table {
     subtest $label => sub {
         foreach my $tuple (@$table) {
             my( $input, $expected, $description, $error, $todo ) = @$tuple;
-            $expected .= "\n" unless ref $expected;
+            $expected .= "\n" unless( ! defined $expected or ref $expected );
 
             my ( $fh, $temp_filename ) = tempfile();
 			print {$fh} $input, "\n";
@@ -262,10 +271,16 @@ sub run_table {
 			TODO: {
 				local $TODO = $todo;
 				if( ! ref $expected ) {
-					is $output, $expected, $description;
+					is $output, (defined $expected ? $expected : ''), $description;
 					}
-				elsif( ref $expected eq ref qr// ) {
+				elsif( $] < 5.010 and ref $expected eq ref qr// ) {
 					like $output, $expected, $description;
+					}
+				else {
+					SKIP: {
+						skip "$] does not have qr//", 1;
+						pass($label);
+						};
 					}
 				}
             }

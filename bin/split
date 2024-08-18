@@ -21,28 +21,23 @@ License: perl
 #   Perl Power Tools -- http://language.perl.com/ppt/
 #
 
-$^W = 1;  # -w
 use strict;
 use Getopt::Std;
 use File::Basename;
 
 my $me = basename($0);
+my $Fh;
+my $curext;
+my $curname;
 
 ## get_count expands byte/linecount 'k' and 'm' and checks sanity
 sub get_count {
     my $count = shift;
-
-    return undef unless $count =~ /^\d+[KkMm]?$/;   # sane?
-
-    if ($count =~ /[Kk]$/) {
-	$count =~ s/[Kk]//g;
-	$count *= 1024;
-    } elsif ($count =~ /[Mm]$/) {
-	$count =~ s/[Mm]//g;
-	$count *= 1024 * 1024;
-    }
-
-    return $count;
+    my %mult = ('k' => 1024, 'm' => 1024 * 1024);
+    return if $count !~ m/\A([0-9]+)([KkMm]?)\Z/;
+    my $n = $1;
+    $n *= $mult{lc($2)} if $2;
+    return $n;
 }
 
 # nextfile creates the next file for output, and returns the
@@ -51,29 +46,26 @@ sub get_count {
 # separator.
 
 sub nextfile {
-    no strict 'vars';
     package
     	nextfile; # hide from PAUSE
 
     my $prefix = shift;
 
-    if (! fileno(FH)) {
+    if (!defined($Fh)) {
 	$curext = "aaa";   # initialize on first call
     }
     else {
-
-	close FH or die "$me: Can't close $curname: $!\n";
+	close($Fh) or die "$me: Can't close $curname: $!\n";
 
 	if ($curext eq "zzz") { die "$me: can only create 17576 files\n" }
     	else { $curext++ }
-
     }
 
     # MS-DOS: $curname = "$prefix." . $curext;
     $curname = $prefix . $curext;
-    open (FH, '>', $curname) or die "$me: Can't open $curname: $!\n";
-    binmode(FH);
-    return *FH;
+    open($Fh, '>', $curname) or die "$me: Can't open $curname: $!\n";
+    binmode $Fh;
+    return $Fh;
 }
 
 ## clue explains usage.
@@ -96,69 +88,78 @@ exit 1;
 
 #### Main program starts here. ####
 
-## Grab options
-getopts ('b:l:p:?', \my %opt);
+getopts('b:l:p:', \my %opt) or clue;
+my $nbytes;
+if (defined $opt{'b'}) {
+    $nbytes = get_count($opt{'b'}) or die qq($me: "$opt{b}" is invalid number of bytes\n);
+}
+my $nlines;
+if (defined $opt{'l'}) {
+    $nlines = get_count($opt{'l'}) or die qq($me: "$opt{l}" is invalid number of lines\n);
+}
+clue() if ($nbytes && $nlines);
+clue() if ($opt{'p'} && ($nbytes || $nlines));
 
-clue if $opt{"?"};    # heeeeeeeeeeelp!
+my $infile = shift;
+my $prefix = shift;
+die("$me: extra operand: $ARGV[0]\n") if @ARGV;
+unless (defined $infile) {
+    $infile = '-';
+}
+unless (defined $prefix && length $prefix) {
+    $prefix = 'x';
+}
 
-## Open whatever needs opening
-my $infile = (defined $ARGV[0] ? $ARGV[0] : "-");
-my $prefix = ($ARGV[1] ? "$ARGV[1]" : "x");
-
-open (INFILE, '<', $infile) || die "$me: Can't open $infile: $!\n";
-binmode(INFILE);
+my $in;
+if ($infile eq '-') {
+    $in = *STDIN;
+}
+else {
+    die("$me: $infile: is a directory\n") if (-d $infile);
+    open($in, '<', $infile) or die("$me: Can't open $infile: $!\n");
+}
+binmode $in;
 ## Byte operations.
-if ($opt{b} and (! $opt{p}) and (! $opt{l}) and (! $opt{"?"})) {
-
+if ($opt{'b'}) {
     my ($chunk, $fh);
-    my $count = get_count ($opt{b});
-
-    unless ($count) { die qq($me: "$opt{b}" is invalid number of bytes.\n) }
-
-    while (read (INFILE, $chunk, $count) == $count) {
+    while (read ($in, $chunk, $nbytes) == $nbytes) {
 	$fh = nextfile ($prefix);
-	print $fh $chunk;
+	print {$fh} $chunk;
     }
 
     # leftover bit. Last file will be >= $count.
     # There's gotta be something more elegant than this, too.
     if (length($chunk)) {
 	$fh = nextfile ($prefix);
-        print $fh $chunk;
+        print {$fh} $chunk;
     }
 }
 
 ## Split on patterns.
-elsif ($opt{p} and (! $opt{b}) and (! $opt{l}) and (! $opt{"?"})) {
-
+elsif ($opt{'p'}) {
     my $regex = $opt{p};
     my $fh = nextfile ($prefix);
 
-    while (<INFILE>) {
+    while (<$in>) {
 	$fh = nextfile ($prefix) if /$regex/;
-	print $fh $_;
+	print {$fh} $_;
     }
 }
 
 ## Line operations.
-elsif ((! $opt{p}) and (! $opt{b}) and (! $opt{"?"})) {
-
-    # default is -l 1000  (NOT 1k!)
+else {
     my $fh;
-    my $count = (defined $opt{l} ? get_count($opt{l}) : 1000);
+    $nlines = 1000 unless $nlines;
     my $line = 0;
 
-    unless ($count) { die qq($me: "$opt{l}" is invalid number of lines.\n) }
-
-    while (<INFILE>) {
-	$fh = nextfile ($prefix) if $line % $count == 0;
-	print $fh $_;
+    while (<$in>) {
+	$fh = nextfile ($prefix) if $line % $nlines == 0;
+	print {$fh} $_;
 	$line++;
     }
-
 }
-
-else { clue };
+close $in;
+exit;
 
 # (Thanks to Abigail for the pod template.)
 
@@ -202,10 +203,6 @@ interpreted as a Perl regular expression.  The matching line will be
 the first line of the next output file.  This option is incompatible
 with the B<-b> and B<-l> options.
 
-=item -?
-
-Short usage summary.
-
 =back
 
 If additional arguments are specified, the first is used as the name
@@ -239,5 +236,3 @@ distribute and sell this program (and any modified variants) in any
 way you wish, provided you do not restrict others to do the same.
 
 =cut
-
-

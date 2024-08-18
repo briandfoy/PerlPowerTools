@@ -15,61 +15,38 @@ License: perl
 use strict;
 use integer;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-my $warnings = 0;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    $warnings = 1;
-    warn "$0: @_";
-};
+my $Program = basename($0);
+my ($VERSION) = '1.3';
 
-$SIG {__DIE__} = sub {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$0 (Perl games) $VERSION
-$0 [-o +-x/] [-r range]
-EOF
-    }
-    die "$0: @_";
-};
-
-# Get the options.
-#     o   =>  operators.
-#     r   =>  range
-my $operators = "+";
-my $range     = 10;
-while (@ARGV > 1) {
-    my $opt = shift;
-    if ($opt eq '-o') {
-        $operators = shift;
-        die "Usage" if $operators =~ m{[^-x+/]};
-        next;
-    }
-    if ($opt eq '-r') {
-        $range = shift;
-        die "Usage" if $range =~ /\D/;
-        next;
-    }
-    die "Usage";
+my %opt;
+getopts('o:r:', \%opt) or usage();
+my $operators = '+';
+if (defined $opt{'o'}) {
+    usage() if ($opt{'o'} =~ m{[^-x+/]});
+    $operators = $opt{'o'};
 }
-
+my $range = 10;
+if (defined $opt{'r'}) {
+    usage() if ($opt{'r'} !~ m/\A[0-9]+\Z/);
+    $range = $opt{'r'};
+}
 # Special case the range of 0. Since the right operator can only be 0,
 # division should be disallowed. die() if division was the only possible
 # operator. There will be nothing left.
 if ($range == 0) {
     $operators =~ s{/+}{}g;
-    die "division by 0 is not allowed\n" unless $operators;
+    unless ($operators) {
+        warn "$Program: division by 0 is not allowed\n";
+        exit EX_FAILURE;
+    }
 }
-
-die "Usage" if @ARGV;
+usage() if @ARGV;
 
 # Play the game!
 my $start     = time;
@@ -118,8 +95,17 @@ while ($questions < QUESTIONS) {
     # Keep trying till we get something that's a number.
     LOOP: {
         print "$left $operator $right = ";
-        chomp ($guess = <>);
-        print "Please type a number.\n", redo if $guess =~ /\D/;
+        $guess = <>;
+        if (!defined($guess)) {
+            report();
+        }
+        chomp $guess;
+        $guess =~ s/\A\s+//;
+        $guess =~ s/\s+\Z//;
+        if (length($guess) == 0 || $guess =~ /\D/) {
+            print "Please type a number.\n";
+            redo;
+        }
     }
 
     if ($guess == $answer) {
@@ -140,7 +126,7 @@ while ($questions < QUESTIONS) {
     $questions ++;
 }
 
-$SIG {INT} -> ();  # Terminates.
+report();
 
 sub report {
     my $seconds = time - $start;
@@ -152,10 +138,16 @@ sub report {
                          "$hours hour", "$minutes minute", "$seconds second") ||
                        "no time at all!";
 
-    print "\nYou had $correct answers correct, our of $questions. ",
+    print "\nYou had $correct answers correct, out of $questions. ",
             "It took you $time.\n";
 
-    exit $warnings;
+    exit EX_SUCCESS;
+}
+
+sub usage {
+    warn "$Program (Perl games) $VERSION\n";
+    warn "usage: $Program [-o +-x/] [-r range]\n";
+    exit EX_FAILURE;
 }
 
 __END__
@@ -179,8 +171,8 @@ If B<arithmetic> thinks your answer is not a number, it will
 respond with B<Please type a number!> and repeat the exercise.
 
 After 20 questions, B<arithmetic> will tell you how many exercises you
-answered correctly, and how much time it took. Interrupting the game
-triggers the same reports; the game is then terminated.
+answered correctly, and how much time it took.
+You can quit at any time by typing the interrupt or end-of-file character.
 
 If you answer an exercise incorrectly, B<arithmetic> will remember the
 numbers involved, and favour those over others.
@@ -213,8 +205,7 @@ The working of B<arithmetic> is not influenced by any environment variables.
 
 =head1 BUGS
 
-This implementation of B<arithmetic> does not respect the end of file
-character.
+None known.
 
 =head1 REVISION HISTORY
 
@@ -242,4 +233,3 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
 
 =cut
-

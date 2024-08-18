@@ -14,14 +14,20 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my $dict_file = "/usr/dict/words";      # Filename (path) for standard dict
-my $alt_dict_file = "/usr/dict/linux.words"; # Filename (path) for an alternate dict
 
 my (
     %words,    # words from dictionary
     %check,    # words to be checked
     @supp,     # file(s) of supplemental dictionaries/words
-    @files,    # file(s) to check
     @keys,     # keys of the %words hash
     $check,    # Indicator if close matches should be found
     $inter,    # Indicator if in "interactive mode
@@ -29,79 +35,48 @@ my (
 );
 
 sub usage {
-  warn "$0: @_\n" if @_;
-  die "usage: $0 [-b[dict]] [-c|-x] [-v] [-i] [-s dict] [ file ... ]\n";
+  warn "usage: $Program [-d dict] [-c|-x] [-v] [-i] [+extra_list] [file ...]\n";
+  exit EX_FAILURE;
 }
-
-# usage() unless @ARGV;
 
 keys %words = 45402;   # allocate bins for the hash, it may be useful to
                        #  change this if you dict file is larger or smaller.
 
-# process command line args
-while (@ARGV) {
-  $_ = $ARGV[0];
-  if (s/^-//) {
-    if (s/^b//) {
-      if (length) { $dict_file = $_ }
-      else { $dict_file = $alt_dict_file }
-    }
-    elsif (s/^[cx]//) {
-      $check++;
-      if (length) {
-	$ARGV[0] = "-$_";
-	redo;
-      }
-    }
-    elsif (s/^v//) {
-      $suff++;
-      if (length) {
-	$ARGV[0] = "-$_";
-	redo;
-      }
-    }
-    elsif (s/^i//) {
-      $inter++;
-      if (length) {
-	$ARGV[0] = "-$_";
-	redo;
-      }
-    }
-    elsif (s/^s//) {
-      if (length) { push @supp, $_ }
-      else { push @supp, $ARGV[1]; shift}
-    }
-    else {
-      usage("unrecognized option: -$_");
-    }
+my %opt;
+getopts('cd:ixv', \%opt) or usage();
+$check = 1 if $opt{'c'} || $opt{'x'};
+$suff = 1 if $opt{'v'};
+$inter = 1 if $opt{'i'};
+$dict_file = $opt{'d'} if defined $opt{'d'};
+@supp = ($dict_file);
+for (0 .. $#ARGV) {
+  if ($ARGV[$_] =~ m/\A\+./) {
+    push @supp, substr($ARGV[$_], 1);
+    splice @ARGV, $_, 1;
   }
-  else {   # must be the file(s) to check.
-    push @files, $_;
-  }
-  shift;
 }
-
-unshift @supp, $dict_file;
-
 # read in dictionary words
-
 for my $dict_file (@supp) {
-  open(IN, '<', $dict_file) || die "Could not open dictionary <$dict_file>: $!\n";
-  my @tmp_words;
-  @tmp_words = map {lc} <IN>;
-  chomp @tmp_words;
-  @words{@tmp_words} = ();
-
-#  for my $word (@tmp_words) {
-#    $words{lc($word)} = 1;
-#  }
+  next if -d $dict_file;
+  my $in;
+  unless (open $in, '<', $dict_file) {
+    warn "$Program: could not open dictionary <$dict_file>: $!\n";
+    exit EX_FAILURE;
+  }
+  while (<$in>) {
+    chomp;
+    my $w = lc;
+    $words{$w} = 1;
+  }
+  close $in;
 }
-
 @keys = keys %words;
+unless (@keys) {
+  warn "$Program: word list was empty\n";
+  exit EX_FAILURE;
+}
 
 # Read data to check
-
-@ARGV = @files;
 
 if ($inter) {
   print "Word(s): ";
@@ -128,7 +103,7 @@ unless ( $inter ) {
   check_words( keys %check );
 }
 
-exit 0;  # end of main program, below are subroutines.
+exit EX_SUCCESS;  # end of main program, below are subroutines.
 
 sub check_words {
 
@@ -354,13 +329,7 @@ spell - scan a file for misspelled words
 
 =head1 SYNOPSIS
 
-B<spell>
-[ B<-b>[I<dict>]]
-[B<-c>|B<-x>]
-[B<-v>]
-[B<-i>]
-[B<-s> I<dict>]
-[ I<file> ... ]
+spell [-d dict] [-c|-x] [-v] [-i] [+extra_list] [file ...]
 
 =head1 DESCRIPTION
 
@@ -373,17 +342,9 @@ The options are as follows:
 
 =over 4
 
-=item B<-b>
+=item B<-d> I<file>
 
-Use alternate dictionary (as specified in the variable at the top of
-the script, you should change this to represent your system).
-
-=item B<-b>I<file>
-
-Use I<file> as the alternate dictionary (notice no space between flag
-and I<file>).  This file is used B<instead of> the standard
-dictionary.  This could be a British spelling list, or for a different
-language.
+Use I<file> as the dictionary instead of the default system dictionary.
 
 =item B<-c>
 
@@ -410,20 +371,16 @@ each line, instead of after whole file(s), and quit at first blank line
 (do not use on a file, this is for typing in words from standard in).
 Also prints descriptive titles and has a very basic pager.
 
-=item B<-s> I<file>
+=item +extra_list
 
-Specify supplemental dictionary.  This dictionary is used
-in addition to the base word list.  The space before the I<file> is
-optional.  Multiple files can be used, but each needs its own B<-s> flag.
+Add the file I<extra_list> to the list of dictionaries to check against.
 
 =back
 
-Multiple flags can be combined, but B<-b> and B<-s> must come last, i.e.
-"spell -icvb" instead of "spell -i -c -v -b", and can be specified in any
-order.
+Flags may be grouped, e.g. "spell -icv", and can be specified in any order.
 
-If a file is not specified, it reads from standard input.  Use the B<-i> switch
-if you are going to type words in by hand.
+If no file is specified, words to check will be read from standard input.
+The B<-i> flag should be used if you are going to type words in by hand.
 
 =head1 SEE ALSO
 

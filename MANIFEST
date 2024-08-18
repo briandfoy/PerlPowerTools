@@ -9,6 +9,7 @@ bin/banner
 bin/base64
 bin/basename
 bin/bc
+bin/bcd
 bin/cal
 bin/cat
 bin/chgrp
@@ -83,6 +84,7 @@ bin/rm
 bin/rmdir
 bin/robots
 bin/rot13
+bin/seq
 bin/shar
 bin/sleep
 bin/sort
@@ -105,6 +107,7 @@ bin/uname
 bin/unexpand
 bin/uniq
 bin/units
+bin/unlink
 bin/unpar
 bin/unshar
 bin/uudecode
@@ -122,6 +125,7 @@ Changes
 CONTRIBUTING.md
 INSTALL.SKIP
 lib/PerlPowerTools.pm
+lib/PerlPowerTools/SymbolicMode.pm
 lib/ppt.pm
 LICENSE-ARTISTIC2
 LICENSE-BSD2
@@ -137,8 +141,10 @@ t/990.pod.t
 t/bc/input.t
 t/cat/cat.t
 t/cp/gh-115-copy-into-dir.t
+t/cut/cut.t
 t/data/cat/cat-n-1.txt
 t/data/nl/nl.txt
+t/data/od/ascii.txt
 t/data/rev/reverse-this.txt
 t/data/sort/ints1.txt
 t/data/sort/letters1.txt
@@ -152,13 +158,17 @@ t/lib/common.pl
 t/lib/utils.pm
 t/mimedecode/000.basic.t
 t/nl/nl.t
+t/od/od.t
 t/rev/rev.t
+t/rm/process_options.t
+t/rm/run.t
+t/robots/000.basic.t
 t/rot13/rot13.t
+t/seq/seq.t
 t/sort/sort.t
 t/true/true.t
 t/units/units.t
 t/uudecode/uudecode.t
-util/extract_metadata
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc

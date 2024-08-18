@@ -1,7 +1,6 @@
 package PerlPowerTools;
 
-our $VERSION = '1.035';
-
+our $VERSION = '1.046';
 1;
 
 =encoding utf8
@@ -150,7 +149,9 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item moo - play a game of MOO
 
-=item demorse - read morse and translate it to text
+=item morse - read morse and translate it to text
+
+=item nl - line numbering filter
 
 =item od - dump files in octal and other formats
 
@@ -190,7 +191,11 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item robots - fight off villainous robots
 
+=item rot13 - rotate text 13 ASCII characters
+
 =item shar - create a shell archive of files
+
+=item seq - output a sequence of numbers
 
 =item sleep - suspend execution for a number of seconds
 
@@ -234,11 +239,11 @@ setting C<INSTALL_BASE> when you run F<Makefile.PL>.
 
 =item units - conversion program
 
+=item unlink - one file rm
+
 =item unpar - extract files from a Perl archive
 
 =item unshar - extract files from a shell archive
-
-=item uudecode, uuencode - encode/decode a binary file
 
 =item uudecode, uuencode - encode/decode a binary file
 
@@ -269,7 +274,7 @@ This source is in Github:
 
 =head1 AUTHOR
 
-brian d foy, C<< <bdfoy@cpan.org> >> is the current maintainer, even
+brian d foy, C<< <briandfoy@pobox.com> >> is the current maintainer, even
 though he wrote none of the utilities.
 
 =head1 COPYRIGHT AND LICENSE

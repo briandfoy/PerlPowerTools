@@ -42,7 +42,7 @@ my $STR_ROTATED = 0x4;
 # Globals
 my (%opts);
 
-getopts('adefhilosvwm:n:', \%opts);
+getopts('adefilosvwm:n:', \%opts) or print_help();
 
 my $debug = $opts{d};
 
@@ -74,8 +74,6 @@ my %Top_item = ( name => 'Top level file/directory list',
 		);
 
 # this is the main routine of the program
-
-if ($opts{h}) { print_help(); }
 
 build_file_list( list_files( \%Top_item ) );
 
@@ -672,15 +670,11 @@ sub print_fortune
 {
 	my ($file, $index) = @_;
 
-	my $wait = 0;
-
+	print read_fortune($file, $index);
 	if ($opts{w}) {
 		my $tmp = fortune_length( $file, $index );
-		$wait = int ($tmp/75);
+		sleep(int($tmp/75));
 	}
-
-	print read_fortune( $file, $index );
-	sleep $wait;
 }
 
 # fortune_length
@@ -960,11 +954,12 @@ sub print_help
 
 	print <<EOF;
 
-Usage: $0 [-adefhilosw] [-m pattern] [[N%] file/dir/all]
+Usage: $0 [-adefilosw] [-n length] [-m pattern] [[N%] file/dir/all]
 
 	See the POD for more information.
 
      -a Choose from all lists of maxims, both offensive and not.
+     -d Enable debug messages
      -e Consider all fortune files to be of equal size.
      -f Print out the list of files which would be searched.
      -l Long dictums only.
@@ -987,8 +982,6 @@ EOF
 	exit 1;
 }
 
-1;
-
 __END__
 
 =pod
@@ -1010,6 +1003,8 @@ not.  The options are as follows:
 
      -a    Choose from all lists of maxims, both offensive and not.  (See the
            -o option for more information on offensive fortunes.)
+
+     -d    Enable debug messages.
 
      -e    Consider all fortune files to be of equal size (see discussion be-
            low on multiple files).

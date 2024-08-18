@@ -10,7 +10,7 @@ SKIP: {
 	skip "$program needs at least Perl $minimum_version. Skipping...", 1
 		unless $] >= $minimum_version;
 	require './t/lib/common.pl';
-	sanity_test('bin/mimedecode');
+	sanity_test($program);
 	}
 
 done_testing();

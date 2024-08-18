@@ -94,22 +94,22 @@ with your installation location:
 The meta data, such as the source repository and bug tracker, is in
 I<Makefile.PL> or the I<META.*> files it creates. You can find that on
 those CPAN web interfaces, but you can also look at files directly in
-the source repository:
-
-=over 4
-
-=item *	L<https://github.com/briandfoy/PerlPowerTools>
-
-=back
+the source repository: L<https://github.com/briandfoy/PerlPowerTools>
 
 If you find a problem, file a ticket in the L<issue
-tracker|https://github.com/briandfoy/PerlPowerTools/issues>:
+tracker|https://github.com/briandfoy/PerlPowerTools/issues>/
 
-=over 4
+Starting with v1.046, PerlPowerTools now uses
+L<GitHub Attestations|https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>,
+which allow you to verify that the archive file you have was made from
+the official repo.
 
-=item *	L<https://github.com/briandfoy/PerlPowerTools/issues>
+You need a GitHub account and the L<gh tool|https://github.com/larsks/ghcli>.
 
-=back
+	# download the distro file from GitHub, MetaCPAN, or a CPAN mirror
+	$ gh auth login
+	...follow instructions...
+	$ gh attestation verify PerlPowerTools-1.046.tar.gz --owner briandfoy
 
 =head2 Getting help
 
@@ -136,6 +136,6 @@ you wrote code that you didn't.
 
 Enjoy,
 
-brian d foy, bdfoy@cpan.org
+brian d foy, briandfoy@pobox.com
 
 =cut

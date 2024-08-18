@@ -5,6 +5,7 @@
 Name: od
 Description: dump files in octal and other formats
 Author: Mark Kahn, mkahn@vbe.com
+Author: Michael Mikonos
 License: perl
 
 =end metadata
@@ -13,21 +14,25 @@ License: perl
 
 
 use strict;
-use Getopt::Std;
-use vars qw/ $opt_A $opt_b $opt_c $opt_d $opt_f $opt_i $opt_j $opt_l $opt_o
-$opt_v $opt_x /;
 
-my ($offset1, $radix, $data, @arr, $len, $fh);
-my ($lastline, $upformat, $pffmt, $strfmt, $ml);
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant LINESZ => 16;
+use constant PRINTMAX => 126;
+
+use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
+$opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_v $opt_X $opt_x /;
+
+our $VERSION = '1.1';
+
+my ($offset1, $radix, $data, @arr, $len, $lim);
+my ($lastline, $strfmt, $ml);
 
 my %charescs = (
     0  => ' \0',
-    1  => '001',
-    2  => '002',
-    3  => '003',
-    4  => '004',
-    5  => '005',
-    6  => '006',
     7  => ' \a',
     8  => ' \b',
     9  => ' \t',
@@ -35,165 +40,303 @@ my %charescs = (
     11 => ' \v',
     12 => ' \f',
     13 => ' \r',
-    14 => '014',
-    15 => '015',
-    16 => '016',
-    17 => '017',
-    18 => '018',
-    19 => '019',
-    20 => '020',
-    21 => '021',
-    22 => '022',
-    23 => '023',
-    24 => '024',
-    25 => '025',
-    26 => '026',
-    27 => '027',
-    28 => '028',
-    29 => '029',
-    30 => '030',
-    31 => '031',
+    92 => ' \\\\',
+);
+
+my %charname = (
+    0  => 'nul',
+    1  => 'soh',
+    2  => 'stx',
+    3  => 'etx',
+    4  => 'eot',
+    5  => 'enq',
+    6  => 'ack',
+    7  => 'bel',
+    8  => 'bs',
+    9  => 'ht',
+    10 => 'nl',
+    11 => 'vt',
+    12 => 'ff',
+    13 => 'cr',
+    14 => 'so',
+    15 => 'si',
+    16 => 'dle',
+    17 => 'dc1',
+    18 => 'dc2',
+    19 => 'dc3',
+    20 => 'dc4',
+    21 => 'nak',
+    22 => 'syn',
+    23 => 'etb',
+    24 => 'can',
+    25 => 'em',
+    26 => 'sub',
+    27 => 'esc',
+    28 => 'fs',
+    29 => 'gs',
+    30 => 'rs',
+    31 => 'us',
+    32 => 'sp',
+    127 => 'del',
 );
 
 $offset1 = 0;
 $lastline = '';
 
-getopts('A:bcdfij:lovx') or help();
-    defined $opt_A ? ($radix = $opt_A) : ($radix = 'o');
-    defined $opt_j && ($offset1 = $opt_j);
+my $Program = basename($0);
 
-if (defined $ARGV[0] && $ARGV[0] ne '-') {
-    open($fh, '<', $ARGV[0]) or die "$0: $ARGV[0]: $!\n";
+getopts('A:aBbcdeFfHij:lN:OosvXx') or help();
+if (defined $opt_A) {
+    if ($opt_A !~ m/\A[doxn]\z/) {
+	warn "$Program: unexpected radix: '$opt_A'\n";
+	exit EX_FAILURE;
+    }
+    if ($opt_A ne 'n') {
+	$radix = $opt_A;
+    }
 }
 else {
-    $fh = *STDIN;
+    $radix = 'o';
 }
 
-binmode $fh;
-if ($offset1 && !seek($fh, $offset1, 0)) {
-    foreach (1 .. $offset1) {
-	$len = read $fh, $data, 1;
-	die "$0: read error: $!\n" if $!;
-	undef $data;
+if (defined $opt_j) {
+    if ($opt_j =~ m/\D/) {
+	warn "$Program: bad argument to -j: '$opt_j'\n";
+	exit EX_FAILURE;
     }
 }
+if (defined $opt_N) {
+    if ($opt_N =~ m/\D/) {
+	warn "$Program: bad argument to -N: '$opt_N'\n";
+	exit EX_FAILURE;
+    }
+    $lim = $opt_N;
+}
 
-$opt_o = 1 if ! ($opt_b || $opt_c || $opt_d || $opt_f || $opt_i ||
-		 $opt_l || $opt_o || $opt_x);
+my $fmt;
+if ($opt_a) {
+    $fmt = \&char7bit;
+}
+elsif ($opt_b) {
+    $fmt = \&octal1;
+}
+elsif ($opt_c) {
+    $fmt = \&char1;
+}
+elsif ($opt_d) {
+    $fmt = \&udecimal;
+}
+elsif ($opt_e || $opt_F) {
+    $fmt = \&float8;
+}
+elsif ($opt_f) {
+    $fmt = \&float;
+}
+elsif ($opt_H || $opt_X) {
+    $fmt = \&hex4;
+}
+elsif ($opt_i || $opt_s) {
+    $fmt = \&decimal;
+}
+elsif ($opt_l) {
+    $fmt = \&long;
+}
+elsif ($opt_O) {
+    $fmt = \&octal4;
+}
+elsif ($opt_B || $opt_o) {
+    $fmt = \&octal2;
+}
+elsif ($opt_x) {
+    $fmt = \&hex2;
+}
+else {
+    $fmt = \&octal2;
+}
 
-while ($len = read($fh, $data, 16)) {
-    $ml = ''; # multi-line indention
+my $nread = 0;
+my $rc = EX_SUCCESS;
+foreach my $file (@ARGV) {
+    if (-d $file) {
+	warn "$Program: '$file' is a directory\n";
+	$rc = EX_FAILURE;
+	next;
+    }
+    my $fh;
+    unless (open $fh, '<', $file) {
+	warn "$Program: cannot open '$file': $!\n";
+	$rc = EX_FAILURE;
+	next;
+    }
+    binmode $fh;
 
-    if ( &diffdata || $opt_v) {
-	printf("%.8$radix ", $offset1);
-	defined $opt_b && do { &octal1; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_c && do { &char1; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_d && do { &udecimal; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_f && do { &float; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_i && do { &decimal; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_l && do { &long; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_o && do { &octal2; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-	defined $opt_x && do { &hex; printf("%s$strfmt\n", $ml, @arr);
-			       $ml = '         ' };
-   }
+    do_skip($fh) if $opt_j;
+    dump_file($fh);
+    close $fh;
+}
+unless (@ARGV) {
+    do_skip(*STDIN) if $opt_j;
+    dump_file(*STDIN);
+}
+dump_line() if (defined $data);
+emit_offset(1);
+exit $rc;
 
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
+
+sub limit_reached {
+    return defined($lim) && $nread >= $lim;
+}
+
+sub emit_offset {
+    my $nl = shift;
+    return unless $radix;
+    printf "%.8$radix%s", $offset1, $nl ? "\n" : ' ';
+}
+
+sub dump_line {
+    if (&diffdata || $opt_v) {
+	emit_offset();
+	&$fmt;
+	printf "$strfmt\n", @arr;
+	$ml = 0;
+    }
     else {
-	print "*\n";
+	print "*\n" unless $ml;
+	$ml = 1;
     }
-
-    $offset1 += $len;
     $lastline = $data . '|';
+    $offset1 += length $data;
+    undef $data;
 }
-die "$0: read error: $!\n" if $!;
 
-printf("%.8$radix\n", $offset1);
-close $fh;
-exit 0;
+sub dump_file {
+    my $fh = shift;
+    my $buf;
+
+    while (!limit_reached() && !eof($fh)) {
+	$len = read $fh, $buf, 1;
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    $rc = EX_FAILURE;
+	    return;
+	}
+	$data .= $buf;
+	$nread++;
+
+	dump_line() if (length($data) == LINESZ);
+    }
+}
+
+sub do_skip {
+    my $fh = shift;
+    my $buf;
+
+    while ($opt_j > 0) {
+	$len = read $fh, $buf, 1;
+	if ($len == 0) {
+	    warn "$Program: skip past end of input\n";
+	    exit EX_FAILURE;
+	}
+	unless (defined $len) {
+	    warn "$Program: read error: $!\n";
+	    exit EX_FAILURE;
+	}
+	$opt_j--;
+	$offset1++;
+    }
+}
 
 sub octal1 {
-    $upformat = 'C*'; # for -b
-    $pffmt = '%.3o ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x $len;
+    @arr = unpack 'C*', $data;
+    $strfmt = '%.3o ' x (scalar @arr);
 }
 
 sub char1 {
-    $upformat = 'c*'; # for -c
-    $pffmt = '%s';
-    $strfmt = $pffmt;
-
     @arr = ();
-    my $val = undef;
-    my $val1 = undef;
-
-    my @arr1 = unpack($upformat,$data);
+    my @arr1 = unpack 'C*', $data;
     for my $val (@arr1) {
         if (exists $charescs{$val}) {
 	    $arr[0] .= $charescs{$val} . " ";
 	}
-
+	elsif ($val > PRINTMAX || chr($val) !~ m/[[:print:]]/) {
+	    $arr[0] .= sprintf(' %03o', $val);
+	}
 	else {
-	    $val1 = "  " . chr($val) . " " ;
-	    $arr[0] .=  $val1;
+	    $arr[0] .= "  " . chr($val) . " ";
 	}
     }
+    $strfmt = '%s';
+}
+
+sub char7bit {
+    @arr = ();
+    my @arr1 = unpack 'C*', $data;
+    for my $val (@arr1) {
+        my $n = $val & 0x7f;
+        if (exists $charname{$n}) {
+            $arr[0] .= sprintf '%4s', $charname{$n};
+        }
+        else {
+	    $arr[0] .= "  " . chr($n) . " ";
+        }
+    }
+    $strfmt = '%s';
 }
 
 sub udecimal {
-    $upformat = 'S*'; # for -d
-    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
-    $pffmt = '%5u ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
+    $strfmt = '%5u ' x (scalar @arr);
 }
 
 sub float {
-    $upformat = 'f*'; # for -f
-    my $remain = $len % 4;
-    $data .= "\0" x $remain if ($remain); # zero-fill 32 bit input
-    $pffmt = '%6.6e ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+    @arr = unpack 'f*', $data . zeropad(length($data), 4);
+    $strfmt = '%15.7e ' x (scalar @arr);
+}
+
+sub float8 {
+    @arr = unpack 'd*', $data . zeropad(length($data), 8);
+    $strfmt = '%24.16e ' x (scalar @arr);
 }
 
 sub decimal {
-    $upformat = 's*'; # for -i
-    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
-    $pffmt = '%5d ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+    @arr = unpack 's*', $data . zeropad(length($data), 2);
+    $strfmt = '%5d ' x (scalar @arr);
 }
 
 sub long {
-    $upformat = 'L*'; # for -l
-    my $remain = $len % 4;
-    $data .= "\0" x $remain if ($remain); # zero-fill 32 bit input
-    $pffmt = '%10ld ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%10ld ' x (scalar @arr);
 }
 
 sub octal2 {
-    $upformat = 'S*'; # for -o
-    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
-    $pffmt = '%.6o ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
+    $strfmt = '%.6o ' x (scalar @arr);
 }
 
-sub hex {
-    $upformat = 'S*'; # for -x
-    $data .= "\0" if ($len & 1); # zero-fill 16 bit input
-    $pffmt = '%.4x ';
-    @arr = unpack($upformat,$data);
-    $strfmt = $pffmt x (scalar @arr);
+sub octal4 {
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%.11o ' x (scalar @arr);
+}
+
+sub hex2 {
+    @arr = unpack 'S*', $data . zeropad(length($data), 2);
+    $strfmt = '%.4x ' x (scalar @arr);
+}
+
+sub hex4 {
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%.8x ' x (scalar @arr);
+}
+
+sub zeropad {
+    my ($len, $wantbytes) = @_;
+    my $remain = $len % $wantbytes;
+    return '' unless $remain;
+    return "\0" x ($wantbytes - $remain);
 }
 
 sub diffdata {
@@ -202,8 +345,8 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-bcdfiloxv] [-A radix] filename\n";
-    exit 1;
+    print "usage: od [-aBbcdeFfHilOosXxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    exit EX_FAILURE;
 }
 __END__
 
@@ -213,16 +356,105 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od.pl> [ I<-abcdfiloxv> ] [I<-j skip_n_bytes>] [ I<-A radix> ]  F<filename>
+B<od> [ I<-aBbcdeFfHilOosXxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
-The B<od.pl> writes  to  the  standard output the contents of the given
-files, or of the standard input if the name `-' is  given.  Each  line
+B<od> writes  to  the  standard output the contents of the given
+files, or of the standard input if no files are specified.  Each  line
 of  the  output  consists of the offset in the input file in the leftmost
 column of each  line,  followed by  one or more columns of data from the
 file, in a format controlled by the options.  By default, od prints the
 file offsets  in octal and the file data as two-byte octal numbers.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 4
+
+=item -A Radix
+
+Select offset prefix format: 'd' for decimal, 'o' for octal, 'x' for hexadecimal, 'n' for none.
+
+=item -a
+
+Dump characters in 7-bit ASCII format, ignoring the highest bit of each byte.
+The names of ASCII control characters are displayed.
+
+=item -B
+
+Same as -o
+
+=item -b
+
+Single-byte octal display.
+
+=item -c
+
+Display characters literally, with non-printable characters displayed as C escape sequences.
+
+=item -d
+
+Two-byte unsigned decimal display.
+
+=item -e
+
+Eight-byte floating point display.
+
+=item -F
+
+Same as -e
+
+=item -f
+
+Show input as floating point numbers in exponent form.
+
+=item -H
+
+Four-byte hex display.
+
+=item -i
+
+Show two-byte signed decimal integers.
+
+=item -j Skip
+
+Ignore the first Skip bytes of input.
+
+=item -l
+
+Show four-byte signed decimal integers.
+
+=item -N Bytes
+
+Set the number of maximum input bytes read.
+
+=item -O
+
+Four-byte octal display.
+
+=item -o
+
+Format input as two-byte octal numbers.
+
+=item -s
+
+Same as -i
+
+=item -X
+
+Same as -H
+
+=item -x
+
+Use two-byte hexadecimal format.
+
+=item -v
+
+Show all lines, even if they are identical to the previous line.
+
+=back
 
 =head1 SEE ALSO
 

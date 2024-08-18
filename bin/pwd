@@ -37,11 +37,14 @@ else
 	die "Usage: pwd [-L|-P]\n";
 }
 
-# Account for / and \ on Win32 and non-Win32 systems
-($^O=~/Win32/) ? ($dir) =~s/\//\\/g : ($dir);
-
+unless (defined $dir) {
+	warn "pwd: $!\n";
+	exit 1;
+}
+if ($^O =~ m/Win32/) {
+	$dir =~ tr/\//\\/;
+}
 print $dir . "\n";
-
 exit;
 
 __END__

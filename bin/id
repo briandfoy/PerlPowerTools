@@ -21,10 +21,9 @@ License:
 
 use strict;
 use Getopt::Std;
-use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p $opt_h);
+use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p);
 
-&help unless getopts('Gnuagraph');
-&help if ( $opt_h );
+getopts('Gnugrap') or help();
 if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
 	print STDERR "You may only choose one of -G, -g, -p, or -u.  Doh!\n\n";
 	&help;
@@ -33,17 +32,20 @@ if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
 my($user,$pw,$uid,$gid,$tp);
 
 if ( @ARGV ) { # user specified
+	help() if scalar(@ARGV) > 1;
 	($user,$pw,$uid,$gid) = getpwnam $ARGV[0];
-	($user,$pw,$uid,$gid) = getpwuid $ARGV[0] unless ( $uid );
-	die "id: $ARGV[0]: No such user\n" unless ( $uid );
+	if (!defined($uid) && $ARGV[0] =~ m/\A[0-9]+\Z/) {
+		($user,$pw,$uid,$gid) = getpwuid $ARGV[0];
+	}
+	die "id: $ARGV[0]: No such user\n" unless (defined $uid);
 }
 
 if ( $opt_u ) { # print uid
-	$tp = ($uid)?$uid:($opt_r)?$<:$>;
+	$tp = defined $uid ? $uid : $opt_r ? $< : $>;
 	$tp = scalar getpwuid $tp || $tp if ( $opt_n );
 }
 elsif ( $opt_g ) { # print gid
-	$tp = ($gid)?$gid:(split(/\s+/,($opt_r)?$(:$)))[0];
+	$tp = defined $gid ? $gid : (split(/\s+/,($opt_r)?$(:$)))[0];
 	$tp = scalar getgrgid $tp || $tp if ( $opt_n );
 }
 elsif ( $opt_p ) { # human-readable form (names when possible, etc.)
@@ -155,16 +157,8 @@ print "$tp\n";
 exit 0;
 
 sub help {
-	print STDERR
-"usage:	id [user]
-	id -G [-n] [user]
-	id -g [-nr] [user]
-	id -u [-nr] [user]
-	id -p [user]
-	id -h
-	id -a
-";
-	exit 1;
+	require Pod::Usage;
+	Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
 =head1 NAME
@@ -173,7 +167,11 @@ id - show user information
 
 =head1 SYNOPSIS
 
-id [-Gnuagraph] [user]
+	id [user]
+	id -G [-n] [user]
+	id -g [-nr] [user]
+	id -u [-nr] [user]
+	id -p [user]
 
 =head1 DESCRIPTION
 
@@ -198,9 +196,6 @@ Nothing.  The option is included for compatibility with some versions of id.
 =item I<-g>
 Display the effective group ID.
 
-=item I<-h>
-Display the usage help message.
-
 =item I<-n>
 Force the options C<-G>, C<-g> and C<-u> to display the matching name
 instead of the number for the user and group IDs.  If any of the ID
@@ -208,7 +203,7 @@ numbers do not have a matching name, the number will be displayed
 as usual.
 
 =item I<-p>
-Display the user/group information on seperate lines.  If the username
+Display the user/group information on separate lines.  If the username
 returned by getlogin is different than the username associated with
 the calling program's user ID, it is displayed preceded by the phrase
 "login".  The real ID, effective user ID (if different), real group ID,

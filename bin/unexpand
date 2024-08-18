@@ -27,56 +27,73 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+
 my $tabstop = 8;
 my $opt_a = 0;
 my @tabstops;
 my @files;
 
-sub usage($;$)
-{
-    print <<"EOF";
-Usage:
-unexpand [-h] [-a] [-tabstop] [-tab1, tab2, ...] [file ...]
-EOF
-    print STDERR $_[1] if $_[1];
-    exit $_[0];
-}
-
-usage(1) unless scalar @ARGV > 0;
-usage(0) if grep {$_ eq "-h"} @ARGV;
-
-my $arg;
-while($arg = shift @ARGV) {
-    $opt_a = 1, next if $arg eq "-a";
-    if($arg =~ /^-(.*)/) {
-	@tabstops = split(/,/, $1);
-	usage(1) if grep /\D/, @tabstops;
-	next;
+while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
+    my $val = $1;
+    if ($val eq '-') { # '--' terminator
+	shift @ARGV;
+	last;
     }
-    push @files, $arg;
+    if ($val eq 'a') {
+	$opt_a = 1;
+    } else {
+	@tabstops = split /,/, $val;
+	usage() if grep /\D/, @tabstops;
+    }
+    shift @ARGV;
 }
-
-usage(1) unless scalar @files >= 0;
+@files = @ARGV;
 
 # $tabstop is used only if multiple tab stops have not been defined
 $tabstop = $tabstops[0] if scalar @tabstops == 1;
 
-sub is_tab($)
-{
+for my $file (@files) {
+    my $in;
+    unless (open $in, '<', $file) {
+	warn "$Program: couldn't open '$file' for reading: $!'\n";
+	exit EX_FAILURE;
+    }
+    while (<$in>) {
+	unexpand_line($_);
+    }
+    close $in;
+}
+unless (@files) {
+    while (<>) {
+	unexpand_line($_);
+    }
+}
+exit EX_SUCCESS;
+
+sub usage {
+    warn "usage: $Program [-a] [-tabstop] [-tab1, tab2, ...] [file ...]\n";
+    exit EX_FAILURE;
+}
+
+sub is_tab {
     return (grep {$_ eq $_[0]} @tabstops) if scalar @tabstops >= 2;
     return ($_[0] % $tabstop == 0);
 }
 
-sub do_unexpand(@)
-{
-    for my $line(@_) {
+sub unexpand_line {
+    my $line = shift;
 
-	my $cumul = "";
-	my $curs = 0;
-	my @a = split //, $line;
-	my $c;
-	while($c = shift @a) {
-
+    my $cumul = "";
+    my $curs = 0;
+    my @a = split //, $line;
+    my $c;
+    while($c = shift @a) {
 	    if(is_tab($curs)) {
 		if($cumul =~ /^(.*?)  +$/) {
 		    print "$1\t";
@@ -99,17 +116,8 @@ sub do_unexpand(@)
 	    }
 
 	    $cumul .= $c;
-	}
-	print $cumul;
     }
-}
-
-for my $file (@files) {
-    open IN, '<', $file or usage(1, "couldn't open '$file' for reading: $!'");
-
-    do_unexpand <IN>;
-
-    close IN;
+    print $cumul;
 }
 
 __END__
@@ -120,10 +128,7 @@ unexpand - convert spaces to tabs
 
 =head1 SYNOPSIS
 
-expand [B<-h>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
-
-unexpand [B<-h>] [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>]
-[B<file> ...]
+unexpand [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
 
 =head1 DESCRIPTION
 
@@ -140,17 +145,7 @@ the tabs are set at those specific columns.
 I<unexpand> puts tabs back into the data from the standard input or the
 named files and writes the result on the standard output.
 
-Option (with I<expand> and I<unexpand>):
-
-=over 4
-
-=item -h
-
-Print a usage message and exit with a status code indicating success.
-
-=back
-
-Option (with I<unexpand> only):
+=head1 OPTIONS
 
 =over 4
 

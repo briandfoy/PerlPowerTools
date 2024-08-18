@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20230604.001
+# version 20240710.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -14,8 +14,14 @@
 # that has "read and write" permissions on Repository/Contents
 name: release
 
+# https://github.com/actions/checkout/issues/1590
+env:
+    ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 permissions:
     contents: write
+    id-token: write
+    attestations: write
 
 on:
     push:
@@ -90,6 +96,16 @@ jobs:
                 perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; print; last' Changes > Changes-latest
                 cat Changes-latest
               id: extract
+# https://cli.github.com/manual/gh_attestation_verify
+# DISTRO_FILE is the .tar.gz in the release
+# GITHUB_ACCOUNT is the github name of the releaser
+#  gh auth login
+#  gh attestation verify DISTRO_FILE --owner GITHUB_ACCOUNT
+            - name: Generate artifact attestation
+              id: attestation
+              uses: actions/attest-build-provenance@v1
+              with:
+                subject-path: ${{ env.ASSET_NAME }}
             - name: upload
               uses: softprops/action-gh-release@v1
               with:
@@ -97,5 +113,7 @@ jobs:
                 draft: false
                 prerelease: false
                 name: ${{ steps.version.outputs.name }}
-                files: "*.tar.gz"
+                files: |
+                    ${{ env.ASSET_NAME }}
+                    ${{ steps.attestation.outputs.bundle-path }}
                 token: ${{ secrets.RELEASE_ACTION_TOKEN }}

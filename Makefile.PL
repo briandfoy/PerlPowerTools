@@ -105,7 +105,7 @@ my %WriteMakefile = (
 	'ABSTRACT_FROM' => $main_file,
 	'VERSION_FROM'  => $main_file,
 	'LICENSE'       => 'perl',
-	'AUTHOR'        => 'brian d foy <bdfoy@cpan.org>',
+	'AUTHOR'        => 'brian d foy <briandfoy@pobox.com>',
 
 	'EXE_FILES'     => \@exe_files,
 
@@ -138,7 +138,7 @@ my %WriteMakefile = (
 				web  => $github,
 				},
 			bugtracker => {
-				web    => "$github/issues",
+				web  => "$github/issues",
 				},
 			homepage => "https://www.perlpowertools.com/",
 			},

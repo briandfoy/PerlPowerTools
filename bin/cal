@@ -16,111 +16,155 @@ package
 	cal; # hide from PAUSE
 use strict;
 
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my %opts;
+getopts('jy', \%opts) or display_help();
 $cal::num_args = scalar( @ARGV );
 
 if( $cal::num_args == 0 ) {
-	( $cal::month, $cal::year ) = (localtime( time ))[ 4, 5 ];
-	$cal::month++;
-	$cal::year += 1900;
+	my @tm = localtime(time);
+	$cal::year = $tm[5] + 1900;
+	$cal::month = $tm[4] unless $opts{'y'};
 } elsif( $cal::num_args == 1 ) {
-	if( $ARGV[ 0 ] !~ /^\d.*$/o ) {
-		( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-		if( $cal::jd && !($cal::yr) ) {
-			( $cal::month, $cal::year ) = (localtime( time ))[ 4, 5 ];
-			$cal::month++;
-			$cal::year += 1900;
-		}
-		if( $cal::yr ) {
-			$cal::year = (localtime( time ))[ 5 ];
-			$cal::year += 1900;
-		}
-	} else {
-		$cal::year = &get_year( $ARGV[ 0 ] );
-	}
+	$cal::year = &get_year( $ARGV[ 0 ] );
 } elsif( $cal::num_args == 2 ) {
-	if( $ARGV[ 0 ] !~ /^\d.*$/o ) {
-		( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-		if( $cal::yr ) {
-			print "INVALID FLAG.  Can not use -y with year.\n";
-			&display_help();
-		}
-		$cal::year = &get_year( $ARGV[ 1 ] );
-	} else {
-		$cal::month = &get_month( $ARGV[ 0 ] );
-		$cal::year = &get_year( $ARGV[ 1 ] );
-	}
-} elsif( $cal::num_args == 3 ) {
-	( $cal::jd, $cal::yr ) = &get_flags( $ARGV[ 0 ] );
-	if( $cal::yr ) {
+	if( $opts{'y'} ) {
 		print "INVALID FLAG.  Can not use -y with month and year.\n";
-		&display_help();
+		display_help();
 	}
-	$cal::month = &get_month( $ARGV[ 1 ] );
-	$cal::year = &get_year( $ARGV[ 2 ] );
+	$cal::month = &get_month( $ARGV[ 0 ] );
+	$cal::year = &get_year( $ARGV[ 1 ] );
 } else {
 	print "TOO MANY ARGUMENTS.\n";
-	&display_help();
+	display_help();
 }
 
 if( $cal::year && $cal::month ) {
-	&print_month( $cal::year, $cal::month );
+	my @lines = fmt_month($cal::year, $cal::month, 1);
+	print join("\n", @lines), "\n\n";
 } else {
-	my( $i );
-	for( $i = 1; $i < 13; $i++ ) {
-		&print_month( $cal::year, $i );
-		print "\n";
+	print_title();
+	if ($opts{'j'}) {
+		print_year_jd();
+	} else {
+		print_year();
+	}
+	print "\n";
+}
+exit EX_SUCCESS;
+
+sub box_width {
+	return $opts{'j'} ? 28 : 21;
+}
+
+sub box_hcount {
+	return $opts{'j'} ? 2 : 3;
+}
+
+sub print_title {
+	my $width = box_hcount() * box_width() + 1;
+	my $margin = int(($width / 2) - (length("$cal::year") / 2));
+	print ' ' x $margin, $cal::year, "\n\n";
+}
+
+sub print_year_jd {
+	my $w = box_width();
+	my @month = (1 .. 12);
+	while (@month) {
+		my @mon = splice @month, 0, 2;
+		my @m0 = fmt_month($cal::year, $mon[0], 0);
+		my @m1 = fmt_month($cal::year, $mon[1], 0);
+
+		foreach my $i (0 .. 7) {
+			printf "%-${w}s %-${w}s\n", $m0[$i], $m1[$i];
+		}
 	}
 }
 
-sub print_month {
-	my( $year, $month ) = @_;
+sub print_year {
+	my $w = box_width();
+	my @month = (1 .. 12);
+	while (@month) {
+		my @mon = splice @month, 0, 3;
+		my @m0 = fmt_month($cal::year, $mon[0], 0);
+		my @m1 = fmt_month($cal::year, $mon[1], 0);
+		my @m2 = fmt_month($cal::year, $mon[2], 0);
+
+		foreach my $i (0 .. 7) {
+			printf "%-${w}s %-${w}s %-${w}s\n", $m0[$i], $m1[$i], $m2[$i];
+		}
+	}
+}
+
+sub fmt_month {
+	my( $year, $month, $titleyr ) = @_;
 	my( @month ) = &make_month_array( $year, $month );
-	my( $title, $length, $diff, $left, $right ) = ();
-	my( $end, $x, $size ) = ();
+	my( $title, $margin, $end, $x, $buf ) = ();
 	my( @months ) = ( '', 'January', 'February', 'March', 'April', 'May',
 					  'June', 'July', 'August', 'September', 'October',
 					  'November', 'December' );
-	my( @days ) = ( '  Su', '   M', '  Tu', '   W', '  Th', '   F', '  Sa' );
-	$size = scalar( @month );
-	$title = "$months[ $month ] $year";
-	$length = length( $title );
-	$diff = 28 - $length;
-	$right = int($diff / 2);
-	$left = $diff - $right;
-	$title = ' ' x $left."$title".' ' x $right;
-	print "$title\n";
-	for my $day (@days) {
-		print "$day";
+	my( @days ) = ('Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa' );
+	my @lines;
+
+	$title = $months[$month];
+	$title .= " $year" if $titleyr;
+	$margin = int((box_width() / 2) - (length($title) / 2));
+	$title = (' ' x $margin) . $title;
+	push @lines, $title;
+
+	$buf = '';
+	foreach my $day (@days) {
+		if ($opts{'j'}) {
+			$buf .= sprintf '%3s ', $day;
+		} else {
+			$buf .= sprintf '%2s ', $day;
+		}
 	}
+
 	$end = 0;
-	for( $x = 0; $x < $size; $x++ ) {
-		if( $end == 0 ) { print "\n"; }
-		print "$month[ $x ]";
+	for( $x = 0; $x < scalar(@month); $x++ ) {
+		if ($end == 0) {
+			push @lines, $buf;
+			$buf = '';
+		}
+		if ($opts{'j'}) {
+			$buf .= sprintf '%3s ', $month[$x];
+		} else {
+			$buf .= sprintf '%2s ', $month[$x];
+		}
 		$end++;
 		if( $end > 6 ) {
 			$end = 0;
 		}
 	}
-	print "\n";
+	push @lines, $buf;
+	return @lines;
 }
 
 sub make_month_array {
 	my( $year, $month ) = @_;
-	my( @month_array, $numdays, $remain, $x, $y ) = ();
+	my( @month_array, $numdays, $x, $y ) = ();
 	my( $firstweekday ) = &day_of_week_num( $year, $month, 1 );
 	$numdays = &days_in_month( $year, $month );
-	$y = 1;
-	if( $cal::jd ) {
+	if ($opts{'j'}) {
 		$y = &day_of_year( $year, $month, 1 );
+	} else {
+		$y = 1;
 	}
-	for( $x = 0; $x < $firstweekday; $x++ ) { $month_array[$x] = '    '; }
+	for ($x = 0; $x < $firstweekday; $x++) {
+		$month_array[$x] = '';
+	}
 	if( !(($year == 1752) && ($month == 9)) ) {
 		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
-			$month_array[$x + $firstweekday - 1] = sprintf( "%4d", $y);
+			$month_array[$x + $firstweekday - 1] = $y;
 		}
 	} else {
 		for( $x = 1; $x <= $numdays; $x++, $y++ ) {
-			$month_array[$x + $firstweekday - 1] = sprintf( "%4d", $y);
+			$month_array[$x + $firstweekday - 1] = $y;
 			if( $y == 2 ) {
 				$y = 13;
 			}
@@ -198,7 +242,7 @@ sub get_month {
 	my( $month ) = @_;
 	if( $month < 1 || $month > 12 || $month !~ /^\d+$/o ) {
 		print "INVALID MONTH ENTERED.\n";
-		&display_help();
+		display_help();
 	}
 	return( $month );
 }
@@ -207,33 +251,18 @@ sub get_year {
 	my( $year ) = @_;
 	if( $year < 1 || $year > 9999 || $year !~ /^\d+$/o ) {
 		print "INVALID YEAR ENTERED.\n";
-		&display_help();
+		display_help();
 	}
 	return( $year );
 }
 
-sub get_flags {
-	my( $flags ) = @_;
-	my( $jd, $yr ) = ();
-	if( ($flags =~ /.[^jy\?]/o) || ($flags !~ /^-\w+/o) ) {
-		print "INVALID FLAGS ENTERED.\n";
-		&display_help();
-	}
-	if( $flags =~ /j/o ) { $jd = 1;	}
-	if( $flags =~ /y/o ) { $yr = 1; }
-	if( $flags =~ /\?/o ) { &display_help(); }
-	return( $jd, $yr );
-}
-
 sub display_help {
 	print <<END_HELP;
-cal.pl - part of the Perl Power Tools
-cal.pl [-jy?] [[month] year]
+usage: cal [-jy] [[month] year]
 
     -j : Display calendar using julian days, where each day
          number is the day of the year.
     -y : Display entire year calendar for the current year.
-    -? : Display this help information.
  month : The month of the entered year for which to display
          a calendar.  Valid months are 1 through 12.
   year : The year for which to display the calendar.  If no
@@ -243,9 +272,10 @@ cal.pl [-jy?] [[month] year]
 If no arguments are passed, prints the calendar for the current
 month and year.
 END_HELP
-	exit;
+	exit EX_FAILURE;
 }
 
+__END__
 
 =head1 NAME
 
@@ -253,7 +283,7 @@ cal - displays a calendar and the date of easter
 
 =head1 SYNOPSIS
 
-cal.pl [-jy?] [[month] year]
+    cal [-jy] [[month] year]
 
 If no arguments are supplied, the current month will be displayed.  If
 only the -j flag is passed as an argument, the current month will be
@@ -274,13 +304,7 @@ leap-years, December 31 is day 365.
 
 =item -y
 
-displays the calendar for the current year.  Note this is mutually
-exclusive with the -n flag above.
-
-=item -?
-
-displays information and usage instructions for the program.  If this
-flag is included in any flag combination, it overrides all other flags.
+displays the calendar for the current year.
 
 =back
 

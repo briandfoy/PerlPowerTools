@@ -15,21 +15,29 @@ License: artistic2
 
 use strict;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+if (@ARGV) {
+	warn "usage: whoami\n";
+	exit EX_FAILURE;
+}
 my @coderefs = (
 	sub { getpwuid($>) },
 	sub { require Win32; Win32::LoginName() },
 	sub { getlogin },
-	sub { defined $ENV{USER} ? $ENV{USER} : $ENV{USERNAME} },
+	sub { $ENV{'USER'} },
+	sub { $ENV{'USERNAME'} },
 	);
 
 foreach my $coderef ( @coderefs ) {
 	my $user = eval { $coderef->() };
 	next unless defined $user;
 	print "$user\n";
-	exit;
+	exit EX_SUCCESS;
 	}
 
-exit 1;
+exit EX_FAILURE;
 
 =head1 NAME
 

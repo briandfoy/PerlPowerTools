@@ -31,7 +31,6 @@ HERE
 
 diag( "find2perl is at <$find2perl>" );
 
-
 subtest check_find2perl => \&check_find, "find2perl", $find2perl;
 subtest check_find      => \&check_find, "find", $find;
 
@@ -93,7 +92,7 @@ sub find_find2perl {
 			split( /$Config{path_sep}/, $ENV{PATH} ),
 			;
 
-	push @candidates, catfile( $ENV{PERL_LOCAL_LIB_ROOT}, 'bin', 'find2perl' )
+	push @candidates, grep { -e } ( catfile( $ENV{PERL_LOCAL_LIB_ROOT}, 'bin', 'find2perl' ) )
 		if defined $ENV{PERL_LOCAL_LIB_ROOT};
 
 	return defined $candidates[0] ? $candidates[0] : ();

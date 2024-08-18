@@ -18,40 +18,92 @@ License:
 
 use strict;
 use integer;
-use Getopt::Std;
-use vars qw($opt_h $opt_o);
 
-&help unless getopts('ho:');
-&help if ( $opt_h );
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-# default to bsd unless spec.
-$opt_o = 1 unless ( $0 =~ /cksum$/ || defined($opt_o) );
+use constant BUFLEN => 4096;
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant MASK32 => 0xffffffff;
+use constant MASK16 => 0xffff;
+use constant MASK8  => 0xff;
+
+my $Program = basename($0);
+
+my %opt;
+help() unless getopts('a:o:', \%opt);
+
+# crc default for cksum; bsd default for sum
+my $alg;
+if ($Program =~ m/cksum/) {
+	$alg = \&crc32;
+} else {
+	$alg = \&sum1;
+}
+if (defined $opt{'a'}) {
+	help() if defined $opt{'o'};
+	my %codetab = (
+		'crc'    => \&crc32,
+		'md5'    => \&do_md5,
+		'sha1'   => \&sha_all,
+		'sha256' => \&sha_all,
+		'sha384' => \&sha_all,
+		'sha512' => \&sha_all,
+	);
+	if (!exists($codetab{$opt{'a'}})) {
+		warn "$Program: invalid algorithm name\n";
+		help();
+	}
+	$alg = $codetab{$opt{'a'}};
+}
+if (defined $opt{'o'}) {
+	if ($opt{'o'} ne '1' && $opt{'o'} ne '2') {
+		warn "$Program: -o expects 1 or 2\n";
+		exit EX_FAILURE;
+	}
+	if ($opt{'o'} eq '1') {
+		$alg = \&sum1;
+	} else {
+		$alg = \&sum2;
+	}
+}
 
 @ARGV = ( "-" ) unless ( @ARGV ); # STDIN if no files specified.
 
-# returns 1 on file read error, 0 if all ok.
-my($exitval) = 0; # return value
+my $exitval = EX_SUCCESS;
 
 foreach (@ARGV) {
 	my $fh;
 	if ($_ eq '-') {
 		$fh = *STDIN;
+	} elsif (-d $_) {
+		warn "$Program: '$_' is a directory\n";
+		$exitval = EX_FAILURE;
+		next;
 	} elsif (!open($fh, '<', $_)) {
-		warn "$0: $_: $!\n";
-		$exitval = 1;
+		warn "$Program: failed to open '$_': $!\n";
+		$exitval = EX_FAILURE;
 		next;
 	}
-	my($rval,$crc,$len)=
-		($opt_o==0)?&crc32($fh):($opt_o==1)?&sum1($fh):&sum2($fh);
+	my ($rval, $crc, $len) = $alg->($fh);
 	unless ( defined($rval) && ($rval == 0) ) {
-		warn "$0: $_: $!\n";
-		$exitval = 1;
+		warn "$Program: '$_': $!\n";
+		$exitval = EX_FAILURE;
 		next;
 	}
 
 	# Display output information
-	printf "%lu %lu%s\n",$crc,$len,($_ eq "-")?"":" $_";
-	close($fh) if ($_ ne '-');
+	if (defined $len) {
+		printf "%lu %lu", $crc, $len;
+	} else {
+		print $crc, ' '; # for md5
+	}
+	if ($_ ne '-') {
+		print " $_";
+		close $fh;
+	}
+	print "\n";
 }
 
 exit $exitval;
@@ -60,12 +112,17 @@ sub sum1 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
 	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
+	my @chars;
 
-	while($num = sysread $fh, $buf, $buflen) {
-		for($len = ($len+$num), $i = 0; $i<$num; $i++) {
-			$crc |= 0x10000 if ( $crc & 1 ); # get ready for rotating the 1 below
-			$crc = (($crc>>1)+ord(substr $buf, $i, 1)) & 0xffff; # keep to 16-bit
+	while($num = sysread $fh, $buf, BUFLEN) {
+		$len += $num;
+		@chars = unpack 'C*', $buf;
+		foreach $i (@chars) {
+			if ($crc & 1) {
+				$crc |= 0x10000; # get ready for rotating the 1 below
+			}
+			$crc = ($crc >> 1) + $i;
+			$crc &= MASK16; # keep to 16-bit
 		}
 	}
 
@@ -75,19 +132,36 @@ sub sum1 {
 sub sum2 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
-	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
+	my($buf,$num);
 
-	while($num = sysread $fh, $buf, $buflen) {
+	while($num = sysread $fh, $buf, BUFLEN) {
 		$len += $num;
 		$crc += unpack("%32C*", $buf);
 	}
 
 	# crc = s (total of bytes)
-	$crc = ($crc & 0xffff) + ($crc & 0xffffffff) / 0x10000; # r
-	$crc = ($crc & 0xffff) + ($crc / 0x10000); # cksum
+	$crc = ($crc & MASK16) + ($crc & MASK32) / 0x10000; # r
+	$crc = ($crc & MASK16) + ($crc / 0x10000); # cksum
 
 	return $num,$crc,($len+511)/512; # round # of blocks up ...
+}
+
+sub do_md5 {
+	my $fh = shift;
+
+	require Digest::MD5;
+	my $ctx = Digest::MD5->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub sha_all {
+	my $fh = shift;
+
+	require Digest::SHA;
+	my $ctx = Digest::SHA->new($opt{'a'});
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
 }
 
 # does a bunch of ands to keep the answers within 32-bits
@@ -95,8 +169,7 @@ sub crc32 {
 	my($fh) = shift;
 	my($crc) = my($len) = 0;
 	my($buf,$num,$i);
-	my($buflen) = 4096; # buffer is "4k", you can up it if you want...
-	my $MASK32 = 0xffffffff;
+	my @chars;
 
 	# crctable/crc32 alg converted from openbsd's cksum program ...
 	my(@crctable) = (
@@ -154,37 +227,36 @@ sub crc32 {
 		0xa2f33668, 0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 	);
 
-	while($num = sysread $fh, $buf, $buflen) {
-		for($len = ($len + $num) & $MASK32, $i = 0; $i < $num; $i++) {
-			$crc = ($crc << 8 ^ $crctable[$crc >> 24 ^ ord(substr $buf, $i, 1)])
-					& $MASK32;
+	while($num = sysread $fh, $buf, BUFLEN) {
+		$len = ($len + $num) & MASK32;
+		@chars = unpack 'C*', $buf;
+		foreach $i (@chars) {
+			my $j = $crc >> 24 ^ $i;
+			$crc = $crc << 8 ^ $crctable[$j];
+			$crc &= MASK32;
 		}
 	}
 
 	my($rlen) = $len; # for reporting ...
 	for(;$len!=0;$len>>=8) { # MSB first
-		$crc = (($crc << 8) ^ $crctable[($crc >> 24) ^ ($len&0xff)])
-				& $MASK32;
+		$i = ($crc >> 24) ^ ($len & MASK8);
+		$crc = ($crc << 8) ^ $crctable[$i];
+		$crc &= MASK32;
 	}
 	$crc = ~$crc;
-	$crc &= $MASK32;
+	$crc &= MASK32;
 	return $num, $crc, $rlen;
 }
 
 sub help {
 	print "
-usage: $0 [-o 0|1|2] [-h] [file ...]
+usage: $Program [-a alg] [-o 1|2] [file ...]
 
--o	Specifies algorithm to use ... 0 is CRC32 (default), 1 is BSD
-	Algorithm 1, 2 is SYSV Algorithm 2.
--h	Help!  (this display)
-
-Note: If this program is launched with a name other than 'cksum', the default
-      of BSD Algorithm 1 is used unless otherwise specified via switch.
+ -a alg    Select algorithm: crc, md5, sha1, sha256, sha384, sha512
+ -o alg    Select historic algorithm: 1 (BSD), 2 (SYSV)
 
 ";
-
-	exit 0;
+	exit EX_FAILURE;
 }
 
 =head1 NAME
@@ -193,32 +265,50 @@ sum - display file checksums and block counts
 
 =head1 SYNOPSIS
 
-B<sum>
-[ B<-o> I<0|1|2> ]
-[ B<-h> ]
-[ I<filename ...> ]
+    sum [-a alg] [-o 1|2] [file ...]
 
 =head1 DESCRIPTION
 
-sum outputs three space seperated values:  file CRC, file size, and
-file name.  Can be used to find errors in transmitted files.  You should
-not use sum for security checks as they are easily fooled.  Look into
-md5sum for something a bit more secure.  If no file names are specified,
-stdin is used and no file name will displayed in the output.
+sum outputs three space separated values:  file checksum, file size, and
+file name.  The output can be useful for indicating errors in transmitted files.
+You should not use sum for security checks as they are easily fooled.
+If no file names are specified, the standard input will be used.
 
-=head1 OPTIONS AND ARGUMENTS
+=head1 OPTIONS
 
 =over 4
 
-=item I<-h>	Display the usage help message.
+=item -a crc
 
-=item I<-o>	Specify the output type for file CRC and size.
-C<0>--CRC is computed using the CRC 32 algorithm, the default unless
-otherwise specified.  Output size is in bytes.	C<1>--CRC is computed
-using BSD Historic Algorithm 1 (16-bit checksum with right rotation
-between byte addition).  Output size is number of 1024 byte blocks.
-C<2>--CRC is computed using SYSV Historic Algorithm 2 (32-bit checksum).
-Output size is number of 512 byte blocks.
+CRC32 algorithm
+
+=item -a md5
+
+MD5 algorithm
+
+=item -a sha1
+
+SHA-1 algorithm
+
+=item -a sha256
+
+SHA-2/256 algorithm
+
+=item -a sha384
+
+SHA-2/384 algorithm
+
+=item -a sha512
+
+SHA-2/512 algorithm
+
+=item -o 1
+
+Historic BSD algorithm
+
+=item -o 2
+
+Historic SYSV algorithm
 
 =back
 
@@ -226,13 +316,12 @@ Output size is number of 512 byte blocks.
 
 sum returns 0 on success or 1 if an error occurred.
 
-The program checks the name in which it was called.  If it is anything
-except "cksum", the output will default to BSD Historic Algorithm 1
-unless otherwise specified.  Otherwise, the default is CRC32 mode.
+If the program was executed as "cksum" the default algorithm is CRC32,
+otherwise the default algorithm is BSD.
 
-Algorithms 1 and 2 will round up to the next block count for partial blocks.
+The BSD and SYSV algorithms round up to the next block count for partial blocks.
 
-CRC 32 algorithm ported directly from OpenBSD cksum C source code.
+The CRC32 algorithm was ported directly from OpenBSD cksum C source code.
 
 =head1 HISTORY
 

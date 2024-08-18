@@ -16,11 +16,19 @@ License: perl
 # tac - concatenate and print files in reverse
 #
 
-use Getopt::Std;
+use strict;
 
-my $VERSION = '0.17';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-getopts('bBrs:S:', \my %opts);
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+my $VERSION = '0.18';
+
+my %opts;
+getopts('bBrs:S:', \%opts) or usage();
 my %long = qw/
     b before
     B binary
@@ -36,14 +44,29 @@ if (defined $opts{separator} && $opts{regex}) {
         $_ = qr/$_/;
     }
 }
-
+if (defined $opts{'size'}) {
+    if ($opts{'size'} !~ m/\A[0-9]+\Z/ || $opts{'size'} == 0) {
+        warn "$Program: option -S expects a number >= 1\n";
+        usage();
+    }
+}
 $opts{files} = \@ARGV;
 
-my $fh =  IO::Tac->new(%opts) or die "$0: can't open file: $!\n";
+my $fh = IO::Tac->new(%opts);
+unless ($fh) {
+    exit EX_FAILURE;
+}
 print while <$fh>;
+exit EX_SUCCESS;
+
+sub usage {
+    warn "$Program version $VERSION\n";
+    warn "usage: $Program [-Bbr] [-s separator] [-S bytes] [file...]\n";
+    exit EX_FAILURE;
+}
 
 END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
+    close STDOUT || die "$Program: can't close stdout: $!\n";
     $? = 1 if $? == 255;  # from die
 }
 
@@ -88,15 +111,31 @@ sub TIEHANDLE {
        $mode |= O_BINARY if *$self->{binary};
 
     # Open files for reading.
-    @files = map {
-        local *FH;
-        sysopen FH, $_, $mode   or return;
-        sysseek FH, 0, 2        or return;
-        [$_, *FH];
-    } @files ? @files : @ARGV;
-
-    # Add files and filehandles to object.
-    *$self->{files} = @files ? \@files : [['-', *STDIN]];
+    if (scalar(@files) == 0 && scalar(@ARGV) == 0) {
+        *$self->{'files'} = [['-', *STDIN]];
+    } else {
+        if (scalar(@files) == 0) {
+            @files = @ARGV;
+        }
+        *$self->{'files'} = [];
+        foreach my $file (@files) {
+            if (-d $file) {
+                warn "$Program: '$file' is a directory\n";
+                next;
+            }
+            my $fh;
+            unless (sysopen $fh, $file, $mode) {
+                warn "$Program: failed to open '$file': $!\n";
+                next;
+            }
+            unless (sysseek $fh, 0, 2) {
+                warn "$Program: seek failed for '$file': $!\n";
+                next;
+            }
+            push @{ *$self->{'files'} }, [$file, $fh];
+        }
+    }
+    return if (scalar @{ *$self->{'files'} } == 0);
 
     # Keep track of current file.
     $ARGV = *$self->{files}[0][0];
@@ -191,7 +230,7 @@ sub get_lines {
         # record separator has been broken across two chunks.
         my $file = *$self->{files}[0];
         CHUNK: {
-            my $tell = tell $fh;
+            my $tell = sysseek $fh, 0, 1;
             unless ($tell > $size) {
                 sysseek $fh, 0, 0       or confess "Bad seek on [$file]: $!";
                 sysread $fh, $_, $tell  or confess "Bad read on [$file]: $!";
@@ -330,7 +369,7 @@ tac - concatenate and print files in reverse
 
 =head1 SYNOPSIS
 
-B<tac> [-br] [-s separator] [-B] [-S bytes] [file...]
+B<tac> [-Bbr] [-s separator] [-S bytes] [file...]
 
 =head1 DESCRIPTION
 

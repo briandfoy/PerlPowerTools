@@ -1,0 +1,266 @@
+#!/usr/bin/perl
+
+=encoding utf8
+
+=begin metadata
+
+Name: bcd
+Description: format input as punch cards
+Author: Steve Hayman
+License: bsd
+
+=end metadata
+
+=cut
+
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my @Holes = (
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x206,	  0x20a,   0x042,   0x442,   0x222,   0x800,   0x406,
+    0x812,	 0x412,	  0x422,   0xa00,   0x242,   0x400,   0x842,   0x300,
+    0x200,	 0x100,	  0x080,   0x040,   0x020,   0x010,   0x008,   0x004,
+    0x002,	 0x001,	  0x012,   0x40a,   0x80a,   0x212,   0x00a,   0x006,
+    0x022,	 0x900,	  0x880,   0x840,   0x820,   0x810,   0x808,   0x804,
+    0x802,	 0x801,	  0x500,   0x480,   0x440,   0x420,   0x410,   0x408,
+    0x404,	 0x402,	  0x401,   0x280,   0x240,   0x220,   0x210,   0x208,
+    0x204,	 0x202,	  0x201,   0x082,   0x806,   0x822,   0x600,   0x282,
+    0x022,	 0x900,	  0x880,   0x840,   0x820,   0x810,   0x808,   0x804,
+    0x802,	 0x801,	  0x500,   0x480,   0x440,   0x420,   0x410,   0x408,
+    0x404,	 0x402,	  0x401,   0x280,   0x240,   0x220,   0x210,   0x208,
+    0x204,	 0x202,	  0x201,   0x082,   0x806,   0x822,   0x600,   0x282,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x0,	  0x0,	   0x0,	    0x0,     0x0,     0x0,     0x0,
+    0x0,	 0x206,	  0x20a,   0x042,   0x442,   0x222,   0x800,   0x406,
+    0x812,	 0x412,	  0x422,   0xa00,   0x242,   0x400,   0x842,   0x300,
+    0x200,	 0x100,	  0x080,   0x040,   0x020,   0x010,   0x008,   0x004,
+    0x002,	 0x001,	  0x012,   0x40a,   0x80a,   0x212,   0x00a,   0x006,
+    0x022,	 0x900,	  0x880,   0x840,   0x820,   0x810,   0x808,   0x804,
+    0x802,	 0x801,	  0x500,   0x480,   0x440,   0x420,   0x410,   0x408,
+    0x404,	 0x402,	  0x401,   0x280,   0x240,   0x220,   0x210,   0x208,
+    0x204,	 0x202,	  0x201,   0x082,   0x806,   0x822,   0x600,   0x282,
+    0x022,	 0x900,	  0x880,   0x840,   0x820,   0x810,   0x808,   0x804,
+    0x802,	 0x801,	  0x500,   0x480,   0x440,   0x420,   0x410,   0x408,
+    0x404,	 0x402,	  0x401,   0x280,   0x240,   0x220,   0x210,   0x208,
+    0x204,	 0x202,	  0x201,   0x082,   0x806,   0x822,   0x600,   0x282,
+);
+
+my @Rowchars = (
+	q{ }, q{ }, q{ }, '1', '2', '3', '4', '5', '6', '7', '8', '9'
+);
+my $Cols = 48;
+my $Program = basename($0);
+
+sub usage {
+	print "usage: $Program [-l] [string ...]\n";
+	exit EX_FAILURE;
+}
+
+sub bit {
+	return ($_[0] & (1 << $_[1]));
+}
+
+sub printcard {
+	my $str = shift;
+	my $len = length $str;
+
+	for (my $i = 0; $i < $len; $i += $Cols) {
+		printonecard(substr $str, $i, $Cols);
+	}
+}
+
+sub printonecard {
+	my $str = shift;
+	my $ustr = uc $str;
+
+	# top of card
+	print q{ }, '_' x $Cols, "\n";
+
+	# line of text.  Leave a blank if the character doesn't have
+	# a hole pattern.
+	my @chars = unpack 'C*', $ustr;
+	print '/';
+	foreach my $p (@chars) {
+		if ($Holes[$p]) {
+			print chr($p);
+		} else {
+			print q{ };
+		}
+	}
+
+	my $remain = $Cols - scalar(@chars);
+	print q{ } x $remain, "|\n";
+
+	# 12 rows of potential holes; output a ']', which looks kind of
+	# like a hole, if the appropriate bit is set in the Holes[] table.
+	# The original bcd output a '[', a backspace, five control A's,
+	# and then a ']'.  This seems a little excessive.
+	foreach my $row (0 .. 11) {
+		print '|';
+		foreach my $p (@chars) {
+			if (bit($Holes[$p], 11 - $row)) {
+				print ']';
+			} else {
+				print $Rowchars[$row];
+			}
+		}
+		foreach my $i (scalar(@chars) .. ($Cols - 1)) {
+			print $Rowchars[$row];
+		}
+		print "|\n";
+	}
+
+	# bottom of card
+	print '|', '_' x $Cols, "|\n";
+}
+
+sub decode {
+	my (@buf, @lines, $line);
+
+	# ignore top of card and text line
+	foreach (1 .. 2) {
+		$line = readline;
+		return 1 unless (defined $line);
+	}
+	# twelve lines of data
+	foreach (1 .. 12) {
+		$line = readline;
+		return 1 unless (defined $line);
+		chomp $line;
+		return 1 unless ($line =~ s/\A\|//);
+		return 1 unless ($line =~ s/\|\Z//);
+		push @lines, $line;
+	}
+	# ignore bottom of card
+	$line = readline;
+	return 1 unless (defined $line);
+
+	foreach my $col (0 .. ($Cols - 1)) {
+		my $val = 0;
+		foreach my $i (0 .. $#lines) {
+			if (substr($lines[$i], $col, 1) eq ']') {
+				$val |= 1 << (11 - $i);
+			}
+		}
+		$buf[$col] = ' ';
+		foreach my $i (0 .. 255) {
+			if ($Holes[$i] == $val && $Holes[$i]) {
+				$buf[$col] = chr $i;
+				last;
+			}
+		}
+	}
+	foreach my $col (reverse 0 .. ($Cols - 1)) {
+		if ($buf[$col] eq ' ') {
+			$buf[$col] = "\0";
+		} else {
+			last;
+		}
+	}
+	print join('', @buf), "\n";
+	return 0;
+}
+
+MAIN: {
+	my %opt;
+	getopts('dl', \%opt) or usage();
+	$Cols = 80 if $opt{'l'};
+
+	if ($opt{'d'}) {
+		while (decode() == 0) {
+			next;
+		}
+		exit EX_SUCCESS;
+
+	}
+	if (@ARGV) {
+		while (my $str = shift) {
+			printcard($str);
+		}
+	} else {
+		while (readline) {
+			printcard($_);
+		}
+	}
+	exit EX_SUCCESS;
+}
+
+__END__
+
+=head1 NAME
+
+bcd - format input as punch cards
+
+=head1 SYNOPSIS
+
+    bcd [-l] [string ...]
+    bcd -d [-l]
+
+=head1 DESCRIPTION
+
+The bcd command reads input from either command line arguments or
+the standard input. An ASCII art representation of punch card data
+is produced.
+
+=head2 OPTIONS
+
+The following options are available:
+
+=over 2
+
+=item -d
+
+Decode punch card data from standard input
+
+=item -l
+
+Create punch cards with 80 columns. The default is 48 columns.
+
+=back
+
+=head1 AUTHOR
+
+Written by Steve Hayman. Translated to Perl by Michael Mikonos.
+
+=head1 COPYRIGHT
+
+ Copyright (c) 1989, 1993
+	The Regents of the University of California.  All rights reserved.
+
+ This code is derived from software contributed to Berkeley by
+ Steve Hayman of the Indiana University Computer Science Dept.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the University nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.

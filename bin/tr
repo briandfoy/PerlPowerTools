@@ -11,10 +11,15 @@ License: perl
 
 =cut
 
-
-# tr - translate or delete characters
-
 use strict;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
 
 my(
     %opt,           # option hash
@@ -22,49 +27,43 @@ my(
     $string2,       # to set
 );
 
-
-END {
-    close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
-}
-
 sub usage {
-    warn "$0: @_\n" if @_;
-    die "usage: $0 [-csd] string1 string2 [file ...]\n";
+    warn "usage: $Program [-Ccds] string1 string2\n";
+    exit EX_FAILURE;
 }
 
-@opt{ qw/c s d U C/ } = ('') x 5;
-
-while ($ARGV[0] =~ s/^-(?=.)//) {
-    for my $flag (split(//,$ARGV[0])) {
-        usage("unknown flag: `$flag'") unless 'csdUC' =~ /\Q$flag/;
-        warn "$0: `$flag' flag already set\n" if $opt{$flag};
-        $opt{$flag} = $flag;
-    }
-    shift;
+getopts('Ccds', \%opt) or usage();
+my $narg = ($opt{'d'} && !$opt{'s'}) ? 1 : 2;
+if (scalar(@ARGV) < $narg) {
+    warn "missing operand\n";
+    usage();
 }
-
-usage("Not enough arguments") unless @ARGV > 1;
+if (scalar(@ARGV) > $narg) {
+    warn "extra operand\n";
+    usage();
+}
 
 # remove spurious [...]
 for (($string1, $string2) = splice(@ARGV, 0, 2)) {
     s/^\[(.*?)\]$/$1/;
 }
 
-my $opts = join('', @opt{qw/c s d/});
-
 # this is in an eval because tr/// needs to
 # see its parts at compile time
+my $cflag = ($opt{'C'} || $opt{'c'}) ? 'c' : '';
+my $dflag = $opt{'d'} ? 'd' : '';
+my $sflag = $opt{'s'} ? 's' : '';
 eval qq{
-    while (<>) {
-	tr[$string1][$string2]$opts;
+    while (<STDIN>) {
+	tr[$string1][$string2]$cflag$dflag$sflag;
 	print;
     }
+    1;
+} or do {
+    warn "$Program: $@\n";
+    exit EX_FAILURE;
 };
-
-die if $@;
-
-exit (0); # XXX: Doen't detect failed opens
+exit EX_SUCCESS;
 
 __END__
 
@@ -74,7 +73,7 @@ tr - translate or delete characters
 
 =head1 SYNOPSIS
 
-tr [ -cdsUC ] [ I<SEARCHLIST> [ I<REPLACEMENTLIST> ] ]
+tr [ -Ccds ] [ I<SEARCHLIST> [ I<REPLACEMENTLIST> ] ]
 
 =head1 DESCRIPTION
 
@@ -88,25 +87,21 @@ Here are the options:
 
 =over
 
-=item c
+=item -C
 
 Complement the SEARCHLIST.
 
-=item d
+=item -c
+
+The same as -C.
+
+=item -d
 
 Delete found but unreplaced characters.
 
-=item s
+=item -s
 
 Squash duplicate replaced characters.
-
-=item U
-
-Translate to/from UTF-8.
-
-=item C
-
-Translate to/from 8-bit char (octet).
 
 =back
 
@@ -130,10 +125,6 @@ enough.  If the REPLACEMENTLIST is empty, the SEARCHLIST is replicated.
 This latter is useful for counting characters in a class or for squashing
 character sequences in a class.
 
-The first B<-U> or B<-C> flag applies to the left side of the translation.
-The second one applies to the right side.  If present, these flags
-override the current utf8 state.
-
 =head1 EXAMPLES
 
 The following command creates a list of all the words in F<file1>
@@ -146,14 +137,6 @@ The following command strips the 8th bit from an input file:
 
     tr "\200-\377" "\000-\177"
 
-The following command translates Latin-1 to Unicode:
-
-    tr -CU "\0-\xFF" ""
-
-The following command translates Unicode to Latin-1
-
-    tr -UC "\0-\x{FF}" ""
-
 =head1 NOTE
 
 This command is implemented using Perl's C<tr> operator.
@@ -162,12 +145,7 @@ operation.
 
 =head1 BUGS
 
-There is no way to catch the file open error on ARGV handle
-processing, so the exit status does not reflect file open
-failures.
-
-Not all systems have Unicode support yet, in which case the
-B<-U> or B<-C> flags would cause a fatal error.
+I<tr> has no known bugs.
 
 =head1 AUTHOR
 

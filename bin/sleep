@@ -13,30 +13,36 @@ License: perl
 
 use strict;
 
-my ($VERSION) = '1.201';
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
 
-if (@ARGV) {
-    if ($ARGV [0] eq '-?') {
-        $0 =~ s{.*/}{};
-        print <<EOF;
-Usage: $0 seconds
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
 
-Sleep for the given number of seconds.
+my $Program = basename($0);
+my ($VERSION) = '1.203';
 
-Options:
-       -?:     Print usage, then exit.
-EOF
-    } elsif ($ARGV[0] =~ /^\d+$/) {
-	sleep $ARGV[0];
-    } else {
-        print "bad character\n";
-    }
-} else {
-    print "arg count\n";
-    exit 1;
+getopts('') or usage();
+my $seconds = shift;
+unless (defined $seconds) {
+    warn "$Program: missing operand\n";
+    usage();
 }
+if (@ARGV) {
+    warn "$Program: extra operand `$ARGV[0]'\n";
+    usage();
+}
+if ($seconds !~ m/\A[0-9]+\z/) {
+    warn "$Program: invalid time interval `$seconds'\n";
+    exit EX_FAILURE;
+}
+sleep $seconds;
+exit EX_SUCCESS;
 
-exit;
+sub usage {
+    warn "usage: $Program SECONDS\n";
+    exit EX_FAILURE;
+}
 
 __END__
 
@@ -52,19 +58,8 @@ sleep I<seconds>
 
 =head1 DESCRIPTION
 
-I<true> exits succesfully. I<false> exits unsuccesfully.
-
-=head2 OPTIONS
-
-I<sleep> accepts the following options:
-
-=over 4
-
-=item -?
-
-Print out a short help message, then exit.
-
-=back
+I<sleep> waits for a number of seconds, then exits successfully.
+The argument is taken as a decimal number with no fractional part.
 
 =head1 ENVIRONMENT
 
@@ -88,5 +83,4 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others to do the same.
 
 =cut
-
 

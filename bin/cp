@@ -42,8 +42,15 @@ sub run {
 	$PerlPowerTools::cp::error_fh  = $settings->{error_fh}  if exists $settings->{error_fh};
 	$PerlPowerTools::cp::output_fh = $settings->{output_fh} if exists $settings->{output_fh};
 
-	my( $opts, $source, $destination ) = process_arguments(@args);
+	my( $opts, @files) = process_arguments(@args);
+	my $destination = pop @files;
+
 	return EX_USAGE unless defined $opts;
+	unless (@files) {
+		warn "$0: missing file operand\n";
+		usage();
+		return EX_USAGE;
+		}
 
 	my @unix_like = qw(darwin freebsd linux);
 	if( grep { $^O eq $_ } @unix_like and in_path('cp') ) {
@@ -51,28 +58,43 @@ sub run {
 		# it doesn't.
 		my @command = 'cp';
 		push @command, map { "-$_" } grep { $opts->{$_} } qw(i f p v );
-		push @command, $source, $destination;
+		push @command, '--', @files, $destination;
 
 		my $rc = system { $command[0] } @command;
-		return $rc;
+		return $rc >> 8;
 		}
 	else {
 		require File::Copy;
-		$destination = catfile( $destination, basename($source) ) if -d $destination;
-		print { output_fh() } "$source -> $destination\n" if $opts->{v};
-		if( -e $destination and $opts->{i} and ! $opts->{f} ) {
-			my $answer = prompt( "overwrite $destination? (y/n [n])", 'n' );
-			unless( $answer =~ m/\A\s*y/i ) {
-				print { error_fh() } "not overwritten";
-				return EX_FAILURE;
+		my $err = 0;
+		foreach my $source (@files) {
+			if (-d $source) {
+				print { error_fh() } "$0: '$source' is a directory (not copied)\n";
+				$err = 1;
+				next;
+			}
+			my $catdst = $destination;
+			if( -d $destination ) {
+				$catdst = catfile( $destination, basename($source) )
+				}
+
+			print { output_fh() } "$source -> $catdst\n" if $opts->{v};
+			if( -e $catdst and $opts->{i} and ! $opts->{f} ) {
+				my $answer = prompt( "overwrite $catdst? (y/n [n])", 'n' );
+				unless( $answer =~ m/\A\s*y/i ) {
+					print { error_fh() } "not overwritten";
+					return EX_FAILURE;
+					}
+				}
+			if (File::Copy::copy($source, $catdst) == 0) {
+				print { error_fh() } "$0: $source -> $catdst: copy failed: $!\n";
+				$err = 1;
 				}
 			}
-		my $rc = File::Copy::copy( $source, $destination );
-		return $rc == 0 ? EX_FAILURE : EX_SUCCESS;
+		return $err ? EX_FAILURE : EX_SUCCESS;
 		}
 
 	return EX_FAILURE;
-	};
+	}
 
 sub in_path {
 	my( $command ) = @_;
@@ -88,19 +110,25 @@ sub process_arguments {
 	my %opts;
 
 	require Getopt::Long;
-	my $ret = Getopt::Long::GetOptionsFromArray(
+	Getopt::Long::Configure('bundling');
+	Getopt::Long::GetOptionsFromArray(
 		\@args,
 		'f' => \$opts{'f'},
 		'i' => \$opts{'i'},
 		'n' => \$opts{'n'},
 		'p' => \$opts{'p'},
 		'v' => \$opts{'v'},
-		);
-
-	return unless $ret;
-
+	) or do {
+		usage();
+		return;
+	};
 	return ( \%opts, @args )
 	}
+
+sub usage {
+    require Pod::Usage;
+    Pod::Usage::pod2usage({ -exitval => 'NOEXIT', -verbose => 0 });
+}
 
 __PACKAGE__;
 
@@ -114,9 +142,8 @@ cp - copy files and/or directories
 
 =head1 SYNOPSIS
 
-	% cp [ B<-fipv> ] source_file  target_file
-
-	% cp [ B<-fipv> ] source...  target_dir
+	% cp [-fipv] source_file  target_file
+	% cp [-fipv] source...  target_dir
 
 =head1 DESCRIPTION
 
@@ -167,5 +194,4 @@ Copyright © 2023 brian d foy. All rights reserved.
 You may use this program under the terms of the Artistic License 2.0.
 
 =cut
-
 

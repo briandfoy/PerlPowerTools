@@ -121,15 +121,6 @@ So for MS-DOS for example, you could set these to:
         $FastGlob::rootpat = '[A-Z]:';  # <Drive letter><colon> pattern
         $FastGlob::curdir = '.';        # name of current directory in dir
         $FastGlob::parentdir = '..';    # name of parent directory in dir
-
-        $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
-
-And for MacOS to:
-
-        $FastGlob::dirsep = ':';        # directory path separator
-        $FastGlob::rootpat = '\A\Z';    # root directory prefix pattern
-        $FastGlob::curdir = '.';        # name of current directory in dir
-        $FastGlob::parentdir = '..';    # name of parent directory in dir
         $FastGlob::hidedotfiles = 0;    # hide filenames starting with .
 
 Furthermore, after a call to B<glob>, the variable C<$FastGlob::matched>
@@ -215,7 +206,6 @@ $matched = 0;
 
 sub match_glob($) {
     local $_ = shift;
-    my $glob_expr = $_;
 
     $matched = 0;
     @errors  = ();
@@ -227,8 +217,14 @@ sub match_glob($) {
                        ? (getpwnam($usr))[7]
                        : (defined $ENV{HOME} ? $ENV{HOME}
                                              : (getpwuid($<))[7]);
-        $usrdir && s/^\~\Q$usr\E/$usrdir/ && $usr
-            or push @errors, "Unknown user: $usr";
+        push @errors, "Unknown user: $usr" unless $usrdir;
+
+        if (length $usr) {
+            s/\A\~\Q$usr\E/$usrdir/;
+        }
+        else {
+            s/\A\~/$usrdir/;
+        }
     }
 
     # If there's no wildcards, just return it
@@ -458,7 +454,8 @@ sub globtest(;$) {
 #
 # If we are a script then return glob with each cmdline-arg
 #
-unless (caller) {
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+if (!caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR') {
     my $opt_0 = ($ARGV[0] eq '-0') ? defined(shift) : 0;
     my @globbed = ();
     my @errmsgs = ();

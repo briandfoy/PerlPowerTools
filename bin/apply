@@ -13,72 +13,94 @@ License: perl
 
 
 use strict;
-use warnings;
 
-my ($VERSION) = '1.2';
+use File::Basename qw(basename);
+use List::Util qw(max);
 
-sub usage () {
-    require File::Basename;
-    $0 = File::Basename::basename ($0);
-    print <<EOF;
-$0 (Perl bin utils) $VERSION
-$0 [-ac] [-#] command argument [argument ...]
-EOF
-    exit;
-};
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $Program = basename($0);
+my ($VERSION) = '1.4';
 
 my $argc  = 1;
+my $debug = 0;
 my $magic = '%';
 
 while (@ARGV) {
-    if ($ARGV [0] eq '--') {
+    if ($ARGV[0] !~ m/\A\-/) {
+        last;
+    }
+    if ($ARGV[0] eq '--') {
         shift;
         last;
     }
-    if ($ARGV [0] =~ /^-a(.)$/) {
+
+    if ($ARGV[0] =~ m/\A\-a(.)\Z/) {
         $magic = $1;
-        shift;
-        next;
     }
-    if ($ARGV [0] =~ /^-(\d+)$/) {
+    elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
-        shift;
-        next;
     }
-    if ($ARGV [0] =~ /^-/) {
-        usage;  # usage will exit;
+    elsif ($ARGV[0] eq '-d') {
+        $debug = 1;
     }
-    last;
+    else {
+        usage();  # usage will exit
+    }
+    shift;
 }
 
-usage unless @ARGV;
-
 my $command = shift;
+usage() unless @ARGV;
 
 # Scan $command for ``%d''.
 my @thingies = $command =~ /${magic}(\d+)/g;
-
-if (@thingies) { # Ignore $argc, found our own.
-    $argc = 0;
-    foreach (@thingies) {$argc = $_ if $_ > $argc}
-}
+$argc = max(@thingies) if @thingies;
 
 # Now, apply the command till we run out.
+my $err = EX_SUCCESS;
 while (@ARGV && @ARGV >= $argc) {
     if (@thingies) {
        (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
-        system $new_command;   # Reinterpreted by the shell!
+        run_cmd($new_command); # Reinterpreted by the shell!
         splice @ARGV, 0, $argc;
     }
     else {
         if ($argc) {
-            system $command, splice @ARGV, 0, $argc;
+            run_cmd($command, splice(@ARGV, 0, $argc));
         }
         else {
-            system $command;
             shift;
+            run_cmd($command);
         }
     }
+}
+if (@ARGV) {
+    warn "$Program: unexpected number of arguments\n";
+    $err = EX_FAILURE;
+}
+exit $err;
+
+sub run_cmd {
+    my $cmd = shift;
+    if ($debug) {
+        print join(' ', 'exec', $cmd, @_), "\n";
+        return;
+    }
+    my $status = system $cmd, @_;
+    if ($status != 0) {
+        if ($status == -1) {
+            warn "$Program: command failed: $!\n";
+        }
+        $err = EX_FAILURE;
+    }
+}
+
+sub usage {
+    warn "$Program (Perl bin utils) $VERSION\n";
+    warn "usage: $Program [-ac] [-d] [-#] command argument [argument ...]\n";
+    exit EX_FAILURE;
 }
 
 __END__
@@ -91,7 +113,7 @@ apply - Run a command many times with different arguments
 
 =head1 SYNOPSIS
 
-apply [-aB<c>] [-#] command argument [argument ...]
+apply [-aB<c>] [-d] [-#] command argument [argument ...]
 
 =head1 DESCRIPTION
 
@@ -109,6 +131,10 @@ I<apply> accepts the following options:
 =item -aB<c>
 
 Use the character B<c> instead of B<%> for interpolation of arguments.
+
+=item -d
+
+Print each constructed command but do not execute it.
 
 =item -#
 

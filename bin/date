@@ -22,7 +22,8 @@ my $VERSION = '1.0.4';
 # prefer this if it is defined.
 my $TZ;
 
-run(\@ARGV) unless caller();
+# run if called directly, indirectly, directly par-packed, undirectly par-packed
+run(\@ARGV) if !caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq 'PAR';
 
 sub get_formats {
 	{
@@ -39,7 +40,6 @@ sub munge_tz {
 	my $from_posix = posix_tz();
 	return $from_posix if $from_posix =~ m/\A[A-Z]{3,4}\z/;
 	my $from_windows = windows_time_zones();
-	# print "# from POSIX: $from_posix\n";
 	my $i_dst = (core_time())[-1] ? -1 : 0; # some only have one entry, so two would be the same
 
 	return $from_windows->{$from_posix}[$i_dst] if exists $from_windows->{$from_posix};
@@ -47,18 +47,10 @@ sub munge_tz {
 
 sub posix_tz { POSIX::strftime( '%Z', core_time() ) }
 
-sub quarter {
-    my $mon = ( core_time() )[4] + 1;
-
-       if( $mon <= 3 ) { 1 }
-    elsif( $mon <= 6 ) { 2 }
-    elsif( $mon <= 9 ) { 3 }
-    else               { 4 }
-    }
+sub quarter { int((core_time())[4] / 3) + 1 }
 
 sub run {
-	my( $args, $time ) = @_;
-	$time = defined $time ? $time : time;
+	my $args = shift;
 	*core_time = do {
 		my @times = CORE::localtime;
 		sub { @times }
@@ -74,15 +66,13 @@ sub run {
 	foreach (@$args) {
 		if( /^-/ and ! exists $allowed{$_} ) {
 			print STDERR "Unrecognized option $_\n";
-			exit(2);
+			usage(2);
 			}
 
 		   if( /^\-u/ ) { $TZ = $ENV{'TZ'} = 'UTC'; my @times = CORE::gmtime; *core_time = sub { @times } }
 		}
 
-	my $format;
-	$format = select_format( @$args );
-
+	my $format = select_format(@$args);
 	my $specifiers = setup_specifiers();
 
 	$format =~ s/%(:?.)/ exists $specifiers->{$1} ? $specifiers->{$1} : "%$1" /eg;
@@ -105,7 +95,7 @@ sub select_format {
 sub setup_specifiers {
 	my %specifiers = (
 		'e'  => sprintf( '% 2d', (core_time)[3] ),
-		'P'  => lc( ( core_time() )[2] >= 12 ? "PM" : "AM" ),
+		'P'  => lc(POSIX::strftime('%p', core_time())),
 		'q'  => quarter(),
 		'T'  => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
 		'z'  => tz_offset(),
@@ -151,7 +141,7 @@ sub usage {
 	my $exit_code = defined $_[0] ? $_[0] : 0;
 
 	my $output = <<"HEADER";
-usage: $0 [-fhIRuv] [+format]
+usage: $0 [-hIRuv] [+format]
 
 Formats:
 HEADER
@@ -303,6 +293,8 @@ Show the version and exit
 =item * %p  - AM or PM
 
 =item * %P  - like %p, but lowercase
+
+=item * %q  - quarter of the year (1-4)
 
 =item * %r  - Time in HH(12 hour):MM:SS (AM|PM) format
 
