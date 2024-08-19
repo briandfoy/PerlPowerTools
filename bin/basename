@@ -18,15 +18,13 @@ use File::Basename qw(basename fileparse);
 use Getopt::Std qw(getopts);
 
 my $Program = basename($0);
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 getopts('') or usage();
-usage() unless (@ARGV == 1 || @ARGV == 2);
-if (@ARGV == 2) {
-    $ARGV [1] = quotemeta $ARGV [1] unless $ARGV [1] =~ s{^/(.*)/$}{$1};
-}
-
 my $path = shift;
+usage() unless defined $path;
+my $suffix = shift;
+usage() if @ARGV;
 if (!length($path)) {
     print "\n";
     exit;
@@ -39,6 +37,13 @@ if ($path eq '/') {
 $path =~ s/\/\Z//;  #  "a/" -> "a"
 my @parsed = fileparse($path);
 my $name = shift @parsed;
+if (defined $suffix) {
+    my $i = rindex $name, $suffix;
+    my $oklen = length($name) == length($suffix) + $i;
+    if ($i > 0 && $oklen) {
+        $name = substr $name, 0, $i;
+    }
+}
 print $name, "\n";
 exit 0;
 
@@ -48,7 +53,7 @@ sub VERSION_MESSAGE {
 }
 
 sub usage {
-    warn "usage: $Program string [suffix | /pattern/]\n";
+    warn "usage: $Program string [suffix]\n";
     exit 1;
 }
 
@@ -62,15 +67,13 @@ basename - remove directory and suffix from filenames
 
 =head1 SYNOPSIS
 
-basename string [suffix | /pattern/]
+basename string [suffix]
 
 =head1 DESCRIPTION
 
 I<basename> prints the file component of a path. A second argument to
-I<basename> is interpreted as a suffix to remove from the file. If the
-suffix is sandwiched between slashes, the suffix is considered a
-Perl regular expression, anything at the end of the string that matches
-is removed before printing it out.
+I<basename> is interpreted as a suffix to remove from the file.
+It is not considered an error if the given suffix does not match the string.
 
 =head2 OPTIONS
 
@@ -91,8 +94,6 @@ specification, also known as B<POSIX.2>.
 
 This I<basename> implementation is compatible with the
 B<OpenBSD> implementation.
-
-The I</pattern/> is specific for this Perl implementation.
 
 =head1 AUTHOR
 
