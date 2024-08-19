@@ -37,8 +37,7 @@ print "MOO\n";
     {
         print "Your guess? ";
         chomp (my $guess = <>);
-
-        exit if 'q' eq substr lc $guess, 0, 1;
+        exit if (!defined($guess) || $guess =~ m/\Aq/i);
 
         if ($guess =~ /\D/ || length $guess != $size) {
             print "Bad guess\n";
