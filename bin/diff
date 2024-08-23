@@ -37,6 +37,7 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use File::Spec;
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS   => 0;
@@ -122,7 +123,7 @@ if ($file1 eq '-') {
 } elsif (-d $file1) {
     bag("cannot compare '-' to a directory") if ($file2 eq '-');
     bag("'$file2': is a directory") if (-d $file2);
-    my $path = join('/', $file1, basename($file2));
+    my $path = File::Spec->catfile($file1, basename($file2));
     open($fh1, '<', $path) or bag("Couldn't open '$path': $!");
 } else {
     open($fh1, '<', $file1) or bag("Couldn't open '$file1': $!");
@@ -132,7 +133,7 @@ if ($file2 eq '-') {
     $fh2 = *STDIN;
 } elsif (-d $file2) {
     bag("'$file1': is a directory") if (-d $file1);
-    my $path = join('/', $file2, basename($file1));
+    my $path = File::Spec->catfile($file2, basename($file1));
     open($fh2, '<', $path) or bag("Couldn't open '$path': $!");
 } else {
     open($fh2, '<', $file2) or bag("Couldn't open '$file2': $!");
