@@ -200,8 +200,13 @@ sub printMember {
 # writes a directory-style listing for the specified archive member
 sub printList {
     my ($name, $pAr, $verbose) = @_;
+
+    my $attr = $pAr->{$name};
+    unless (defined $attr) {
+	warn "entry not found in archive: '$name'\n";
+	return;
+    }
     if ($verbose) {
-	my $attr = $pAr->{$name};
 	printf "%9s %7d/%-7d %7d %s %s\n",
 		strmode($attr->[4]),
 		$attr->[2],
