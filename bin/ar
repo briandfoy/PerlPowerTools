@@ -21,16 +21,15 @@ use Getopt::Std qw(getopts);
 use constant MAGIC => "!<arch>\n";
 
 use vars qw($opt_d $opt_m $opt_p $opt_q $opt_r $opt_t $opt_x $opt_a $opt_b
-    $opt_c $opt_i $opt_o $opt_u $opt_v);
+	$opt_c $opt_i $opt_o $opt_u $opt_v);
 
 # allow the first arg to not have a '-'.
-if (@ARGV && $ARGV[0] !~ /^\-/) { $ARGV[0] = '-' . $ARGV[0]; }
+if ( @ARGV && $ARGV[0] !~ /^\-/ ) { $ARGV[0] = '-' . $ARGV[0]; }
 
 getopts('dmpqrtxabciouv') or usage();
 
 # take only one of the following major opts
-my @major = map { $_ || () } ($opt_d, $opt_m, $opt_p, $opt_q, $opt_r,
-    $opt_t, $opt_x);
+my @major = map { $_ || () } ( $opt_d, $opt_m, $opt_p, $opt_q, $opt_r, $opt_t, $opt_x );
 usage() unless scalar(@major) == 1;
 
 # -i is the same as -b
@@ -40,373 +39,369 @@ $opt_b |= $opt_i;
 
 # extract position offset
 my $position;
-if ($opt_a || $opt_b) {
-    my $val = shift;
-    usage() unless defined $val;
-    $position = basename($val);
-}
+if ( $opt_a || $opt_b ) {
+	my $val = shift;
+	usage() unless defined $val;
+	$position = basename($val);
+	}
 
 # the archive filename
 my $archive = shift;
-unless (defined $archive) {
-     warn "$0: archive file required\n";
-     usage();
-}
-my $pAr = {};	    # the archive is just a hash of name => [ header, data ]
-my $pNames = [];         # a ref to an array of names in the order they appear
+unless ( defined $archive ) {
+	warn "$0: archive file required\n";
+	usage();
+	}
+my $pAr    = {};    # the archive is just a hash of name => [ header, data ]
+my $pNames = [];    # a ref to an array of names in the order they appear
 
 # read the archive
-if ($opt_d || $opt_m || $opt_p || $opt_t || $opt_x || ( -e $archive && $opt_r))
-{
-    ($pAr,$pNames) = readAr($archive);
-}
+if ( $opt_d || $opt_m || $opt_p || $opt_t || $opt_x || ( -e $archive && $opt_r ) ) {
+	( $pAr, $pNames ) = readAr($archive);
+	}
 
 # if positional param, then get array index to specified name
 my $idx;
-if ($opt_b || $opt_a) {
-    if ($pAr->{$position}) {
-	$idx = $pAr->{$position}[0];
-
-	if ($opt_b) { $idx--; }
-    }
-    else {
-	die "$0: $position: archive member not found.\n";
-    }
-}
+if ( $opt_b || $opt_a ) {
+	if ( $pAr->{$position} ) {
+		$idx = $pAr->{$position}[0];
+		if ($opt_b) { $idx--; }
+		}
+	else {
+		die "$0: $position: archive member not found.\n";
+		}
+	}
 
 # loop through each file, adding, moving, extracting, etc.
 for my $file (@ARGV) {
-    my $name = basename($file);
+	my $name = basename($file);
 
-    # do the task
-    if ($opt_d) {
-	# delete
-	if (defined($pAr->{$name})) {
-	    undef $pAr->{$name};
-	    print "d - $name\n" if $opt_v;
+	# do the task
+	if ($opt_d) {
+		# delete
+		if ( defined( $pAr->{$name} ) ) {
+			undef $pAr->{$name};
+			print "d - $name\n" if $opt_v;
+			}
+		else {
+			die "$0: $name: not found in archive\n";
+			}
+		}
+	elsif ($opt_m) {
+		# move
+		my $putpos = $idx;
+
+		# if no positional parameter, then append
+		if ( !defined($idx) ) { $putpos = @$pNames; }
+
+		# remove from current position
+		@{ $pNames->[ $pAr->{$name}[0] ] } = grep( !/^$name$/, @{ $pNames->[ $pAr->{$name}[0] ] } );
+
+		# relocate to $putpos
+		$pAr->{$name}[0] = $putpos;
+		push( @{ $pNames->[$putpos] }, $name );
+		print "m - $name\n" if $opt_v;
+		}
+	elsif ($opt_p) {
+		# print
+		printMember( $name, $pAr, $opt_v );
+		}
+	elsif ($opt_q) {
+		# quick append
+		my $desc = readFile($file);
+		push( @$pNames, [$name] );
+		$desc->[0] = $#$pNames;
+		$pAr->{$name} = $desc;
+		print "a - $name\n" if $opt_v;
+		}
+	elsif ($opt_r) {
+		# replace or add
+		my $putpos = $idx;
+
+		# append if no positional param
+		if ( !defined($idx) ) { $putpos = @$pNames; }
+
+		my $desc = readFile($file);
+
+		if ( $pAr->{$name} ) {
+			# replace
+			if ($opt_u) {
+				# only replace if mod time is newer
+				my @stat = stat($name);
+				next if ( $desc->[1] <= $pAr->{$name}[1] );
+				}
+			$pAr->{$name} = $desc;
+			print "r - $name\n" if $opt_v;
+			}
+		else {
+			# add
+			$desc->[0] = $putpos;
+			push( @{ $pNames->[$putpos] }, $name );
+			$pAr->{$name} = $desc;
+			print "a - $name\n" if $opt_v;
+			}
+		}
+	elsif ($opt_t) {
+		# table of contents
+		printList( $name, $pAr, $opt_v );
+		}
+	elsif ($opt_x) {
+		# extract
+		if ( defined( $pAr->{$name} ) ) {
+			extractMember( $name, $pAr, $opt_v, $opt_o, $opt_u );
+			}
+		else {
+			die "$0: $name: not found in archive\n";
+			}
+		}
 	}
-	else {
-	    die "$0: $name: not found in archive\n";
-	}
-    }
-    elsif ($opt_m) {
-	# move
-	my $putpos = $idx;
-
-	# if no positional parameter, then append
-	if (!defined($idx)) { $putpos = @$pNames; }
-
-	# remove from current position
-	@{$pNames->[$pAr->{$name}[0]]} = grep(!/^$name$/,
-					      @{$pNames->[$pAr->{$name}[0]]} );
-
-	# relocate to $putpos
-	$pAr->{$name}[0] = $putpos;
-	push(@{$pNames->[$putpos]},$name);
-	print "m - $name\n" if $opt_v;
-    }
-    elsif ($opt_p) {
-	# print
-	printMember($name,$pAr,$opt_v);
-    }
-    elsif ($opt_q) {
-	# quick append
-	my $desc = readFile($file);
-	push(@$pNames,[$name]);
-	$desc->[0] = $#$pNames;
-	$pAr->{$name} = $desc;
-	print "a - $name\n" if $opt_v;
-    }
-    elsif ($opt_r) {
-	# replace or add
-	my $putpos = $idx;
-
-	# append if no positional param
-	if (!defined($idx)) { $putpos = @$pNames; }
-
-	my $desc = readFile($file);
-
-	if ($pAr->{$name}) {
-	    # replace
-	    if ($opt_u) {
-		# only replace if mod time is newer
-		my @stat = stat($name);
-		next if ($desc->[1] <= $pAr->{$name}[1]);
-	    }
-
-	    $pAr->{$name} = $desc;
-	    print "r - $name\n" if $opt_v;
-	}
-	else {
-	    # add
-	    $desc->[0] = $putpos;
-	    push(@{$pNames->[$putpos]},$name);
-	    $pAr->{$name} = $desc;
-	    print "a - $name\n" if $opt_v;
-	}
-    }
-    elsif ($opt_t) {
-	# table of contents
-	printList($name,$pAr,$opt_v);
-    }
-    elsif ($opt_x) {
-	# extract
-	if (defined($pAr->{$name})) {
-	    extractMember($name, $pAr, $opt_v, $opt_o, $opt_u);
-	}
-	else {
-	    die "$0: $name: not found in archive\n";
-	}
-    }
-}
 
 # no files given.  -p, -t, and -x will apply to all in archive.
-if (!@ARGV) {
-    if ($opt_p || $opt_t || $opt_x) {
-	for my $group (@$pNames) {
-	    for my $name (@$group) {
-		if ($opt_p) { printMember($name,$pAr,$opt_v); }
-		elsif ($opt_t) { printList($name,$pAr,$opt_v); }
-		elsif ($opt_x) { extractMember($name, $pAr, $opt_v,
-					       $opt_o, $opt_u); }
-	    }
+if ( !@ARGV ) {
+	if ( $opt_p || $opt_t || $opt_x ) {
+		for my $group (@$pNames) {
+			for my $name (@$group) {
+				if    ($opt_p) { printMember( $name, $pAr, $opt_v ); }
+				elsif ($opt_t) { printList( $name, $pAr, $opt_v ); }
+				elsif ($opt_x) {
+					extractMember( $name, $pAr, $opt_v, $opt_o, $opt_u );
+					}
+				}
+			}
+		}
+	else {
+		die "$0: no archive members specified\n";
+		}
 	}
-    }
-    else {
-	die "$0: no archive members specified\n";
-    }
-}
 
 # write to file if modified, updated, deleted
-if ($opt_m || $opt_r || $opt_q || $opt_d) {
-    writeAr($pAr, $pNames, $archive, $opt_q);
-}
+if ( $opt_m || $opt_r || $opt_q || $opt_d ) {
+	writeAr( $pAr, $pNames, $archive, $opt_q );
+	}
 
 exit 0;
 
 # dump an archive member as per -p option
 sub printMember {
-    my ($name, $pAr, $verbose) = @_;
+	my ( $name, $pAr, $verbose ) = @_;
 
-    if (exists $pAr->{$name}) {
-	print "\n<$name>\n\n" if $verbose;
-	print $pAr->{$name}[6];
-    }
-    else {
-	warn "entry not found in archive: '$name'\n";
-    }
-}
+	if ( exists $pAr->{$name} ) {
+		print "\n<$name>\n\n" if $verbose;
+		print $pAr->{$name}[6];
+		}
+	else {
+		warn "entry not found in archive: '$name'\n";
+		}
+	}
 
 # writes a directory-style listing for the specified archive member
 sub printList {
-    my ($name, $pAr, $verbose) = @_;
+	my ( $name, $pAr, $verbose ) = @_;
 
-    my $attr = $pAr->{$name};
-    unless (defined $attr) {
-	warn "entry not found in archive: '$name'\n";
-	return;
-    }
-    if ($verbose) {
-	printf "%9s %7d/%-7d %7d %s %s\n",
-		strmode($attr->[4]),
-		$attr->[2],
-		$attr->[3],
-		$attr->[5],
-		strftime("%b %e %H:%M %Y",localtime($attr->[1])),
-                $name;
-    }
-    else {
-	print "$name\n";
-    }
-}
+	my $attr = $pAr->{$name};
+	unless ( defined $attr ) {
+		warn "entry not found in archive: '$name'\n";
+		return;
+		}
+	if ($verbose) {
+		printf "%9s %7d/%-7d %7d %s %s\n",
+			strmode( $attr->[4] ),
+			$attr->[2],
+			$attr->[3],
+			$attr->[5],
+			strftime( "%b %e %H:%M %Y", localtime( $attr->[1] ) ),
+			$name;
+		}
+	else {
+		print "$name\n";
+		}
+	}
 
 # extracts $name from archive and writes to current working directory
 sub extractMember {
-    my ($name, $pAr, $verbose, $settime, $update) = @_;
+	my ( $name, $pAr, $verbose, $settime, $update ) = @_;
 
-    my $attr = $pAr->{$name};
+	my $attr = $pAr->{$name};
 
-    # get current uid/gid and mode
-    my @stat = stat($name) if -e $name;
-    my ($uid,$gid,$mode,$modt);
-    if (@stat) {
-	($uid,$gid,$mode,$modt) = ($stat[4], $stat[5], $stat[2], $stat[9]);
+	# get current uid/gid and mode
+	my @stat = stat($name) if -e $name;
+	my ( $uid, $gid, $mode, $modt );
+	if (@stat) {
+		( $uid, $gid, $mode, $modt ) = ( $stat[4], $stat[5], $stat[2], $stat[9] );
 
-	# skip if -u and existing file is newer
-	if ($update) {
-	    return if $modt >= $attr->[1];
+		# skip if -u and existing file is newer
+		if ($update) {
+			return if $modt >= $attr->[1];
+			}
+
+		}
+	else {
+		( $uid, $gid, $mode, $modt ) = ( int( $attr->[2] ), int( $attr->[3] ), oct( $attr->[4] ), int( $attr->[1] ) );
+		}
+
+	my $out = FileHandle->new( $name, 'w' ) or die "$name: $!\n";
+	binmode($out);
+	$out->print( $attr->[6] );
+	$out->close();
+
+	# these might fail, but that's OK
+	chmod $mode, $name;
+	chown $uid, $gid, $name;
+	if ($settime) {
+		utime $modt, $modt, $name;
+		}
+
+	print "x - $name\n" if $verbose;
 	}
-
-    }
-    else {
-	($uid,$gid,$mode,$modt) = (int($attr->[2]), int($attr->[3]),
-				   oct($attr->[4]), int($attr->[1]));
-    }
-
-    my $out = FileHandle->new($name, 'w') or die "$name: $!\n";
-    binmode($out);
-    $out->print($attr->[6]);
-    $out->close();
-
-    # these might fail, but that's OK
-    chmod $mode, $name;
-    chown $uid, $gid, $name;
-    if ($settime) {
-	utime $modt, $modt, $name;
-    }
-
-    print "x - $name\n" if $verbose;
-}
 
 # read in a new file and return array ref of
 # [ undef, $modt, $uid, $gid, $mode, $sz, $data ]
 sub readFile {
-    my ($file) = @_;
-    my $in = FileHandle->new($file, 'r') or die "$file: $!\n";
-    binmode($in);
+	my ($file) = @_;
+	my $in = FileHandle->new( $file, 'r' ) or die "$file: $!\n";
+	binmode($in);
 
-    # read the data in one swell foop
-    undef $/;
-    my $data = <$in>;
+	# read the data in one swell foop
+	undef $/;
+	my $data = <$in>;
 
-    # get some attributes
-    my @stat = stat($file);
+	# get some attributes
+	my @stat = stat($file);
 
-    # return an array ref of attrs and data
-    return [ undef, $stat[9], $stat[4], $stat[5],
-	     sprintf("%o",$stat[2]), $stat[7], $data ];
-}
+	# return an array ref of attrs and data
+	return [ undef, $stat[9], $stat[4], $stat[5], sprintf( "%o", $stat[2] ), $stat[7], $data ];
+	}
 
 # try to read an archive from $archive.
 # returns a ref to a hash of name => [ index, header, data ]
 # and a ref to an array of names in order, i.e., [ [name1], [name2], etc. ]
 sub readAr {
-    my ($archive) = @_;
+	my ($archive) = @_;
 
-    # hash of header/data
-    my %Ar;
+	# hash of header/data
+	my %Ar;
 
-    # names in order in file
-    my @Names = ( undef );
+	# names in order in file
+	my @Names = (undef);
 
-    my $arfh = FileHandle->new($archive, 'r') or die "$0: $archive: $!\n";
-    binmode($arfh);
+	my $arfh = FileHandle->new( $archive, 'r' ) or die "$0: $archive: $!\n";
+	binmode($arfh);
 
-    # read magic
-    my $magic;
-    my $nread = read $arfh, $magic, length(MAGIC);
-    die "$0: $archive: $!\n" unless defined $nread;
-    if ($magic ne MAGIC) {
-	die "$0: $archive: Inappropriate file type or format\n";
-    }
+	# read magic
+	my $magic;
+	my $nread = read $arfh, $magic, length(MAGIC);
+	die "$0: $archive: $!\n" unless defined $nread;
+	if ( $magic ne MAGIC ) {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
 
-    while (!$arfh->eof()) {
-	# read header
-	my ($name,$modt,$uid,$gid,$mode,$sz,$delim);
-	($arfh->read($name, 16) == 16 and
-	 $arfh->read($modt, 12) == 12 and
-	 $arfh->read($uid,  6 ) == 6  and
-	 $arfh->read($gid,  6 ) == 6  and
-	 $arfh->read($mode, 8 ) == 8  and
-	 $arfh->read($sz,   10) == 10 and
-	 $arfh->read($delim,2) == 2 and
-	 $delim eq "`\n") or
-	   die "$0: $archive: Inappropriate file type or format\n";
+	while ( !$arfh->eof() ) {
+		# read header
+		my ( $name, $modt, $uid, $gid, $mode, $sz, $delim );
+		(           $arfh->read( $name, 16 ) == 16
+				and $arfh->read( $modt,  12 ) == 12
+				and $arfh->read( $uid,   6 ) == 6
+				and $arfh->read( $gid,   6 ) == 6
+				and $arfh->read( $mode,  8 ) == 8
+				and $arfh->read( $sz,    10 ) == 10
+				and $arfh->read( $delim, 2 ) == 2
+				and $delim eq "`\n" )
+			or die "$0: $archive: Inappropriate file type or format\n";
 
-	# read the file
-	my $data;
-	($arfh->read($data, $sz) == $sz) or
-	  die "$0: $archive: Inappropriate file type or format\n";
+		# read the file
+		my $data;
+		( $arfh->read( $data, $sz ) == $sz )
+			or die "$0: $archive: Inappropriate file type or format\n";
 
-	# always an even number of bytes.  if odd, read another byte.
-	if ($sz % 2 == 1) { getc($arfh); }
+		# always an even number of bytes.  if odd, read another byte.
+		if ( $sz % 2 == 1 ) { getc($arfh); }
 
-	# if name starts with #1/len, then read first len bytes as name
-	if ($name =~ /\#1\/(\d+)/) {
-	    $name = substr($data,0,$1);
-	    $data = substr($data,$1);
-	    $sz -= $1;
+		# if name starts with #1/len, then read first len bytes as name
+		if ( $name =~ /\#1\/(\d+)/ ) {
+			$name = substr( $data, 0, $1 );
+			$data = substr( $data, $1 );
+			$sz -= $1;
+			}
+		else {
+			# strip trailing spaces in name.  There's no way
+			# to distinguish spaces in a filename with padding.
+			$name =~ s/\s+$//;
+			}
+
+		# add to list of names and hash of header/data
+		if ( exists( $Ar{$name} ) ) {
+
+			# complain if dup entries.  no need to do anything about it
+			# since spec requires to work on first occurrence only.
+			warn "$0: $name exists more than once in the archive.\n";
+			}
+		else {
+			push( @Names, [$name] );
+			$Ar{$name} = [ $#Names, $modt, $uid, $gid, $mode, $sz, $data ];
+			}
+		}
+	$arfh->close();
+	return ( \%Ar, \@Names );
 	}
-	else {
-	    # strip trailing spaces in name.  There's no way
-	    # to distinguish spaces in a filename with padding.
-	    $name =~ s/\s+$//;
-	}
-
-	# add to list of names and hash of header/data
-	if (exists($Ar{$name})) {
-	    # complain if dup entries.  no need to do anything about it
-	    # since spec requires to work on first occurrence only.
-	    warn "$0: $name exists more than once in the archive.\n";
-	}
-	else {
-	    push(@Names, [ $name ] );
-	    $Ar{$name} = [ $#Names, $modt, $uid, $gid, $mode, $sz, $data ];
-	}
-    }
-    $arfh->close();
-    return(\%Ar, \@Names);
-}
 
 # write an archive to $archive
 sub writeAr {
-    my ($pAr, $pNames, $archive, $append) = @_;
+	my ( $pAr, $pNames, $archive, $append ) = @_;
 
-    my $mode = $append ? 'a' : 'w';
-    my $putmagic = !$append || !-e $archive;
-    my $arfh = FileHandle->new($archive, $mode)
-      or die "$0: failed to open '$archive': $!\n";
-    $arfh->print(MAGIC) if $putmagic;
+	my $mode     = $append ? 'a' : 'w';
+	my $putmagic = !$append || !-e $archive;
+	my $arfh     = FileHandle->new( $archive, $mode )
+		or die "$0: failed to open '$archive': $!\n";
+	$arfh->print(MAGIC) if $putmagic;
 
-    # loop through each member of the archive and write to filehandle
-    for my $group (@$pNames) {
-	for my $name (@$group) {
-	    if ($pAr->{$name}) {
-		my $attr = $pAr->{$name};
-		my $sz = $attr->[5];
-		if (length($name) > 16) {
-		    $sz += length($name);
-		    printf $arfh "#1/%-13d",length($name);
-		    printf $arfh "%-12d%-6d%-6d%-8s%-10d", @$attr[1..4],$sz;
-		    print $arfh "`\n$name";
+	# loop through each member of the archive and write to filehandle
+	for my $group (@$pNames) {
+		for my $name (@$group) {
+			if ( $pAr->{$name} ) {
+				my $attr = $pAr->{$name};
+				my $sz   = $attr->[5];
+				if ( length($name) > 16 ) {
+					$sz += length($name);
+					printf $arfh "#1/%-13d", length($name);
+					printf $arfh "%-12d%-6d%-6d%-8s%-10d", @$attr[ 1 .. 4 ], $sz;
+					print $arfh "`\n$name";
+					}
+				else {
+					printf $arfh "%-16s",                     $name;
+					printf $arfh "%-12d%-6d%-6d%-8s%-10d`\n", @$attr[ 1 .. 5 ];
+					}
+
+				print $arfh $attr->[6];
+
+				# always even number of data bytes.  if odd, add a "\n"
+				if ( $sz % 2 == 1 ) {
+					$arfh->print("\n");
+					}
+				}
+			}
 		}
-		else {
-		    printf $arfh "%-16s",$name;
-		    printf $arfh "%-12d%-6d%-6d%-8s%-10d`\n", @$attr[1..5];
-		}
 
-		print $arfh $attr->[6];
-
-		# always even number of data bytes.  if odd, add a "\n"
-		if ($sz % 2 == 1) {
-		    $arfh->print("\n");
-		}
-	    }
+	$arfh->close();
 	}
-    }
-
-    $arfh->close();
-}
 
 # converts a mode to an "ls -l" type string description.
 # This isn't likely portable.
 sub strmode {
-    my ($mode) = @_;
+	my ($mode) = @_;
 
-    die "bad file mode: $mode" if $mode !~ m/([0-7]+)/;
-    my $ugo = substr $1, -3; # only rwx bits
-    my $modestr = '';
-    foreach (split //, $ugo) {
-	my $i = oct;
-	$modestr .= $i & 4 ? 'r' : '-';
-	$modestr .= $i & 2 ? 'w' : '-';
-	$modestr .= $i & 1 ? 'x' : '-';
-    }
-    return $modestr;
-}
+	die "bad file mode: $mode" if $mode !~ m/([0-7]+)/;
+	my $ugo     = substr $1, -3;    # only rwx bits
+	my $modestr = '';
+	foreach ( split //, $ugo ) {
+		my $i = oct;
+		$modestr .= $i & 4 ? 'r' : '-';
+		$modestr .= $i & 2 ? 'w' : '-';
+		$modestr .= $i & 1 ? 'x' : '-';
+		}
+	return $modestr;
+	}
 
 sub usage {
-    print <<EOT ;
+	print <<EOT ;
 usage: ar -d [-v] archive file ...
    ar -m [-v] archive file ...
    ar -m [-abiv] position archive file ...
@@ -417,8 +412,8 @@ usage: ar -d [-v] archive file ...
    ar -t [-v] archive [file ...]
    ar -x [-ouv] archive [file ...]
 EOT
-  exit 1;
-}
+	exit 1;
+	}
 
 __END__
 
