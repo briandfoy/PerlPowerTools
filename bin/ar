@@ -351,6 +351,7 @@ sub writeAr {
 	my $putmagic = !$append || !-e $archive;
 	my $arfh     = FileHandle->new( $archive, $mode )
 		or die "$0: failed to open '$archive': $!\n";
+	binmode($arfh);
 	$arfh->print(MAGIC) if $putmagic;
 
 	# loop through each member of the archive and write to filehandle
