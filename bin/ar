@@ -83,7 +83,7 @@ for my $file (@ARGV) {
 			print "d - $name\n" if $opt_v;
 			}
 		else {
-			die "$0: $name: not found in archive\n";
+			warn "$0: $name: not found in archive\n";
 			}
 		}
 	elsif ($opt_m) {
@@ -150,7 +150,7 @@ for my $file (@ARGV) {
 			extractMember( $name, $pAr, $opt_v, $opt_o, $opt_u );
 			}
 		else {
-			die "$0: $name: not found in archive\n";
+			warn "$0: $name: not found in archive\n";
 			}
 		}
 	}
