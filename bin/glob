@@ -270,7 +270,7 @@ sub match_glob($) {
 sub recurseglob($ $ @) {
     my($dir, $dirname, @comps) = @_;
     my(@res) = ();
-    my($re, $anyfound, @names);
+    my($re, @names);
 
     if ( @comps == 0 ) {
         # bottom of recursion, just return the path
@@ -287,7 +287,6 @@ sub recurseglob($ $ @) {
         # look for found, and if you find one, glob the rest of the
         # components. We eval the loop so the regexp gets compiled in,
         # making searches on large directories faster.
-        $anyfound = 0;
         print "component re is qr($re)\n" if ($verbose);
         my $regex = qr($re);
         foreach (@names) {
@@ -300,7 +299,6 @@ sub recurseglob($ $ @) {
                 elsif ( @comps == 0 ) {
                     unshift(@res, "$dirname$_" );
                 }
-                $anyfound = 1;
             }
         }
     }
@@ -310,18 +308,19 @@ sub recurseglob($ $ @) {
 #
 # Need to escape & unescape special [\{}] sequences
 #
-my @escapes = ( '\\\\' => "\001",
+my %map_esc = ( '\\\\' => "\001",
                 '\{'   => "\002",
                 '\}'   => "\003",
                 '{}'   => "\004"
               );
-my %map_esc = @escapes;
+my %unmap_esc = reverse %map_esc;
+
 sub escape_glob($) {
     local $_ = shift;
     s/( \\\\ | \\\{ | \\\} | \{\} )/$map_esc{$1}/gex;
     $_;
 }
-my %unmap_esc = map { m/^\\(.*)$/ ? $1 : $_ } (reverse @escapes);
+
 sub unescape_glob($) {
     local $_ = shift;
     s/([\001-\004])/$unmap_esc{$1}/ge;
@@ -459,7 +458,6 @@ if (!caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq '
     my $opt_0 = ($ARGV[0] eq '-0') ? defined(shift) : 0;
     my @globbed = ();
     my @errmsgs = ();
-    my $matches = 0;
     for (@ARGV) {
         push @globbed, &glob($_);
         push @errmsgs, @errors  if (@errors);
