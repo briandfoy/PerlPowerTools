@@ -106,7 +106,7 @@ while (1) {
 	$_ = <>;
 	while (/^\s*(edit|ex|vi|view|emacs)\s*/) {
 		close $DATABASE or die "can't close $database: $!";
-		system("$1 $database") == 0
+		system($1, $database) == 0
 		 or die "system '$1 $database' failed: $?";
 		open my $DATABASE, '>>', $database or die "can't open $database: $!";
 		print "Continue? (y) ";
