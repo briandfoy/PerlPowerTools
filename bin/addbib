@@ -45,7 +45,8 @@ if (defined $opt_p) {
 }
 
 my $database = shift;
-open my $DATABASE, '>>', $database or die "can't append to $database: $!";
+my $DATABASE;
+open $DATABASE, '>>', $database or die "can't append to $database: $!";
 
 my $inst = <<_EOINST;
 	Addbib will prompt you for various bibliographic fields.
@@ -108,7 +109,7 @@ while (1) {
 		close $DATABASE or die "can't close $database: $!";
 		system($1, $database) == 0
 		 or die "system '$1 $database' failed: $?";
-		open my $DATABASE, '>>', $database or die "can't open $database: $!";
+		open $DATABASE, '>>', $database or die "can't open $database: $!";
 		print "Continue? (y) ";
 		$_ = <>;
 	}
