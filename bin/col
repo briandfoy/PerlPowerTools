@@ -21,12 +21,11 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
-use vars qw($opt_b $opt_f $opt_p $opt_x $opt_l);
-use vars qw($opt_e $opt_E $opt_s $opt_t);
+use vars qw($opt_b $opt_f $opt_l $opt_p $opt_s $opt_t $opt_x);
 
-getopts('bfpxl:eEst') or usage();
+getopts('bfpxl:st') or usage();
 if (defined $opt_l) {
     if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
         warn "$Program: bad -l argument: '$opt_l'\n";
@@ -50,19 +49,8 @@ my $front = 0;      # note whether at front of line in output
 my $spaces = '';    # save spaces for converting to tabs
 
 # prepare regexes for matching linefeeds
-#                    any          full reverse  half reverse  half forward
-my @re;
-if ($opt_E) {
-    # as for IRIX
-    @re = qw(       [7-9]           ^7$           ^8$           ^9$       );
-} elsif ($opt_e) {
-    # as for BSD
-    @re = qw(       [\x07-\x09]     ^\x07$        ^\x08$        ^\x09$    );
-} else {
-    # accept either
-    @re = qw(       [7-9\x07-\x09]  ^[7\x07]$     ^[8\x08]$     ^[9\x09]$ );
-}
-
+#            any             full reverse  half reverse  half forward
+my @re = qw( [7-9\x07-\x09]  ^[7\x07]$     ^[8\x08]$     ^[9\x09]$ );
 
 # INPUT
 
@@ -273,7 +261,7 @@ sub print_line {
 }
 
 sub usage {
-    warn "usage: $Program [-bfpx] [-l num] [-Eest]\n";
+    warn "usage: $Program [-bfpstx] [-l num]\n";
     exit EX_FAILURE;
 }
 
@@ -287,7 +275,7 @@ col - filter reverse line feeds from input
 
 =head1 SYNOPSIS
 
-B<col> [B<-bfpx>] [B<-l num>] [B<-Eest>]
+B<col> [B<-bfpstx>] [B<-l num>]
 
 =head1 DESCRIPTION
 
@@ -340,21 +328,6 @@ implementations:
 
 =over 4
 
-=item B<-E>
-
-Accept only IRIX-style escape sequences; a reverse line feed is an
-escape followed by the ASCII character 7.  The B<-E> option
-overrides the B<-e> option.
-
-=item B<-e>
-
-Accept only BSD-style escape sequences; a reverse line feed is an
-escape followed by the ASCII character whose decimal value is 7
-(control-g).  The B<-e> option is overridden by the B<-E> option.
-
-If neither the B<-E> nor the B<-e> option is used, B<col> accepts both BSD
-and IRIX style escapes sequences.
-
 =item B<-s>
 
 Shift in before each line feed when in the alternate character set (as
@@ -384,9 +357,6 @@ understands are listed in the following table:
     tab              Moves forward to next tab stop (9).
     vertical tab     Reverse line feed (11).
 
-(See the explanations of B<-e> and B<-E> for more about escapes and
-line feeds.)
-
 =head1 BUGS
 
 This implementation of B<col> has no known bugs.
@@ -402,9 +372,6 @@ Unrecognized escape sequences are ignored, unless the B<-p> option is used.
 
 Some versions of B<col> for BSD may convert spaces to tabs
 incorrectly.  This implementation of B<col> does not emulate that bug.
-
-This implementation of B<col> was compared to the B<col> utility on
-IRIX and BSD, and includes compatibility modes for both those systems.
 The B<col> utilities on other systems may have further differences in
 behavior.
 
