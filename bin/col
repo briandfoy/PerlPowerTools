@@ -23,9 +23,9 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 our $VERSION = '1.2';
 
-use vars qw($opt_b $opt_f $opt_l $opt_p $opt_s $opt_t $opt_x);
+use vars qw($opt_b $opt_f $opt_h $opt_l $opt_p $opt_s $opt_t $opt_x);
 
-getopts('bfpxl:st') or usage();
+getopts('bfhpxl:st') or usage();
 if (defined $opt_l) {
     if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
         warn "$Program: bad -l argument: '$opt_l'\n";
@@ -261,7 +261,7 @@ sub print_line {
 }
 
 sub usage {
-    warn "usage: $Program [-bfpstx] [-l num]\n";
+    warn "usage: $Program [-bfhpstx] [-l num]\n";
     exit EX_FAILURE;
 }
 
@@ -275,7 +275,7 @@ col - filter reverse line feeds from input
 
 =head1 SYNOPSIS
 
-B<col> [B<-bfpstx>] [B<-l num>]
+B<col> [B<-bfhpstx>] [B<-l num>]
 
 =head1 DESCRIPTION
 
@@ -303,6 +303,10 @@ Forward half-line feeds are permitted ("fine" mode).  Without this
 option, characters which would be printed on a half-line boundary are
 printed on the following line.
 
+=item B<-h>
+
+Compress spaces into tabs. This option is the default behavior.
+
 =item B<-p>
 
 Output unrecognized escape sequences.  Without this option,
@@ -314,7 +318,7 @@ position of the escape sequences.
 =item B<-x>
 
 Output multiple spaces instead of tabs.  Tab stops are eight
-characters apart.
+characters apart. This option takes precedence over the B<-h> option.
 
 =item B<-l> I<num>
 
