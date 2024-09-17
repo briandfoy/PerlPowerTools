@@ -23,19 +23,9 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 our $VERSION = '1.2';
 
-use vars qw($opt_b $opt_f $opt_h $opt_l $opt_p $opt_s $opt_t $opt_x);
+use vars qw($opt_b $opt_f $opt_h $opt_p $opt_s $opt_t $opt_x);
 
 getopts('bfhpxl:st') or usage();
-if (defined $opt_l) {
-    if ($opt_l !~ m/\A[0-9]+\Z/ || $opt_l == 0) {
-        warn "$Program: bad -l argument: '$opt_l'\n";
-        exit EX_FAILURE;
-    }
-    # multiply by 2 for half-lines
-    $opt_l *= 2;
-} else {
-    $opt_l = 512;
-}
 usage() if @ARGV;
 
 my @buf = [];       # character buffer
@@ -322,8 +312,7 @@ characters apart. This option takes precedence over the B<-h> option.
 
 =item B<-l> I<num>
 
-Buffer at least I<num> lines in memory.  By default 256 lines (or 512
-half-lines) are buffered.
+This option is ignored for compatibility reasons.
 
 =back
 
