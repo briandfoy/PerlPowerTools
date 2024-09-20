@@ -182,7 +182,7 @@ sub parse_args {
 
 		eval {                     # try to look up escapes for stand-out
 			require POSIX;         # or underline via Term::Cap
-			use Term::Cap;
+			require Term::Cap;
 
 			my $termios = POSIX::Termios->new();
 			$termios->getattr;
@@ -241,8 +241,6 @@ sub parse_args {
 	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
 	$opt{H}   += $opt{u};
 	$opt{c}   += $opt{C};
-
-	$match_code .= 'study;' if @patterns > 5;    # might speed things up a bit
 
 	foreach (@patterns) {s(/)(\\/)g}
 
