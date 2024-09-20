@@ -46,9 +46,7 @@ my @re = qw( [7-9\x07-\x09]  ^[7\x07]$     ^[8\x08]$     ^[9\x09]$ );
 
 while (<>) {
     # chop trailing characters not followed by a linefeed of any kind
-    if ($opt_t) {
-        $_ =~ s/^(.*(?:\x0A|\e$re[0])|).*$/$1/sxo;
-    }
+    s/^(.*(?:\x0A|\e$re[0])|).*$/$1/sxo if $opt_t;
 
     my @chars = split m//;
 
@@ -253,6 +251,11 @@ sub print_line {
 sub usage {
     warn "usage: $Program [-bfhpstx] [-l num]\n";
     exit EX_FAILURE;
+}
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
 }
 
 __END__
