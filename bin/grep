@@ -49,41 +49,34 @@ License: perl
 
 use strict;
 
+use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
 our $VERSION = '1.001';
-use vars qw($Me $Errors $Grand_Total $Mult %Compress $Matches);
 
-my ( $matcher, $opt );    # matcher - anon. sub to check for matches
-                          # opt - ref to hash w/ command line options
+$| = 1;                   # autoflush output
 
-init();                   # initialize globals
+my $Me = basename($0);
+my $Errors = 0;
+my $Grand_Total = 0;
+my $Matches;
+my $Mult = '';
 
-( $opt, $matcher ) = parse_args();    # get command line options and patterns
+my %Compress = (
+	'z'   => 'zcat <',        # for uncompressing
+	'gz'  => 'zcat <',
+	'Z'   => 'zcat <',
+	'bz2' => 'bzcat <',
+	'zip' => 'unzip -c',
+);
 
+my ($opt, $matcher) = parse_args();    # get command line options and patterns
 matchfile( $opt, $matcher, @ARGV );   # process files
 
 exit(2) if $Errors;
 exit(0) if $Grand_Total;
 exit(1);
-
-###################################
-
-sub init {
-	( $Me = $0 ) =~ s!.*/!!;       # get basename of program, "tcgrep"
-	$Errors = $Grand_Total = 0;    # initialize global counters
-	$Mult   = "";                  # flag for multiple files in @ARGV
-	$|      = 1;                   # autoflush output
-
-	%Compress = (                  # file extensions and program names
-		z   => 'zcat <',           # for uncompressing
-		gz  => 'zcat <',
-		Z   => 'zcat <',
-		bz2 => 'bzcat <',
-		zip => 'unzip -c',
-	);
-	}
 
 ###################################
 
@@ -177,7 +170,6 @@ sub parse_args {
 	@ARGV = ($opt{'r'} ? '.' : '-') unless @ARGV;
 
 	if ( $opt{H} || $opt{u} ) {    # highlight or underline
-		my $term = $ENV{TERM} || 'vt100';
 		my $terminal;
 
 		eval {                     # try to look up escapes for stand-out
@@ -199,6 +191,7 @@ sub parse_args {
 				: ( $terminal->Tputs('us'), $terminal->Tputs('ue') );
 			}
 		else {                # if use of Term::Cap fails,
+			my $term = $ENV{'TERM'} || 'vt100';
 			( $SO, $SE ) = $opt{H}    # use tput command to get escapes
 				? ( `tput -T $term smso`, `tput -T $term rmso` )
 				: ( `tput -T $term smul`, `tput -T $term rmul` );
@@ -367,9 +360,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			next FILE unless $ok;
 			}
 
-		$total = 0;
-
-		$Matches = 0;
+		$total = $Matches = 0;
 
 	LINE: while (<$fh>) {
 			$Matches = 0;
