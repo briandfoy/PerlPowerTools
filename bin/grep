@@ -53,7 +53,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 $| = 1;                   # autoflush output
 
@@ -333,7 +333,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				$file       = "$Compress{$ext} $file |";
 				$compressed = 1;
 				}
-			elsif ( !( -T $file || $opt->{a} ) ) {
+			elsif (!$opt->{'a'} && -B $file) {
 				warn qq($Me: skipping binary file "$file"\n) if $opt->{T};
 				next FILE;
 				}
@@ -353,11 +353,11 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			else {
 				$ok = open $fh, '<', $file;
 				}
-			if ( !$ok && !$opt->{'s'} ) {
-				warn "$Me: $file: $!\n";
+			if (!$ok) {
+				warn "$Me: $file: $!\n" unless $opt->{'s'};
 				$Errors++;
+				next FILE;
 				}
-			next FILE unless $ok;
 			}
 
 		$total = $Matches = 0;
