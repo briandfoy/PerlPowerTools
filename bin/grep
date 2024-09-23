@@ -53,7 +53,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 $| = 1;                   # autoflush output
 
@@ -199,15 +199,26 @@ sub parse_args {
 		}
 
 	if ($no_re) {
-		if ($opt{'w'} || $opt{'x'} || $opt{'H'} || $opt{'u'}) {
-			die("$Me: -H, -u, -w and -x are incompatible with -F\n");
+		if ($opt{'H'} || $opt{'u'} || $opt{'w'}) {
+			die "$Me: -H, -u and -w are incompatible with -F\n";
 		}
-		my $testop = $opt{'v'} ? '==' : '!=';
-		if ($opt{'i'}) {
-			$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(lc \$_, lc \$pat) $testop -1) }";
+		if ($opt{'x'}) { # exact match
+			my $testop = $opt{'v'} ? 'ne' : 'eq';
+			if ($opt{'i'}) {
+				$match_code = "my \$c=\$_; chomp \$c; for my \$pat (\@patterns) {\$Matches++ if (lc(\$c) $testop lc(\$pat)) }";
+			}
+			else { # case sensitive
+				$match_code = "my \$c=\$_; chomp \$c; for my \$pat (\@patterns) {\$Matches++ if (\$c $testop \$pat) }";
+			}
 		}
-		else { # case sensitive
-			$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(\$_, \$pat) $testop -1) }";
+		else { # regular match
+			my $testop = $opt{'v'} ? '==' : '!=';
+			if ($opt{'i'}) {
+				$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(lc \$_, lc \$pat) $testop -1) }";
+			}
+			else { # case sensitive
+				$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(\$_, \$pat) $testop -1) }";
+			}
 		}
 		$matcher = eval "sub { $match_code }";
 		die if $@;
