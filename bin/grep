@@ -53,7 +53,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 
 $| = 1;                   # autoflush output
 
@@ -87,7 +87,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-incCwsxvhlF1HurtpaqT] [-e pattern]
+usage: $Me [-incCwsxvHhlF1gurtpaqT] [-e pattern]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -99,13 +99,14 @@ Options:
 	-q   quiet; nothing is written to standard output
 	-x   exact matches only
 	-v   invert search sense (lines that DON'T match)
+	-H   show filenames
 	-h   hide filenames
 	-e   expression (for exprs beginning with -)
 	-f   file with expressions
 	-l   list filenames matching
 	-F   search for fixed strings (disable regular expressions)
 	-1   1 match per file
-	-H   highlight matches
+	-g   highlight matches
 	-u   underline matches
 	-r   recursive on directories or dot if none
 	-t   process directories in `ls -t` order
@@ -130,13 +131,13 @@ sub parse_args {
 		unshift @ARGV, $_;
 		}
 
-	$zeros = 'inCwxvhlut';    # options to init to 0 (prevent warnings)
+	$zeros = 'inCwxvghHlut';    # options to init to 0 (prevent warnings)
 	$nulls = 'epP';             # options to init to "" (prevent warnings)
 
 	@opt{ split //, $zeros } = (0) x length($zeros);
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
-	getopts('incCwsxvhe:f:l1HurtpP:aqTF', \%opt) or usage();
+	getopts('incCwsxvHhe:f:l1gurtpP:aqTF', \%opt) or usage();
 
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
@@ -166,10 +167,18 @@ sub parse_args {
 			}
 		@patterns = ($pattern);
 		}
-	$Mult = ($opt{'r'} || scalar(@ARGV) > 1) ^ $opt{'h'};
+	if ($opt{'H'}) {
+		$Mult = 1;
+	}
+	elsif ($opt{'h'}) {
+		$Mult = 0;
+	}
+	else {
+		$Mult = $opt{'r'} || (scalar(@ARGV) > 1);
+	}
 	@ARGV = ($opt{'r'} ? '.' : '-') unless @ARGV;
 
-	if ( $opt{H} || $opt{u} ) {    # highlight or underline
+	if ($opt{'g'} || $opt{'u'}) {    # highlight or underline
 		my $terminal;
 
 		eval {                     # try to look up escapes for stand-out
@@ -184,23 +193,23 @@ sub parse_args {
 			};
 
 		unless ($@) {    # if successful, get escapes for either
-			local $^W = 0;    # stand-out (-H) or underlined (-u)
+			local $^W = 0;    # stand-out (-g) or underlined (-u)
 			( $SO, $SE ) =
-				$opt{H}
+				$opt{'g'}
 				? ( $terminal->Tputs('so'), $terminal->Tputs('se') )
 				: ( $terminal->Tputs('us'), $terminal->Tputs('ue') );
 			}
 		else {                # if use of Term::Cap fails,
 			my $term = $ENV{'TERM'} || 'vt100';
-			( $SO, $SE ) = $opt{H}    # use tput command to get escapes
+			( $SO, $SE ) = $opt{'g'}    # use tput command to get escapes
 				? ( `tput -T $term smso`, `tput -T $term rmso` )
 				: ( `tput -T $term smul`, `tput -T $term rmul` );
 			}
 		}
 
 	if ($no_re) {
-		if ($opt{'H'} || $opt{'u'} || $opt{'w'}) {
-			die "$Me: -H, -u and -w are incompatible with -F\n";
+		if ($opt{'g'} || $opt{'u'} || $opt{'w'}) {
+			die "$Me: -g, -u and -w are incompatible with -F\n";
 		}
 		if ($opt{'x'}) { # exact match
 			my $testop = $opt{'v'} ? 'ne' : 'eq';
@@ -243,12 +252,12 @@ sub parse_args {
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
 	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
-	$opt{H}   += $opt{u};
+	$opt{'g'} += $opt{'u'};
 	$opt{c}   += $opt{C};
 
 	foreach (@patterns) {s(/)(\\/)g}
 
-	if ( $opt{H} ) {
+	if ( $opt{'g'} ) {
 		for my $pattern (@patterns) {
 			$match_code .= "\$Matches += s/($pattern)/${SO}\$1${SE}/g;";
 			}
@@ -422,7 +431,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<grep> [ B<-[incCwsxvhlF1HurtpaqT]> ] [ B<-e> I<pattern> ]
+B<grep> [ B<-[incCwsxvhHlF1igurtpaqT]> ] [ B<-e> I<pattern> ]
 [ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
 
 =head1 DESCRIPTION
@@ -485,13 +494,17 @@ as search criteria.
 
 the B<-f> option supercedes the B<-e> option.
 
-=item B<-H>
+=item B<-g>
 
 Highlight matches.  This option causes B<grep> to attempt to use
 your terminal's stand-out (emboldening) functionality to highlight
 those portions of each matching line or paragraph that actually
 triggered the match.  This feature is very similar to the way the
 less(1) pager highlights matches.  See also B<-u>.
+
+=item B<-H>
+
+Always include filename headers for matching lines or paragraphs.
 
 =item B<-h>
 
