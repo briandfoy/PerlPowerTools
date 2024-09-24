@@ -144,14 +144,14 @@ sub parse_args {
 
 	if (defined $opt{'f'}) {           # -f patfile
 		die("$Me: $opt{f}: is a directory\n") if ( -d $opt{f} );
-		open PATFILE, '<', $opt{f} or die qq($Me: Can't open '$opt{f}': $!);
+		open PATFILE, '<', $opt{f} or die qq($Me: Can't open '$opt{f}': $!\n);
 
 		# make sure each pattern in file is valid
 		while ( defined( $pattern = <PATFILE> ) ) {
 			chomp $pattern;
 			unless ($no_re) {
 				eval { 'foo' =~ /$pattern/, 1 }
-					or die "$Me: $opt{f}:$.: bad pattern: $@";
+					or die "$Me: $opt{f}:$.: bad pattern: $@\n";
 				}
 			push @patterns, $pattern;
 			}
@@ -163,7 +163,7 @@ sub parse_args {
 		usage() unless defined $pattern;
 		unless ($no_re) {
 			eval { 'foo' =~ /$pattern/, 1 }
-				or die "$Me: bad pattern: $@";
+				or die "$Me: bad pattern: $@\n";
 			}
 		@patterns = ($pattern);
 		}
@@ -298,7 +298,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 		my $compressed = 0;
 
 		if ( $file eq '-' ) {
-			warn "$Me: reading from stdin\n" if -t STDIN && !$opt->{'s'};
 			$name = '<STDIN>';
 			}
 		elsif ( -d $file ) {
@@ -359,7 +358,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 			}
 
-		warn "$Me: checking $file\n" if $opt->{T};
+		warn "$Me: checking $name\n" if $opt->{'T'};
 
 		my $fh;
 		if ( $file eq '-' ) {
