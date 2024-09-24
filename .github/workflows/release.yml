@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20240710.001
+# version 20240825.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -12,6 +12,7 @@
 # This requires that you configure a repository secret named
 # RELEASE_ACTION_TOKEN with a GitHub Personal Access Token
 # that has "read and write" permissions on Repository/Contents
+---
 name: release
 
 # https://github.com/actions/checkout/issues/1590
@@ -46,11 +47,11 @@ jobs:
         environment: release
         runs-on: ${{ matrix.os }}
         strategy:
-          matrix:
-            os:
-                - ubuntu-20.04
-            perl-version:
-                - 'latest'
+            matrix:
+                os:
+                    - ubuntu-20.04
+                perl-version:
+                    - 'latest'
         container:
             image: perl:${{ matrix.perl-version }}
         steps:
@@ -93,7 +94,7 @@ jobs:
               id: version
             - name: Changes extract
               run: |
-                perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; print; last' Changes > Changes-latest
+                perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; print s/^\h+([*-])/$1/grm; last' Changes > Changes-latest
                 cat Changes-latest
               id: extract
 # https://cli.github.com/manual/gh_attestation_verify
@@ -105,15 +106,15 @@ jobs:
               id: attestation
               uses: actions/attest-build-provenance@v1
               with:
-                subject-path: ${{ env.ASSET_NAME }}
+                  subject-path: ${{ env.ASSET_NAME }}
             - name: upload
               uses: softprops/action-gh-release@v1
               with:
-                body_path: Changes-latest
-                draft: false
-                prerelease: false
-                name: ${{ steps.version.outputs.name }}
-                files: |
+                  body_path: Changes-latest
+                  draft: false
+                  prerelease: false
+                  name: ${{ steps.version.outputs.name }}
+                  files: |
                     ${{ env.ASSET_NAME }}
                     ${{ steps.attestation.outputs.bundle-path }}
-                token: ${{ secrets.RELEASE_ACTION_TOKEN }}
+                  token: ${{ secrets.RELEASE_ACTION_TOKEN }}

@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20240709.001
+# version 20240824.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,11 +8,17 @@
 # in your repo settings. Or not. It still works if it isn't defined.
 # In that environment, add whatever environment variables or secrets
 # that you want.
+---
 name: windows
 
 # https://github.com/actions/checkout/issues/1590
 env:
     ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/using-concurrency
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+    cancel-in-progress: true
 
 on:
     push:
@@ -49,10 +55,10 @@ jobs:
         runs-on: ${{ matrix.os }}
         # store any secrets in an environment named "testing"
         strategy:
-          matrix:
-            os:
-                - windows-2019
-                - windows-2022
+            matrix:
+                os:
+                    - windows-2019
+                    - windows-2022
         steps:
             - run: git config --global core.autocrlf false
             - uses: actions/checkout@v3
@@ -88,7 +94,7 @@ jobs:
 # stuff in parallel.
             - name: Run tests in parallel
               env:
-                HARNESS_OPTIONS: j10
+                  HARNESS_OPTIONS: j10
               run: |
                 perl Makefile.PL
                 make test
@@ -107,7 +113,7 @@ jobs:
             - name: Run coverage tests
               if: env.WINDOWS_SKIP_COVERAGE != 0
               env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL

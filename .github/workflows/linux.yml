@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20240709.001
+# version 20240923.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,11 +8,17 @@
 # in your repo settings. Or not. It still works if it isn't defined.
 # In that environment, add whatever environment variables or secrets
 # that you want.
+---
 name: ubuntu
 
 # https://github.com/actions/checkout/issues/1590
 env:
     ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/using-concurrency
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+    cancel-in-progress: true
 
 on:
     push:
@@ -42,33 +48,35 @@ on:
             - 'LICENSE'
             - 'README.pod'
     pull_request:
-
+    # weekly build on the master branch just to see what CPAN is doing
+    schedule:
+        - cron: "37 3 * * 0"
 jobs:
     perl:
         environment: automated_testing
         runs-on: ${{ matrix.os }}
         strategy:
-          matrix:
-            os:
-                - ubuntu-22.04
-            perl-version:
-                - '5.8-buster'
-                - '5.10-buster'
-                - '5.12-buster'
-                - '5.14-buster'
-                - '5.16-buster'
-                - '5.18-buster'
-                - '5.20-buster'
-                - '5.22-buster'
-                - '5.24-buster'
-                - '5.26-buster'
-                - '5.28-buster'
-                - '5.30-bullseye'
-                - '5.32-bullseye'
-                - '5.34-bullseye'
-                - '5.36-bookworm'
-                - '5.38-bookworm'
-                - 'latest'
+            matrix:
+                os:
+                    - ubuntu-22.04
+                perl-version:
+                    - '5.8-buster'
+                    - '5.10-buster'
+                    - '5.12-buster'
+                    - '5.14-buster'
+                    - '5.16-buster'
+                    - '5.18-buster'
+                    - '5.20-buster'
+                    - '5.22-buster'
+                    - '5.24-buster'
+                    - '5.26-buster'
+                    - '5.28-buster'
+                    - '5.30-bullseye'
+                    - '5.32-bullseye'
+                    - '5.34-bullseye'
+                    - '5.36-bookworm'
+                    - '5.38-bookworm'
+                    - 'latest'
         container:
             image: perl:${{ matrix.perl-version }}
         steps:
@@ -84,6 +92,26 @@ jobs:
             - name: Setup environment
               run: |
                 echo "PERL_LWP_SSL_VERIFY_HOSTNAME=0" >> $GITHUB_ENV
+# HTML::Tagset bumped its minimum version to v5.10 for no good reason
+# but this is a prereq to LWP, which runs on v5.8. To get around this,
+# download the tarball and fix it for v5.8. Install it before we try
+# to install things that depend on it. More recent versions will
+# install it normally.
+# 1. remove the META files which have references to v5.10 and ignore
+# the warnings
+# 2. fix Makefile.PL to remove two references to v5.10
+# https://github.com/libwww-perl/HTML-Tagset/pull/14
+            - name: fix html-tagset for v5.8
+              if: env.PERL_VERSION == 'v5.8'
+              run: |
+                curl -L -O https://cpan.metacpan.org/authors/id/P/PE/PETDANCE/HTML-Tagset-3.24.tar.gz
+                tar -xzf HTML-Tagset-3.24.tar.gz
+                cd HTML-Tagset-3.24
+                rm META.*
+                mv Makefile.PL Makefile.PL.orig
+                perl -n -e 'next if /(^use 5)|(MIN_PERL)/; print' Makefile.PL.orig > Makefile.PL
+                cpan -T .
+                cd ..
 # I had some problems with openssl on Ubuntu, so I punted by installing
 # cpanm first, which is easy. I can install IO::Socket::SSL with that,
 # then switch back to cpan. I didn't explore this further, but what you
@@ -92,7 +120,7 @@ jobs:
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
+                cpanm --notest IO::Socket::SSL LWP::Protocol::https App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
@@ -100,7 +128,7 @@ jobs:
               run: |
                 cpanm --notest --installdeps --with-suggests --with-recommends .
             - name: Show cpanm failures
-              if:  ${{ failure() }}
+              if: ${{ failure() }}
               run: |
                 cat /github/home/.cpanm/work/*/build.log
             - name: Run tests
@@ -138,7 +166,7 @@ jobs:
             - name: Run coverage tests
               if: env.PERL_VERSION != 'v5.8' && env.PERL_VERSION != 'v5.10'
               env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
