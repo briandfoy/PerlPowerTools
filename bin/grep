@@ -53,7 +53,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
-our $VERSION = '1.004';
+our $VERSION = '1.005';
 
 $| = 1;                   # autoflush output
 
@@ -87,7 +87,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-incCwsxvHhlF1gurtpaqT] [-e pattern]
+usage: $Me [-inCcwsxvHhLlF1gurtpaqT] [-e pattern]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -104,6 +104,7 @@ Options:
 	-e   expression (for exprs beginning with -)
 	-f   file with expressions
 	-l   list filenames matching
+	-L   list filenames which do not match
 	-F   search for fixed strings (disable regular expressions)
 	-1   1 match per file
 	-g   highlight matches
@@ -131,14 +132,15 @@ sub parse_args {
 		unshift @ARGV, $_;
 		}
 
-	$zeros = 'inCwxvghHlut';    # options to init to 0 (prevent warnings)
+	$zeros = 'inCwxvghHLlut';    # options to init to 0 (prevent warnings)
 	$nulls = 'epP';             # options to init to "" (prevent warnings)
 
 	@opt{ split //, $zeros } = (0) x length($zeros);
 	@opt{ split //, $nulls } = ('') x length($nulls);
 
-	getopts('incCwsxvHhe:f:l1gurtpP:aqTF', \%opt) or usage();
+	getopts('inCcwsxvHhe:f:Ll1gurtpP:aqTF', \%opt) or usage();
 
+	$opt->{'l'} = 0 if $opt->{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
 
@@ -392,6 +394,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 
 			$total += $Matches;
 			last FILE if $opt->{'q'}; # single match for all files
+			last LINE if $opt->{'L'}; # one match is enough
 
 			if ( $opt->{p} || $opt->{P} ) {
 				s/\n{2,}$/\n/ if $opt->{p};
@@ -415,6 +418,9 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			print($name, ':') if $Mult;
 			print $total, "\n";
 		}
+		if ($opt->{'L'} && !$total) {
+			print $name, "\n";
+		}
 		close FILE;
 		}
 	$Grand_Total += $total;
@@ -430,7 +436,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<grep> [ B<-[incCwsxvhHlF1igurtpaqT]> ] [ B<-e> I<pattern> ]
+B<grep> [ B<-[incCwsxvhHlLF1igurtpaqT]> ] [ B<-e> I<pattern> ]
 [ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
 
 =head1 DESCRIPTION
@@ -515,6 +521,11 @@ Ignore case while matching.  This means, for example, that the pattern
 C<unix> would match C<unix> as well as C<UniX> (plus the other fourteen
 possible capitalizations).  This corresponds to the C</i> Perl regular
 expression switch.  See L<perlre>.
+
+=item B<-L>
+
+List files which do no match any pattern.  This option takes precedence
+over B<-l>.
 
 =item B<-l>
 
