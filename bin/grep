@@ -134,7 +134,7 @@ sub parse_args {
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
 	getopts('inCcwsxvHhe:f:Ll1gurtpP:aqTF', \%opt) or usage();
 
-	$opt->{'l'} = 0 if $opt->{'L'};
+	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 	$match_code = '';
 
