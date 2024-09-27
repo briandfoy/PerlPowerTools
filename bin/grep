@@ -145,19 +145,21 @@ sub parse_args {
 	$match_code = '';
 
 	if (defined $opt{'f'}) {           # -f patfile
-		die("$Me: $opt{f}: is a directory\n") if ( -d $opt{f} );
-		open PATFILE, '<', $opt{f} or die qq($Me: Can't open '$opt{f}': $!\n);
+		my $path = $opt{'f'};
+		my $patfile;
+		die "$Me: $path: is a directory\n" if -d $path;
+		open($patfile, '<', $path) or die "$Me: Can't open '$path': $!\n";
 
 		# make sure each pattern in file is valid
-		while ( defined( $pattern = <PATFILE> ) ) {
+		while ( defined( $pattern = <$patfile> ) ) {
 			chomp $pattern;
 			unless ($no_re) {
 				eval { 'foo' =~ /$pattern/, 1 }
-					or die "$Me: $opt{f}:$.: bad pattern: $@\n";
+					or die "$Me: $path: $.: bad pattern: $@\n";
 				}
 			push @patterns, $pattern;
 			}
-		close PATFILE;
+		close $patfile;
 		}
 	else {    # make sure pattern is valid
 		$pattern = $opt{'e'};
@@ -402,7 +404,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 			if ($opt->{'l'}) {
 				print $name, "\n";
-				next FILE;
+				last LINE;
 			}
 			unless ($opt->{'c'}) {
 				print($name, ':') if $Mult;
@@ -410,8 +412,9 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 					( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
 			}
 
-			next FILE if $opt->{'1'}; # single match per file
+			last LINE if $opt->{'1'}; # single match per file
 			}
+			close $fh;
 		}
 	continue {
 		if ($opt->{'c'}) {
@@ -421,7 +424,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 		if ($opt->{'L'} && !$total) {
 			print $name, "\n";
 		}
-		close FILE;
 		}
 	$Grand_Total += $total;
 	}
