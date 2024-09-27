@@ -124,20 +124,14 @@ EOF
 ###################################
 
 sub parse_args {
-	my ( $zeros, $nulls, %opt, $pattern, @patterns, $match_code );
-	my ( $SO, $SE );
+	my (%opt, $pattern, @patterns, $match_code, $SO, $SE);
 
 	if ( defined( $_ = $ENV{'GREP_OPTIONS'} ) ) {
 		s/^([^\-])/-$1/;    # add leading - if missing
 		unshift @ARGV, $_;
 		}
 
-	$zeros = 'inCwxvghHLlut';    # options to init to 0 (prevent warnings)
-	$nulls = 'epP';             # options to init to "" (prevent warnings)
-
-	@opt{ split //, $zeros } = (0) x length($zeros);
-	@opt{ split //, $nulls } = ('') x length($nulls);
-
+	$opt{'p'} = $opt{'P'} = ''; # argument to print()
 	getopts('inCcwsxvHhe:f:Ll1gurtpP:aqTF', \%opt) or usage();
 
 	$opt->{'l'} = 0 if $opt->{'L'};
@@ -255,9 +249,9 @@ sub parse_args {
 	$opt{P}   && ( $/        = eval(qq("$opt{P}")) );                                         # for -P '%%\n'
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
-	$opt{1}   += $opt{l};                                                                     # that's a one and an ell
-	$opt{'g'} += $opt{'u'};
-	$opt{c}   += $opt{C};
+	$opt{'1'} ||= $opt{'l'}; # that's a one and an ell
+	$opt{'g'} ||= $opt{'u'};
+	$opt{'c'} ||= $opt{'C'};
 
 	foreach (@patterns) {s(/)(\\/)g}
 
@@ -315,7 +309,8 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				warn qq($Me: "$file" is a directory\n);
 				next FILE;
 				}
-			unless ( opendir( DIR, $file ) ) {
+			my $dh;
+			unless (opendir $dh, $file) {
 				unless ( $opt->{'s'} ) {
 					warn "$Me: can't opendir $file: $!\n";
 					$Errors++;
@@ -323,11 +318,11 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				next FILE;
 				}
 			@list = ();
-			for ( readdir(DIR) ) {
+			for (readdir $dh) {
 				next if $_ eq '.' or $_ eq '..';
 				push @list, File::Spec->catfile($file, $_);
 				}
-			closedir(DIR);
+			closedir $dh;
 			if ( $opt->{t} ) {
 				my (@dates);
 				for (@list) { push( @dates, -M ) }
