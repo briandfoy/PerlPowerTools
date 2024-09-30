@@ -199,8 +199,8 @@ sub parse_args {
 		else {                # if use of Term::Cap fails,
 			my $term = $ENV{'TERM'} || 'vt100';
 			( $SO, $SE ) = $opt{'g'}    # use tput command to get escapes
-				? ( `tput -T $term smso`, `tput -T $term rmso` )
-				: ( `tput -T $term smul`, `tput -T $term rmul` );
+				? ( `tput -T '$term' smso`, `tput -T '$term' rmso` )
+				: ( `tput -T '$term' smul`, `tput -T '$term' rmul` );
 			}
 		}
 
