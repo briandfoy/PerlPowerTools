@@ -1,1 +1,3 @@
-cpan_user BRIANDFOY
+cpan_user     BRIANDFOY
+skip_kwalitee 1
+skip_prereqs  1
