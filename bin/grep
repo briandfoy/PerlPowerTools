@@ -53,7 +53,7 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std;
 
-our $VERSION = '1.005';
+our $VERSION = '1.006';
 
 $| = 1;                   # autoflush output
 
@@ -87,7 +87,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-inCcwsxvHhLlF1gurtpaqT] [-e pattern]
+usage: $Me [-inCcwsxvHhLlF1gurpaqT] [-e pattern]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -110,7 +110,6 @@ Options:
 	-g   highlight matches
 	-u   underline matches
 	-r   recursive on directories or dot if none
-	-t   process directories in `ls -t` order
 	-p   paragraph mode (default: line mode)
 	-P   ditto, but specify separator, e.g. -P '%%\\n'
 	-a   all files, not just plain text files
@@ -132,7 +131,7 @@ sub parse_args {
 		}
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inCcwsxvHhe:f:Ll1gurtpP:aqTF', \%opt) or usage();
+	getopts('inCcwsxvHhe:f:Ll1gurpP:aqTF', \%opt) or usage();
 
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
@@ -323,14 +322,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				push @list, File::Spec->catfile($file, $_);
 				}
 			closedir $dh;
-			if ( $opt->{t} ) {
-				my (@dates);
-				for (@list) { push( @dates, -M ) }
-				@list = @list[ sort { $dates[$a] <=> $dates[$b] } 0 .. $#dates ];
-				}
-			else {
-				@list = sort @list;
-				}
+			@list = sort @list;
 			matchfile( $opt, $matcher, @list );    # process files
 			next FILE;
 			}
@@ -433,7 +425,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<grep> [ B<-[incCwsxvhHlLF1igurtpaqT]> ] [ B<-e> I<pattern> ]
+B<grep> [ B<-[incCwsxvhHlLF1igurpaqT]> ] [ B<-e> I<pattern> ]
 [ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
 
 =head1 DESCRIPTION
@@ -574,12 +566,6 @@ when skipping directories because the user did not give the B<-r> switch,
 when skipping non-plain files (see L<perlfunc/-f>),
 when skipping non-text files (see L<perlfunc/-T>), and
 when opening a file for searching
-
-=item B<-t>
-
-Process directories in C<`ls -t`> order.  Search the files in each
-directory starting with the most recently modified and ending with
-the least recently modified.
 
 =item B<-u>
 
