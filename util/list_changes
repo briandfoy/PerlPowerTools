@@ -84,7 +84,6 @@ foreach my $program ( sort keys $Changes->%* ) {
 	foreach my $comment ( @comments ) {
 		say "    - $comment->[0] (#$comment->[1])";
 		}
-	print "\n";
 	}
 
 sub is_accepted ( $pull ) {
