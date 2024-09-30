@@ -1,5 +1,283 @@
 Revision history for Perl module PerlPowerTools
 
+1.047 2024-09-30T02:33:14Z
+	* addbib
+		- fix security issue with calling external process (#732)
+		- add ed to the supported editors (#733)
+		- fix database re-opening that was masking a lexical variable (#734)
+	
+	* ar
+		- check that there's a defined archive argument before proceeding (#611)
+		- various internals improvements (#676)
+		- show system error when we can't read one of the files (#713)
+		- -t correctly reports missing members now (#727)
+		- all fils are treated as binary now (#728)
+		- extract/delete all arguments even if some members are not found (#729)
+	
+	* awk
+		- tempfiles are now removed at the end of the run (#714)
+	
+	* basename
+		- accept -- as end of options (#723)
+		- actually support the optional suffix argument (#724)
+	
+	* bc
+		- various internals improvements (#592)
+		- various internals improvements (#600)
+		- fix regression in modulus 0 operation (#617)
+		- various internals improvements (#619)
+		- various internals improvements (#705)
+	
+	* cal
+		- various internals improvements (#668)
+	
+	* cat
+		- add --version, adjust usage message (#631)
+		- bypass input processing if none of options -b -e -n -s -t & -v are provided (#638)
+	
+	* cmp
+		- adjusted the usage example to show hat -l and -s are mutually exclusive (#621)
+		- stop if we can't read from the first file (#711)
+	
+	* col
+		- various internals improvements (#735)
+		- add -h for compatibility, although that's what we already do (#736)
+		- -l is now a no-op, but preserved for legacy operation. (#737)
+		- add --version (#738)
+	
+	* cp
+		- print usage and exit for bad options (#609)
+		- stop option parsing after -- (#642)
+		- support bundled options (#649)
+		- various internals improvements (#679)
+		- various internals improvements (#680)
+	
+	* cut
+		- ensure -b returns the right range of characters (#595)
+		- various internals improvements (#596)
+		- -b allows a range of 1 now (#622)
+	
+	* diff
+		- -q now causes program to ignore any switch that produces output (#604)
+		- various internals improvements (#674)
+		- various internals improvements (#686)
+		- various internals improvements (#726)
+	
+	* dirname
+		- various internals improvements (#716)
+		- accept -- as end of options (#723)
+	
+	* du
+		- various internals improvements (#625)
+		- various internals improvements (#667)
+	
+	* ed
+		- various internals improvements (#598)
+		- fix the "need to save" flag for the new file case (#618)
+		- improve state tracking for empty files (#620)
+		- commands can use inferred line ranges when you omit the first or last value in n,m (#624)
+		- remove -v in favor of --version (#637)
+		- fix a regression with searches that produce no matches (#647)
+		- if i or a command get two addresses, use the second one as the effective address; GNU/BSD compatibility (#655)
+		- various internals improvements (#656)
+		- line 0 is no longer valid for write command (#658)
+		- treat Control-D as the q command so ed exits gracefully (#659)
+	
+	* expr
+		- catch a divide-by-zero situation (#626)
+	
+	* factor
+		- docs note that this version fixes a bug in the BSD version (#599)
+		- various internals improvements (#678)
+		- completely replace factor with a program using the wheel algorithm to make it speedy (#404), from Peter John Acklam (#700)
+	
+	* false
+		- various internals improvements (#693)
+	
+	* fmt
+		- max width must be greater than zero (#695)
+		- exit with an error if an argument is a directory rather than skipping it (#696)
+	
+	* fold
+		- use getopts to handle argument processing (#692)
+	
+	* glob
+		- remove docs for use with Mac Classic (#672)
+		- various internals improvements (#730)
+	
+	* grep
+		- the default for -e is now the empty string, and the value 0 is taken to be a valid pattern (#607)
+		- allow the search pattern "0" by checking for a defined arg not the arg value (#627)
+		- allow --version option (#629)
+		- -f (fixed string mode) now disables pattern matching (#630)
+		- be more careful with quotemeta and patterns  (#633)
+		- set -s implicitly when -c is used (#634)
+		- show filenames even without -h set (#635)
+		- various internals improvements (#641)
+		- various internals improvements (#671)
+		- improve handling of - to mean standard input (check was too early) (#690)
+		- -s and -q were swapped in previous versions. -s is for suppressing errors, -q is for not showing matches (#708)
+		- show filename if matching multiple files  (#709)
+		- stop looking after first match with -q. (#710)
+		- various internals improvements (#739)
+		- various internals improvements (#740)
+		- -s now exits with correct value if It cannot read the file; -a works correctly if the perl thinks the file is binary and you selected -a (#741)
+		- various internals improvements (#742)
+		- -H moved to always show filenames, and highlighting is now -g (#743)
+		- silence a warning from grep reading stdin. (#744)
+		- various internals improvements (#745)
+		- various internals improvements (#746)
+		- various internals improvements (#747)
+	
+	* id
+		- allow gid to be 0 (#715)
+	
+	* install
+		- various internals improvements (#602)
+		- various internals improvements (#644)
+	
+	* join
+		- various internals improvements (#605)
+		- don't allow both -a and -v in the some invocation (#623)
+	
+	* kill
+		- various internals improvements (#691)
+	
+	* ln
+		- various internals improvements (#616)
+	
+	* lock
+		- fix some doc typos (#610)
+	
+	* look
+		- various internals improvements (#645)
+	
+	* ls
+		- various internals improvements (#606)
+		- support --version (#657)
+		- infer -1 switch automatically if the output filehandle is not a tty (#660)
+	
+	* mail
+		- support `xit` as a shorter form of `exit` (#648)
+	
+	* mkdir
+		- various internals improvements (#722)
+	
+	* mkfifo
+		- various internals improvements (#681)
+	
+	* moo
+		- quit on q or empty input (#725)
+	
+	* morse
+		- trim input before processing to avoid an "unknown token" problem (#717)
+	
+	* nl
+		- remove -V in favor of --version (#593)
+		- undocument unsupported -l switch (#615)
+		- -s only uses default separator when -s is not specified (#651)
+	
+	* od
+		- add -a option to print control character names (#646)
+		- add -s option and make it the same as -I (two byte signed decimal display) (#661)
+		- add -B as alias for -o (#662)
+	 (#663)dd -e and -f for printing two 8-byte floating point numbers per line
+		- add -H and -X options for 4-byte hex output (#664)
+		- fix odd cases in output padding (#665)
+		- add -O for four-byte octal output (#666)
+	
+	* paste
+		- don't check that argument - is a literal filename. (#689)
+	
+	* patch
+		- various internals improvements (#608)
+		- various internals improvements (#694)
+		- remove -x option (debugging) that wasn't doing anything (#699)
+		- -o complains if its argument is a directory (#701)
+		- --dry-run is an alias for -C or --check (#702)
+		- properly catch errors when applying a hunk fails. (#703)
+		- use File::Temp to get the /dev/null filehandle  (#706)
+		- update to docs for modern GNU version of -D (#712)
+		- -d DIR now happens before processing, as it should (#718)
+		- --fuzz argument must be a positive number (#719)
+		- with --output, use - to send output to standard output (#721)
+	
+	* pom
+		- ensure values for columns, rows, and terminal width make sense (#597)
+	
+	* pr
+		- don't let column count be zero (no -0 allowed) (#698)
+	
+	* pwd
+		- allow --, even though there are no arguments (#731)
+	
+	* random
+		- die for bad options (#720)
+	
+	* rm
+		- fail and print usage message for unsupported options (#612)
+		- disable "long" options; single letter options only (#632)
+		- fix option processing so a filename containing a dash is not included. (#669)
+		- -f with no arguments exits with 0 and shows usage (#670)
+	
+	* shar
+		- various internals improvements (#677)
+	
+	* sort
+		- adjust docs to correctly denote that filename args are optional (#687)
+		- die if an argument is a directory (#688)
+	
+	* spell
+		- various internals improvements (#591)
+		- remove -s to specify extra dictionaries, use + in front of filenames for additional dictionaries (e.g. +other.dict) (#697)
+	
+	* split
+		- various internals improvements (#613)
+		- various internals improvements (#673)
+		- allow for a directory named - without confusing it for stdin. (#675)
+	
+	* sum
+		- various internals improvements (#603)
+	
+	* tac
+		- not that -B can be combined with -b and/or -r (#628)
+	
+	* tail
+		- filename header for multiple file output now matches GNU and BSD, and the head program in PerlPowerTools (#653)
+		- remove the -h option to be consistent with GNU / BSD (#654)
+	
+	* tee
+		- tee now only ignores SIGINT when -I is specified (#682)
+		- remove non-standard -n, which suppressed standard output.  (#683)
+		- various internals improvements (#684)
+		- various internals improvements (#685)
+		- catch situations where tee cannot write to the destination (#704)
+	
+	* tr
+		- tr only reads from standard input now (#636)
+	
+	* true
+		- various internals improvements (#693)
+	
+	* units
+		- various internals improvements (#590)
+		- fix usage message (#614)
+		- fail for a custom units file only if one was specified but does not exist (#707)
+	
+	* wc
+		- failures exit with non-zero now (#601)
+	
+	* whoami
+		- various internals improvements (#652)
+	
+	* words
+		- die if there are two many arguments (#650)
+	
+	* xargs
+		- check eof() to know when to stop (#594)
+		- add pod docs (#639)
+		- remove hidden alias -l for -L since it's not a BSD option (#640)
+
 1.046 2024-07-11T18:10:02Z
 	* All changes from Michael Mikonos
 	
