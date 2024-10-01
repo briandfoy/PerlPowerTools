@@ -30,45 +30,35 @@ for my $file (@ARGV)
 #### pass in file handle, file name, and whether to stop printing after 1st "what"
 sub printWhat
 {
-    my $file_handle = $_[0];
-    my $file_name   = $_[1];
-    my $stop_flag   = $_[2];
+    my $file_handle = shift;
+    my $file_name   = shift;
+    my $stop_flag   = shift;
+    my $line;
     print "$file_name:\n" if $file_name ne "";
-    my $done = 0;
-    while (! $done)
+    while (defined($line = <$file_handle>))
     {
-        my $line = <$file_handle>;
-        if (defined $line)
+        next unless $line =~ m/\@\(#\)/;
+
+        if ((! $stop_flag) && ($line =~ /\0/)) ## there may be more than 1 in here
         {
-            if ($line =~ /\@\(#\)/)
+            my @F = split(/\0/, $line);
+            my @match = grep { m/\@\(#\)/ } @F;
+            for my $f (@match)
             {
-                if ((! $stop_flag) && ($line =~ /\0/)) ## there may be more than 1 in here
-                {
-                    my @F = split(/\0/,$line);
-                    for my $f (@F)
-                    {
-                        last if $done;
-                        if ($f =~ /\@\(#\)/)
-                        {
-                            $f =~ s|.*\@\(#\)||;
-                            $f =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
-                            chomp $f;
-                            print "        $f\n";
-                            $done = 1 if $stop_flag;
-                        }
-                    }
-                }
-                else
-                {
-                    $line =~ s|.*\@\(#\)||;
-                    $line =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
-                    chomp $line;
-                    print "        $line\n";
-                }
-                $done = 1 if $stop_flag;
+                $f =~ s|.*\@\(#\)||;
+                $f =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
+                chomp $f;
+                print "        $f\n";
             }
         }
-        else { $done = 1; }
+        else
+        {
+            $line =~ s|.*\@\(#\)||;
+            $line =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
+            chomp $line;
+            print "        $line\n";
+        }
+        last if $stop_flag;
     }
 }
 
