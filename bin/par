@@ -20,6 +20,7 @@ my $VERSION = '0.08';
 
 use File::Find;
 use File::Basename;
+use Getopt::Std qw(getopts);
 use Cwd;
 
 eval 'use Stat::lsMode';
@@ -35,21 +36,13 @@ binmode STDOUT;
 # Are we 'par' or 'shar'?
 ($0) = $0 =~ /(\w+)$/;
 
-# Check for arguments.
-@ARGV or die "usage: $0 [-s submitter] [-STBqvz] file [files...]\n";
-
-# Get options.
-my %opts;
-while (@ARGV && $ARGV[0] =~ s/^-//) {
-    local $_ = shift;
-    while (/([sSTBVqvz])/g) {
-        if ($1 eq 's') {
-            $opts{'s'} = /\G(.*)/g && $1 ? $1 : shift;
-        } else {
-            $opts{$1}++;
-        }
-    }
+sub usage {
+    die "usage: $0 [-s submitter] [-STBqvz] file...\n";
 }
+
+my %opts;
+getopts('s:STBqvz', \%opts) or usage();
+@ARGV or usage();
 
 # Print version.
 if ($opts{'v'}) {
