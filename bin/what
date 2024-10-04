@@ -15,16 +15,22 @@ use strict;
 
 use Getopt::Std qw(getopts);
 
+my $matches = 0;
 my %opt;
 getopts('s', \%opt) or usage();
 @ARGV or usage();
 
 for my $file (@ARGV)
     {
-        open(FILE, '<', $file) or die "Unable to read $file: $!";
-        printWhat(\*FILE, $file, $opt{'s'});
-        close FILE;
+        my $fh;
+        unless (open $fh, '<', $file) {
+            warn "Unable to open '$file': $!\n";
+            last;
+        }
+        printWhat($fh, $file, $opt{'s'});
+        close $fh;
     }
+exit ($matches ? 0 : 1);
 
 #### read open file and print "what" statements...
 #### pass in file handle, file name, and whether to stop printing after 1st "what"
@@ -38,6 +44,7 @@ sub printWhat
     while (defined($line = <$file_handle>))
     {
         next unless $line =~ m/\@\(#\)/;
+        $matches++;
 
         if ($line =~ m/\0/) ## there may be more than 1 in here
         {
@@ -68,8 +75,6 @@ sub usage {
     Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 }
 
-exit;
-
 __END__
 
 =pod
@@ -94,6 +99,11 @@ pattern in your file and you are set.
 =head2 OPTIONS
 
 B<->B<s> Stop after the first occurrence of the pattern.
+
+=head1 EXIT STATUS
+
+The what utility exits with status of 0 if any version information was found,
+or with a status of 1 otherwise.
 
 =head1 ENVIRONMENT
 
