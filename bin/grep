@@ -138,7 +138,78 @@ sub run_tput {
 }
 
 sub parse_args {
-	my (%opt, $pattern, @patterns, $match_code, $SO, $SE);
+	my (%opt, $pattern, @patterns, $SO, $SE);
+
+	my $cls_grep = sub {
+		for my $pattern (@patterns) {
+			$Matches++ if m/$pattern/;
+		}
+	};
+	my $cls_grep_C = sub {
+		for my $pattern (@patterns) {
+			$Matches++ while m/$pattern/g;
+		}
+	};
+	my $cls_grep_v = sub {
+		for my $pattern (@patterns) {
+			$Matches += !/$pattern/;
+		}
+	};
+	my $cls_grep_g = sub {
+		for my $pattern (@patterns) {
+			$Matches += s/($pattern)/${SO}$1${SE}/g;
+		}
+	};
+	my $cls_fgrep = sub {
+		for my $pattern (@patterns) {
+			$Matches++ if index($_, $pattern) != -1;
+		}
+	};
+	my $cls_fgrep_v = sub {
+		for my $pattern (@patterns) {
+			$Matches++ if index($_, $pattern) == -1;
+		}
+	};
+	my $cls_fgrep_i = sub {
+		$_ = lc $_;
+		for my $pattern (@patterns) {
+			$Matches++ if index($_, lc $pattern) != -1;
+		}
+	};
+	my $cls_fgrep_iv = sub {
+		$_ = lc $_;
+		for my $pattern (@patterns) {
+			$Matches++ if index($_, lc $pattern) == -1;
+		}
+	};
+	my $cls_fgrep_x = sub {
+		my $s = $_;
+		chomp $s;
+		for my $pattern (@patterns) {
+			$Matches++ if $s eq $pattern;
+		}
+	};
+	my $cls_fgrep_xv = sub {
+		my $s = $_;
+		chomp $s;
+		for my $pattern (@patterns) {
+			$Matches++ if $s ne $pattern;
+		}
+	};
+	my $cls_fgrep_xi = sub {
+		my $s = lc $_;
+		chomp $s;
+		for my $pattern (@patterns) {
+			$Matches++ if $s eq lc($pattern);
+		}
+	};
+	my $cls_fgrep_xiv = sub {
+		my $s = lc $_;
+		chomp $s;
+		for my $pattern (@patterns) {
+			$Matches++ if $s ne lc($pattern);
+		}
+	};
 
 	if ( defined( $_ = $ENV{'GREP_OPTIONS'} ) ) {
 		s/^([^\-])/-$1/;    # add leading - if missing
@@ -150,7 +221,6 @@ sub parse_args {
 
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
-	$match_code = '';
 
 	if (defined $opt{'f'}) {           # -f patfile
 		my $path = $opt{'f'};
@@ -228,25 +298,21 @@ sub parse_args {
 			die "$Me: -g, -u and -w are incompatible with -F\n";
 		}
 		if ($opt{'x'}) { # exact match
-			my $testop = $opt{'v'} ? 'ne' : 'eq';
 			if ($opt{'i'}) {
-				$match_code = "my \$c=\$_; chomp \$c; for my \$pat (\@patterns) {\$Matches++ if (lc(\$c) $testop lc(\$pat)) }";
+				$matcher = $opt{'v'} ? $cls_fgrep_xiv : $cls_fgrep_xi;
 			}
 			else { # case sensitive
-				$match_code = "my \$c=\$_; chomp \$c; for my \$pat (\@patterns) {\$Matches++ if (\$c $testop \$pat) }";
+				$matcher = $opt{'v'} ? $cls_fgrep_xv : $cls_fgrep_x;
 			}
 		}
 		else { # regular match
-			my $testop = $opt{'v'} ? '==' : '!=';
 			if ($opt{'i'}) {
-				$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(lc \$_, lc \$pat) $testop -1) }";
+				$matcher = $opt{'v'} ? $cls_fgrep_iv : $cls_fgrep_i;
 			}
 			else { # case sensitive
-				$match_code = "for my \$pat (\@patterns) { \$Matches++ if (index(\$_, \$pat) $testop -1) }";
+				$matcher = $opt{'v'} ? $cls_fgrep_v : $cls_fgrep;
 			}
 		}
-		$matcher = eval "sub { $match_code }";
-		die if $@;
 		return (\%opt, $matcher);
 	}
 
@@ -273,29 +339,10 @@ sub parse_args {
 
 	foreach (@patterns) {s(/)(\\/)g}
 
-	if ( $opt{'g'} ) {
-		for my $pattern (@patterns) {
-			$match_code .= "\$Matches += s/($pattern)/${SO}\$1${SE}/g;";
-			}
-		}
-	elsif ( $opt{v} ) {
-		for my $pattern (@patterns) {
-			$match_code .= "\$Matches += !/$pattern/;";
-			}
-		}
-	elsif ( $opt{C} ) {
-		for my $pattern (@patterns) {
-			$match_code .= "\$Matches++ while /$pattern/g;";
-			}
-		}
-	else {
-		for my $pattern (@patterns) {
-			$match_code .= "\$Matches++ if /$pattern/;";
-			}
-		}
-
-	$matcher = eval "sub { $match_code }";
-	die if $@;
+	if    ($opt{'g'}) { $matcher = $cls_grep_g; }
+	elsif ($opt{'v'}) { $matcher = $cls_grep_v; }
+	elsif ($opt{'C'}) { $matcher = $cls_grep_C; }
+	else              { $matcher = $cls_grep;   }
 
 	return ( \%opt, $matcher );
 	}
