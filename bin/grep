@@ -51,6 +51,7 @@ use strict;
 
 use File::Basename qw(basename);
 use File::Spec;
+use File::Temp qw();
 use Getopt::Std;
 
 our $VERSION = '1.006';
@@ -121,6 +122,20 @@ EOF
 	}
 
 ###################################
+sub run_tput {
+	my $arg = shift;
+	my $term = $ENV{'TERM'} || 'vt100';
+
+	open my $oldout, '>&', STDOUT or die "$Me: can't save stdout: $!\n";
+	my $tmp = File::Temp->new;
+	open STDOUT, '>&', $tmp or die "$Me: can't redirect stdout: $!\n";
+	system 'tput', '-T', $term, $arg;
+	seek $tmp, 0, 0 or die "$Me: can't rewind temporary file: $!\n";
+	my $bin = <$tmp>;
+	close $tmp or die "$Me: can't close temporary file: $!\n";
+	open STDOUT, '>&', $oldout or die "$Me: can't restore stdout: $!\n";
+	return $bin;
+}
 
 sub parse_args {
 	my (%opt, $pattern, @patterns, $match_code, $SO, $SE);
@@ -197,12 +212,16 @@ sub parse_args {
 				: ( $terminal->Tputs('us'), $terminal->Tputs('ue') );
 			}
 		else {                # if use of Term::Cap fails,
-			my $term = $ENV{'TERM'} || 'vt100';
-			( $SO, $SE ) = $opt{'g'}    # use tput command to get escapes
-				? ( `tput -T $term smso`, `tput -T $term rmso` )
-				: ( `tput -T $term smul`, `tput -T $term rmul` );
+			if ($opt{'g'}) {
+				$SO = run_tput('smso');
+				$SE = run_tput('rmso');
+			}
+			else {
+				$SO = run_tput('smul');
+				$SE = run_tput('rmul');
 			}
 		}
+	}
 
 	if ($no_re) {
 		if ($opt{'g'} || $opt{'u'} || $opt{'w'}) {
