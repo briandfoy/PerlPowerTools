@@ -45,26 +45,18 @@ sub printWhat
     {
         next unless $line =~ m/\@\(#\)/;
         $matches++;
-
+        my @match = ($line);
         if ($line =~ m/\0/) ## there may be more than 1 in here
         {
             my @F = split(/\0/, $line);
-            my @match = grep { m/\@\(#\)/ } @F;
-            for my $f (@match)
-            {
-                $f =~ s|.*\@\(#\)||;
-                $f =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
-                chomp $f;
-                print "        $f\n";
-                return if $stop_flag;
-            }
+            @match = grep { m/\@\(#\)/ } @F;
         }
-        else
+        for my $f (@match)
         {
-            $line =~ s|.*\@\(#\)||;
-            $line =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
-            chomp $line;
-            print "        $line\n";
+            $f =~ s|.*\@\(#\)||;
+            $f =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
+            chomp $f;
+            print "        $f\n";
             return if $stop_flag;
         }
     }
