@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.006';
+our $VERSION = '1.007';
 
 $| = 1;                   # autoflush output
 
@@ -216,39 +216,52 @@ sub parse_args {
 		unshift @ARGV, $_;
 		}
 
+	# multiple -e/-f options
+	my @tmparg;
+	while (@ARGV) {
+		my $arg = shift @ARGV;
+		if ($arg eq '-e') {
+			$pattern = shift @ARGV;
+			usage() unless defined $pattern;
+			push @patterns, $pattern;
+		}
+		elsif ($arg eq '-f') {
+			my $file = shift @ARGV;
+			usage() unless defined $file;
+			die "$Me: $file: is a directory\n" if -d $file;
+			my $fh;
+			open($fh, '<', $file) or die "$Me: Can't open '$file': $!\n";
+			my $line;
+			while (defined($line = <$fh>)) {
+				chomp $line;
+				$pattern = $line;
+				push @patterns, $pattern;
+			}
+			close $fh;
+
+		}
+		else {
+			push @tmparg, $arg;
+		}
+	}
+	@ARGV = @tmparg;
+
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
 	getopts('inCcwsxvHhe:f:Ll1gurpP:aqTF', \%opt) or usage();
 
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 
-	if (defined $opt{'f'}) {           # -f patfile
-		my $path = $opt{'f'};
-		my $patfile;
-		die "$Me: $path: is a directory\n" if -d $path;
-		open($patfile, '<', $path) or die "$Me: Can't open '$path': $!\n";
-
-		# make sure each pattern in file is valid
-		while ( defined( $pattern = <$patfile> ) ) {
-			chomp $pattern;
-			unless ($no_re) {
-				eval { 'foo' =~ /$pattern/, 1 }
-					or die "$Me: $path: $.: bad pattern: $@\n";
-				}
-			push @patterns, $pattern;
-			}
-		close $patfile;
-		}
-	else {    # make sure pattern is valid
-		$pattern = $opt{'e'};
-		$pattern = shift(@ARGV) unless length $pattern;
-		usage() unless defined $pattern;
-		unless ($no_re) {
+	unless (length $pattern) {
+		$pattern = shift @ARGV;
+		push @patterns, $pattern;
+	}
+	unless ($no_re) {
+		foreach $pattern (@patterns) {
 			eval { 'foo' =~ /$pattern/, 1 }
 				or die "$Me: bad pattern: $@\n";
-			}
-		@patterns = ($pattern);
 		}
+	}
 	if ($opt{'H'}) {
 		$Mult = 1;
 	}
