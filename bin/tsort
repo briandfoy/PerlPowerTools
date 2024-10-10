@@ -11,7 +11,6 @@ License: perl
 
 =cut
 
-
 use strict;
 
 use File::Basename qw(basename);
@@ -52,13 +51,23 @@ my %npred;	# number of predecessors
 my %succ;	# list of successors
 
 while (<$fh>) {
-    my ($l, $r) = my @l = split;
-    next unless @l == 2;
-    next if defined $pairs{$l}{$r};
-    $pairs{$l}{$r}++;
-    $npred {$l} += 0;
-    ++$npred{$r};
-    push @{$succ{$l}}, $r;
+    next unless m/\w/;
+    my @l = split;
+    next unless scalar(@l);
+
+    if (scalar(@l) % 2 == 1) {
+        warn "$Program: odd number of tokens on line $.\n";
+        exit EX_FAILURE;
+    }
+    while (@l) {
+        my $l = shift @l;
+        my $r = shift @l;
+        next if defined $pairs{$l}{$r};
+        $pairs{$l}{$r}++;
+        $npred{$l} += 0;
+        ++$npred{$r};
+        push @{$succ{$l}}, $r;
+    }
 }
 close $fh;
 
@@ -118,14 +127,9 @@ breadth-first or depth-first (default) traversal
 =item B<filename>
 
 Optional input file.
-Input format is pairs of white-space-separated fields,
-one pair per line.
+Input format is pairs of white-space-separated fields.
 Each field is the name of a node.
-
 Output is the topologically sorted list of nodes.
-
-Ignores lines without at least two fields.
-Ignores all fields on the line except the first two.
 
 =back
 
