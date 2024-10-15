@@ -108,7 +108,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.4';
+our $VERSION = '0.5';
 
 my %ESC = (
     7  => '\a',
@@ -179,8 +179,7 @@ if (defined $opt{'p'}) {
 $args[0] = shift;
 $args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
-$SupressCounts = 1 if ($opt{'s'} || !defined($args[0]));
-
+$SupressCounts = $opt{'s'};
 edEdit($NO_QUESTIONS_MODE, $NO_APPEND_MODE);
 input() while 1;
 
