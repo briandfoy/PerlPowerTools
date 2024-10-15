@@ -49,27 +49,28 @@ if ($file eq '-') {
 my %pairs;	# all pairs ($l, $r)
 my %npred;	# number of predecessors
 my %succ;	# list of successors
+my @input;
 
 while (<$fh>) {
     next unless m/\w/;
+    s/\A\s+//;
+    s/\s+\z//;
     my @l = split;
-    next unless scalar(@l);
-
-    if (scalar(@l) % 2 == 1) {
-        warn "$Program: odd number of tokens on line $.\n";
-        exit EX_FAILURE;
-    }
-    while (@l) {
-        my $l = shift @l;
-        my $r = shift @l;
-        next if defined $pairs{$l}{$r};
-        $pairs{$l}{$r}++;
-        $npred{$l} += 0;
-        ++$npred{$r};
-        push @{$succ{$l}}, $r;
-    }
+    push @input, @l if scalar(@l);
 }
-close $fh;
+if (scalar(@input) % 2 == 1) {
+    warn "$Program: odd number of tokens\n";
+    exit EX_FAILURE;
+}
+while (@input) {
+    my $l = shift @input;
+    my $r = shift @input;
+    next if defined $pairs{$l}{$r};
+    $pairs{$l}{$r}++;
+    $npred{$l} += 0;
+    ++$npred{$r};
+    push @{$succ{$l}}, $r;
+}
 
 # create a list of nodes without predecessors
 my @list = grep {!$npred{$_}} keys %npred;
@@ -88,6 +89,10 @@ while (@list) {
 }
 
 warn "$Program: cycle detected\n" if grep {$npred{$_}} keys %npred;
+unless (close $fh) {
+    warn "$Program: failed to close input: $!\n";
+    exit EX_FAILURE;
+}
 exit EX_SUCCESS;
 
 sub usage {
