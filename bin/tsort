@@ -68,6 +68,7 @@ while (@input) {
     next if defined $pairs{$l}{$r};
     $pairs{$l}{$r}++;
     $npred{$l} += 0;
+    next if $l eq $r;
     ++$npred{$r};
     push @{$succ{$l}}, $r;
 }
