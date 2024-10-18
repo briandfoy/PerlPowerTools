@@ -79,6 +79,7 @@ use constant E_UNSAVED => 'buffer modified';
 use constant E_CMDBAD  => 'unknown command';
 use constant E_PATTERN => 'invalid pattern delimiter';
 use constant E_NOMATCH => 'no match';
+use constant E_NOPAT   => 'no previous pattern';
 
 # important globals
 
@@ -88,6 +89,7 @@ my $NeedToSave = 0;             # buffer modified
 my $UserHasBeenWarned = 0;      # warning given regarding modified buffer
 my $Error = undef;              # saved error string for h command
 my $Prompt = undef;             # saved prompt string for -p option
+my $SearchPat;                  # saved pattern for repeat search
 my $SupressCounts = 0;          # byte counts are printed by default
 my @lines;                      # buffer for file being edited.
 my $command;                    # single letter command entered by user
@@ -108,7 +110,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.5';
+our $VERSION = '0.6';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -887,6 +889,27 @@ sub edSetCurrentLine {
 
 sub edParse {
     s/\A\s+//;
+    if (m/\A(\/|\?)\z/) {
+        unless (defined $SearchPat) {
+            edWarn(E_NOPAT);
+            $command = 'nop';
+            return 1;
+        }
+        my $found;
+        if ($1 eq '/') {
+            $found = edSearchForward($SearchPat);
+        } else {
+            $found = edSearchBackward($SearchPat);
+        }
+        if ($found == 0) {
+            edWarn(E_NOMATCH);
+            $command = 'nop';
+            return 1;
+        }
+        $_ = $found . 'p';
+        return edParse();
+    }
+
     my @fields =
              (/^(
                  (
@@ -1036,6 +1059,7 @@ sub CalculateLine {
 sub edSearchForward {
     my($pattern) = @_;
 
+    $SearchPat = $pattern;
     for my $line (($CurrentLineNum + 1) .. maxline(), 1 .. $CurrentLineNum) {
         if ($lines[$line] =~ /$pattern/) {
             return $line;
@@ -1060,6 +1084,7 @@ sub edSearchForward {
 sub edSearchBackward {
     my($pattern) = @_;
 
+    $SearchPat = $pattern;
     my @idx = ($CurrentLineNum .. maxline(), 1 .. ($CurrentLineNum - 1));
     foreach my $line (reverse @idx) {
         if ($lines[$line] =~ /$pattern/) {
