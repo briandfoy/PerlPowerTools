@@ -13,8 +13,6 @@ License: gpl
 
 # What: A perl version of Unix ed editor.
 #
-#    Based on the v7 documentation using GNU ed version 0.2 as a reference.
-#
 #   Currently implemented:
 #        - most addressing modes (".","$","#","/pat/","?pat?","[+-]#, etc.)
 #        - command parsing
@@ -49,18 +47,15 @@ License: gpl
 #
 # Todo:
 #        - Implement the following commands from the v7 docs:
-#                g - global command
 #                k - mark
 #                u - undo
 #                v - global command "inVerted"
 #
-#        - Create regression test suite...test against "real" ed.
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
 #        - add buffer size limitations for strict compatability
 #        - discard NULS, chars after \n
 #        - refuse to read non-ascii files
 #        - Add BSD/GNU extentions
-#
 
 use strict;
 
@@ -96,6 +91,7 @@ my $command;                    # single letter command entered by user
 my $commandsuf;                 # single letter modifier of command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
+my @inbuf;
 
 my $EXTENDED_MESSAGES = 0;
 
@@ -110,7 +106,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -215,7 +211,8 @@ sub input {
     @args = ();
 
     print $Prompt if defined $Prompt;
-    unless ($_ = <>) {
+    $_ = @inbuf ? shift @inbuf : <>;
+    unless (defined $_) {
         edQuitAsk() or return;
     }
     chomp;
@@ -909,6 +906,22 @@ sub edParse {
         $_ = $found . 'p';
         return edParse();
     }
+    if (s/\Ag\///) {
+        my $end = rindex $_, '/';
+        return 0 if $end == -1; # g/re/p needs trailing /
+        my $pat = substr $_, 0, $end;
+        my $repcmd = substr $_, $end + 1;
+        my @found = edSearchGlobal($pat);
+        unless (@found) {
+            $command = 'nop';
+            return 1; # match failure is not an error
+        }
+        foreach my $i (@found) {
+            push @inbuf, $i . $repcmd;
+        }
+        $command = 'nop';
+        return 1;
+    }
 
     my @fields =
              (/^(
@@ -1094,12 +1107,17 @@ sub edSearchBackward {
     return 0;
 }
 
+sub edSearchGlobal {
+    my($pattern) = @_;
 
-#
-# Print usage and exit
-#
-# Usage()
-#
+    my @found;
+    for my $line (($CurrentLineNum + 1) .. maxline(), 1 .. $CurrentLineNum) {
+        if ($lines[$line] =~ /$pattern/) {
+            push @found, $line;
+        }
+    }
+    return @found;
+}
 
 sub Usage {
     die "Usage: ed [-p prompt] [-ds] [file]\n";
