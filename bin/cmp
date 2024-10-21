@@ -48,9 +48,9 @@ use constant EX_USAGE     => 2;
 use constant ST_INO  => 1;
 use constant ST_SIZE => 7;
 
-my $Program = basename($0);
+use constant READSZ => 10_000;
 
-my $chunk_size = 10_000;     # how many bytes in a gulp
+my $Program = basename($0);
 
 my $volume=1;                # controlled by -s and -l
 
@@ -123,8 +123,8 @@ if (!$fh1 && !$fh2) {
                                             # with the behavior when skip >=
                                             # filesize.
             if ($volume) {
-                warn "$Program: EOF on $file1\n" unless $stat1[ST_SIZE];
-                warn "$Program: EOF on $file2\n" unless $stat2[ST_SIZE];
+                warn "$Program: EOF on $file1 which is empty\n" unless $stat1[ST_SIZE];
+                warn "$Program: EOF on $file2 which is empty\n" unless $stat2[ST_SIZE];
             }
             exit EX_DIFFERENT;
         }
@@ -167,8 +167,8 @@ if ($skip2) {
     }
 }
 
-READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
-    $read_in2 = sysread $fh2, $buffer2, $chunk_size;
+READ: while (defined ($read_in1 = sysread $fh1, $buffer1, READSZ)) {
+    $read_in2 = sysread $fh2, $buffer2, READSZ;
     $read_in2 = 0 unless defined $read_in2; # sysread failed
 
     my $checklength = min($read_in1, $read_in2);
@@ -199,12 +199,14 @@ READ: while (defined ($read_in1 = sysread $fh1, $buffer1, $chunk_size)) {
         $lines_read += $buffer1 =~ tr[\n][\n];
     }
     $bytes_read += $checklength;
+    my $nlines = $lines_read + 1;
+    my $nbytes = $bytes_read + 1;
 
     if ($read_in1 < $read_in2) {
-        warn "$Program: EOF on $file1\n" unless $saw_difference or !$volume;
+        warn "$Program: EOF on $file1 after byte $nbytes, in line $nlines\n" unless $saw_difference or !$volume;
         exit EX_DIFFERENT;
     } elsif ($read_in1 > $read_in2) {
-        warn "$Program: EOF on $file2\n" unless $saw_difference or !$volume;
+        warn "$Program: EOF on $file2 after byte $nbytes, in line $nlines\n" unless $saw_difference or !$volume;
         exit EX_DIFFERENT;
     } elsif ($read_in1 == 0) {
         exit EX_DIFFERENT;
