@@ -462,7 +462,7 @@ sub edPrintBin { edPrint($PRINT_BIN); }
 sub edQuitAsk { edQuit(1); }
 sub edAppend { edInsert(1); }
 sub edWriteAppend { edWrite(1); }
-sub edEditAsk { edEdit($QUESTIONS_MODE,$NO_INSERT_MODE); }
+sub edEditAsk { edEdit(!$SupressCounts, $NO_INSERT_MODE); }
 sub edRead { edEdit($QUESTIONS_MODE,$INSERT_MODE); }
 
 #
@@ -1201,7 +1201,7 @@ By default no prompt is displayed.
 
 =item -s
 
-Suppress byte counts
+Suppress byte counts and diagnostics
 
 =back
 
