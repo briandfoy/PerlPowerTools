@@ -886,14 +886,14 @@ sub edSetCurrentLine {
 
 sub edParse {
     s/\A\s+//;
-    if (m/\A(\/|\?)\z/) {
+    if (m/\A(\/|\?)\z/ || m/\A(\/{2}|\?{2})\s*\z/) {
         unless (defined $SearchPat) {
             edWarn(E_NOPAT);
             $command = 'nop';
             return 1;
         }
         my $found;
-        if ($1 eq '/') {
+        if ($1 eq '/' || $1 eq '//') {
             $found = edSearchForward($SearchPat);
         } else {
             $found = edSearchBackward($SearchPat);
