@@ -123,12 +123,16 @@ GetOptions(
     ) or usage();
 
 # the names of the files are in $fileList.
-if ($fileList) {
+if (defined $fileList) {
     my $fileListFH = FileHandle->new($fileList, 'r') or do {
       warn "$F: $fileList: $!\n";
       exit EX_FAILURE;
     };
-    unshift(@ARGV,<$fileListFH>);
+    my $line;
+    while (defined($line = <$fileListFH>)) {
+      chomp $line;
+      push @ARGV, $line;
+    }
     $fileListFH->close();
 }
 
