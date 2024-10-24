@@ -1284,6 +1284,22 @@ Quit program
 
 Read named FILE into buffer
 
+=item /PATTERN
+
+Search for PATTERN in the buffer, starting from the current line.
+If no pattern is given the previous search is repeated.
+
+=item ?PATTERN
+
+Search backwards for PATTERN in the buffer, starting from the current line.
+If no pattern is given the previous search is repeated.
+
+=item g/PATTERN/CMD
+
+Search globally in buffer for PATTERN and run command CMD on each matching line.
+CMD is a single command letter of the following: 'l', 'n' and 'p'.
+CMD can be omitted.
+
 =item s///
 
 Substitute text with a regular expression
