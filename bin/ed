@@ -49,7 +49,6 @@ License: gpl
 #        - Implement the following commands from the v7 docs:
 #                k - mark
 #                u - undo
-#                v - global command "inVerted"
 #
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
 #        - add buffer size limitations for strict compatability
@@ -106,7 +105,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.7';
+our $VERSION = '0.8';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -210,8 +209,12 @@ sub input {
     @adrs = ();
     @args = ();
 
-    print $Prompt if defined $Prompt;
-    $_ = @inbuf ? shift @inbuf : <>;
+    if (@inbuf) {
+        $_ = shift @inbuf;
+    } else {
+        print $Prompt if defined $Prompt;
+        $_ = <>;
+    }
     unless (defined $_) {
         edQuitAsk() or return;
     }
@@ -906,12 +909,13 @@ sub edParse {
         $_ = $found . 'p';
         return edParse();
     }
-    if (s/\Ag\///) {
+    if (s/\A(g|v)\///) {
+        my $invert = $1 eq 'v';
         my $end = rindex $_, '/';
         return 0 if $end == -1; # g/re/p needs trailing /
         my $pat = substr $_, 0, $end;
         my $repcmd = substr $_, $end + 1;
-        my @found = edSearchGlobal($pat);
+        my @found = edSearchGlobal($pat, $invert);
         unless (@found) {
             $command = 'nop';
             return 1; # match failure is not an error
@@ -1108,13 +1112,17 @@ sub edSearchBackward {
 }
 
 sub edSearchGlobal {
-    my($pattern) = @_;
+    my($pattern, $invert) = @_;
 
     my @found;
-    for my $line (($CurrentLineNum + 1) .. maxline(), 1 .. $CurrentLineNum) {
-        if ($lines[$line] =~ /$pattern/) {
-            push @found, $line;
+    for my $i (1 .. maxline()) {
+        my $match;
+        if ($invert) {
+            $match = $lines[$i] !~ m/$pattern/;
+        } else {
+            $match = $lines[$i] =~ m/$pattern/;
         }
+        push @found, $i if $match;
     }
     return @found;
 }
@@ -1297,6 +1305,12 @@ If no pattern is given the previous search is repeated.
 =item g/PATTERN/CMD
 
 Search globally in buffer for PATTERN and run command CMD on each matching line.
+CMD is a single command letter of the following: 'l', 'n' and 'p'.
+CMD can be omitted.
+
+=item v/PATTERN/CMD
+
+Repeatedly run command CMD for each line in the buffer not matching PATTERN.
 CMD is a single command letter of the following: 'l', 'n' and 'p'.
 CMD can be omitted.
 
