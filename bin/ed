@@ -105,7 +105,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.8';
+our $VERSION = '0.9';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -143,6 +143,9 @@ my @ESC = (
 );
 
 my %WANT_FILE = (
+    'e' => 1,
+    'E' => 1,
+    'f' => 1,
     'r' => 1,
     'w' => 1,
     'W' => 1,
@@ -883,6 +886,12 @@ sub edSetCurrentLine {
 
 sub edParse {
     s/\A\s+//;
+    $adrs[0] = getAddr();
+    if (s/\A,//) { # address separator
+        $adrs[0] = 1 unless defined $adrs[0];
+        $adrs[1] = getAddr();
+        $adrs[1] = maxline() unless defined $adrs[1];
+    }
     if (m/\A(\/|\?)\z/ || m/\A(\/{2}|\?{2})\s*\z/) {
         unless (defined $SearchPat) {
             edWarn(E_NOPAT);
@@ -920,150 +929,37 @@ sub edParse {
         $command = 'nop';
         return 1;
     }
-    if (s/\A([Eef])//) { # 0-address file commands
+    if (s/\A([acdEefHhijlmnPpQqrstWw=\!])//) { # optional argument
         $command = $1;
-        return 0 if m/\A\S/; # space before optional argument
+        if ($WANT_FILE{$command} && m/\A\S/) {
+            return 0; # space before filename
+        }
         s/\A\s+//;
         $args[0] = $_ if length;
         return 1;
     }
-    if (s/\A([HhPQq])//) { # 0-address flag commands
-        $command = $1;
-        return 0 if m/\S/; # no argument
+    if (m/\A\s*\z/) { # set line if command omitted
+        $command = '_';
         return 1;
     }
-
-    my @fields =
-             (/^(
-                 (
-                  ((\d+)|(\.)|(\$)|([\/\?]([^\/\?+-]+)[\/\?]?))?
-                                        # num,.,$,pattern
-                  (([+-])?(\d+))?         # [+]num | -num
-                  (([\+]+)|([-^]+))?        # + | -
-                )                        # first expression
-                (,                        # comma between adrs
-                  ((\d+)|(\.)|(\$)|([\/\?]([^\/\?+-]+)[\/\?]?))?
-                                        # num,.,$,pattern
-                  (([+-])?(\d+))?         # [+]num | -num
-                  (([\+]+)|([-^]+))?        # + | -
-                )?
-                 ([acdijlmnprstwW=\!])?        # command char
-                 ([a-z])?                # command suffix
-                 (\s*)(.+)?                # argument (filename, etc.)
-                 )$/x);
-
-
-    return 0 if ($#fields == -1);  # bad syntax
-
-    my $space_sep = length $fields[29];
-    if (defined($fields[27])) {
-        $command = $fields[27];
-    } else {
-        $command = '_';
-    }
-    if (defined $fields[28]) {
-        $commandsuf = $fields[28];
-        if ($command eq '!' && !$space_sep) { # allow !ls
-            $fields[30] = $commandsuf . $fields[30];
-        } elsif (lc($command) ne 'w') {
-            return 0;
-        }
-    } else {
-        $commandsuf = '';
-    }
-
-    $args[0] = $fields[30];
-
-    $adrs[0] = CalculateLine(splice(@fields, 1, 13));
-    if ($adrs[0] == -1) {
-        edWarn(E_NOMATCH);
-        $command = 'nop';
-        undef $adrs[0];
-    }
-    my $commarange = $fields[1] =~ /,/;
-
-    $adrs[1] = CalculateLine(splice(@fields, 1, 13));
-    if ($adrs[1] == -1) {
-        edWarn(E_NOMATCH);
-        $command = 'nop';
-        undef $adrs[1];
-    }
-    if ($commarange && !defined($adrs[0])) {
-        $adrs[0] = 1;
-        $adrs[1] = maxline() unless defined $adrs[1];
-    }
-    if (defined($args[0]) && $WANT_FILE{$command} && !$space_sep) {
-        return 0;
-    }
-
-    return 1;
+    return 0;
 }
 
-#
-# Given a parsed address expression, calcuate & return the indicated line
-#
-
-sub CalculateLine {
-
-    my($expr1,
-       $adrexpr1,
-       $decimaladr,$dotadr,$dollaradr,
-       $wholesearch,$searchadr,
-       $offsetexpr,$offsetdir,$offsetammount,
-       $plusesorminusesexpr,$pluses,$minuses) = @_;
-
-    my($myline);
-
-    if ($opt{'d'}) {
-        print "expr1=/$expr1/\n" if (defined($expr1));
-        print "decimaladr=/$decimaladr/\n" if (defined($decimaladr));
-        print "dotadr=/$dotadr/\n" if (defined($dotadr));
-        print "dollaradr=/$dollaradr/\n" if (defined($dollaradr));
-        print "wholesearch=/$wholesearch/\n" if (defined($wholesearch));
-        print "searchadr=/$searchadr/\n" if (defined($searchadr));
-        print "offsetexpr=/$offsetexpr/\n" if (defined($offsetexpr));
-        print "offsetdir=/$offsetdir/\n" if (defined($offsetdir));
-        print "offsetammount=/$offsetammount/\n"
-            if (defined($offsetammount));
-        print "plusesorminusesexpr=/$plusesorminusesexpr/\n"
-            if (defined($plusesorminusesexpr));
-        print "pluses=/$pluses/\n" if (defined($pluses));
-        print "minuses=/$minuses/\n" if (defined($minuses));
-    }
-
-    if (defined($expr1)) {
-        if (defined($decimaladr)) {
-            $myline = $decimaladr;
-        } elsif (defined($dotadr)) {
-            $myline = $CurrentLineNum;
-        } elsif (defined($dollaradr)) {
-            $myline = maxline();
-        } elsif (defined($searchadr)) {
-            my $pattern = $searchadr;
-            $pattern =~ s/[\?\/]$//;
-            $pattern =~ s/^[\?\/]//;
-
-            if ($wholesearch =~ /^\?/) {
-                $myline = edSearchBackward($pattern);
-                return -1 unless $myline;
-            } else {
-                $myline = edSearchForward($pattern);
-                return -1 unless $myline;
-            }
+sub getAddr {
+    my $n;
+    if (s/\A([\-\+]+)//) { # '++--' == current+0
+        $n = $CurrentLineNum;
+        foreach my $c (split //, $1) {
+            $n += $c eq '+' ? 1 : -1;
         }
+    } elsif (s/\A([0-9]+)//) { # '10' == 10
+        $n = $1;
+    } elsif (s/\A\.//) { # '.' == current line
+        $n = $CurrentLineNum;
+    } elsif (s/\A\$//) { # '$' == max line
+        $n = maxline();
     }
-
-    if (defined($offsetexpr)) {
-        $myline = $CurrentLineNum unless defined($myline);
-        $myline += int $offsetexpr;
-    }
-
-    if (defined($plusesorminusesexpr)) {
-        $myline = $CurrentLineNum unless defined($myline);
-        $myline += length($pluses||'') - length($minuses||'');
-    }
-
-    return $myline;
+    return $n;
 }
 
 #
