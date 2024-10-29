@@ -958,6 +958,25 @@ sub getAddr {
         $n = $CurrentLineNum;
     } elsif (s/\A\$//) { # '$' == max line
         $n = maxline();
+    } elsif (s/\A\///) { # '/re/' == search
+        my $i;
+        my @chars = split //;
+        for ($i = 0; $i < scalar(@chars); $i++) {
+            my $j = $i - 1;
+            $j = 0 if $j < 0;
+            last if $chars[$i] eq '/' && $chars[$j] ne '\\';
+        }
+        my $re = substr $_, 0, $i;
+        if (length($re) == 0) {
+            if (defined $SearchPat) {
+	        $re = $SearchPat;
+            } else {
+	        edWarn(E_NOPAT);
+	        return 0;
+            }
+        }
+        $_ = substr $_, $i + 1;
+        $n = edSearchForward($re);
     }
     return $n;
 }
