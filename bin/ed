@@ -958,13 +958,14 @@ sub getAddr {
         $n = $CurrentLineNum;
     } elsif (s/\A\$//) { # '$' == max line
         $n = maxline();
-    } elsif (s/\A\///) { # '/re/' == search
+    } elsif (s/\A([\/\?])//) { # search: '/re/' or '?re?'
+        my $delim = $1;
         my $i;
         my @chars = split //;
         for ($i = 0; $i < scalar(@chars); $i++) {
             my $j = $i - 1;
             $j = 0 if $j < 0;
-            last if $chars[$i] eq '/' && $chars[$j] ne '\\';
+            last if $chars[$i] eq $delim && $chars[$j] ne '\\';
         }
         my $re = substr $_, 0, $i;
         if (length($re) == 0) {
@@ -976,7 +977,11 @@ sub getAddr {
             }
         }
         $_ = substr $_, $i + 1;
-        $n = edSearchForward($re);
+        if ($delim eq '/') {
+            $n = edSearchForward($re);
+        } else {
+            $n = edSearchBackward($re);
+        }
     }
     return $n;
 }
