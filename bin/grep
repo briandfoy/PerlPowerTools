@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.007';
+our $VERSION = '1.008';
 
 $| = 1;                   # autoflush output
 
@@ -171,15 +171,15 @@ sub parse_args {
 		}
 	};
 	my $cls_fgrep_i = sub {
-		$_ = lc $_;
+		my $s = lc $_;
 		for my $pattern (@patterns) {
-			$Matches++ if index($_, lc $pattern) != -1;
+			$Matches++ if index($s, lc $pattern) != -1;
 		}
 	};
 	my $cls_fgrep_iv = sub {
-		$_ = lc $_;
+		my $s = lc $_;
 		for my $pattern (@patterns) {
-			$Matches++ if index($_, lc $pattern) == -1;
+			$Matches++ if index($s, lc $pattern) == -1;
 		}
 	};
 	my $cls_fgrep_x = sub {
