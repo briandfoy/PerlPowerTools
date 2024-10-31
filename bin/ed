@@ -60,6 +60,9 @@ use strict;
 
 use Getopt::Std qw(getopts);
 
+use constant A_NOMATCH => -1;
+use constant A_NOPAT   => -2;
+
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
 use constant E_ARGEXT  => 'extra arguments detected';
@@ -235,10 +238,10 @@ sub input {
     # sanity check addresses
     foreach my $ad (@adrs) {
         next unless defined $ad;
-        if ($ad == -1) {
+        if ($ad == A_NOMATCH) {
             edWarn(E_NOMATCH);
             return;
-        } elsif ($ad == -2) {
+        } elsif ($ad == A_NOPAT) {
             edWarn(E_NOPAT);
             return;
         } elsif ($ad > maxline() || $ad < 0) {
@@ -962,7 +965,7 @@ sub getAddr {
         }
         my $re = substr $_, 0, $i;
         if (length($re) == 0) {
-            return -2 unless defined $SearchPat;
+            return A_NOPAT unless defined $SearchPat;
             $re = $SearchPat;
         }
         $_ = substr $_, $i + 1;
@@ -971,7 +974,7 @@ sub getAddr {
         } else {
             $n = edSearchBackward($re);
         }
-        $n = -1 unless $n;
+        $n = A_NOMATCH unless $n;
     }
     return $n;
 }
