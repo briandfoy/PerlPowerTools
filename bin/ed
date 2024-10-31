@@ -60,6 +60,9 @@ use strict;
 
 use Getopt::Std qw(getopts);
 
+use constant A_NOMATCH => -1;
+use constant A_NOPAT   => -2;
+
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
 use constant E_ARGEXT  => 'extra arguments detected';
@@ -235,7 +238,13 @@ sub input {
     # sanity check addresses
     foreach my $ad (@adrs) {
         next unless defined $ad;
-        if ($ad > maxline() || $ad < 0) {
+        if ($ad == A_NOMATCH) {
+            edWarn(E_NOMATCH);
+            return;
+        } elsif ($ad == A_NOPAT) {
+            edWarn(E_NOPAT);
+            return;
+        } elsif ($ad > maxline() || $ad < 0) {
             edWarn(E_ADDRBAD);
             return;
         }
@@ -885,32 +894,21 @@ sub edSetCurrentLine {
 #
 
 sub edParse {
+    $command = 'nop';
     s/\A\s+//;
     $adrs[0] = getAddr();
-    if (s/\A,//) { # address separator
-        $adrs[0] = 1 unless defined $adrs[0];
-        $adrs[1] = getAddr();
-        $adrs[1] = maxline() unless defined $adrs[1];
+    if (defined($adrs[0]) && $adrs[0] < 0) {
+        return 1;
     }
-    if (m/\A(\/|\?)\z/ || m/\A(\/{2}|\?{2})\s*\z/) {
-        unless (defined $SearchPat) {
-            edWarn(E_NOPAT);
-            $command = 'nop';
+    if (s/\A,//) { # address separator
+        $adrs[1] = getAddr();
+        if (defined($adrs[1]) && $adrs[1] < 0) {
             return 1;
         }
-        my $found;
-        if ($1 eq '/' || $1 eq '//') {
-            $found = edSearchForward($SearchPat);
-        } else {
-            $found = edSearchBackward($SearchPat);
+        unless (defined $adrs[0]) {
+            $adrs[0] = 1;
+            $adrs[1] = maxline() unless defined $adrs[1];
         }
-        if ($found == 0) {
-            edWarn(E_NOMATCH);
-            $command = 'nop';
-            return 1;
-        }
-        $_ = $found . 'p';
-        return edParse();
     }
     if (s/\A([gv])\///) {
         my $invert = $1 eq 'v';
@@ -920,13 +918,11 @@ sub edParse {
         my $repcmd = substr $_, $end + 1;
         my @found = edSearchGlobal($pat, $invert);
         unless (@found) {
-            $command = 'nop';
             return 1; # match failure is not an error
         }
         foreach my $i (@found) {
             push @inbuf, $i . $repcmd;
         }
-        $command = 'nop';
         return 1;
     }
     if (s/\A([acdEefHhijlmnPpQqrstWw=\!])//) { # optional argument
@@ -969,12 +965,8 @@ sub getAddr {
         }
         my $re = substr $_, 0, $i;
         if (length($re) == 0) {
-            if (defined $SearchPat) {
-	        $re = $SearchPat;
-            } else {
-	        edWarn(E_NOPAT);
-	        return 0;
-            }
+            return A_NOPAT unless defined $SearchPat;
+            $re = $SearchPat;
         }
         $_ = substr $_, $i + 1;
         if ($delim eq '/') {
@@ -982,6 +974,7 @@ sub getAddr {
         } else {
             $n = edSearchBackward($re);
         }
+        $n = A_NOMATCH unless $n;
     }
     return $n;
 }
