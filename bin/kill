@@ -24,7 +24,7 @@ my @signals = getsigs();
 my %hsignals = map { $_ => 1 } @signals;
 my $signal = 'TERM';
 
-if ( $ARGV[0] =~ /^-l$/i ) { # list signals
+if ($ARGV[0] eq '-l') { # list signals
 	siglist();
 	exit 0;
 }
@@ -73,7 +73,7 @@ sub usage {
 }
 
 sub siglist {
-	for(my($i)=1;$i<=$#signals;$i++){
+	foreach my $i (1 .. $#signals) {
 		printf "%2d:%-6s%s",$i,$signals[$i],
 			( ($i % 8 == 0) || ($i == $#signals) )?"\n":" ";
 	}
