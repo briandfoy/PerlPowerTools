@@ -1033,8 +1033,24 @@ sub edSearchBackward {
 sub edSearchGlobal {
     my($pattern, $invert) = @_;
 
+    my $end = maxline();
+    my $start = 1;
+    if (defined $adrs[0]) {
+        if ($adrs[0] == 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+        $start = $end = $adrs[0];
+    }
+    if (defined $adrs[1]) {
+        if ($adrs[1] == 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+        $end = $adrs[1];
+    }
     my @found;
-    for my $i (1 .. maxline()) {
+    for my $i ($start .. $end) {
         my $match;
         if ($invert) {
             $match = $lines[$i] !~ m/$pattern/;
