@@ -20,7 +20,11 @@ use strict;
 
 use File::Temp qw();
 
-my $VERSION = '0.28';
+use constant EX_SUCCESS => 0;
+use constant EX_REJECTS => 1;
+use constant EX_FAILURE => 2;
+
+my $VERSION = '0.29';
 
 $|++;
 
@@ -33,7 +37,7 @@ sub version {
         You may play with this software in accordance with the
         Perl Artistic License.
     ];
-    exit;
+    exit EX_SUCCESS;
 }
 
 my ($patchfile, @options);
@@ -252,17 +256,17 @@ while (<PATCH>) {
 close PATCH;
 
 if (ref $patch eq 'Patch') {
-    $patch->note("Hmm...  I can't seem to find a patch in there anywhere.\n");
+    die "Hmm...  I can't seem to find a patch in there anywhere.\n";
 } else {
     $patch->end;
 }
 
 $patch->note("done\n");
-exit($patch->error ? 1 : 0);
+exit($patch->error ? EX_REJECTS : EX_SUCCESS);
 
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
-    $? = 1 if $? == 255;  # from die
+    $? = EX_FAILURE if $? == 255;  # from die
 }
 
 
@@ -1512,10 +1516,12 @@ text  in  the  patch  file and that I<patch> is attempting to
 intuit whether there is a patch in that text and,  if  so,
 what kind of patch it is.
 
-I<Patch> will exit with a non-zero status if any reject files
-were created.  When applying a set of patches in a loop it
-behooves  you to check this exit status so you don't apply
-a later patch to a partially patched file.
+=head1 EXIT STATUS
+
+The patch utility exits with status of 0 if the input diff
+was applied successfully. If part of the input was rejected
+an exit status of 1 is used. Exit status 2 indicates an error
+occurred.
 
 =head1 CAVEATS
 
