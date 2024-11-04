@@ -30,8 +30,12 @@ if ($ARGV[0] eq '-l') { # list signals
 }
 elsif ( $ARGV[0] =~ m/\A\-([0-9]+)\Z/ ) { # -signalnumber
 	$signal = $1;
-	die "$0: Bad signal number.\n" if ( $signal > $#signals );
 	shift @ARGV;
+	if ($signal > $#signals) {
+		print "$0: $signal: Unknown signal; valid signals...\n";
+		siglist();
+		exit 1;
+	}
 }
 elsif ( $ARGV[0] =~ /\A\-(.+)\Z/ ) { # -NAME or -s NAME
 	$signal = $1;
