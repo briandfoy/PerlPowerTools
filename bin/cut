@@ -59,25 +59,46 @@ sub handle_b {
     my $spec = shift;
     my @list = split /,/, $spec;
 
+    my $to_end;
     my @cols;
     foreach my $item (@list) {
-        if (substr($item, 0, 1) eq '-') {
-            checknum($item);
-            push @cols, 1 .. abs($item);
-        }
-        elsif (index($item, '-') == -1) {
-            checknum($item);
-            push @cols, $item;
+        my ($from, $is_range, $to);
+        if ($item =~ m/\A([0-9]*)(\-?)([0-9]*)\z/) {
+            $from = $1;
+            $is_range = $2;
+            $to = $3;
         }
         else {
-            my ($start, $end) = split /\-/, $item, 2;
-            checknum($start);
-            checknum($end);
-            if ($start > $end) {
-                warn "$me: invalid byte list\n";
+                warn "$me: invalid byte list: '$item'\n";
+                exit EX_FAILURE;
+        }
+        checknum($from) if length($from);
+        checknum($to)   if length($to);
+        if (!length($from) && !length($to)) { # reject lone '-'
+            warn "$me: invalid byte list\n";
+            exit EX_FAILURE;
+        }
+        if (length($from) && length($to)) {
+            if ($from > $to) {
+                warn "$me: invalid range $from-$to\n";
                 exit EX_FAILURE;
             }
-            push @cols, $start .. $end;
+            $is_range = 0 if $from == $to;
+        }
+        if ($is_range) {
+            if (length($from) && length($to)) { # a-b
+                push @cols, $from .. $to;
+            }
+            elsif (length $from) { # a-
+                push @cols, $from;
+                $to_end = 1;
+            }
+            else { # -a
+                push @cols, 1 .. $to;
+            }
+        }
+        else {
+            push @cols, $from;
         }
     }
     my @sorted = sort { $a <=> $b } @cols;
@@ -90,6 +111,12 @@ sub handle_b {
 	    next if $c <= $col;
             print $chars[$c - 1];
             $col = $c;
+        }
+        if ($to_end) {
+            $col++;
+            foreach my $c ($col .. scalar(@chars)) {
+                print $chars[$c - 1];
+            }
         }
         print "\n";
     }
