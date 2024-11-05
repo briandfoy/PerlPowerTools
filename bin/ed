@@ -93,7 +93,7 @@ my $command;                    # single letter command entered by user
 my $commandsuf;                 # single letter modifier of command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
-my @inbuf;
+my $isGlobal;
 
 my $EXTENDED_MESSAGES = 0;
 
@@ -108,7 +108,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.9';
+our $VERSION = '0.10';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -211,13 +211,8 @@ sub input {
     $command = $commandsuf = '';
     @adrs = ();
     @args = ();
-
-    if (@inbuf) {
-        $_ = shift @inbuf;
-    } else {
-        print $Prompt if defined $Prompt;
-        $_ = <>;
-    }
+    print $Prompt if defined $Prompt;
+    $_ = <>;
     unless (defined $_) {
         edQuitAsk() or return;
     }
@@ -326,33 +321,38 @@ sub edHelp {
 sub edPrint {
     my $mode = shift;
 
-    $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-    $adrs[1] = $adrs[0] unless (defined($adrs[1]));
-
-    if ($adrs[0] == 0 || $adrs[1] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
-    }
     if (defined($args[0])) {
         edWarn(E_ARGEXT);
         return;
     }
+    unless ($isGlobal) {
+        $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
+        $adrs[1] = $adrs[0] unless (defined($adrs[1]));
+
+        if ($adrs[0] == 0 || $adrs[1] == 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+        my $start = $adrs[0];
+        my $end = $adrs[1];
+        @adrs = ($start .. $end);
+    }
 
     if ($mode == $PRINT_NUM) {
-        for my $i ($adrs[0] .. $adrs[1]) {
+        for my $i (@adrs) {
             print $i, "\t", $lines[$i];
         }
     } elsif ($mode == $PRINT_BIN) {
-        for my $i ($adrs[0] .. $adrs[1]) {
+        for my $i (@adrs) {
             print escape_line($i);
         }
     } else {
-        for my $i ($adrs[0] .. $adrs[1]) {
+        for my $i (@adrs) {
             print $lines[$i];
         }
     }
 
-    $CurrentLineNum = $adrs[1];
+    $CurrentLineNum = $adrs[-1];
 }
 
 sub escape_line {
@@ -542,22 +542,25 @@ sub edSubstitute {
 #
 
 sub edDelete {
-    $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-    $adrs[1] = $adrs[0] unless (defined($adrs[1]));
-
-    if ($adrs[0] == 0 || $adrs[1] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
-    }
     if (defined $args[0]) {
         edWarn(E_ARGEXT);
         return;
     }
+    unless ($isGlobal) {
+        $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
+        $adrs[1] = $adrs[0] unless (defined($adrs[1]));
 
-    my $NumLines = $adrs[1]-$adrs[0]+1;
-
-    splice(@lines,$adrs[0],$NumLines);
-
+        if ($adrs[0] == 0 || $adrs[1] == 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+        my $start = $adrs[0];
+        my $end = $adrs[1];
+        @adrs = ($start .. $end);
+    }
+    for my $i (reverse @adrs) {
+        splice @lines, $i, 1;
+    }
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
 
@@ -894,6 +897,7 @@ sub edSetCurrentLine {
 #
 
 sub edParse {
+    $isGlobal = 0;
     $command = 'nop';
     s/\A\s+//;
     $adrs[0] = getAddr();
@@ -917,11 +921,10 @@ sub edParse {
         my $pat = substr $_, 0, $end;
         my $repcmd = substr $_, $end + 1;
         my @found = edSearchGlobal($pat, $invert);
-        unless (@found) {
-            return 1; # match failure is not an error
-        }
-        foreach my $i (@found) {
-            push @inbuf, $i . $repcmd;
+        if (@found) {
+            $isGlobal = 1;
+            $command = $repcmd;
+            @adrs = @found;
         }
         return 1;
     }
@@ -1240,13 +1243,13 @@ If no pattern is given the previous search is repeated.
 =item g/PATTERN/CMD
 
 Search globally in buffer for PATTERN and run command CMD on each matching line.
-CMD is a single command letter of the following: 'l', 'n' and 'p'.
+CMD is a single command letter of the following: 'd', 'l', 'n' and 'p'.
 CMD can be omitted.
 
 =item v/PATTERN/CMD
 
 Repeatedly run command CMD for each line in the buffer not matching PATTERN.
-CMD is a single command letter of the following: 'l', 'n' and 'p'.
+CMD is a single command letter of the following: 'd', 'l', 'n' and 'p'.
 CMD can be omitted.
 
 =item s///
