@@ -470,12 +470,8 @@ sub write {
 }
 sub messagex {
 	my $self=shift;
-
 	my $num=shift;
-	if ($num<=0) {
-		die "Invalid message specification, $num (Should Not Happen)";
-	}
-
+	return if $num <= 0;
 	return(${$self->{messages}}[$num]);
 }
 sub replace {
