@@ -62,6 +62,7 @@ use Getopt::Std qw(getopts);
 
 use constant A_NOMATCH => -1;
 use constant A_NOPAT   => -2;
+use constant A_ALL     => -3;
 
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
@@ -108,7 +109,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -901,10 +902,13 @@ sub edParse {
     $command = 'nop';
     s/\A\s+//;
     $adrs[0] = getAddr();
-    if (defined($adrs[0]) && $adrs[0] < 0) {
+    if (defined($adrs[0]) && ($adrs[0] == A_NOPAT || $adrs[0] == A_NOMATCH)) {
         return 1;
     }
-    if (s/\A,//) { # address separator
+    if (defined($adrs[0]) && $adrs[0] == A_ALL) {
+        $adrs[0] = 1;
+        $adrs[1] = maxline();
+    } elsif (s/\A,//) { # ',' and '%' cannot be combined
         $adrs[1] = getAddr();
         if (defined($adrs[1]) && $adrs[1] < 0) {
             return 1;
@@ -951,6 +955,8 @@ sub getAddr {
         foreach my $c (split //, $1) {
             $n += $c eq '+' ? 1 : -1;
         }
+    } elsif (s/\A\%//) {
+        $n = A_ALL;
     } elsif (s/\A([0-9]+)//) { # '10' == 10
         $n = $1;
     } elsif (s/\A\.//) { # '.' == current line
