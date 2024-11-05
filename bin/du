@@ -36,6 +36,9 @@ $blocksize = $ENV{BLOCKSIZE} if $ENV{BLOCKSIZE}; # use environment if present
 getopts('HLPacklrsx') or usage();
 
 $blocksize = 1024 if $opt_k;
+if ($blocksize =~ m/[^0-9]/ || $blocksize == 0) {
+  die "$0: unexpected block size: $blocksize\n";
+}
 
 if ($opt_a && $opt_s) {
   print STDERR "$0: cannot both summarize and show all entries\n";
