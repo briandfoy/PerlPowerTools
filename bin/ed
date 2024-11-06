@@ -109,7 +109,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -485,18 +485,21 @@ sub edRead { edEdit($QUESTIONS_MODE,$INSERT_MODE); }
 sub edSubstitute {
     my($LastMatch,$char,$first,$middle,$last,$whole,$flags,$PrintLastLine);
 
-    # parse args
-
-    $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
-    $adrs[1] = $adrs[0] unless (defined $adrs[1]);
-
-    if ($adrs[0] == 0 || $adrs[1] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
-    }
     if (!defined($args[0]) || length($args[0]) == 0) {
         edWarn(E_PATTERN);
         return;
+    }
+    unless ($isGlobal) {
+        $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
+        $adrs[1] = $adrs[0] unless (defined $adrs[1]);
+
+        if ($adrs[0] == 0 || $adrs[1] == 0) {
+            edWarn(E_ADDRBAD);
+            return;
+        }
+        my $start = $adrs[0];
+        my $end = $adrs[1];
+        @adrs = ($start .. $end);
     }
 
     # do wierdness to match semantics if last character
@@ -518,7 +521,7 @@ sub edSubstitute {
     }
 
     # do the search and substitution
-    for my $lineno ($adrs[0]..$adrs[1]) {
+    for my $lineno (@adrs) {
         my $evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
         if (eval $evalstring) {
@@ -920,17 +923,21 @@ sub edParse {
     }
     if (s/\A([gv])\///) {
         my $invert = $1 eq 'v';
-        my $end = rindex $_, '/';
-        return 0 if $end == -1; # g/re/p needs trailing /
-        my $pat = substr $_, 0, $end;
-        my $repcmd = substr $_, $end + 1;
-        my @found = edSearchGlobal($pat, $invert);
-        if (@found) {
-            $isGlobal = 1;
-            $command = $repcmd;
-            @adrs = @found;
+        my $i;
+        my @chars = split //;
+        my $lim = scalar @chars;
+        for ($i = 0; $i < $lim; $i++) {
+            my $j = $i - 1;
+            $j = 0 if $j < 0;
+            last if $chars[$i] eq '/' && $chars[$j] ne '\\';
         }
-        return 1;
+        return 0 if $i == $lim; # g/re/p needs trailing /
+        my $pat = substr $_, 0, $i;
+        $_ = substr $_, $i + 1;
+        my @found = edSearchGlobal($pat, $invert);
+        return 1 unless @found; # nothing to do
+        $isGlobal = 1;
+        @adrs = @found;
     }
     if (s/\A([acdEefHhijlmnPpQqrstWw=\!])//) { # optional argument
         $command = $1;
@@ -1249,13 +1256,13 @@ If no pattern is given the previous search is repeated.
 =item g/PATTERN/CMD
 
 Search globally in buffer for PATTERN and run command CMD on each matching line.
-CMD is a single command letter of the following: 'd', 'l', 'n' and 'p'.
+CMD is one of the following commands: 'd', 'l', 'n', 'p' and 's'.
 CMD can be omitted.
 
 =item v/PATTERN/CMD
 
 Repeatedly run command CMD for each line in the buffer not matching PATTERN.
-CMD is a single command letter of the following: 'd', 'l', 'n' and 'p'.
+CMD is one of the following commands: 'd', 'l', 'n', 'p' and 's'.
 CMD can be omitted.
 
 =item s///
