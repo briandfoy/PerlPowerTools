@@ -326,9 +326,19 @@ sub edHelp {
 sub edPrint {
     my $mode = shift;
 
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return;
+    my $do_bin = $mode == $PRINT_BIN;
+    my $do_num = $mode == $PRINT_NUM;
+
+    if (defined $args[0]) {
+        if ($args[0] =~ s/\A([lnp]+)//) {
+            my $arg = $1;
+            $do_bin = 1 if $arg =~ m/l/;
+            $do_num = 1 if $arg =~ m/n/;
+        }
+        if (length $args[0]) {
+            edWarn(E_ARGEXT);
+            return;
+        }
     }
     unless ($isGlobal) {
         $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
@@ -342,21 +352,16 @@ sub edPrint {
         my $end = $adrs[1];
         @adrs = ($start .. $end);
     }
-
-    if ($mode == $PRINT_NUM) {
-        for my $i (@adrs) {
-            print $i, "\t", $lines[$i];
+    for my $i (@adrs) {
+        if ($do_num) {
+            print $i, "\t";
         }
-    } elsif ($mode == $PRINT_BIN) {
-        for my $i (@adrs) {
+        if ($do_bin) {
             print escape_line($i);
-        }
-    } else {
-        for my $i (@adrs) {
+        } else {
             print $lines[$i];
         }
     }
-
     $CurrentLineNum = $adrs[-1];
 }
 
