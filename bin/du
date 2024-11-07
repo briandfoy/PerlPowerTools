@@ -21,6 +21,9 @@ use strict;
 use File::Spec;
 use Getopt::Std;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 use vars qw($opt_H $opt_L $opt_P $opt_a $opt_c $opt_k $opt_l $opt_r $opt_s $opt_x);
 use vars qw(%inodes $depth $blocksize $grandtotal $filesystem);
 
@@ -30,15 +33,18 @@ $blocksize = 512;  # Default block size
 $grandtotal = 0;   # Total of all command line argument totals
 $filesystem = 0;   # Current file system (used for -x processing)
 
-$blocksize = $ENV{BLOCKSIZE} if $ENV{BLOCKSIZE}; # use environment if present
-
 # Process command line options
 getopts('HLPacklrsx') or usage();
 
+$blocksize = $ENV{'BLOCKSIZE'} if defined $ENV{'BLOCKSIZE'};
 $blocksize = 1024 if $opt_k;
+if ($blocksize =~ m/[^0-9]/ || $blocksize == 0) {
+  warn "$0: unexpected block size: $blocksize\n";
+  exit EX_FAILURE;
+}
 
 if ($opt_a && $opt_s) {
-  print STDERR "$0: cannot both summarize and show all entries\n";
+  warn "$0: cannot both summarize and show all entries\n";
   usage();
 }
 
@@ -92,15 +98,15 @@ sub traverse {
     closedir $dh;
     print "$total\t$fn\n" unless $opt_s;
   } else {
-    print STDERR "$0: could not read directory $fn: $!\n";
+    warn "$0: could not read directory $fn: $!\n";
   }
   print "$total\t$fn\n" if $opt_s && $depth == 1;
   return $total;
 }
 
 sub usage {
-  print STDERR "Usage: $0 [-H | -L | -P] [-a | -s] [-cklrx] [file ...]\n";
-  exit 1;
+  print "usage: $0 [-H | -L | -P] [-a | -s] [-cklrx] [file ...]\n";
+  exit EX_FAILURE;
 }
 
 =head1 NAME
