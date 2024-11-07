@@ -63,6 +63,7 @@ use Getopt::Std qw(getopts);
 use constant A_NOMATCH => -1;
 use constant A_NOPAT   => -2;
 use constant A_ALL     => -3;
+use constant A_PATTERN => -4;
 
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
@@ -109,7 +110,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -239,6 +240,9 @@ sub input {
             return;
         } elsif ($ad == A_NOPAT) {
             edWarn(E_NOPAT);
+            return;
+        } elsif ($ad == A_PATTERN) {
+            edWarn(E_PATTERN);
             return;
         } elsif ($ad > maxline() || $ad < 0) {
             edWarn(E_ADDRBAD);
@@ -923,18 +927,19 @@ sub edParse {
     }
     if (s/\A([gv])\///) {
         my $invert = $1 eq 'v';
-        my $i;
-        my @chars = split //;
-        my $lim = scalar @chars;
-        for ($i = 0; $i < $lim; $i++) {
-            my $j = $i - 1;
-            $j = 0 if $j < 0;
-            last if $chars[$i] eq '/' && $chars[$j] ne '\\';
+        my $re = getRe('/', 1);
+        unless (defined $re) {
+            $adrs[0] = A_PATTERN;
+            return 1;
         }
-        return 0 if $i == $lim; # g/re/p needs trailing /
-        my $pat = substr $_, 0, $i;
-        $_ = substr $_, $i + 1;
-        my @found = edSearchGlobal($pat, $invert);
+        if (length($re) == 0) {
+            unless (defined $SearchPat) {
+                $adrs[0] = A_NOPAT;
+                return 1;
+            }
+            $re = $SearchPat;
+        }
+        my @found = edSearchGlobal($re, $invert);
         return 1 unless @found; # nothing to do
         $isGlobal = 1;
         @adrs = @found;
@@ -972,19 +977,12 @@ sub getAddr {
         $n = maxline();
     } elsif (s/\A([\/\?])//) { # search: '/re/' or '?re?'
         my $delim = $1;
-        my $i;
-        my @chars = split //;
-        for ($i = 0; $i < scalar(@chars); $i++) {
-            my $j = $i - 1;
-            $j = 0 if $j < 0;
-            last if $chars[$i] eq $delim && $chars[$j] ne '\\';
-        }
-        my $re = substr $_, 0, $i;
+        my $re = getRe($delim);
+        $re = '' unless defined $re; # delim not needed
         if (length($re) == 0) {
             return A_NOPAT unless defined $SearchPat;
             $re = $SearchPat;
         }
-        $_ = substr $_, $i + 1;
         if ($delim eq '/') {
             $n = edSearchForward($re);
         } else {
@@ -993,6 +991,23 @@ sub getAddr {
         $n = A_NOMATCH unless $n;
     }
     return $n;
+}
+
+sub getRe {
+    my ($delim, $delimreq) = @_;
+    my $i;
+    my @chars = split //;
+    my $sz = scalar @chars;
+
+    for ($i = 0; $i < $sz; $i++) {
+        my $j = $i - 1;
+        $j = 0 if $j < 0;
+        last if $chars[$i] eq $delim && $chars[$j] ne '\\';
+    }
+    return if $delimreq && $i == $sz;
+    my $re = substr $_, 0, $i;
+    $_ = substr $_, $i + 1;
+    return $re;
 }
 
 #
@@ -1065,6 +1080,7 @@ sub edSearchGlobal {
         }
         $end = $adrs[1];
     }
+    $SearchPat = $pattern;
     my @found;
     for my $i ($start .. $end) {
         my $match;
