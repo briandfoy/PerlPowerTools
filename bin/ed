@@ -951,6 +951,11 @@ sub edParse {
     }
     if (s/\A([acdEefHhijlmnPpQqrstWw=\!])//) { # optional argument
         $command = $1;
+        if ($command eq 'W' || $command eq 'w') {
+            if (s/\A[Qq]//) {
+                $commandsuf = 'q';
+            }
+        }
         if ($WANT_FILE{$command} && m/\A\S/) {
             return 0; # space before filename
         }
@@ -1302,6 +1307,10 @@ Write buffer to file in append mode
 =item w [FILE]
 
 Write buffer to file
+
+=item wq [FILE]
+
+Write buffer to file, then quit
 
 =item =
 
