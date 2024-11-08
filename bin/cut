@@ -55,7 +55,7 @@ sub checknum {
     }
 }
 
-sub handle_b {
+sub parse_fields {
     my $spec = shift;
     my @list = split /,/, $spec;
 
@@ -102,12 +102,19 @@ sub handle_b {
         }
     }
     my @sorted = sort { $a <=> $b } @cols;
+    unshift @sorted, $to_end;
+    return @sorted;
+}
+
+sub handle_b {
+    my $spec = shift;
+    my ($to_end, @cols) = parse_fields($spec);
 
     while (<>) {
         chomp;
         my $col = 0;
         my @chars = split //;
-        foreach my $c (@sorted) {
+        foreach my $c (@cols) {
 	    next if $c <= $col;
             print $chars[$c - 1];
             $col = $c;
@@ -125,7 +132,7 @@ sub handle_b {
 sub handle_f {
     my ($spec, $delim, $sflag) = @_;
 
-    my @list = split /,/, $spec;
+    my ($to_end, @cols) = parse_fields($spec);
     if (defined $delim) {
         $delim = substr $delim, 0, 1;
     }
@@ -137,49 +144,21 @@ sub handle_f {
 
         # Only waste time on lines with delimiters
         if (/$delim/) {
-            foreach my $item (@list) {
-                my ($start, $end);
-                if (substr($item, 0, 1) eq '-') {
-                    checknum($item);
-                    $start = 0;
-                    $end = abs $item;
-                }
-                elsif (index($item, '-') == -1) {
-                    checknum($item);
-                    $start = $item - 1;
-                    $end = $start + 1;
-                }
-                else {
-                    ($start, $end) = split /\-/, $item;
-                    checknum($start);
-                    checknum($end);
-                    $start--;
-                    if ($start >= $end) {
-                        warn "$me: invalid field list\n";
-                        exit EX_FAILURE;
-                    }
-                }
-
-                my @hunk = split (/$delim/, $_);
-
-                # don't let parameters exceed number of fields
-                $end = @hunk if (! $end or $end > @hunk);
-                $start = @hunk if $start > @hunk;
-
-                # If start of field is bigger than number of items, cut(1)
-                # still outputs a newline -- but we won't enter the for()
-                print "\n" if ($start == $end and $item eq $list[$#list]);
-
-                for (my $i = $start; $i < $end; $i++) {
-                    print $hunk[$i];
-                    if ($item eq $list[$#list] and $i == $end - 1) {  # if done
-                        print "\n";
-                    }
-                    else {
-                        print $delim;
-                    }
+            my @hunk = split /$delim/;
+            my $col = 0;
+            my @out;
+            foreach my $c (@cols) {
+	        next if $c <= $col;
+                push @out, $hunk[$c - 1];
+                $col = $c;
+            }
+            if ($to_end) {
+                $col++;
+                foreach my $c ($col .. scalar(@hunk)) {
+                    push @out, $hunk[$c - 1];
                 }
             }
+            print join($delim, @out), "\n";
         }
         else {  # no delimiter in line
             print "$_\n" unless $sflag;
