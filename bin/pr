@@ -50,7 +50,7 @@ my $offsetspaces=0;	# chars at beginning of line (Char/Bool)
 my $doublespace=0;		# whether to double space
 my $number=0;		# number the lines; how high?  (Int/Bool)
 my $startpageno=1;		# starting page no
-my $header="";		# optional header text (String/Bool)
+my $header;		# optional header text (String/Bool)
 my $formfeed=0;		# Use formfeeds instead of spaces. (Bool)
 my $quietskip=0;		# Ignore unopened files (Bool)
 my $column_sep="";		# specified column separator	(Bool/Char)
@@ -119,7 +119,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     }
 
     if (s/^h//) {
-	warn "-h option already used" if $header;
+	warn "-h option already used" if defined $header;
 	$header=shift;
 	redo OPTION;
     }
@@ -246,8 +246,6 @@ sub checknum {
 }
 
 sub create_col  {
-	my($col)=@_;
-
 	my $pagelen=$length-($trailerlength*2);
 	if ($pagelen <= 0) {
 		$trailer = 0;
@@ -313,7 +311,7 @@ sub print_header {
 	print ' ' x $offsetspaces if $offsetspaces;
 	print scalar(localtime), " ";
 
-	if ($header) {
+	if (defined $header) {
 		print "$header ";
 	} else {
 		if (! $multimerge) {
