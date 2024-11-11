@@ -56,7 +56,7 @@ sub printWhat
             $f =~ s|.*\@\(#\)||;
             $f =~ s|[">\0\\].*||; ##BSD spec says print to 1st " > \ or null
             chomp $f;
-            print "        $f\n";
+            print "\t$f\n";
             return if $stop_flag;
         }
     }
