@@ -125,11 +125,21 @@ sub fold_file_byte {
     my $hard  = "(.{$Width})(?=.)";
     if ($Space_Break) {
         while (<$input>) {
-          (s/$soft//o || s/$hard//o), print "$1\n" while length > $Width;
-          print;
+            my $len = length;
+            APPLYRE: while ($len > $Width) {
+                if (s/$soft//o || s/$hard//o) {
+                    print "$1\n";
+                } else {
+                    last APPLYRE;
+                }
+            }
+            print;
         }
     } else {
-        s/$hard/$1\n/go, print while <$input>;   # SCREAM
+        while (<$input>) {
+            s/$hard/$1\n/go;
+            print;
+        }
     }
     return 0;
 }
