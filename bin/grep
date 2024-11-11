@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.008';
+our $VERSION = '1.009';
 
 $| = 1;                   # autoflush output
 
@@ -113,7 +113,7 @@ Options:
 	-r   recursive on directories or dot if none
 	-p   paragraph mode (default: line mode)
 	-P   ditto, but specify separator, e.g. -P '%%\\n'
-	-a   all files, not just plain text files
+	-a   treat binary files as plain text files
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
 
@@ -371,6 +371,7 @@ sub matchfile {
 	$total = 0;
 
 FILE: while ( defined( $file = shift(@_) ) ) {
+		my $is_binary = 0;
 		my $compressed = 0;
 
 		if ( $file eq '-' ) {
@@ -422,9 +423,8 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				$file       = "$Compress{$ext} $file |";
 				$compressed = 1;
 				}
-			elsif (!$opt->{'a'} && -B $file) {
-				warn qq($Me: skipping binary file "$file"\n) if $opt->{T};
-				next FILE;
+			elsif (-B $file) {
+				$is_binary = 1;
 				}
 			}
 
@@ -447,6 +447,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				$Errors++;
 				next FILE;
 				}
+			binmode($fh) if $is_binary;
 			}
 
 		$total = $Matches = 0;
@@ -471,6 +472,10 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			if ($opt->{'l'}) {
 				print $name, "\n";
 				last LINE;
+			}
+			if ($is_binary && !$opt->{'a'}) {
+				warn "$Me: $file: binary file matches\n";
+				last LINE; # single match for binfile unless -a
 			}
 			unless ($opt->{'c'}) {
 				print($name, ':') if $Mult;
@@ -533,8 +538,7 @@ Allow at most one match per file.
 
 =item B<-a>
 
-Search all files.  The default is to only search plain text files
-and compressed files.
+List matching lines from binary files as if they were plain text files.
 
 =item B<-C>
 
