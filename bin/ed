@@ -79,6 +79,9 @@ use constant E_PATTERN => 'invalid pattern delimiter';
 use constant E_NOMATCH => 'no match';
 use constant E_NOPAT   => 'no previous pattern';
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 # important globals
 
 my $CurrentLineNum = 0;         # default to before first line.
@@ -109,7 +112,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -193,11 +196,11 @@ $SIG{HUP} = sub {
             close $fh;
         }
     }
-    exit 1;
+    exit EX_FAILURE;
 };
 
 my %opt;
-getopts('dp:s', \%opt) or Usage();
+getopts('p:s', \%opt) or Usage();
 if (defined $opt{'p'}) {
     $Prompt = $opt{'p'};
 }
@@ -223,14 +226,6 @@ sub input {
         edWarn(E_CMDBAD);
         return;
     }
-    if ($opt{'d'}) {
-        print "command: /$command/ ";
-        print "adrs[0]: /$adrs[0]/ " if defined($adrs[0]);
-        print "adrs[1]: /$adrs[1]/ " if defined($adrs[1]);
-        print "args[0]: /$args[0]/ " if defined($args[0]);
-        print "\n";
-    }
-
     # sanity check addresses
     foreach my $ad (@adrs) {
         next unless defined $ad;
@@ -265,7 +260,7 @@ sub input {
 
 sub VERSION_MESSAGE {
     print "ed version $VERSION\n";
-    exit 0;
+    exit EX_SUCCESS;
 }
 
 sub maxline {
@@ -662,7 +657,7 @@ sub edWrite {
     print "$chars\n" unless ($SupressCounts);
 
     if ($qflag) {
-        exit 0;
+        exit EX_SUCCESS;
     }
 }
 
@@ -851,8 +846,7 @@ sub edQuit {
         edWarn(E_UNSAVED);
         return;
     }
-
-    exit 0;
+    exit EX_SUCCESS;
 }
 
 #
@@ -1100,7 +1094,8 @@ sub edSearchGlobal {
 }
 
 sub Usage {
-    die "Usage: ed [-p prompt] [-ds] [file]\n";
+    print "usage: ed [-p prompt] [-s] [file]\n";
+    exit EX_FAILURE;
 }
 
 #
@@ -1129,7 +1124,7 @@ ed - text editor
 
 =head1 SYNOPSIS
 
-ed [-p prompt] [-ds] [file]
+ed [-p prompt] [-s] [file]
 
 =head1 DESCRIPTION
 
@@ -1169,10 +1164,6 @@ The "h" command fetches the saved error message and prints it.
 The following options are available:
 
 =over 4
-
-=item -d
-
-Print debugging information on standard output.
 
 =item -p STRING
 
