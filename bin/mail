@@ -631,7 +631,7 @@ use File::Temp;
 use Getopt::Std;
 use vars qw($VERSION $ROWS $BUFFERL $box);
 
-$VERSION="0.02";
+$VERSION="0.03";
 $ROWS=23;         # Screen Dimensions.  Yeah, this sucks.
 $COLS=80;
 $BUFFERL=2;	  # Lines needed for "fluff"
@@ -980,6 +980,7 @@ CMDS:	{
 			print "> ";
 			$cmd=<STDIN>;
 			chomp $cmd;
+			$cmd =~ s/\A\s+//;
 		}
 	GOTONE: {
 			if ($cmd=~/^[a-zA-Z]+/) {
@@ -1202,10 +1203,10 @@ B<u> is an alias for this command.
 Mark as unread any specified mail messages.
 B<U> is an alias for this command.
 
-=item visal msg
+=item visual msg
 
 Invoke the visual editor (specified in $VISUAL, or /usr/bin/vi) on the
-indicated messages.  Re-read those messages in afer the editing session.
+indicated messages.  Re-read those messages in after the editing session.
 B<v> is an alias for this command.
 
 =item write msg path
