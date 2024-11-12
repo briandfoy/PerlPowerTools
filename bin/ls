@@ -150,15 +150,18 @@ sub DirEntries {
 	my @Entries = ();	# entries in original order
 	my $Name = "";		# entry name
 
-	if (!opendir($dh, $_[0]) || exists($Options{'d'})) {
+	if (exists $Options{'d'} || ! -d $_[0]) {
 		if (-e $_[0]) {
-			closedir($dh) if (defined($dh));
 			push(@Entries, $_[0]);
 			$Attributes{$_[0]} = stat($_[0]);
 			push(@Entries, \%Attributes);
 			return @Entries;
 		}
 		warn "$Program: can't access '$_[0]': $!\n";
+		return ();
+	}
+	unless (opendir $dh, $_[0]) {
+		warn "$Program: failed to open directory '$_[0]': $!\n";
 		return ();
 	}
 	while ($Name = readdir($dh)) {
