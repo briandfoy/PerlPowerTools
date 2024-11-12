@@ -17,12 +17,12 @@ License: perl
 # See documentation for LICENSE etc.
 #
 use strict; # what good BASIC programmer wouldn't?
+
 my $F; # main status variable
 my $L; # main location variable (not the same as @L!!!)
 my $A; # number of arrows
 
 # 5 REM *** HUNT THE WUMPUS ***
-my @P; 						#10 DIM P(5)
 print "INSTRUCTIONS (Y-N) ";     		#15 PRINT "INSTRUCTIONS (Y-N)";
 my $I = uc(<>); chomp($I); 			#20 INPUT I$
 &instructions unless ($I eq "N"); 		#25 IF I$="N" THEN 35
@@ -202,17 +202,18 @@ sub hazard {
 ############
 # 670 REM *** CHOOSE OPTION ***
 sub shoot_or_move {
-    while (1) { my $O;
-	print "SHOOT OR MOVE (S-M) ";		# 675 PRINT "...";
-	$I = uc(<>); chomp($I);			# 680 INPUT I$
-        if ($I eq "S") { 			# 685 IF I$<>"S" THEN 700
-	    $O = 1;				# 690 O=1
-            return $O; 				# 695 RETURN
-        } elsif ($I eq "M") {			# 700 IF I$<>"M" THEN 675
-            $O = 2;				# 705 O=2
-            return $O;				# 710 RETURN
+    my $O;
+    while (!defined($O)) {
+	print 'SHOOT OR MOVE (S-M) ';
+	$I = uc(<>);
+	chomp($I);
+        if ($I eq 'S') {
+	    $O = 1;
+        } elsif ($I eq 'M') {
+            $O = 2;
 	}
     }
+    return $O;
 } # end sub shoot_or_move
 
 ############
@@ -349,12 +350,6 @@ sub move {
 } # end sub move
 
 exit; 						# 1150 END
-
-# Had to move these to end of file
-#115 DATA 2,5,8,1,3,10,2,4,12,3,5,14,1,4,6
-#120 DATA 5,7,15,6,8,17,1,7,9,8,10,18,2,9,11
-#125 DATA 10,12,19,3,11,13,12,14,20,4,13,15,6,14,16
-#130 DATA 15,17,20,7,16,18,9,17,19,11,18,20,13,16,19
 
 __END__
 
