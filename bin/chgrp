@@ -21,7 +21,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 
 my $warnings = 0;
 
@@ -54,6 +54,9 @@ usage() unless @ARGV > 1;
 my $group = shift;
 
 my $gid = getgrnam $group;
+unless (defined $gid) {
+    $gid = $group if $group =~ m/\A[0-9]+\z/;
+}
 unless (defined $gid) {
     warn "$Program: '$group' is an invalid group\n";
     exit EX_FAILURE;
@@ -100,11 +103,14 @@ sub modify_file {
         $warnings++;
         return;
     }
-    my $uid = (stat $file) [4] or do {
+
+    my @st = stat $file;
+    unless (@st) {
         warn "$Program: failed to stat '$file': $!\n";
         $warnings++;
         return;
     };
+    my $uid = $st[4];
     unless (chown $uid, $gid, $file) {
         warn "$Program: '$file': $!\n";
 	$warnings++;
@@ -133,7 +139,7 @@ options is the new group.
 =head2 OPTIONS
 
 I<chgrp> accepts the options described below. The options I<-L>,
-I<-H> and I<-P> are mutally exclusive, and only the last given
+I<-H> and I<-P> are mutually exclusive, and only the last given
 option will be honoured. All of I<-L>, I<-H> and I<-P> require the
 I<-R> option to be set first.
 
