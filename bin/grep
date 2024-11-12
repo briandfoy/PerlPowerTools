@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.009';
+our $VERSION = '1.010';
 
 $| = 1;                   # autoflush output
 
@@ -116,6 +116,7 @@ Options:
 	-a   treat binary files as plain text files
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
+	-Z   force grep to behave as zgrep
 
 May use GREP_OPTIONS environment variable to set default options.
 EOF
@@ -247,7 +248,7 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inCcwsxvHhe:f:Ll1gurpP:aqTF', \%opt) or usage();
+	getopts('inCcwsxvHhe:f:Ll1gurpP:aqTFZ', \%opt) or usage();
 
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
@@ -419,7 +420,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				}
 
 			my ($ext) = $file =~ /\.([^.]+)$/;
-			if ( defined $ext && exists $Compress{$ext} ) {
+			if ($opt->{'Z'} && defined $ext && exists $Compress{$ext}) {
 				$file       = "$Compress{$ext} $file |";
 				$compressed = 1;
 				}
@@ -674,6 +675,11 @@ for the precise definition of C<\b>.
 =item B<-x>
 
 Exact matches only.  The pattern must match the entire line or paragraph.
+
+=item B<-Z>
+
+Operate in zgrep mode.  Compressed file arguments are decompressed before
+searching for the pattern.
 
 =back
 
