@@ -112,7 +112,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -963,7 +963,7 @@ sub edParse {
 
 sub getAddr {
     my $n;
-    if (s/\A([\-\+]+)//) { # '++--' == current+0
+    if (s/\A([\-\^\+]+)//) { # '++--' == current+0
         $n = $CurrentLineNum;
         foreach my $c (split //, $1) {
             $n += $c eq '+' ? 1 : -1;
