@@ -80,6 +80,8 @@ sub print_year_jd {
 		my @m1 = fmt_month($cal::year, $mon[1], 0);
 
 		foreach my $i (0 .. 7) {
+			$m0[$i] = '' unless defined $m0[$i];
+			$m1[$i] = '' unless defined $m1[$i];
 			printf "%-${w}s %-${w}s\n", $m0[$i], $m1[$i];
 		}
 	}
@@ -95,6 +97,9 @@ sub print_year {
 		my @m2 = fmt_month($cal::year, $mon[2], 0);
 
 		foreach my $i (0 .. 7) {
+			$m0[$i] = '' unless defined $m0[$i];
+			$m1[$i] = '' unless defined $m1[$i];
+			$m2[$i] = '' unless defined $m2[$i];
 			printf "%-${w}s %-${w}s %-${w}s\n", $m0[$i], $m1[$i], $m2[$i];
 		}
 	}
@@ -249,7 +254,7 @@ sub get_month {
 
 sub get_year {
 	my( $year ) = @_;
-	if( $year < 1 || $year > 9999 || $year !~ /^\d+$/o ) {
+	if ($year !~ m/\A[0-9]+\z/ ||  $year < 1 || $year > 9999) {
 		print "INVALID YEAR ENTERED.\n";
 		display_help();
 	}
