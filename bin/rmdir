@@ -30,11 +30,6 @@ if (!getopts('p', \%opt) || scalar(@ARGV) == 0) {
     exit EX_FAILURE;
 }
 foreach my $directory (@ARGV) {
-    unless (-d $directory) {
-        warn "$Program: '$directory': not a directory or does not exist\n";
-        $rc = EX_FAILURE;
-        next;
-    }
     unless (rmdir $directory) {
         warn "$Program: failed to remove '$directory': $!\n";
         $rc = EX_FAILURE;
