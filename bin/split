@@ -136,7 +136,7 @@ if ($opt{'b'}) {
 }
 
 ## Split on patterns.
-elsif ($opt{'p'}) {
+elsif (defined $opt{'p'}) {
     my $regex = $opt{p};
     my $fh = nextfile ($prefix);
 
