@@ -21,7 +21,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.4';
+my ($VERSION) = '1.5';
 
 my $argc  = 1;
 my $debug = 0;
@@ -36,8 +36,20 @@ while (@ARGV) {
         last;
     }
 
-    if ($ARGV[0] =~ m/\A\-a(.)\Z/) {
-        $magic = $1;
+    if ($ARGV[0] =~ s/\A\-a//) {
+        $magic = $ARGV[0];
+        unless (length $magic) {
+            shift;
+            $magic = $ARGV[0];
+        }
+        unless (length $magic) {
+            warn "$Program: option -a requires an argument\n";
+            usage();
+        }
+        if (length($magic) > 1) {
+            warn "$Program: invalid magic specification\n";
+            usage();
+        }
     }
     elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
@@ -46,6 +58,7 @@ while (@ARGV) {
         $debug = 1;
     }
     else {
+        warn "$Program: invalid option: $ARGV[0]\n";
         usage();  # usage will exit
     }
     shift;
@@ -98,8 +111,7 @@ sub run_cmd {
 }
 
 sub usage {
-    warn "$Program (Perl bin utils) $VERSION\n";
-    warn "usage: $Program [-ac] [-d] [-#] command argument [argument ...]\n";
+    warn "usage: $Program [-a c] [-d] [-#] command argument [argument ...]\n";
     exit EX_FAILURE;
 }
 
@@ -113,7 +125,7 @@ apply - Run a command many times with different arguments
 
 =head1 SYNOPSIS
 
-apply [-aB<c>] [-d] [-#] command argument [argument ...]
+apply [-a B<c>] [-d] [-#] command argument [argument ...]
 
 =head1 DESCRIPTION
 
@@ -128,7 +140,7 @@ I<apply> accepts the following options:
 
 =over 4
 
-=item -aB<c>
+=item -a B<c>
 
 Use the character B<c> instead of B<%> for interpolation of arguments.
 
