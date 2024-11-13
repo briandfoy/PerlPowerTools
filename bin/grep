@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.011';
+our $VERSION = '1.012';
 
 $| = 1;                   # autoflush output
 
@@ -88,7 +88,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-inCcwsxvHhLlFgurpaqT] [-e pattern] [-m NUM]
+usage: $Me [-inCcwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-m NUM]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -113,6 +113,7 @@ Options:
 	-r   recursive on directories or dot if none
 	-p   paragraph mode (default: line mode)
 	-P   ditto, but specify separator, e.g. -P '%%\\n'
+	-A   show lines after each matching line
 	-a   treat binary files as plain text files
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
@@ -248,10 +249,13 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inCcwsxvHhe:f:LlgurpP:aqTFZm:', \%opt) or usage();
+	getopts('inCcwsxvHhe:f:LlgurpP:aqTFZm:A:', \%opt) or usage();
 
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
+	}
+	if (defined $opt{'A'} && $opt{'A'} !~ m/\A[0-9]+\z/) {
+		die "$Me: bad line count for -A\n";
 	}
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
@@ -454,10 +458,11 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			}
 
 		$total = $Matches = 0;
+		my $ctx_a = 0;
 
 	LINE: while (<$fh>) {
 			if (defined $opt->{'m'}) { # maximum may be zero
-				last LINE if $total >= $opt->{'m'};
+				last LINE if $total >= $opt->{'m'} && $ctx_a == 0;
 			}
 			$Matches = 0;
 
@@ -465,12 +470,21 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			&{$matcher}();    # do it! (check for matches)
 			##############
 
-			next LINE unless $Matches;
+			if ($ctx_a > 0) {
+				$ctx_a--; # show context line
+			} elsif (!$Matches) {
+				next LINE;
+			}
 
 			$total += $Matches;
 			last FILE if $opt->{'q'}; # single match for all files
 			last LINE if $opt->{'L'}; # one match is enough
 
+			if (defined $opt->{'A'} && $Matches) {
+				unless (defined($opt->{'m'}) && $opt->{'m'} < $total) {
+					$ctx_a = $opt->{'A'};
+				}
+			}
 			if ( $opt->{p} || $opt->{P} ) {
 				s/\n{2,}$/\n/ if $opt->{p};
 				chomp         if $opt->{P};
@@ -485,8 +499,21 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			}
 			unless ($opt->{'c'}) {
 				print($name, ':') if $Mult;
-				print $opt->{n} ? "$.:" : "", $_,
-					( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
+				if ($opt->{'n'}) {
+					print $.;
+					if ($Matches) {
+						print ':';
+					} else {
+						print '-';
+					}
+				}
+				print $_;
+				if ($opt->{'p'} || $opt->{'P'}) {
+					print ('-' x 20), "\n";
+				}
+			}
+			if ($ctx_a == 0 && !$Matches) {
+				print "--\n";
 			}
 			}
 			close $fh;
@@ -513,9 +540,8 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<grep> [ B<-[incCwsxvhHlLFigurpaqT]> ] [ B<-e> I<pattern> ] [ B<-m> I<NUM> ]
-
-[ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
+    grep [-incCwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-m NUM]
+         [-f pattern-file] [-P sep] [pattern] [file ...]
 
 =head1 DESCRIPTION
 
@@ -540,6 +566,10 @@ The following options are accepted:
 =item B<-m> I<NUM>
 
 Display a maximum of NUM matches per file.
+
+=item B<-A> I<NUM>
+
+Display NUM lines of context after each matching line.
 
 =item B<-a>
 
