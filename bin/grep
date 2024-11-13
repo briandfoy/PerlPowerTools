@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.010';
+our $VERSION = '1.011';
 
 $| = 1;                   # autoflush output
 
@@ -88,7 +88,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-inCcwsxvHhLlF1gurpaqT] [-e pattern]
+usage: $Me [-inCcwsxvHhLlFgurpaqT] [-e pattern] [-m NUM]
         [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -107,7 +107,7 @@ Options:
 	-l   list filenames matching
 	-L   list filenames which do not match
 	-F   search for fixed strings (disable regular expressions)
-	-1   1 match per file
+	-m   limit total matches per file
 	-g   highlight matches
 	-u   underline matches
 	-r   recursive on directories or dot if none
@@ -248,8 +248,11 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inCcwsxvHhe:f:Ll1gurpP:aqTFZ', \%opt) or usage();
+	getopts('inCcwsxvHhe:f:LlgurpP:aqTFZm:', \%opt) or usage();
 
+	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
+		die "$Me: invalid max count\n";
+	}
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 
@@ -347,7 +350,6 @@ sub parse_args {
 	$opt{P}   && ( $/        = eval(qq("$opt{P}")) );                                         # for -P '%%\n'
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
-	$opt{'1'} ||= $opt{'l'}; # that's a one and an ell
 	$opt{'g'} ||= $opt{'u'};
 	$opt{'c'} ||= $opt{'C'};
 
@@ -454,6 +456,9 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 		$total = $Matches = 0;
 
 	LINE: while (<$fh>) {
+			if (defined $opt->{'m'}) { # maximum may be zero
+				last LINE if $total >= $opt->{'m'};
+			}
 			$Matches = 0;
 
 			##############
@@ -483,8 +488,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				print $opt->{n} ? "$.:" : "", $_,
 					( $opt->{p} || $opt->{P} ) && ( '-' x 20 ) . "\n";
 			}
-
-			last LINE if $opt->{'1'}; # single match per file
 			}
 			close $fh;
 		}
@@ -510,7 +513,8 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-B<grep> [ B<-[incCwsxvhHlLF1igurpaqT]> ] [ B<-e> I<pattern> ]
+B<grep> [ B<-[incCwsxvhHlLFigurpaqT]> ] [ B<-e> I<pattern> ] [ B<-m> I<NUM> ]
+
 [ B<-f> I<pattern-file> ] [ B<-P> I<sep> ] [ I<pattern> ] [ I<files> ... ]
 
 =head1 DESCRIPTION
@@ -533,9 +537,9 @@ The following options are accepted:
 
 =over 4
 
-=item B<-1>
+=item B<-m> I<NUM>
 
-Allow at most one match per file.
+Display a maximum of NUM matches per file.
 
 =item B<-a>
 
