@@ -812,7 +812,6 @@ sub edPrintLineNum {
         edWarn(E_ARGEXT);
         return;
     }
-
     my $adr = $adrs[1];
     if (!defined($adr)) {
         $adr = $adrs[0];
@@ -821,9 +820,6 @@ sub edPrintLineNum {
         $adr = maxline();
     }
     print "$adr\n";
-
-    # v7 docs say this does not affect current line.  GNU ed sets the line.
-    # We go with the v7 docs.
 }
 
 #
@@ -982,11 +978,7 @@ sub getAddr {
             return A_NOPAT unless defined $SearchPat;
             $re = $SearchPat;
         }
-        if ($delim eq '/') {
-            $n = edSearchForward($re);
-        } else {
-            $n = edSearchBackward($re);
-        }
+        $n = edSearch($re, $delim eq '?');
         $n = A_NOMATCH unless $n;
     }
     return $n;
@@ -1009,50 +1001,18 @@ sub getRe {
     return $re;
 }
 
-#
-# Search forward for a pattern...wrap if not found
-#
-# Inputs:
-#        pattern                - via argument
-#        CurrentLineNum        - global
-#        lines                - global
-#
-# Return:
-#        0                - not found
-#        >0                - line where first found
-#
-
-sub edSearchForward {
-    my($pattern) = @_;
+sub edSearch {
+    my ($pattern, $backward) = @_;
 
     $SearchPat = $pattern;
-    for my $line (($CurrentLineNum + 1) .. maxline(), 1 .. $CurrentLineNum) {
-        if ($lines[$line] =~ /$pattern/) {
-            return $line;
-        }
+    my $cur = $CurrentLineNum;
+    my @idx;
+    if ($backward) {
+        @idx = reverse ($cur .. maxline(), 1 .. ($cur - 1));
+    } else {
+        @idx = (($cur + 1) .. maxline(), 1 .. $cur);
     }
-    return 0;
-}
-
-#
-# Search backward for a pattern...wrap if not found
-#
-# Inputs:
-#        pattern                - via argument
-#        CurrentLineNum        - global
-#        lines                - global
-#
-# Return:
-#        0                - not found
-#        >0                - line where first found
-#
-
-sub edSearchBackward {
-    my($pattern) = @_;
-
-    $SearchPat = $pattern;
-    my @idx = ($CurrentLineNum .. maxline(), 1 .. ($CurrentLineNum - 1));
-    foreach my $line (reverse @idx) {
+    foreach my $line (@idx) {
         if ($lines[$line] =~ /$pattern/) {
             return $line;
         }
