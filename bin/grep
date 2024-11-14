@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.012';
+our $VERSION = '1.013';
 
 $| = 1;                   # autoflush output
 
@@ -88,14 +88,13 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-inCcwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-m NUM]
-        [-f pattern-file] [-P sep] [pattern] [file...]
+usage: $Me [-incwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+           [-m NUM] [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
 	-i   case insensitive
 	-n   number lines
 	-c   give count of lines matching
-	-C   ditto, but >1 match per line possible
 	-w   word boundaries only
 	-q   quiet; nothing is written to standard output
 	-x   exact matches only
@@ -113,6 +112,8 @@ Options:
 	-r   recursive on directories or dot if none
 	-p   paragraph mode (default: line mode)
 	-P   ditto, but specify separator, e.g. -P '%%\\n'
+	-C   show lines of context around each matching line
+	-B   show lines before each matching line
 	-A   show lines after each matching line
 	-a   treat binary files as plain text files
 	-s   suppress errors for failed file and dir opens
@@ -145,11 +146,6 @@ sub parse_args {
 	my $cls_grep = sub {
 		for my $pattern (@patterns) {
 			$Matches++ if m/$pattern/;
-		}
-	};
-	my $cls_grep_C = sub {
-		for my $pattern (@patterns) {
-			$Matches++ while m/$pattern/g;
 		}
 	};
 	my $cls_grep_v = sub {
@@ -249,13 +245,18 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inCcwsxvHhe:f:LlgurpP:aqTFZm:A:', \%opt) or usage();
+	getopts('inC:cwsxvHhe:f:LlgurpP:aqTFZm:A:B:', \%opt) or usage();
 
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
 	}
-	if (defined $opt{'A'} && $opt{'A'} !~ m/\A[0-9]+\z/) {
-		die "$Me: bad line count for -A\n";
+	foreach my $o (qw(A B C)) {
+		if (defined $opt{$o} && $opt{$o} !~ m/\A[0-9]+\z/) {
+			die "$Me: bad context count for -$o\n";
+		}
+	}
+	if (defined $opt{'C'}) {
+		$opt{'A'} = $opt{'B'} = $opt{'C'};
 	}
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
@@ -355,13 +356,11 @@ sub parse_args {
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
 	$opt{'g'} ||= $opt{'u'};
-	$opt{'c'} ||= $opt{'C'};
 
 	foreach (@patterns) {s(/)(\\/)g}
 
 	if    ($opt{'g'}) { $matcher = $cls_grep_g; }
 	elsif ($opt{'v'}) { $matcher = $cls_grep_v; }
-	elsif ($opt{'C'}) { $matcher = $cls_grep_C; }
 	else              { $matcher = $cls_grep;   }
 
 	return ( \%opt, $matcher );
@@ -459,8 +458,10 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 
 		$total = $Matches = 0;
 		my $ctx_a = 0;
+		my @ctx_b;
 
 	LINE: while (<$fh>) {
+			my $ctxb_dump = 0;
 			if (defined $opt->{'m'}) { # maximum may be zero
 				last LINE if $total >= $opt->{'m'} && $ctx_a == 0;
 			}
@@ -470,10 +471,24 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			&{$matcher}();    # do it! (check for matches)
 			##############
 
+			if (!$Matches && defined($opt->{'B'})) {
+				push @ctx_b, $_;
+				shift @ctx_b if scalar(@ctx_b) > $opt->{'B'};
+			}
 			if ($ctx_a > 0) {
 				$ctx_a--; # show context line
 			} elsif (!$Matches) {
 				next LINE;
+			}
+
+			if ($Matches && @ctx_b) {
+				$ctxb_dump = 1;
+				my $n = $. - $opt->{'B'};
+				foreach my $bline (@ctx_b) {
+					print($n++, '-') if $opt->{'n'};
+					print $bline;
+				}
+				@ctx_b = ();
 			}
 
 			$total += $Matches;
@@ -515,6 +530,9 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 			if ($ctx_a == 0 && !$Matches) {
 				print "--\n";
 			}
+			if ($ctxb_dump && $ctx_a == 0) {
+				print "--\n";
+			}
 			}
 			close $fh;
 		}
@@ -540,8 +558,8 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-    grep [-incCwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-m NUM]
-         [-f pattern-file] [-P sep] [pattern] [file ...]
+    grep [-incwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+         [-m NUM] [-f pattern-file] [-P sep] [pattern] [file ...]
 
 =head1 DESCRIPTION
 
@@ -575,11 +593,13 @@ Display NUM lines of context after each matching line.
 
 List matching lines from binary files as if they were plain text files.
 
-=item B<-C>
+=item B<-B> I<NUM>
 
-Output the count of the matching lines or paragraphs.  This is similar
-to the B<-c> option (in fact, it implies the B<-c> option), except more
-than one match is possible in each line or paragraph.
+Display NUM lines of context before each matching line.
+
+=item B<-C> I<NUM>
+
+Display NUM lines of context surrounding each matching line.
 
 =item B<-c>
 
