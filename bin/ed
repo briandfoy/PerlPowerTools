@@ -47,7 +47,6 @@ License: gpl
 #
 # Todo:
 #        - Implement the following commands from the v7 docs:
-#                k - mark
 #                u - undo
 #
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
@@ -63,6 +62,7 @@ use Getopt::Std qw(getopts);
 use constant A_NOMATCH => -1;
 use constant A_NOPAT   => -2;
 use constant A_PATTERN => -3;
+use constant A_NOMARK  => -4;
 
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
@@ -97,6 +97,7 @@ my $command;                    # single letter command entered by user
 my $commandsuf;                 # single letter modifier of command
 my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
+my %marks;
 my $isGlobal;
 
 my $EXTENDED_MESSAGES = 0;
@@ -112,7 +113,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -170,6 +171,7 @@ my %cmdtab = (
     't' => \&edMove,
     'H' => \&edSetHelp,
     'h' => \&edHelp,
+    'k' => \&edMark,
     'm' => \&edMoveDel,
     'n' => \&edPrintNum,
     'l' => \&edPrintBin,
@@ -311,6 +313,19 @@ sub edHelp {
     if (defined($Error) && ($EXTENDED_MESSAGES || !$toggle)) {
          print "$Error\n";
     }
+}
+
+sub edMark {
+    my $c = $args[0];
+    if (!defined($c) || $c !~ m/\A[a-z]\z/) {
+        edWarn(E_SUFFBAD);
+        return;
+    }
+    my $ad = $adrs[1];
+    $ad = $adrs[0] unless defined $ad;
+    $ad = $CurrentLineNum unless defined $ad;
+    $marks{$c} = $ad;
+    return;
 }
 
 #
@@ -936,7 +951,7 @@ sub edParse {
         $isGlobal = 1;
         @adrs = @found;
     }
-    if (s/\A([acdEefHhijlmnPpQqrstWw=\!])//) { # optional argument
+    if (s/\A([acdEefHhijklmnPpQqrstWw=\!])//) { # optional argument
         $command = $1;
         if ($command eq 'W' || $command eq 'w') {
             if (s/\A[Qq]//) {
@@ -964,6 +979,8 @@ sub getAddr {
         foreach my $c (split //, $1) {
             $n += $c eq '+' ? 1 : -1;
         }
+    } elsif (s/\A\'([a-z])//) {
+        $n = exists $marks{$1} ? $marks{$1} : A_NOMARK;
     } elsif (s/\A([0-9]+)//) { # '10' == 10
         $n = $1;
     } elsif (s/\A\.//) { # '.' == current line
@@ -1180,6 +1197,11 @@ Insert text
 
 Join a range of lines into a single line.
 The current address is set to the destination address.
+
+=item kCH
+
+Mark an address with the lowercase letter CH.
+The mark can then be used as 'CH in place of an address.
 
 =item l
 
