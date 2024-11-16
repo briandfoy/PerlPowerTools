@@ -15,28 +15,13 @@ use strict;
 
 use File::Basename qw(basename);
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 my $Program = basename($0);
-my $VERSION = '1.3';
+my $VERSION = '1.4';
 
-my $warnings = 0;
-
-# Print a usuage message on a unknown option.
-# Requires my patch to Getopt::Std of 25 Feb 1999.
-$SIG {__WARN__} = sub {
-    if (substr ($_ [0], 0, 14) eq "Unknown option") {die "Usage"};
-    $warnings = 1;
-    warn "$Program: @_";
-};
-
-$SIG {__DIE__} = sub {
-    if (substr ($_ [0], 0,  5) eq "Usage") {
-        die <<EOF;
-$Program (Perl bin utils) $VERSION
-$Program [-R [-H | -L | -P]] mode file [files ...]
-EOF
-    }
-    die "$Program: @_";
-};
+my $rc = EX_SUCCESS;
 
 # Get the options.
 # We can't use Getopts, as the order is important.
@@ -47,28 +32,28 @@ while (@ARGV && $ARGV [0] =~ /^-/) {
     last if ($opt eq '-');
     unless ($opt =~ /^[RHLP]+$/) {
         warn "$Program: invalid option -- $opt\n";
-        die 'Usage';
+        usage();
     }
     local $_;
     while (length ($_ = chop $opt)) {
         /R/ && do {$options {R} = 1; next};
-        die "Usage" unless $options {R};
+        usage() unless $options{'R'};
         /H/ && do {$options {L} = $options {P} = 0; $options {H} = 1; next};
         /L/ && do {$options {H} = $options {P} = 0; $options {L} = 1; next};
         /P/ && do {$options {H} = $options {L} = 0; $options {P} = 1; next};
     }
 }
 
-die "Usage" unless @ARGV > 1;
-
 my $mode = shift;
+usage() unless @ARGV;
 
 my $symbolic = 0;
 if ($mode =~ /[^0-7]/) {
     $symbolic = 1;
 }
 elsif ($mode !~ /^[0-7]{1,4}$/) {
-    die "invalid mode: $mode\n"
+    warn "$Program: invalid mode: '$mode'\n";
+    exit EX_FAILURE;
 }
 
 my %ARGV;
@@ -85,6 +70,12 @@ else {
     foreach my $file (@ARGV) {
         modify_file $file;
     }
+}
+exit $rc;
+
+sub usage {
+    print "usage: $Program [-R [-H | -L | -P]] mode file...\n";
+    exit EX_FAILURE;
 }
 
 # File::Find is weird. If called with a directory, it will call
@@ -108,18 +99,22 @@ sub modify_file {
         return;
     }
     unless (-e $file) {
-        warn "$file does not exist\n";
+        warn "$Program: '$file' does not exist\n";
+        $rc = EX_FAILURE;
         return;
     }
     my $realmode = $mode;
     if ($symbolic) {
-        $realmode = mod($mode, $file) or
-                       die "invalid mode: $mode\n";
+        $realmode = mod($mode, $file) or do {
+            warn "$Program: invalid mode: '$mode'\n";
+            exit EX_FAILURE;
+        };
     }
-    chmod oct ($realmode), $file or warn "failed to change mode for '$file': $!\n";
+    unless (chmod oct($realmode), $file) {
+        warn "$Program: failed to change mode for '$file': $!\n";
+        $rc = EX_FAILURE;
+    }
 }
-
-exit $warnings;
 
 #
 # $Id: SymbolicMode.pm,v 1.1 2004/07/23 20:10:01 cwest Exp $
@@ -333,7 +328,7 @@ chmod - change permissions of files
 
 =head1 SYNOPSIS
 
-B<chmod> [B<-R> [B<-H> | B<-L> | B<-P>]] I<mode> I<file> [I<files> ...]
+B<chmod> [B<-R> [B<-H> | B<-L> | B<-P>]] I<mode> I<file>...
 
 =head1 DESCRIPTION
 
