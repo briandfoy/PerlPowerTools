@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.013';
+our $VERSION = '1.014';
 
 $| = 1;                   # autoflush output
 
@@ -88,7 +88,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-incwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+usage: $Me [-IincwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
            [-m NUM] [-f pattern-file] [-P sep] [pattern] [file...]
 
 Options:
@@ -116,6 +116,7 @@ Options:
 	-B   show lines before each matching line
 	-A   show lines after each matching line
 	-a   treat binary files as plain text files
+	-I   ignore binary files
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
 	-Z   force grep to behave as zgrep
@@ -245,7 +246,7 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('inC:cwsxvHhe:f:LlgurpP:aqTFZm:A:B:', \%opt) or usage();
+	getopts('IinC:cwsxvHhe:f:LlgurpP:aqTFZm:A:B:', \%opt) or usage();
 
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
@@ -429,9 +430,7 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				$file       = "$Compress{$ext} $file |";
 				$compressed = 1;
 				}
-			elsif (-B $file) {
-				$is_binary = 1;
-				}
+			$is_binary = 1 if -B $file;
 			}
 
 		warn "$Me: checking $name\n" if $opt->{'T'};
@@ -453,7 +452,10 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 				$Errors++;
 				next FILE;
 				}
-			binmode($fh) if $is_binary;
+			if ($is_binary) {
+				next FILE if $opt->{'I'};
+				binmode $fh;
+				}
 			}
 
 		$total = $Matches = 0;
@@ -558,7 +560,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-    grep [-incwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+    grep [-IincwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
          [-m NUM] [-f pattern-file] [-P sep] [pattern] [file ...]
 
 =head1 DESCRIPTION
@@ -641,6 +643,10 @@ Always include filename headers for matching lines or paragraphs.
 =item B<-h>
 
 Hide filenames.  Only print matching lines or paragraphs.
+
+=item B<-I>
+
+Ignore binary files.
 
 =item B<-i>
 
