@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.014';
+our $VERSION = '1.015';
 
 $| = 1;                   # autoflush output
 
@@ -219,13 +219,13 @@ sub parse_args {
 	my @tmparg;
 	while (@ARGV) {
 		my $arg = shift @ARGV;
-		if ($arg eq '-e') {
-			$pattern = shift @ARGV;
+		if ($arg =~ s/\A\-e//) {
+			$pattern = length($arg) ? $arg : shift(@ARGV);
 			usage() unless defined $pattern;
 			push @patterns, $pattern;
 		}
-		elsif ($arg eq '-f') {
-			my $file = shift @ARGV;
+		elsif ($arg =~ s/\A\-f//) {
+			my $file = length($arg) ? $arg : shift(@ARGV);
 			usage() unless defined $file;
 			die "$Me: $file: is a directory\n" if -d $file;
 			my $fh;
@@ -246,7 +246,7 @@ sub parse_args {
 	@ARGV = @tmparg;
 
 	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('IinC:cwsxvHhe:f:LlgurpP:aqTFZm:A:B:', \%opt) or usage();
+	getopts('IinC:cwsxvHhLlgurpP:aqTFZm:A:B:', \%opt) or usage();
 
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
