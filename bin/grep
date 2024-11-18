@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.016';
+our $VERSION = '1.017';
 
 $| = 1;                   # autoflush output
 
@@ -88,7 +88,7 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-IincwsxvHhLlFguraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+usage: $Me [-IincwsxvHhLlFguRraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
            [-m NUM] [-f pattern-file] [pattern] [file...]
 
 Options:
@@ -243,8 +243,9 @@ sub parse_args {
 	}
 	@ARGV = @tmparg;
 
-	getopts('IinC:cwsxvHhLlguraqTFZm:A:B:', \%opt) or usage();
+	getopts('IinC:cwsxvHhLlguRraqTFZm:A:B:', \%opt) or usage();
 
+	$opt{'r'} ||= $opt{'R'};
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
 	}
@@ -261,6 +262,7 @@ sub parse_args {
 
 	unless (length $pattern) {
 		$pattern = shift @ARGV;
+		usage() unless defined $pattern;
 		push @patterns, $pattern;
 	}
 	unless ($no_re) {
@@ -544,7 +546,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-    grep [-IincwsxvhHlLFiguraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+    grep [-IincwsxvhHlLFiguRraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
          [-m NUM] [-f pattern-file] [pattern] [file ...]
 
 =head1 DESCRIPTION
@@ -660,7 +662,7 @@ value of the Perl magic scalar $. (whose documentation is in L<perlvar>).
 
 Suppress diagnostic messages to the standard error.
 
-=item B<-r>
+=item B<-R> and B<-r>
 
 Recursively scan directories.  This option causes B<grep> to
 descend directories in a left-first, depth-first manner and search
