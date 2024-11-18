@@ -54,7 +54,11 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.017';
+use constant EX_MATCHED => 0;
+use constant EX_NOMATCH => 1;
+use constant EX_FAILURE => 2;
+
+our $VERSION = '1.018';
 
 $| = 1;                   # autoflush output
 
@@ -75,15 +79,15 @@ my %Compress = (
 my ($opt, $matcher) = parse_args();    # get command line options and patterns
 matchfile( $opt, $matcher, @ARGV );   # process files
 
-exit(2) if $Errors;
-exit(0) if $Grand_Total;
-exit(1);
+exit(EX_FAILURE) if $Errors;
+exit(EX_MATCHED) if $Grand_Total;
+exit(EX_NOMATCH);
 
 ###################################
 
 sub VERSION_MESSAGE {
 	print "$Me version $VERSION\n";
-	exit 0;
+	exit EX_MATCHED;
 }
 
 sub usage {
@@ -214,6 +218,7 @@ sub parse_args {
 		}
 
 	# multiple -e/-f options
+	my $opt_f = 0;
 	my @tmparg;
 	while (@ARGV) {
 		my $arg = shift @ARGV;
@@ -223,6 +228,7 @@ sub parse_args {
 			push @patterns, $pattern;
 		}
 		elsif ($arg =~ s/\A\-f//) {
+			$opt_f = 1;
 			my $file = length($arg) ? $arg : shift(@ARGV);
 			usage() unless defined $file;
 			die "$Me: $file: is a directory\n" if -d $file;
@@ -260,6 +266,9 @@ sub parse_args {
 	$opt{'l'} = 0 if $opt{'L'};
 	my $no_re = $opt{F} || ( $Me =~ /\bfgrep\b/ );
 
+	if ($opt_f && scalar(@patterns) == 0) { # empty -f file allowed
+		exit EX_NOMATCH;
+	}
 	unless (length $pattern) {
 		$pattern = shift @ARGV;
 		usage() unless defined $pattern;
