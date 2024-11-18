@@ -16,7 +16,10 @@ License: perl
 
 use strict;
 
-my $VERSION = '1.0';
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
+my $VERSION = '1.1';
 
 END {
   close STDOUT || die "$0: can't close stdout: $!\n";
@@ -24,8 +27,9 @@ END {
 }
 
 sub usage {
-  print "usage: $0 [-c | -d | -u] [-f fields] [-s chars] [input files]\n";
-  exit 1;
+  print "usage: $0 [-c | -d | -u] [-f fields] [-s chars] ",
+    "[input_file [output_file]]\n";
+  exit EX_FAILURE;
 }
 
 sub version { print "$0 (Perl Power Tools) $VERSION\n"; exit 0; }
@@ -58,12 +62,38 @@ while (@ARGV && $ARGV[0] =~ /^[-+]/) {
   warn "$0: invalid option -- $_\n";
   usage();
 }
+my $infile = shift;
+my $outfile = shift;
+if (@ARGV) {
+  warn "$0: unexpected argument: '$ARGV[0]'\n";
+  usage();
+}
+my ($fh, $out, $comp, $save_comp, $line, $save_line, $count, $eof);
 
-my ($comp, $save_comp, $line, $save_line, $count, $eof);
+if (defined $infile) {
+  if (-d $infile) {
+    warn "$0: '$infile' is a directory\n";
+    exit EX_FAILURE;
+  }
+  unless (open $fh, '<', $infile) {
+    warn "$0: failed to open '$infile': $!\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $fh = *STDIN;
+}
+if (defined $outfile) {
+  unless (open $out, '>', $outfile) {
+    warn "$0: failed to open '$outfile': $!\n";
+    exit EX_FAILURE;
+  }
+} else {
+  $out = *STDOUT;
+}
 
 # prime the pump
-$comp = $line = <>;
-exit 0 unless defined $line;
+$comp = $line = <$fh>;
+exit EX_SUCCESS unless defined $line;
 if ($optf) {($comp) = (split ' ', $comp, $optf+1)[$optf] }
 if ($opts) { $comp  =  substr($comp, $opts) }
 
@@ -73,8 +103,8 @@ while (!$eof) {
   $save_comp = $comp;
   $count = 1;
  DUPS:
-  while (!($eof = eof())) {
-    $comp = $line = <>;
+  while (!($eof = eof($fh))) {
+    $comp = $line = <$fh>;
     if ($optf) {($comp) = (split ' ', $comp, $optf+1)[$optf] }
     if ($opts) { $comp  =  substr($comp, $opts) }
     last DUPS if $comp ne $save_comp;
@@ -82,13 +112,13 @@ while (!$eof) {
   }
   # when we get here, $save_line is the first occurrence of a sequence
   # of duplicate lines, $count is the number of times it appears
-  if    ($optc) { printf "%7d $save_line", $count }
-  elsif ($optd) { print $save_line if $count >  1 }
-  elsif ($optu) { print $save_line if $count == 1 }
-  else          { print $save_line }
+  if    ($optc) { printf {$out} '%7d %s', $count, $save_line }
+  elsif ($optd) { print  {$out} $save_line if $count >  1 }
+  elsif ($optu) { print  {$out} $save_line if $count == 1 }
+  else          { print  {$out} $save_line }
 }
 
-exit 0;
+exit EX_SUCCESS;
 
 __END__
 
@@ -98,7 +128,8 @@ uniq - report or filter out repeated lines in a file
 
 =head1 SYNOPSIS
 
-uniq [B<-c> | B<-d> | B<-u>] [B<-f> I<fields>] [B<-s> I<chars>] [I<input files>]
+    uniq [B<-c> | B<-d> | B<-u>] [B<-f> I<fields>] [B<-s> I<chars>]
+         [input_file [output_file]]
 
 =head1 DESCRIPTION
 
