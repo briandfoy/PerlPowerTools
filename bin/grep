@@ -54,7 +54,7 @@ use File::Spec;
 use File::Temp qw();
 use Getopt::Std;
 
-our $VERSION = '1.015';
+our $VERSION = '1.016';
 
 $| = 1;                   # autoflush output
 
@@ -88,8 +88,8 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-IincwsxvHhLlFgurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
-           [-m NUM] [-f pattern-file] [-P sep] [pattern] [file...]
+usage: $Me [-IincwsxvHhLlFguraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+           [-m NUM] [-f pattern-file] [pattern] [file...]
 
 Options:
 	-i   case insensitive
@@ -110,8 +110,6 @@ Options:
 	-g   highlight matches
 	-u   underline matches
 	-r   recursive on directories or dot if none
-	-p   paragraph mode (default: line mode)
-	-P   ditto, but specify separator, e.g. -P '%%\\n'
 	-C   show lines of context around each matching line
 	-B   show lines before each matching line
 	-A   show lines after each matching line
@@ -245,8 +243,7 @@ sub parse_args {
 	}
 	@ARGV = @tmparg;
 
-	$opt{'p'} = $opt{'P'} = ''; # argument to print()
-	getopts('IinC:cwsxvHhLlgurpP:aqTFZm:A:B:', \%opt) or usage();
+	getopts('IinC:cwsxvHhLlguraqTFZm:A:B:', \%opt) or usage();
 
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
 		die "$Me: invalid max count\n";
@@ -348,12 +345,6 @@ sub parse_args {
 		@patterns = map {"(?i)$_"} @patterns;
 		}
 
-	if ( $opt{p} || $opt{P} ) {
-		@patterns = map {"(?m)$_"} @patterns;
-		}
-
-	$opt{p}   && ( $/        = '' );
-	$opt{P}   && ( $/        = eval(qq("$opt{P}")) );                                         # for -P '%%\n'
 	$opt{w}   && ( @patterns = map { '(?:\b|(?!\w))' . $_ . '(?:\b|(?<!\w))' } @patterns );
 	$opt{'x'} && ( @patterns = map {"^$_\$"} @patterns );
 	$opt{'g'} ||= $opt{'u'};
@@ -502,10 +493,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 					$ctx_a = $opt->{'A'};
 				}
 			}
-			if ( $opt->{p} || $opt->{P} ) {
-				s/\n{2,}$/\n/ if $opt->{p};
-				chomp         if $opt->{P};
-				}
 			if ($opt->{'l'}) {
 				print $name, "\n";
 				last LINE;
@@ -525,9 +512,6 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 					}
 				}
 				print $_;
-				if ($opt->{'p'} || $opt->{'P'}) {
-					print ('-' x 20), "\n";
-				}
 			}
 			if ($ctx_a == 0 && !$Matches) {
 				print "--\n";
@@ -560,12 +544,12 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-    grep [-IincwsxvhHlLFigurpaqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
-         [-m NUM] [-f pattern-file] [-P sep] [pattern] [file ...]
+    grep [-IincwsxvhHlLFiguraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+         [-m NUM] [-f pattern-file] [pattern] [file ...]
 
 =head1 DESCRIPTION
 
-B<grep> searches for lines (or, optionally, paragraphs) in files
+B<grep> searches for lines in files
 that satisfy the criteria specified by the user-supplied patterns.
 Because this B<grep> is a Perl program, the user has full access to
 Perl's rich regular expression engine.  See L<perlre>.
@@ -605,7 +589,7 @@ Display NUM lines of context surrounding each matching line.
 
 =item B<-c>
 
-Output the count of the matching lines or paragraphs.
+Output only the count of the matching lines.
 
 =item B<-e> I<pattern>
 
@@ -632,17 +616,17 @@ the B<-f> option supercedes the B<-e> option.
 
 Highlight matches.  This option causes B<grep> to attempt to use
 your terminal's stand-out (emboldening) functionality to highlight
-those portions of each matching line or paragraph that actually
+those portions of each matching line that actually
 triggered the match.  This feature is very similar to the way the
 less(1) pager highlights matches.  See also B<-u>.
 
 =item B<-H>
 
-Always include filename headers for matching lines or paragraphs.
+Always include filename headers for matching lines.
 
 =item B<-h>
 
-Hide filenames.  Only print matching lines or paragraphs.
+Hide filenames.  Only print matching lines.
 
 =item B<-I>
 
@@ -668,20 +652,9 @@ This option implies the B<-1> option.
 
 =item B<-n>
 
-Number lines or paragraphs.  Before outputting a given match, B<grep>
-will first output its line or paragraph number corresponding to the
+Number lines.  Before outputting a given match, B<grep>
+will first output its line corresponding to the
 value of the Perl magic scalar $. (whose documentation is in L<perlvar>).
-
-=item B<-P> I<sep>
-
-Put B<grep> in paragraph mode, and use I<sep> as the paragraph
-separator.  This is implemented by assigning I<sep> to Perl's magic
-$/ scalar.  See L<perlvar>.
-
-=item B<-p>
-
-Paragraph mode.  This causes B<grep> to set Perl's magic $/ to C<''>.
-(Note that the default is to process files in line mode.)  See L<perlvar>.
 
 =item B<-s>
 
@@ -715,12 +688,12 @@ when opening a file for searching
 
 Underline matches.  This option causes B<grep> to attempt to use
 your terminal's underline functionality to underline those portions of
-each matching line or paragraph that actually triggered the match.
+each matching line that actually triggered the match.
 See also B<-H>.
 
 =item B<-v>
 
-Invert the sense of the match, i.e. print those lines or paragraphs
+Invert the sense of the match, i.e. print those lines
 that do B<not> match.  When using this option in conjunction with B<-f>,
 keep in mind that the entire set of patterns are grouped together in
 one pattern for the purposes of negation.  See L<"EXAMPLES">.
@@ -734,7 +707,7 @@ for the precise definition of C<\b>.
 
 =item B<-x>
 
-Exact matches only.  The pattern must match the entire line or paragraph.
+Exact matches only.  The pattern must match the entire line.
 
 =item B<-Z>
 
