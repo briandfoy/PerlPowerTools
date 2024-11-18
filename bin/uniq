@@ -84,7 +84,7 @@ if (defined $infile) {
 }
 if (defined $outfile) {
   unless (open $out, '>', $outfile) {
-    warn "$0: failed to open '$infile': $!\n";
+    warn "$0: failed to open '$outfile': $!\n";
     exit EX_FAILURE;
   }
 } else {
