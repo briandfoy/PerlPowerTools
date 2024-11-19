@@ -269,7 +269,7 @@ sub parse_args {
 	if ($opt_f && scalar(@patterns) == 0) { # empty -f file allowed
 		exit EX_NOMATCH;
 	}
-	unless (length $pattern) {
+	unless (@patterns) {
 		$pattern = shift @ARGV;
 		usage() unless defined $pattern;
 		push @patterns, $pattern;
