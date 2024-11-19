@@ -11,49 +11,35 @@ License: perl
 
 =cut
 
+use strict;
 
-#
-# Class that holds a couple of things for all of the
-# other classes here.  Mostly 'cause they all need
-# an AUTOLOAD and DESTROY, but they're all almost the same.
-#
 package PerlPowerTools::mailprog;
 
-sub AUTOLOAD {
-        my $self=shift;
-        my $type=ref($self) or die "$self is not an object";
-
-        my $name=$AUTOLOAD;
-        $name=~s/.*://;
-        unless (exists $self->{_permitted}->{$name} ) {
-                die "Can't access '$name' field in class $type";
-        }
-        if (@_) {
-                return $self->{$name}=shift;
-        } else {
-                return $self->{$name};
-        }
-}
 sub DESTROY { }
 1;
 package
 	mailer; # hide from PAUSE
-@ISA=qw(PerlPowerTools::mailprog);
+
+use base 'PerlPowerTools::mailprog';
 
 use IO::Socket;
 use Sys::Hostname qw();
 
-%mailer::fields=(
-	  user => undef,
-	  "hostname" => undef,
-	  relayhost => undef,
-	  replyaddr => undef,
-	  "socket" => undef,
-	);
+sub get_user { $_[0]->{'user'} }
+sub get_hostname { $_[0]->{'hostname'} }
+sub get_relayhost { $_[0]->{'relayhost'} }
+sub get_replyaddr { $_[0]->{'replyaddr'} }
+sub get_socket { $_[0]->{'socket'} }
+
+sub set_user { $_[0]->{'user'} = $_[1] }
+sub set_hostname { $_[0]->{'hostname'} = $_[1] }
+sub set_relayhost { $_[0]->{'relayhost'} = $_[1] }
+sub set_replyaddr { $_[0]->{'replyaddr'} = $_[1] }
+sub set_socket { $_[0]->{'socket'} = $_[1] }
 
 sub new {
 	my $class=shift;
-	my $self={_permitted => \%mailer::fields, %mailer::fields};
+	my $self = {};
 	if (@_) {
 		my $a;
 		while(defined ($a=shift)) {
@@ -70,12 +56,12 @@ sub new {
 	#
 	if (! exists $ENV{REPLYADDR}) {
 		# Find my name...
-		if (! defined $self->user) {
+		if (! defined $self->get_user) {
 			if (exists $ENV{USER} or exists $ENV{LOGNAME}) {
 				if (exists $ENV{USER}) {
-					$self->user($ENV{USER});
+					$self->set_user($ENV{USER});
 				} else {
-					$self->user($ENV{LOGNAME});
+					$self->set_user($ENV{LOGNAME});
 				}
 			} else {
 				die "Your username is not defined.  \$USER or \$LOGNAME must be set.\n";
@@ -87,26 +73,26 @@ sub new {
 			if (! $hostname) {
 				die "Unable to find a reasonable hostname.  Use \$HOSTNAME.\n";
 			}
-			$self->hostname($hostname);
+			$self->set_hostname($hostname);
 		} else {
-			$self->hostname($ENV{HOSTNAME});
+			$self->set_hostname($ENV{HOSTNAME});
 		}
 		# Don't like this?  Too bad.  That's why ken gave us an environment...
-		$self->replyaddr($self->user . "@" . $self->hostname);
+		$self->set_replyaddr($self->get_user . "@" . $self->get_hostname);
 	} else {
-		$self->replyaddr($ENV{REPLYADDR});  # Better be valid!
+		$self->set_replyaddr($ENV{REPLYADDR});  # Better be valid!
 	}
 	my $emsg;
 	if (! exists $ENV{RELAYHOST}) {
 		# Expensive.  Check to see if this system answers SMTP
-		$self->relayhost('localhost');
+		$self->set_relayhost('localhost');
 		$emsg="You did not specify an \$RELAYHOST\nor this system is not listening to SMTP\n";
 	} else {
-		$self->relayhost($ENV{RELAYHOST});
+		$self->set_relayhost($ENV{RELAYHOST});
 		$emsg="Unable to connect to the specified relay host\n";
 	}
-	$socket=IO::Socket::INET->new(
-			PeerAddr => $self->relayhost,
+	my $socket = IO::Socket::INET->new(
+			PeerAddr => $self->get_relayhost,
 			PeerPort => 25,
 			Proto => "tcp",
 			Type => SOCK_STREAM,
@@ -118,7 +104,7 @@ sub new {
 	# Get the SMTP header
 	$_=<$socket>;
 
-	$self->socket($socket);   # Use this quickly, it may expire.
+	$self->set_socket($socket);   # Use this quickly, it may expire.
 	return $self;
 }
 sub send {
@@ -127,12 +113,12 @@ sub send {
 
 
 	# Ok, here we go.
-	my $sock=$self->socket;
-	main::debug("Mailed from " . $self->replyaddr);
-	print $sock "mail from: " . $self->replyaddr . "\n";  $_=<$sock>;
+	my $sock = $self->get_socket;
+	main::debug("Mailed from " . $self->get_replyaddr);
+	print $sock "mail from: " . $self->get_replyaddr . "\n";  $_=<$sock>;
 	{
-	   if (defined $message->to) {
-		foreach my $recipient (@{$message->to}) {
+	   if (defined $message->get_to) {
+		foreach my $recipient (@{$message->get_to}) {
 			main::debug("Sending to recipient $recipient");
 			print $sock "rcpt to: $recipient\n";
 			$_=<$sock>; main::debug("reply: $_");
@@ -140,32 +126,32 @@ sub send {
 	   } else {
 		die "No recipient.\n";
 	   }
-	   if (defined $message->cc) {
-		foreach my $recipient (@{$message->cc}) {
+	   if (defined $message->get_cc) {
+		foreach my $recipient (@{$message->get_cc}) {
 			main::debug("Sending to recipient $recipient");
 			print $sock "rcpt to: $recipient\n";
 			$_=<$sock>; main::debug("reply: $_");
 		}
 	   }
-	   if (defined $message->bcc) {
-		foreach my $recipient (@{$message->bcc}) {
+	   if (defined $message->get_bcc) {
+		foreach my $recipient (@{$message->get_bcc}) {
 			main::debug("Sending to recipient $recipient");
 			print $sock "rcpt to: $recipient\n";
 			$_=<$sock>; main::debug("reply: $_");
 		}
 	   }
   	   my($to,$cc);
-	   $to=join(', ', @{$message->to});
+	   $to=join(', ', @{$message->get_to});
 	   print $sock "data\n";    $_=<$sock>;
 	   if ($to) {
 		print $sock "To: $to\n";
 	   }
-	   if (defined $message->cc) {
-		$cc=join(', ', @{$message->cc});
+	   if (defined $message->get_cc) {
+		$cc=join(', ', @{$message->get_cc});
 		print $sock "Cc: $cc\n";
 	   }
-	   if ($message->subject) {
-		print $sock "Subject: " . $message->subject . "\n";
+	   if ($message->get_subject) {
+		print $sock "Subject: " . $message->get_subject . "\n";
 	   }
 	   print $sock "X-Mailer: Perl Power Tools mail v", $main::VERSION, "\n\n";
            print $sock $message->body;
@@ -177,35 +163,44 @@ sub send {
 sub DESTROY {
 	my $self=shift;
 
-	if (defined $self->socket) {
-		my $sock=$self->socket;
-		close($sock);
-	}
+	my $sock = $self->get_socket;
+	close($sock) if defined $sock;
 }
 1;
 package
 	message; # hide from PAUSE
-@ISA=qw(PerlPowerTools::mailprog);
+use base 'PerlPowerTools::mailprog';
 
-%message::fields=( subject => undef,
-	  from => undef,
-	  deleted => undef,
-	  "read" => undef,
-	  neverseen => undef,
-	  to => undef,
-	  bcc => undef,
-	  cc => undef,
-	  lines => undef,
-	  bytes => undef,
-	  date => undef,
-	  status => undef,
-	  sequence => undef,
-	);
+sub get_subject { $_[0]->{'subject'} }
+sub get_from { $_[0]->{'from'} }
+sub is_deleted { $_[0]->{'deleted'} }
+sub is_read { $_[0]->{'read'} }
+sub neverseen { $_[0]->{'neverseen'} }
+sub get_to { $_[0]->{'to'} }
+sub get_bcc { $_[0]->{'bcc'} }
+sub get_cc { $_[0]->{'cc'} }
+sub get_lines { $_[0]->{'lines'} }
+sub get_bytes { $_[0]->{'bytes'} }
+sub get_date { $_[0]->{'date'} }
+sub get_sequence { $_[0]->{'sequence'} }
+
+sub set_subject { $_[0]->{'subject'} = $_[1] }
+sub set_from { $_[0]->{'from'} = $_[1] }
+sub set_deleted { $_[0]->{'deleted'} = $_[1] }
+sub set_read { $_[0]->{'read'} = $_[1] }
+sub set_neverseen { $_[0]->{'neverseen'} = $_[1] }
+sub set_to { $_[0]->{'to'} = $_[1] }
+sub set_bcc { $_[0]->{'bcc'} = $_[1] }
+sub set_cc { $_[0]->{'cc'} = $_[1] }
+sub set_lines { $_[0]->{'lines'} = $_[1] }
+sub set_bytes { $_[0]->{'bytes'} = $_[1] }
+sub set_date { $_[0]->{'date'} = $_[1] }
+sub set_sequence { $_[0]->{'sequence'} = $_[1] }
 
 sub new {
 	my $class=shift;
-	my $self={_permitted => \%message::fields, %message::fields};
 
+	my $self = {};
 	bless($self, $class);
 	return $self;
 }
@@ -213,13 +208,13 @@ sub load_from_array {   # Already chomped.
 	my $self=shift;
 
 	my($l, @head, @body);
-	$self->lines(scalar @_);
+	$self->set_lines(scalar @_);
 	my $bytes;
 	foreach(@_) {
 		$bytes+=length($_);
 	}
-	$bytes+=($self->lines)*length($/);  # Correct for chomp.
-	$self->bytes($bytes);
+	$bytes += ($self->get_lines) * length($/);  # Correct for chomp.
+	$self->set_bytes($bytes);
 	while($l=shift) {
 		push(@head, $l)
 	}
@@ -232,6 +227,7 @@ sub load_from_array {   # Already chomped.
 sub _extract {
 	my $self=shift;
 
+	my @hc;
 	foreach(@{$self->{head}}) {
 		unless (/^\s+/) {
 			push(@hc, $_);
@@ -239,12 +235,13 @@ sub _extract {
 			$hc[$#hc].=$_;
 		}
 	}
-	$self->neverseen(1);
-	$self->read(0);
+	$self->set_neverseen(1);
+	$self->set_read(0);
+	my $line;
 	while ($line=shift @hc) {
 		my($foo, $bar);
 		if (($foo)=$line=~/^Subject:\s+(.*)/i) {
-			$self->subject($foo);
+			$self->set_subject($foo);
 		}
 		# Ok, so beat me over the head with an FAQ.
 		if (($foo)=$line=~/^To:\s+(.*)/i) {
@@ -261,7 +258,7 @@ sub _extract {
 					push(@toaddrs, $addtest);
 				}
 			}
-			$self->to([@toaddrs]);
+			$self->set_to([@toaddrs]);
 		}
 		if (($foo)=$line=~/^CC:\s+(.*)/i) {
 			my @toaddrs;
@@ -277,18 +274,18 @@ sub _extract {
 					push(@toaddrs, $addtest);
 				}
 			}
-			$self->cc([@toaddrs]);
+			$self->set_cc([@toaddrs]);
 		}
 		if (($foo,$bar)=$line=~/^From\s+(.*)\s+(\w{3}\s+\w{3}\s+\d+\s+\d+:\d+):\d+\s+\d+$/i) {
-			$self->date($bar);
-			$self->from($foo);
+			$self->set_date($bar);
+			$self->set_from($foo);
 		}
 		if (($foo)=$line=~/^Status:\s+(.*)/i) {
-			$foo=~/O/ and $self->neverseen(0);
-			$foo=~/R/ and $self->read(1);
+			$foo=~/O/ and $self->set_neverseen(0);
+			$foo=~/R/ and $self->set_read(1);
 		}
 	}
-	$self->deleted(0);
+	$self->set_deleted(0);
 }
 sub add_to_body {
 	my $self=shift;
@@ -298,16 +295,16 @@ sub add_to_body {
 sub _printablestatus {
 	my $self=shift;
 
-	return("X") if ($self->deleted);
-	return(" ") if ($self->read);
-	return("N") if ($self->neverseen);
+	return("X") if $self->is_deleted;
+	return(" ") if $self->is_read;
+	return("N") if $self->neverseen;
 	return("U");
 }
 sub outputstatus {     # Why the hell mail uses one status flag in the file,
 	my $self=shift; # and a _different_ one onscreen escapes me.  Lunacy.
 
 	my $status;
-	$status.="R" if ($self->read);
+	$status.="R" if $self->is_read;
 	$status.="O";
 	return($status);
 }
@@ -318,14 +315,14 @@ sub summary {
 
 	my $line=sprintf "%2s %2d %16s  %16s %3d/%4d ",
 		$self->_printablestatus,
-		$self->sequence,
-		(defined $self->from)?substr($self->from, 0, 16):" ",
-		(defined $self->date)?$self->date:" ",
-		$self->lines,
-		$self->bytes;
+		$self->get_sequence,
+		(defined $self->get_from) ? substr($self->get_from, 0, 16) : " ",
+		(defined $self->get_date) ? $self->get_date : " ",
+		$self->set_lines,
+		$self->get_bytes;
 
-	if (defined $self->subject) {
-		$line.=substr($self->subject, 0, $main::COLS-length($line)-1);
+	if (defined $self->get_subject) {
+		$line.=substr($self->get_subject, 0, $main::COLS-length($line)-1);
 	} else {
 		$line.="(no subject)";
 	}
@@ -335,20 +332,20 @@ sub summary {
 sub printhead {
 	my $self=shift;
 
-	$self->read(1);
+	$self->set_read(1);
 	return join("\n", grep(!/^Status:/i, @{$self->{head}}));
 }
 sub body {
 	my $self=shift;
 
-	$self->read(1);
+	$self->set_read(1);
 	return join("\n", @{$self->{body}} );
 }
 sub whole {
 	my $self=shift;
 	my $lines=shift;
 
-	$self->read(1);
+	$self->set_read(1);
 	if (! defined $lines) {
 		return 	join("\n", grep(!/^Status:/i, @{$self->{head}}), "",@{$self->{"body"}});
 	} else {
@@ -361,14 +358,18 @@ sub whole {
 #
 package
 	mailbox; # hide from PAUSE
-@ISA=qw(PerlPowerTools::mailprog);
-use vars qw($AUTOLOAD %fields);
+use base 'PerlPowerTools::mailprog';
 
-%mailbox::fields=( size => undef, file => undef, append => undef);
+sub get_size { $_[0]->{'size'} }
+sub get_file { $_[0]->{'file'} }
+
+sub set_size { $_[0]->{'size'} = $_[1] }
+sub set_file { $_[0]->{'file'} = $_[1] }
 
 sub new {
 	my $class=shift;
-	my $self={_permitted => \%mailbox::fields, %mailbox::fields};
+
+	my $self = {};
 	if (@_) {
 		my $a;
 		while(defined ($a=shift)) {
@@ -386,27 +387,27 @@ sub new {
 sub load {
 	my $self=shift;
 
-	print "Loading the mailfile ", $self->file, "\n";
+	print "Loading the mailfile ", $self->get_file, "\n";
 	my $start=1;
-	unless (defined $self->file) {
+	unless (defined $self->get_file) {
 		die "No mailbox specified\n";
 	}
-	if (-d $self->file) {
-		warn $self->file . ": is a directory\n";
+	if (-d $self->get_file) {
+		warn $self->get_file . ": is a directory\n";
 		return;
 	}
-	unless (open MBOX, '<', $self->file) {
-		warn $self->file . ": cannot open: $!\n";
+	unless (open MBOX, '<', $self->get_file) {
+		warn $self->get_file . ": cannot open: $!\n";
 		return;
 	}
-	$self->size(-s $self->file);
+	$self->set_size(-s $self->get_file);
 	my @MESS=();
 	while(<MBOX>) {
 		chomp;
 		if (@MESS and /^From /) {
 			my $message=message->new;
 			$message->load_from_array(@MESS);
-			$message->sequence($start++);
+			$message->set_sequence($start++);
 			push(@{$self->{messages}}, $message);
 			@MESS=();
 		}
@@ -415,7 +416,7 @@ sub load {
 	if (@MESS) {
 		my $message=message->new;
 		$message->load_from_array(@MESS);
-		$message->sequence($start++);
+		$message->set_sequence($start++);
 		push(@{$self->{messages}}, $message);
 	}
 	close(MBOX);
@@ -425,24 +426,24 @@ sub stuff {
 	my $self=shift;
 
 	push(@{$self->{messages}}, $_[0]);
-	$self->size(0);
+	$self->set_size(0);
 }
 sub write {
 	my $self=shift;
 	my $wa=shift;
 
 	my $mode = exists $$wa{append} ? '>>' : '>';
-	my $alt_msg="\"" . $self->file . "\" ";
-	$alt_msg.=(-e $self->file)?"[Appended]":"[New File]";
-	if (!open(MBOX, $mode, $self->file)) {
-		warn "Failed to write to ", $self->file, ": $!\n";
+	my $alt_msg="\"" . $self->get_file . "\" ";
+	$alt_msg .= (-e $self->get_file) ? "[Appended]" : "[New File]";
+	if (!open(MBOX, $mode, $self->get_file)) {
+		warn "Failed to write to ", $self->get_file, ": $!\n";
 		return;
 	}
-	my $bytes=(-s $self->file);   # cheat
+	my $bytes=(-s $self->get_file);   # cheat
 	my $lines;
 	foreach(1..$self->lastmsg) {
 		my $message=$self->messagex($_);
-		next if ($message->deleted);
+		next if $message->is_deleted;
 
 		if (! exists $$wa{bodyonly}) {
 			my $foo=$message->printhead;
@@ -453,17 +454,17 @@ sub write {
 			$lines+=1;
 		}
 
-		$foo=$message->body;
+		my $foo = $message->body;
 		print MBOX "\n", $foo, "\n";
 		$lines+=$foo=~tr/\n//;
 		$lines+=2;
 
 		if (exists $$wa{unread}) {
-			$message->read(0);
+			$message->set_read(0);
 		}
 	}
 	close(MBOX);
-	$bytes=(-s $self->file) - $bytes;
+	$bytes=(-s $self->get_file) - $bytes;
 	$alt_msg.=" $lines/$bytes";
 
 	return($alt_msg, undef);
@@ -491,7 +492,7 @@ sub nextmsg {              # Returns sequence number of next (not deleted) messa
 		if (! defined $msg) {
 			return undef;
 		}
-		if ($msg->deleted) {
+		if ($msg->is_deleted) {
 			$current++;
 			next;
 		}
@@ -502,14 +503,20 @@ sub nextmsg {              # Returns sequence number of next (not deleted) messa
 1;
 package
 	editor; # hide from PAUSE
-@ISA=qw(PerlPowerTools::mailprog);
+use base 'PerlPowerTools::mailprog';
 
 use File::Temp;
 
-%editor::fields=(message => undef, mesgno => undef);
+sub get_message { $_[0]->{'message'} }
+sub get_mesgno { $_[0]->{'mesgno'} }
+
+sub set_message { $_[0]->{'message'} = $_[1] }
+sub set_mesgno { $_[0]->{'mesgno'} = $_[1] }
+
 sub new {
 	my $class=shift;
-	my $self={_permitted => \%editor::fields, %editor::fields};
+
+	my $self = {};
 	if (@_) {
 		my $a;
 		while(defined ($a=shift)) {
@@ -524,15 +531,15 @@ sub edit {
 	my $self=shift;
 	my $args=shift;
 
-	my $msg=$self->message;
+	my $msg = $self->get_message;
 	if (! defined $msg) {
 		die "Should Not Happen, edit without message";
 	}
 	if (exists $$args{subject}) {
-		my $subj;
 		print "Subject: ";
-		$subj=<STDIN>; chomp($subj);
-		$msg->subject($subj);
+		my $subj = <STDIN>;
+		chomp $subj;
+		$msg->set_subject($subj);
 	}
 	my($line,$tilde,$cmd,$arg);
 	my @BODY;
@@ -550,29 +557,29 @@ EDLOOP: {
 		warn "Bad line" if (! defined $tilde);
 		$_=$cmd;
 		SWITCH: {
-			/s/ && do { $msg->subject($arg); last SWITCH; };
+			/s/ && do { $msg->set_subject($arg); last SWITCH; };
 			/q/ && do { return; };
 			/\!/ && do { system($arg); last SWITCH; };
 			/c/ && do {
-					my $ccs=$msg->cc;
+					my $ccs = $msg->get_cc;
 					push(@{$ccs}, split(/[\s,;]+/, $arg));
-					$msg->cc($ccs);
+					$msg->set_cc($ccs);
 					last SWITCH;
 				};
 			/b/ && do {
-					my $ccs=$msg->bcc;
+					my $ccs = $msg->get_bcc;
 					push(@{$ccs}, split(/[\s,;]+/, $arg));
-					$msg->bcc($ccs);
+					$msg->set_bcc($ccs);
 					last SWITCH;
 				};
 			/t/ && do {
-					my $tos=$msg->to;
+					my $tos = $msg->get_to;
 					push(@{$tos}, split(/[\s,;]+/, $arg));
-					$msg->to($tos);
+					$msg->set_to($tos);
 					last SWITCH;
 				};
 			/m/ && do {
-					my $msgs=main::parse_msg_list($arg,$self->mesgno);
+					my $msgs= main::parse_msg_list($arg, $self->get_mesgno);
 					foreach(@$msgs) {
 						my $rmsg=$main::box->messagex($_);
 						next if (! defined $rmsg);
@@ -581,7 +588,7 @@ EDLOOP: {
 					last SWITCH
 				};
 			/f/ && do {
-					my $msgs=main::parse_msg_list($arg,$self->mesgno);
+					my $msgs = main::parse_msg_list($arg, $self->get_mesgno);
 					foreach(@$msgs) {
 						my $rmsg=$main::box->messagex($_);
 						next if (! defined $rmsg);
@@ -619,8 +626,8 @@ EDLOOP: {
 	redo EDLOOP;
 	}
 	$msg->add_to_body(@BODY);
-	$self->message($msg);
-	return($self->message);
+	$self->set_message($msg);
+	return($self->get_message);
 }
 
 1;
@@ -629,14 +636,15 @@ package main;
 use English;
 use File::Temp;
 use Getopt::Std;
-use vars qw($VERSION $ROWS $BUFFERL $box);
+use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
 
-$VERSION="0.03";
-$ROWS=23;         # Screen Dimensions.  Yeah, this sucks.
-$COLS=80;
-$BUFFERL=2;	  # Lines needed for "fluff"
+our $VERSION = '0.04';
+our $ROWS = 23;         # Screen Dimensions.  Yeah, this sucks.
+our $COLS = 80;
+our $BUFFERL = 2;	  # Lines needed for "fluff"
+my $box;
 
-%commands=(
+my %commands=(
 	"chdir"  => { alias => 'c',           args => 'path',                           },
 	copy     => { alias => 'co',          args => 'msg,path', func => \&msg_copy    },
 	"delete" => { alias => 'd',           args => 'msg',      func => \&msg_delete  },
@@ -669,7 +677,7 @@ sub listing {
 
 	$first=$$first[0];
 	foreach($first..$first+$ROWS-$BUFFERL) {
-		$message=$box->messagex($_);
+		my $message = $box->messagex($_);
 		if (! defined $message) {
 			warn "Invalid message number: $first\n" if ($_ == $first);
 			last;
@@ -689,10 +697,10 @@ sub shell {
 sub mail {
 	my($list,$mesgno)=@_;   # Target addresses
 	my $msg=message->new;
-	$msg->to($list);    # For whom the message tolls
+	$msg->set_to($list);    # For whom the message tolls
 	my $editor=editor->new;
-	$editor->mesgno($mesgno);
-	$editor->message($msg);
+	$editor->set_mesgno($mesgno);
+	$editor->set_message($msg);
 	$msg=$editor->edit({ subject => 1});
 	if (! defined $msg) {
 		print "Aborted\n";
@@ -709,23 +717,23 @@ sub replyCC {
 		my $original=$box->messagex($_);
 		next if (!defined $original);
 		if (! $subj) {
-			$subj=$original->subject;
+			$subj = $original->get_subject;
 			unless ($subj=~/^re:/i) {
 				$subj="re: $subj";
 			}
 		}
-		push(@replies, $original->from);
-		$tc=$original->cc;
-		push(@ccaddrs, @$tc);
+		push @replies, $original->get_from;
+		$tc = $original->get_cc;
+		push(@ccaddrs, @$tc) if $tc;
 	}
 
 	my $msg=message->new;
-	$msg->to(\@replies);    # For whom the message tolls
-	$msg->cc(\@ccaddrs);
-	$msg->subject($subj);
+	$msg->set_to(\@replies);    # For whom the message tolls
+	$msg->set_cc(\@ccaddrs);
+	$msg->set_subject($subj);
 	my $editor=editor->new;
-	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
-	$editor->message($msg);
+	$editor->set_mesgno(@{$list}[0]);   # Use just the FIRST
+	$editor->set_message($msg);
 	print "To: ", join(',', @replies), "\n";
 	if (@ccaddrs) {
 		print "Cc: ", join(',', @ccaddrs), "\n";
@@ -747,20 +755,20 @@ sub reply {
 		my $original=$box->messagex($_);
 		next if (!defined $original);
 		if (! $subj) {
-			$subj=$original->subject;
+			$subj = $original->get_subject;
 			unless ($subj=~/^re:/i) {
 				$subj="re: $subj";
 			}
 		}
-		push(@replies, $original->from);
+		push @replies, $original->get_from;
 	}
 
 	my $msg=message->new;
-	$msg->to(\@replies);    # For whom the message tolls
-	$msg->subject($subj);
+	$msg->set_to(\@replies);    # For whom the message tolls
+	$msg->set_subject($subj);
 	my $editor=editor->new;
-	$editor->mesgno(@{$list}[0]);   # Use just the FIRST
-	$editor->message($msg);
+	$editor->set_mesgno(@{$list}[0]);   # Use just the FIRST
+	$editor->set_message($msg);
 	print "To: ", join(',', @replies), "\n";
 	print "Subject: $subj\n";
 	$msg=$editor->edit;
@@ -772,7 +780,7 @@ sub reply {
 	$mailer->send($msg);
 }
 sub quit {
-	if ( (-s $box->file) != $box->size ) {
+	if ( (-s $box->get_file) != $box->get_size ) {
 		warn "Mail folder has changed size, not writing\n";
 	}
 	$box->write;
@@ -783,7 +791,7 @@ sub visual {
 
 	my $cmd = vipath() || return;
 	foreach my $msgno (@$list) {
-		$message=$box->messagex($msgno);
+		my $message = $box->messagex($msgno);
 		if (! defined $message) {
 			warn "Invalid message number: $msgno\n";
 			return;
@@ -798,7 +806,7 @@ sub visual {
 			warn "Failed to execute '$cmd': $!\n";
 			return;
 		}
-		$tmbox2 = mailbox->new('file' => $path);  # Hope this isn't a leak
+		my $tmbox2 = mailbox->new('file' => $path);  # Hope this isn't a leak
 		$tmbox2->load;
 		$box->replace($msgno, $tmbox2->messagex(1));
 	}
@@ -807,12 +815,12 @@ sub from {
 	my ($list)=@_;
 	my $lastgood;
 	foreach my $msgno (@$list) {
-		$message=$box->messagex($msgno);
+		my $message = $box->messagex($msgno);
 		if (! defined $message) {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
-		print "Message: ", $message->sequence, "\n";
+		print "Message: ", $message->get_sequence, "\n";
 		print $message->printhead, "\n";
 		$lastgood=$msgno;
 	}
@@ -825,12 +833,12 @@ sub msg_print {
 	my ($list, $dummy, $nlines)=@_;
 	my $lastgood;
 	foreach my $msgno (@$list) {
-		$message=$box->messagex($msgno);
+		my $message = $box->messagex($msgno);
 		if (! defined $message) {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
-		print "Message: ", $message->sequence, "\n";
+		print "Message: ", $message->get_sequence, "\n";
 		print $message->whole($nlines), "\n";
 		$lastgood=$msgno;
 	}
@@ -843,19 +851,19 @@ sub toggle {
 	my ($msgs, $dumb, $option)=@_;
 
 	foreach my $msgno (@$msgs) {
-		$message=$box->messagex($msgno);
+		my $message = $box->messagex($msgno);
 		if (! defined $message) {
 			warn "Invalid message number: $msgno\n";
 			return;
 		}
 		if ($option eq 'unread') {
-			$message->read(0);
+			$message->set_read(0);
 		}
 		if ($option eq 'undelete') {
-			$message->deleted(0);
+			$message->set_deleted(0);
 		}
 		if ($option eq 'delete') {
-			$message->deleted(1);
+			$message->set_deleted(1);
 		}
 	}
 	return;
@@ -883,7 +891,7 @@ sub msg_store {
 	print "Saving message...$msgs to $file\n";
 	my $tempbox=mailbox->new(file => $file);
 	foreach my $msg (@$msgs) {
-		$message=$box->messagex($msg);
+		my $message = $box->messagex($msg);
 		if (! defined $message) {
 			warn "Invalid message number: $msg\n";
 			return;
@@ -968,7 +976,7 @@ sub Interactive {
 
 	select STDOUT; $|=1;
 	print "Mail [$VERSION Perl] [$OSNAME]\n";   # This is fluff.
-	$cmd="Init";
+	my $cmd = "Init";
 
 CMDS:	{
 		if ($cmd eq "Init") {
@@ -981,6 +989,7 @@ CMDS:	{
 		}
 	GOTONE: {
 			if ($cmd=~/^[a-zA-Z]+/) {
+				my ($fref, $arg1, $arg2);
 				($cmd, $fref, $arg1, $arg2)=parseargs($cmd, $current);
 				if (! defined $cmd) {
 					warn "Unknown command $cmd\n";
@@ -1016,17 +1025,17 @@ sub debug {
 }
 sub Batch {
 	my $message=message->new;
-	$message->to([@_]);
-	$message->cc([ split(/,/, $opt_c) ]) if ($opt_c);
-	$message->bcc([ split(/,/, $opt_b) ]) if ($opt_b);
-	$message->subject($opt_s) if ($opt_s);
+	$message->set_to([@_]);
+	$message->set_cc([ split(/,/, $opt_c) ]) if ($opt_c);
+	$message->set_bcc([ split(/,/, $opt_b) ]) if ($opt_b);
+	$message->set_subject($opt_s) if ($opt_s);
 	my $mailer=mailer->new;
 	my @BODY=<STDIN>;
 	chomp(@BODY);
 	$message->add_to_body(@BODY);
 	$mailer->send($message);
 }
-$main::opt_v=0;   # Keep -w quiet.
+
 getopts("f:s:c:b:v") || die <<USAGE;
 $0 [-f mailbox]
 $0 [-s subject] [-c cc-addrs] [-b bcc-addrs] to-addr [..toaddr..]
@@ -1322,12 +1331,6 @@ this to work!
 ...speaking of SMTP... I<mail> talks directly to SMTP instead of using a more
 sane method like Mail::Mailer.  This was done so that PPT mail(1) could remain
 "pure" and un-encumbered by external modules.
-
-=item *
-
-This code is not "use strict" safe.  Although there's not much keeping it from
-being "use strict" safe.  Use of package-based variables will probably get me
-thumped from Tom.
 
 =back
 
