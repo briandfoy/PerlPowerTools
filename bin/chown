@@ -20,7 +20,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 my $rc = EX_SUCCESS;
 
@@ -64,6 +64,9 @@ unless (defined $uid) {
 my $gid;
 if (defined $group) {
     $gid = getgrnam $group;
+    unless (defined $gid) {
+        $gid = $group if $group =~ m/\A[0-9]+\z/;
+    }
     unless (defined $gid) {
         warn "$Program: invalid group: '$group'\n";
         exit EX_FAILURE;
