@@ -680,10 +680,7 @@ sub listing {
 }
 sub vipath {
 	return $ENV{'VISUAL'} if (defined $ENV{'VISUAL'});
-	my $default = '/usr/bin/vi';
-	return $default if (-x $default);
-	warn "No VISUAL in environment\n";
-	return;
+	return 'vi';
 }
 sub shell {
 	# How to get an interactive shell in Perl.  Hmmm...
