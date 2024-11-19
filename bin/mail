@@ -636,7 +636,6 @@ package main;
 use English;
 use File::Temp;
 use Getopt::Std;
-#use vars qw($VERSION $ROWS $BUFFERL $box);
 use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
 
 our $VERSION = '0.04';
@@ -725,7 +724,7 @@ sub replyCC {
 		}
 		push @replies, $original->get_from;
 		$tc = $original->get_cc;
-		push(@ccaddrs, @$tc);
+		push(@ccaddrs, @$tc) if $tc;
 	}
 
 	my $msg=message->new;
