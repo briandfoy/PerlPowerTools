@@ -113,7 +113,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -603,6 +603,10 @@ sub edFilename {
         return;
     }
     if (defined($args[0])) {
+        if ($args[0] =~ m/\A\!/) {
+            edWarn(E_FNAME);
+            return;
+        }
         $RememberedFilename = $args[0];
     }
     if (defined($RememberedFilename)) {
@@ -650,13 +654,16 @@ sub edWrite {
         edWarn(E_NOFILE);
         return;
     }
-    my $mode = $AppendMode ? '>>' : '>';
-    unless (open $fh, $mode, $filename) {
-        warn "$filename: $!\n";
-        edWarn(E_OPEN);
-        return;
+    if ($filename =~ s/\A\!//) {
+        return unless (open $fh, "| $filename"); # no error
+    } else {
+        my $mode = $AppendMode ? '>>' : '>';
+        unless (open $fh, $mode, $filename) {
+            warn "$filename: $!\n";
+            edWarn(E_OPEN);
+            return;
+        }
     }
-
     for my $line (@lines[$adrs[0]..$adrs[1]]) {
         print {$fh} $line;
         $chars += length($line);
@@ -726,12 +733,15 @@ sub edEdit {
         edWarn(E_READ);
         return 0;
     }
-    unless (open $fh, '<', $filename) {
-        warn "$filename: $!\n";
-        edWarn(E_OPEN);
-        return 0;
+    if ($filename =~ s/\A\!//) {
+        return unless (open $fh, "$filename |"); # no error
+    } else {
+        unless (open $fh, '<', $filename) {
+            warn "$filename: $!\n";
+            edWarn(E_OPEN);
+            return 0;
+        }
     }
-
     $chars = 0;
     while (<$fh>) {
         push @tmp_lines, $_;
