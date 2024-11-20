@@ -80,10 +80,7 @@ sub run {
 			print { output_fh() } "$source -> $catdst\n" if $opts->{v};
 			if( -e $catdst and $opts->{i} and ! $opts->{f} ) {
 				my $answer = prompt( "overwrite $catdst? (y/n [n])", 'n' );
-				unless( $answer =~ m/\A\s*y/i ) {
-					print { error_fh() } "not overwritten";
-					return EX_FAILURE;
-					}
+				next unless $answer =~ m/\A\s*y/i;
 				}
 			if (File::Copy::copy($source, $catdst) == 0) {
 				print { error_fh() } "$0: $source -> $catdst: copy failed: $!\n";
