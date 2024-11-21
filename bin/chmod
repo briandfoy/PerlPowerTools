@@ -19,7 +19,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my $VERSION = '1.4';
+my $VERSION = '1.5';
 
 my $rc = EX_SUCCESS;
 
@@ -94,8 +94,14 @@ sub modify_file {
         # We don't want to recurse symlinks that just happen to
         # have the same name as one of the arguments, hence the local.
         # Remember that $file is relative to the current directory.
-        local $ARGV {readlink $file} = 0;
-        File::Find::find (\&modify_file, readlink $file);
+        my $src = readlink $file;
+        unless (defined $src) {
+            warn "$Program: readlink failed for '$file': $!\n";
+            $rc = EX_FAILURE;
+            return;
+        }
+        local $ARGV{$src} = 0;
+        File::Find::find(\&modify_file, $src);
         return;
     }
     unless (-e $file) {
