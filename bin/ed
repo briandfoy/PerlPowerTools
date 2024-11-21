@@ -113,7 +113,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -257,7 +257,9 @@ sub input {
         edWarn(E_CMDBAD);
         return;
     }
-    $func->();
+    my $err = $func->();
+    edWarn($err) if $err;
+    return;
 }
 
 sub VERSION_MESSAGE {
@@ -274,52 +276,45 @@ sub maxline {
 }
 
 sub edChangeLines {
-    if (edDelete()) {
+    my $err = edDelete();
+    unless ($err) {
         $adrs[1] = undef;
         edInsert();
     }
+    return $err;
 }
 
 sub edPrompt {
-    if (defined $adrs[0]) {
-        edWarn(E_ADDREXT);
-        return;
-    }
-    if (defined $args[0]) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ADDREXT if defined $adrs[0];
+    return E_ARGEXT if defined $args[0];
+
     if (defined $Prompt) {
 	$Prompt = undef;
     } else {
 	$Prompt = defined $opt{'p'} ? $opt{'p'} : '*';
     }
+    return;
 }
 
 sub edHelp {
     my $toggle = shift;
 
-    if (defined $adrs[0]) {
-        edWarn(E_ADDREXT);
-        return;
-    }
-    if (defined $args[0]) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ADDREXT if defined $adrs[0];
+    return E_ARGEXT if defined $args[0];
+
     if ($toggle) {
         $EXTENDED_MESSAGES ^= 1;
     }
     if (defined($Error) && ($EXTENDED_MESSAGES || !$toggle)) {
          print "$Error\n";
     }
+    return;
 }
 
 sub edMark {
     my $c = $args[0];
     if (!defined($c) || $c !~ m/\A[a-z]\z/) {
-        edWarn(E_SUFFBAD);
-        return;
+        return E_SUFFBAD;
     }
     my $ad = $adrs[1];
     $ad = $adrs[0] unless defined $ad;
@@ -344,19 +339,13 @@ sub edPrint {
             $do_bin = 1 if $arg =~ m/l/;
             $do_num = 1 if $arg =~ m/n/;
         }
-        if (length $args[0]) {
-            edWarn(E_ARGEXT);
-            return;
-        }
+        return E_ARGEXT if length $args[0];
     }
     unless ($isGlobal) {
         $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
         $adrs[1] = $adrs[0] unless (defined($adrs[1]));
+        return E_ADDRBAD if ($adrs[0] == 0 || $adrs[1] == 0);
 
-        if ($adrs[0] == 0 || $adrs[1] == 0) {
-            edWarn(E_ADDRBAD);
-            return;
-        }
         my $start = $adrs[0];
         my $end = $adrs[1];
         @adrs = ($start .. $end);
@@ -372,6 +361,7 @@ sub edPrint {
         }
     }
     $CurrentLineNum = $adrs[-1];
+    return;
 }
 
 sub escape_line {
@@ -385,10 +375,8 @@ sub escape_line {
 
 # does not modify buffer
 sub edPipe {
-    if (defined $adrs[0]) {
-        edWarn(E_ADDREXT);
-        return;
-    }
+    return E_ADDREXT if defined $adrs[0];
+
     if (defined $args[0]) {
         my $rc = system $args[0];
         print "$args[0]: $!\n" if ($rc == -1);
@@ -399,22 +387,16 @@ sub edPipe {
 
 # merge lines back into $lines[$adrs[0]]
 sub edJoin {
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ARGEXT if defined $args[0];
     if (defined($adrs[0]) && $adrs[0] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
+        return E_ADDRBAD;
     }
     if (defined($adrs[1]) && $adrs[1] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
+        return E_ADDRBAD;
     }
     if (!defined($adrs[0]) && !defined($adrs[1])) {
         if ($CurrentLineNum == maxline()) {
-            edWarn(E_ADDRBAD);
-            return;
+            return E_ADDRBAD;
         }
         $adrs[0] = $CurrentLineNum;
         $adrs[1] = $CurrentLineNum + 1;
@@ -437,6 +419,7 @@ sub edJoin {
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
     $CurrentLineNum = $adrs[0];
+    return;
 }
 
 sub edMove {
@@ -451,8 +434,7 @@ sub edMove {
         $end = $start;
     }
     if ($start == 0 || $end == 0) { # allowed for $dst only
-        edWarn(E_ADDRBAD);
-        return;
+        return E_ADDRBAD;
     }
     my $dst = $args[0];
     unless (defined $dst) {
@@ -465,8 +447,7 @@ sub edMove {
         }
         # move a range into itself
         if ($dst >= $start && $dst <= $end) {
-            edWarn(E_ADDRBAD);
-            return;
+            return E_ADDRBAD;
         }
     }
 
@@ -483,7 +464,8 @@ sub edMove {
 
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
-    $CurrentLineNum = $dst + scalar(@copy)
+    $CurrentLineNum = $dst + scalar(@copy);
+    return;
 }
 
 sub edMoveDel { edMove(1); }
@@ -504,16 +486,14 @@ sub edSubstitute {
     my($LastMatch,$char,$first,$middle,$last,$whole,$flags,$PrintLastLine);
 
     if (!defined($args[0]) || length($args[0]) == 0) {
-        edWarn(E_PATTERN);
-        return;
+        return E_PATTERN;
     }
     unless ($isGlobal) {
         $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
         $adrs[1] = $adrs[0] unless (defined $adrs[1]);
 
         if ($adrs[0] == 0 || $adrs[1] == 0) {
-            edWarn(E_ADDRBAD);
-            return;
+            return E_ADDRBAD;
         }
         my $start = $adrs[0];
         my $end = $adrs[1];
@@ -528,8 +508,7 @@ sub edSubstitute {
         ($whole,$first,$middle,$last,$flags) = ($args[0] =~ /(($char)[^"$char"]*($char)[^"$char"]*($char)?)([imsx]*)/);
         1;
     } or do {
-        edWarn(E_PATTERN);
-        return;
+        return E_PATTERN;
     };
 
     if (defined($char) and defined($whole) and
@@ -549,14 +528,11 @@ sub edSubstitute {
         }
 
     }
-    unless (defined $LastMatch) {
-        edWarn(E_NOMATCH);
-        return;
-    }
-
+    return E_NOMATCH unless defined $LastMatch;
     $CurrentLineNum = $LastMatch;
 
     print $lines[$LastMatch] if ($PrintLastLine);
+    return;
 }
 
 #
@@ -564,18 +540,13 @@ sub edSubstitute {
 #
 
 sub edDelete {
-    if (defined $args[0]) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ARGEXT if defined $args[0];
+
     unless ($isGlobal) {
         $adrs[0] = $CurrentLineNum unless (defined($adrs[0]));
         $adrs[1] = $adrs[0] unless (defined($adrs[1]));
+        return E_ADDRBAD if ($adrs[0] == 0 || $adrs[1] == 0);
 
-        if ($adrs[0] == 0 || $adrs[1] == 0) {
-            edWarn(E_ADDRBAD);
-            return;
-        }
         my $start = $adrs[0];
         my $end = $adrs[1];
         @adrs = ($start .. $end);
@@ -590,7 +561,7 @@ sub edDelete {
     if ($CurrentLineNum > maxline()) {
         $CurrentLineNum = maxline();
     }
-    return 1;
+    return;
 }
 
 #
@@ -599,13 +570,11 @@ sub edDelete {
 
 sub edFilename {
     if (defined($adrs[0]) or defined($adrs[1])) {
-        edWarn(E_ADDREXT);
-        return;
+        return E_ADDREXT;
     }
     if (defined($args[0])) {
         if ($args[0] =~ m/\A\!/) {
-            edWarn(E_FNAME);
-            return;
+            return E_FNAME;
         }
         $RememberedFilename = $args[0];
     }
@@ -613,8 +582,9 @@ sub edFilename {
         print "$RememberedFilename\n";
     }
     else {
-        edWarn(E_NOFILE);
+        return E_NOFILE;
     }
+    return;
 }
 
 #
@@ -633,16 +603,13 @@ sub edWrite {
     } elsif (defined($adrs[0]) && !defined($adrs[1])) {
         $adrs[1] = $adrs[0];
     }
-    if ($adrs[0] == 0) {
-        edWarn(E_ADDRBAD);
-        return;
-    }
+    return E_ADDRBAD if $adrs[0] == 0;
+
     if (length $commandsuf) {
         if ($commandsuf eq 'q') {
             $qflag = 1;
         } else {
-            edWarn(E_SUFFBAD);
-            return;
+            return E_SUFFBAD;
         }
     }
 
@@ -651,8 +618,7 @@ sub edWrite {
     } elsif (defined $RememberedFilename) {
         $filename = $RememberedFilename;
     } else {
-        edWarn(E_NOFILE);
-        return;
+        return E_NOFILE;
     }
     if ($filename =~ s/\A\!//) {
         return unless (open $fh, "| $filename"); # no error
@@ -660,8 +626,7 @@ sub edWrite {
         my $mode = $AppendMode ? '>>' : '>';
         unless (open $fh, $mode, $filename) {
             warn "$filename: $!\n";
-            edWarn(E_OPEN);
-            return;
+            return E_OPEN;
         }
     }
     for my $line (@lines[$adrs[0]..$adrs[1]]) {
@@ -670,17 +635,13 @@ sub edWrite {
     }
     unless (close $fh) {
         warn "$filename: $!\n";
-        edWarn(E_CLOSE);
-        return;
+        return E_CLOSE;
     }
 
-    $NeedToSave = 0;
-    $UserHasBeenWarned = 0;
-    print "$chars\n" unless ($SupressCounts);
-
-    if ($qflag) {
-        exit EX_SUCCESS;
-    }
+    $NeedToSave = $UserHasBeenWarned = 0;
+    print "$chars\n" unless $SupressCounts;
+    exit EX_SUCCESS if $qflag;
+    return;
 }
 
 
@@ -704,42 +665,35 @@ sub edEdit {
         }
     } else {
         if (defined($adrs[0]) or defined($adrs[1])) {
-            edWarn(E_ADDREXT);
-            return 0;
+            return E_ADDREXT;
         }
         if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
             $UserHasBeenWarned = 1;
-            edWarn(E_UNSAVED);
-            return 0;
+            return E_UNSAVED;
         }
     }
 
     if (defined $args[0]) {
-        if (length($args[0]) == 0) {
-            edWarn(E_FNAME);
-            return 0;
-        }
+        return E_FNAME unless (length $args[0]);
         $filename = $RememberedFilename = $args[0];
     } elsif (defined $RememberedFilename) {
         $filename = $RememberedFilename;
     } else {
         $CurrentLineNum = 0;
         @lines = (0);
-        return 1;
+        return;
     }
 
     if (-d $filename) {
         warn "$filename: is a directory\n";
-        edWarn(E_READ);
-        return 0;
+        return E_READ;
     }
     if ($filename =~ s/\A\!//) {
         return unless (open $fh, "$filename |"); # no error
     } else {
         unless (open $fh, '<', $filename) {
             warn "$filename: $!\n";
-            edWarn(E_OPEN);
-            return 0;
+            return E_OPEN;
         }
     }
     $chars = 0;
@@ -749,15 +703,14 @@ sub edEdit {
     }
     unless (close $fh) {
         warn "$filename: $!\n";
-        edWarn(E_CLOSE);
-        return 0;
+        return E_CLOSE;
     }
     if ($chars == 0) {
         $UserHasBeenWarned = 0;
         $CurrentLineNum = 0;
         @lines = (0);
         print "0\n" unless $SupressCounts;
-        return 1;
+        return;
     }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
         $tmp_lines[-1] .= "\n";
@@ -785,7 +738,7 @@ sub edEdit {
 
     $UserHasBeenWarned = 0;
     print "$chars\n" unless $SupressCounts;
-    return 1;
+    return;
 }
 
 #
@@ -796,10 +749,8 @@ sub edInsert {
     my $append = shift;
     my(@tmp_lines);
 
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ARGEXT if defined $args[0];
+
     if (defined($adrs[1])) {
         $adrs[0] = $adrs[1];
     }
@@ -812,9 +763,7 @@ sub edInsert {
         last if (/^\.$/);
         push(@tmp_lines,$_);
     }
-    if (scalar(@tmp_lines) == 0) {
-        return 1;
-    }
+    return unless (@tmp_lines); # no change
 
     my $src = $adrs[0];
     $src++ if ($src && $append);
@@ -824,7 +773,7 @@ sub edInsert {
 
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
-    return 1;
+    return;
 }
 
 
@@ -833,10 +782,8 @@ sub edInsert {
 #
 
 sub edPrintLineNum {
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ARGEXT if defined $args[0];
+
     my $adr = $adrs[1];
     if (!defined($adr)) {
         $adr = $adrs[0];
@@ -845,6 +792,7 @@ sub edPrintLineNum {
         $adr = maxline();
     }
     print "$adr\n";
+    return;
 }
 
 #
@@ -854,18 +802,12 @@ sub edPrintLineNum {
 sub edQuit {
     my($QuestionMode) = @_;
 
-    if (defined $adrs[0]) {
-        edWarn(E_ADDREXT);
-        return;
-    }
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return;
-    }
+    return E_ADDREXT if defined $adrs[0];
+    return E_ARGEXT if defined $args[0];
+
     if ($QuestionMode && $NeedToSave && !$UserHasBeenWarned) {
         $UserHasBeenWarned = 1;
-        edWarn(E_UNSAVED);
-        return;
+        return E_UNSAVED;
     }
     exit EX_SUCCESS;
 }
@@ -882,10 +824,7 @@ sub edQuit {
 #        2. The new current line is printed.
 
 sub edSetCurrentLine {
-    if (defined($args[0])) {
-        edWarn(E_ARGEXT);
-        return 0;
-    }
+    return E_ARGEXT if defined $args[0];
 
     my $adr = $adrs[1];
     if (!defined($adr)) {
@@ -893,20 +832,16 @@ sub edSetCurrentLine {
     }
     if (defined($adr)) {
         if ($adr <= 0 || maxline() == 0 || $adr > maxline()) {
-            edWarn(E_ADDRBAD);
-            return 0;
+            return E_ADDRBAD;
         }
         $CurrentLineNum = $adr; # jump to specified line
     } else {
-        if ($CurrentLineNum == maxline()) {
-            edWarn(E_ADDRBAD);
-            return 0;
-        }
+        return E_ADDRBAD if $CurrentLineNum == maxline();
         $CurrentLineNum++;
     }
 
     print $lines[$CurrentLineNum];
-    return 1;
+    return;
 }
 
 #
