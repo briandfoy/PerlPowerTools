@@ -63,6 +63,7 @@ use constant A_NOMATCH => -1;
 use constant A_NOPAT   => -2;
 use constant A_PATTERN => -3;
 use constant A_NOMARK  => -4;
+use constant A_RANGE   => -5;
 
 use constant E_ADDREXT => 'unexpected address';
 use constant E_ADDRBAD => 'invalid address';
@@ -240,7 +241,7 @@ sub input {
         } elsif ($ad == A_PATTERN) {
             edWarn(E_PATTERN);
             return;
-        } elsif ($ad > maxline() || $ad < 0) {
+        } elsif ($ad < 0) {
             edWarn(E_ADDRBAD);
             return;
         }
@@ -438,10 +439,11 @@ sub edMove {
     }
     $_ = $args[0];
     my $dst = getAddr();
+    return E_SUFFBAD if m/\S/;
     if (defined $dst) {
         return E_NOMATCH if $dst == A_NOMATCH;
         return E_NOPAT if $dst == A_NOPAT;
-        return E_ADDRBAD if $dst < 0 || $dst > maxline();
+        return E_ADDRBAD if $dst < 0;
     } else {
         $dst = $CurrentLineNum;
     }
@@ -947,6 +949,9 @@ sub getAddr {
         }
         $n = edSearch($re, $delim eq '?');
         $n = A_NOMATCH unless $n;
+    }
+    if (defined $n) {
+        return A_RANGE if $n < 0 || $n > maxline();
     }
     return $n;
 }
