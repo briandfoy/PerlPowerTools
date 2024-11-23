@@ -633,7 +633,6 @@ EDLOOP: {
 1;
 package main;
 
-use English;
 use File::Temp;
 use Getopt::Std;
 use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
@@ -975,7 +974,6 @@ sub Interactive {
 	my $current=1;
 
 	select STDOUT; $|=1;
-	print "Mail [$VERSION Perl] [$OSNAME]\n";   # This is fluff.
 	my $cmd = "Init";
 
 CMDS:	{
@@ -1035,6 +1033,11 @@ sub Batch {
 	chomp(@BODY);
 	$message->add_to_body(@BODY);
 	$mailer->send($message);
+}
+
+sub VERSION_MESSAGE {
+	print "$0 version $VERSION\n";
+	exit;
 }
 
 getopts("f:s:c:b:v") || die <<USAGE;
