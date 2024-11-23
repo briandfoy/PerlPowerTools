@@ -984,6 +984,7 @@ CMDS:	{
 		} else {
 			print "> ";
 			$cmd=<STDIN>;
+			$cmd = 'q' unless defined $cmd;
 			chomp $cmd;
 			$cmd =~ s/\A\s+//;
 		}
