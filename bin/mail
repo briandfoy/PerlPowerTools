@@ -633,14 +633,18 @@ EDLOOP: {
 1;
 package main;
 
+use File::Basename qw(basename);
 use File::Temp;
 use Getopt::Std;
+
 use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
 
 our $VERSION = '0.04';
 our $ROWS = 23;         # Screen Dimensions.  Yeah, this sucks.
 our $COLS = 80;
 our $BUFFERL = 2;	  # Lines needed for "fluff"
+
+my $Program = basename($0);
 my $box;
 
 my %commands=(
@@ -1036,13 +1040,13 @@ sub Batch {
 }
 
 sub VERSION_MESSAGE {
-	print "$0 version $VERSION\n";
+	print "$Program version $VERSION\n";
 	exit;
 }
 
 getopts("f:s:c:b:v") || die <<USAGE;
-$0 [-f mailbox]
-$0 [-s subject] [-c cc-addrs] [-b bcc-addrs] to-addr [..toaddr..]
+usage: $Program [-s subject] [-c cc-addrs] [-b bcc-addrs] to-addr [..toaddr..]
+   or: $Program [-f mailbox]
 USAGE
 
 if (@ARGV) {   # Assume batch-mode
