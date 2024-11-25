@@ -92,7 +92,7 @@ my $UserHasBeenWarned = 0;      # warning given regarding modified buffer
 my $Error = undef;              # saved error string for h command
 my $Prompt = undef;             # saved prompt string for -p option
 my $SearchPat;                  # saved pattern for repeat search
-my $SupressCounts = 0;          # byte counts are printed by default
+my $Scripted = 0;
 my @lines;                      # buffer for file being edited.
 my $command;                    # single letter command entered by user
 my $commandsuf;                 # single letter modifier of command
@@ -100,8 +100,7 @@ my @adrs;                       # 1 or 2 line numbers for commands to operate on
 my @args;                       # command arguments (filenames, search patterns...)
 my %marks;
 my $isGlobal;
-
-my $EXTENDED_MESSAGES = 0;
+my $HelpMode = 0;
 
 # constants
 
@@ -210,7 +209,7 @@ if (defined $opt{'p'}) {
 $args[0] = shift;
 $args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
-$SupressCounts = $opt{'s'};
+$Scripted = $opt{'s'};
 edEdit($NO_QUESTIONS_MODE, $NO_APPEND_MODE);
 input() while 1;
 
@@ -304,9 +303,9 @@ sub edHelp {
     return E_ARGEXT if defined $args[0];
 
     if ($toggle) {
-        $EXTENDED_MESSAGES ^= 1;
+        $HelpMode ^= 1;
     }
-    if (defined($Error) && ($EXTENDED_MESSAGES || !$toggle)) {
+    if (defined($Error) && ($HelpMode || !$toggle)) {
          print "$Error\n";
     }
     return;
@@ -482,7 +481,7 @@ sub edPrintBin { edPrint($PRINT_BIN); }
 sub edQuitAsk { edQuit(1); }
 sub edAppend { edInsert(1); }
 sub edWriteAppend { edWrite(1); }
-sub edEditAsk { edEdit(!$SupressCounts, $NO_INSERT_MODE); }
+sub edEditAsk { edEdit(!$Scripted, $NO_INSERT_MODE); }
 sub edRead { edEdit($QUESTIONS_MODE,$INSERT_MODE); }
 
 #
@@ -646,7 +645,7 @@ sub edWrite {
     }
 
     $NeedToSave = $UserHasBeenWarned = 0;
-    print "$chars\n" unless $SupressCounts;
+    print "$chars\n" unless $Scripted;
     exit EX_SUCCESS if $qflag;
     return;
 }
@@ -716,7 +715,7 @@ sub edEdit {
         $UserHasBeenWarned = 0;
         $CurrentLineNum = 0;
         @lines = (0);
-        print "0\n" unless $SupressCounts;
+        print "0\n" unless $Scripted;
         return;
     }
     if (substr($tmp_lines[-1], -1, 1) ne "\n") {
@@ -744,7 +743,7 @@ sub edEdit {
     }
 
     $UserHasBeenWarned = 0;
-    print "$chars\n" unless $SupressCounts;
+    print "$chars\n" unless $Scripted;
     return;
 }
 
@@ -1041,7 +1040,7 @@ sub edWarn {
 
     $Error = $msg;
     print "?\n";
-    if ($EXTENDED_MESSAGES) {
+    if ($HelpMode) {
         print "$msg\n";
     }
 }
