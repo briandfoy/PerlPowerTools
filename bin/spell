@@ -49,7 +49,7 @@ $suff = 1 if $opt{'v'};
 $inter = 1 if $opt{'i'};
 @supp = ( DICT_FILE );
 @supp = ( $opt{'d'} ) if defined $opt{'d'};
-for (0 .. $#ARGV) {
+for (reverse (0 .. $#ARGV)) {
   if ($ARGV[$_] =~ m/\A\+./) {
     push @supp, substr($ARGV[$_], 1);
     splice @ARGV, $_, 1;
