@@ -20,9 +20,9 @@ use Getopt::Std qw(getopts);
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-my $Program = basename($0);
+use constant DICT_FILE => '/usr/dict/words';
 
-my $dict_file = "/usr/dict/words";      # Filename (path) for standard dict
+my $Program = basename($0);
 
 my (
     %words,    # words from dictionary
@@ -47,9 +47,9 @@ getopts('cd:ixv', \%opt) or usage();
 $check = 1 if $opt{'c'} || $opt{'x'};
 $suff = 1 if $opt{'v'};
 $inter = 1 if $opt{'i'};
-$dict_file = $opt{'d'} if defined $opt{'d'};
-@supp = ($dict_file);
-for (0 .. $#ARGV) {
+@supp = ( DICT_FILE );
+@supp = ( $opt{'d'} ) if defined $opt{'d'};
+for (reverse (0 .. $#ARGV)) {
   if ($ARGV[$_] =~ m/\A\+./) {
     push @supp, substr($ARGV[$_], 1);
     splice @ARGV, $_, 1;
