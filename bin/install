@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 my $Program = basename($0);
 
 sub VERSION_MESSAGE {
@@ -92,7 +92,7 @@ exit($Errors == 0 ? 0 : 1);
 sub modify_file {
     my($path,$mode,$st) = @_;
 
-    if ($mode) {
+    if (defined $mode) {
         unless (chmod $mode, $path) {
             printf STDERR "$Program: chmod %o $path: $!\n", $mode;
             $Errors++;
@@ -126,7 +126,7 @@ sub modify_file {
 }
 
 sub install_dirs {
-    my $mode = $opt{m} || '755';
+    my $mode = defined $opt{'m'} ? $opt{'m'} : '755';
     my $symbolic = $mode =~ /^[0-7]{1,4}$/ ? 0 : 1;
 
     # credit Abigail
@@ -196,7 +196,7 @@ sub install_files {
         usage();
     }
 
-    my $mode = $opt{m} || '755';
+    my $mode = defined $opt{'m'} ? $opt{'m'} : '755';
     my $symbolic = ($mode =~ /^[0-7]{1,4}$/) ? 0 : 1;
 
     require File::Copy;
@@ -245,6 +245,7 @@ sub install_files {
             }
         }
 
+        next unless $Unix;
         my $bits;
         if ($symbolic) {
             unless ( $bits = mod($mode, $targ) ) {
@@ -255,8 +256,7 @@ sub install_files {
         else {
             $bits = oct $mode;
         }
-
-        modify_file $targ, $bits, \@st if $Unix;
+        modify_file $targ, $bits, \@st;
     }
 }
 
