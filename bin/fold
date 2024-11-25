@@ -44,11 +44,10 @@ my %opt;
 getopts('bsw:', \%opt) or usage();
 my $Tabstop     = 8; # sane tab stops
 my $Width       = defined $opt{'w'} ? $opt{'w'} : 80;
-my $Byte_Only   = $opt{'b'} || 0;
-my $Space_Break = $opt{'s'} || 0;
+my $Byte_Only   = $opt{'b'};
+my $Space_Break = $opt{'s'};
 
 sub usage {
-    warn "$Program: @_\n" if @_;
     warn qq[
 usage: $Program [-bs] [-w width] [file ...]
     -s         split lines on whitespace where possible
@@ -59,10 +58,12 @@ usage: $Program [-bs] [-w width] [file ...]
 }
 
 unless ($Width && $Width =~ /^\d+$/) {
-    usage("illegal width value `$Width'");
+    warn "$Program: illegal width value `$Width'\n";
+    usage();
 }
 if ($Space_Break && $Width < $Tabstop) {
-    usage("width must be greater than $Tabstop with the -s option");
+    warn "$Program: width must be greater than $Tabstop with the -s option\n";
+    usage();
 }
 my $func = $Byte_Only ? \&fold_file_byte : \&fold_file;
 
@@ -100,8 +101,6 @@ exit $rc;
 # the new column based on the spec.  This is superslow.
 sub adj_col {
     my($col, $char) = @_;
-
-    die "XXX: called while byte count set" if $Byte_Only;
 
     # algorithm from BSD fold  --tchrist
     if    ($char eq "\b") { $col-- if $col }
