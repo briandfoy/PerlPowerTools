@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 my $Program = basename($0);
 
 sub VERSION_MESSAGE {
@@ -27,8 +27,8 @@ sub VERSION_MESSAGE {
 
 sub usage {
     print <<EOUsage;
-Usage: $Program [-CcDps] [-g group] [-m mode] [-o owner] file1 file2
-       $Program [-CcDps] [-g group] [-m mode] [-o owner] file ... directory
+Usage: $Program [-bCcDps] [-g group] [-m mode] [-o owner] file1 file2
+       $Program [-bCcDps] [-g group] [-m mode] [-o owner] file ... directory
        $Program -d [-g group] [-m mode] [-o owner] directory ...
 EOUsage
     exit 1;
@@ -47,7 +47,7 @@ my $Errors = 0;
 
 # process options
 my %opt;
-getopts('CcDdf:g:m:o:ps', \%opt) or usage();
+getopts('bCcDdf:g:m:o:ps', \%opt) or usage();
 usage() unless @ARGV;
 
 if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
@@ -184,6 +184,25 @@ sub install_dirs {
     }
 }
 
+sub copy_one {
+    my ($src, $dst) = @_;
+
+    require File::Copy;
+    if (-e $dst && $opt{'b'}) {
+        my $bak = $dst . '.old';
+        warn "$Program: creating backup file '$bak'\n" if $Debug;
+        unless (rename $dst, $bak) {
+            warn "$Program: rename failed for '$dst'\n";
+            return;
+        }
+    }
+    unless (File::Copy::copy($src, $dst)) {
+        warn "$Program: copy failed: $src -> $dst: $!\n";
+        return;
+    }
+    return 1;
+}
+
 sub install_files {
     my $dst = pop @ARGV;
     my $dir = -d $dst;
@@ -199,7 +218,6 @@ sub install_files {
     my $mode = defined $opt{'m'} ? $opt{'m'} : '755';
     my $symbolic = ($mode =~ /^[0-7]{1,4}$/) ? 0 : 1;
 
-    require File::Copy;
     require File::Spec;
 
     foreach my $file (@ARGV) {
@@ -221,28 +239,16 @@ sub install_files {
         }
 
         if ($opt{C}) {
-            if (system "cmp", "-s", $file, $targ) {
-                warn "$Program: copy $file $targ\n" if $Debug;
-
-                unless ( File::Copy::copy($file, $targ) ) {
-                    warn "$Program: copy $file $targ: $!\n";
-                    $Errors++;
-                    next;
-                }
-            }
-            else {
+            if (system("cmp", "-s", $file, $targ) == 0) {
                 warn("$Program: $file not copied to $targ\n") if $Debug;
                 next;
             }
         }
-        else { # default -c
-            warn "$Program: copy $file $targ\n" if $Debug;
 
-            unless ( File::Copy::copy($file, $targ) ) {
-                warn "$Program: copy $file $targ: $!\n";
-                $Errors++;
-                next;
-            }
+        warn "$Program: copy $file $targ\n" if $Debug;
+        unless (copy_one($file, $targ)) {
+            $Errors++;
+            next;
         }
 
         next unless $Unix;
@@ -474,9 +480,9 @@ install - install files and directories
 
 =head1 SYNOPSIS
 
-B<install> [B<-CcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file1> I<file2>
+B<install> [B<-bCcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file1> I<file2>
 
-B<install> [B<-CcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file> ... I<directory>
+B<install> [B<-bCcDps>] [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<file> ... I<directory>
 
 B<install> B<-d> [B<-g> I<group>] [B<-m> I<mode>] [B<-o> I<owner>] I<directory> ...
 
@@ -490,6 +496,11 @@ parent directories as necessary, similar to B<mkdir -p>).
 B<install> accepts these options:
 
 =over 4
+
+=item B<-b>
+
+Create a backup of an existing file before copying over it.
+This is done by renaming the original file to have a '.old' extension.
 
 =item B<-C>
 
