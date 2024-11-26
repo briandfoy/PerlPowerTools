@@ -33,6 +33,14 @@ if (scalar(@ARGV) == 0) {
     warn "usage: expr expression\n";
     exit EX_ERROR;
 }
+if ($ARGV[0] eq '--') {
+    if (scalar(@ARGV) > 1) {
+        shift @ARGV;
+    } else {
+        warn "expr: syntax error\n";
+        exit EX_ERROR;
+    }
+}
 
 # check that it is a number
 sub num($) {
