@@ -34,6 +34,7 @@ while( $cont =~ /^y/io ) {
 	while( ($num_wrong < 6) && ($num_corr < $tot_letters) ) {
 		print "\nEnter a letter:  ";
 		$letter = <STDIN>;
+		exit unless defined $letter;
 		chomp( $letter );
 		$letter = lc( $letter );
 		if( $letter =~ /^[a-z]$/o ) {
