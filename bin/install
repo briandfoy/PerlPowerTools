@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 my $Program = basename($0);
 
 sub VERSION_MESSAGE {
@@ -254,7 +254,7 @@ sub install_files {
         next unless $Unix;
         my $bits;
         if ($symbolic) {
-            unless ( $bits = mod($mode, $targ) ) {
+            unless ( $bits = mod($mode, $file) ) {
                 die "$Program: invalid mode: $mode\n";
             }
             $bits = oct $bits;
@@ -262,7 +262,7 @@ sub install_files {
         else {
             $bits = oct $mode;
         }
-        modify_file $targ, $bits, \@st;
+        modify_file($targ, $bits, \@st);
     }
 }
 
@@ -278,18 +278,12 @@ sub install_files {
 #
 #
 
-sub mod ($$) {
+sub mod {
     my $symbolic     = shift;
     my $file         = shift;
 
-    # Initialization.
-    # The 'user', 'group' and 'other' groups.
-    my @ugo          = qw /u g o/;
-    # Bit masks for '[sg]uid', 'sticky', 'read', 'write' and 'execute'.
-    # Can't use qw // cause silly Perl doesn't know '2' is a number
-    # when dealing with &= ~$bit.
-    my %bits         = (s => 8, t => 8, r => 4, w => 2, x => 1);
-
+    my @ugo          = qw/u g o/;
+    my %bits         = ('s' => 8, 't' => 8, 'r' => 4, 'w' => 2, 'x' => 1);
 
     # For parsing.
     my $who_re       = '[augo]*';
@@ -297,7 +291,13 @@ sub mod ($$) {
 
 
     # Find the current permissions. This is what we start with.
-    my $mode         = sprintf "%04o" => (stat $file) [2] || 0;
+    my $mode = '000';
+    if ($symbolic =~ m/[\-\+]/) {
+        my @st = stat $file;
+        if (@st) {
+            $mode = sprintf '%04o', $st[2];
+        }
+    }
     my $current      = substr $mode => -3;  # rwx permissions for ugo.
 
     my %perms;
@@ -382,7 +382,7 @@ sub mod ($$) {
                 next;
             }
             if ($operator eq '=') {
-                %perms = ( 'u' => 0, 'g' => 0, 'o' => 0);
+                $perms{$who} = 0;
             }
 
             # If we arrive here, $perms is a string.
