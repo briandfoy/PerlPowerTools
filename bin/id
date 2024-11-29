@@ -20,13 +20,21 @@ License:
 #
 
 use strict;
-use Getopt::Std;
+
+use File::Basename qw(basename);
+use Getopt::Std qw(getopts);
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+
 use vars qw($opt_G $opt_n $opt_u $opt_g $opt_r $opt_a $opt_p);
+
+my $Program = basename($0);
 
 getopts('Gnugrap') or help();
 if ( ($opt_G + $opt_g + $opt_p + $opt_u) > 1 ) {
-	print STDERR "You may only choose one of -G, -g, -p, or -u.  Doh!\n\n";
-	&help;
+	warn "$Program: Choose only one of -G, -g, -p, or -u\n";
+	help();
 }
 
 my($user,$pw,$uid,$gid,$tp);
@@ -37,7 +45,10 @@ if ( @ARGV ) { # user specified
 	if (!defined($uid) && $ARGV[0] =~ m/\A[0-9]+\Z/) {
 		($user,$pw,$uid,$gid) = getpwuid $ARGV[0];
 	}
-	die "id: $ARGV[0]: No such user\n" unless (defined $uid);
+	unless (defined $uid) {
+		warn "$Program: $ARGV[0]: No such user\n";
+		exit EX_FAILURE;
+	}
 }
 
 if ( $opt_u ) { # print uid
@@ -59,8 +70,11 @@ elsif ( $opt_p ) { # human-readable form (names when possible, etc.)
 		}
 	}
 	else {
-		my($login) = getlogin || die "getlogin failed!";
-
+		my $login = getlogin;
+		unless ($login) {
+			warn "$Program: getlogin failed\n";
+			exit EX_FAILURE;
+		}
 		$tp.="login $login\n" if ( $login ne scalar getpwuid $< );
 
 		my($uid) = scalar getpwuid $< || $<;
@@ -154,11 +168,11 @@ else { # uid=#(name) gid=#(name) euid=#(name) egid=#(name) groups=#(name) ...
 }
 
 print "$tp\n";
-exit 0;
+exit EX_SUCCESS;
 
 sub help {
 	require Pod::Usage;
-	Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
+	Pod::Usage::pod2usage({ -exitval => EX_FAILURE, -verbose => 0 });
 }
 
 =head1 NAME
@@ -222,9 +236,9 @@ Display the effective user ID.
 
 =back
 
-=head1 NOTES
+=head1 EXIT STATUS
 
-id returns 0 on success or 1 if an error occurred.
+id exits with status 0 on success, or 1 if an error occurred.
 
 =head1 AUTHOR
 
