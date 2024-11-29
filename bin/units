@@ -140,8 +140,10 @@ sub process_args {
       if ($flag =~ s/\A\-f//) {
         my $file = $flag;
         $file = shift @args if (length($file) == 0);
-	$class->usage() unless defined $file;
+        $class->usage() unless defined $file;
         push @unittabs, $file;
+      } elsif ($flag eq '--') {
+        last;
       } elsif ($flag =~ /^--version$/) {
         print "perl units version $VERSION.\n";
         exit 0;
