@@ -579,9 +579,8 @@ sub edFilename {
         return E_ADDREXT;
     }
     if (defined($args[0])) {
-        if ($args[0] =~ m/\A\!/) {
-            return E_FNAME;
-        }
+        return E_FNAME if $args[0] =~ m/\A\!/;
+        return E_FNAME if $args[0] =~ m/\/\Z/;
         $RememberedFilename = $args[0];
     }
     if (defined($RememberedFilename)) {
