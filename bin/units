@@ -20,7 +20,7 @@ use Config;
 
 # Usage:
 # units [-f unittab]
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 BEGIN {
     require Data::Dumper;
@@ -137,8 +137,13 @@ sub process_args {
     my @unittabs;
     while (@args and $args[0] =~ /^-/) {
       my $flag = shift @args;
-      if ($flag =~ /^-(f|-file)?$/) {
-        push @unittabs, shift @args;
+      if ($flag =~ s/\A\-f//) {
+        my $file = $flag;
+        $file = shift @args if (length($file) == 0);
+        $class->usage() unless defined $file;
+        push @unittabs, $file;
+      } elsif ($flag eq '--') {
+        last;
       } elsif ($flag =~ /^--version$/) {
         print "perl units version $VERSION.\n";
         exit 0;
@@ -775,9 +780,8 @@ units - conversion program
 
 =head1 OPTIONS
 
-    -? --help       Display help text
-    -f --file       Use specified definition file
-       --version    Display version information
+    -f           Use specified definition file
+    --version    Display version information
 
 =head1 DESCRIPTION
 
