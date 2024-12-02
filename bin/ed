@@ -581,6 +581,7 @@ sub edFilename {
     if (defined($args[0])) {
         return E_FNAME if $args[0] =~ m/\A\!/;
         return E_FNAME if $args[0] =~ m/\/\Z/;
+        return E_FNAME if ($args[0] eq '.' || $args[0] eq '..');
         $RememberedFilename = $args[0];
     }
     if (defined($RememberedFilename)) {
