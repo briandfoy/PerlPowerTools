@@ -21,8 +21,14 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
+my $VERSION = '0.1';
 
 my (%opt, @chars, @cesc, $adr, $dump, $fmt, $nread, $curf, $skip);
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit;
+}
 
 sub getchar {
     my $c;
@@ -155,13 +161,13 @@ sub xd {
     printf "$fmt\n", $adr;
 }
 
-getopts('cn:rs:u', \%opt)
+getopts('cn:rs:', \%opt)
     or do {
-    	warn("usage: $Program [-cru] [-n length] [-s skip] [file ...]\n");
+    	warn "usage: $Program [-cr] [-n length] [-s skip] [file ...]\n";
     	exit EX_FAILURE;
     	};
 
-$| = 1 if $opt{'u'};
+$| = 1;
 foreach (qw(n s)) {
     if ($opt{$_} && $opt{$_} =~ m/\D/) {
         warn "$Program: bad -$_ argument\n";
@@ -181,9 +187,9 @@ hexdump - print input as hexadecimal
 
 =head1 SYNOPSIS
 
-hexdump [-cu] [-n NUMBER] [-s NUMBER] [file ...]
+hexdump [-c] [-n NUMBER] [-s NUMBER] [file ...]
 
-hexdump [-ru] [file ...]
+hexdump [-r] [file ...]
 
 =head1 DESCRIPTION
 
@@ -225,10 +231,6 @@ possible to specify multiple input files.
 Skip a set NUMBER of bytes at the beginning of input. The number argument
 must be given in decimal. The offset number printed on output is advanced
 to reflect the skipped bytes.
-
-=item -u
-
-Output runs in unbuffered mode.
 
 =back
 
