@@ -154,7 +154,7 @@ sub dump_dec2 {
     undef @chars;
 }
 
-sub dump_oct1 { # rename
+sub dump_oct1 {
     unless ($opt{'v'}) {
         my $str = join '', @chars;
         if ($str eq $prev) {
