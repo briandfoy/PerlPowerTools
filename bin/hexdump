@@ -12,7 +12,6 @@ License: artistic2
 =cut
 
 use strict;
-use warnings;
 
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
@@ -23,7 +22,7 @@ use constant EX_FAILURE => 1;
 my $Program = basename($0);
 my $VERSION = '0.1';
 
-my (%opt, @chars, @cesc, $adr, $dump, $fmt, $nread, $curf, $skip);
+my (%opt, @chars, @cesc, $adr, $dump, $fmt, $nread, $curf, $skip, $prev, $dupl);
 
 sub VERSION_MESSAGE {
     print "$Program version $VERSION\n";
@@ -58,6 +57,18 @@ sub doskip {
 }
 
 sub dump_c {
+    unless ($opt{'v'}) {
+        my $str = join '', @chars;
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
     printf "$fmt ", $adr;
     foreach my $c (@chars) {
         if ($c =~ m/[[:print:]]/) {
@@ -74,14 +85,117 @@ sub dump_c {
     undef @chars;
 }
 
-sub dump_x {
-    printf "$fmt ", $adr;
+sub dump_hex1 {
     my $str = join '', @chars;
+    unless ($opt{'v'}) {
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
     my $hex = unpack 'H*', $str;
     $hex =~ s/^(.{16})/$1 /;
     $hex =~ s/(\S{2})/ $1/g;
     $str =~ s/[^[:print:]]/./g;
+    printf "$fmt ", $adr;
     printf "%-51s|%s|\n", $hex, $str;
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_hex2 {
+    my $str = join '', @chars;
+    unless ($opt{'v'}) {
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
+    printf "$fmt ", $adr;
+    my @words = unpack 'S*', $str;
+    foreach my $i (@words) {
+        printf '  %04x  ', $i;
+    }
+    print "\n";
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_dec2 {
+    my $str = join '', @chars;
+    unless ($opt{'v'}) {
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
+    printf "$fmt ", $adr;
+    my @words = unpack 'S*', $str;
+    foreach my $i (@words) {
+        printf ' %05d  ', $i;
+    }
+    print "\n";
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_oct1 {
+    unless ($opt{'v'}) {
+        my $str = join '', @chars;
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
+    printf "$fmt ", $adr;
+    foreach my $c (@chars) {
+        my $i = ord $c;
+        printf '%03o ', $i;
+    }
+    print "\n";
+    $adr += scalar @chars;
+    undef @chars;
+}
+
+sub dump_oct2 {
+    my $str = join '', @chars;
+    unless ($opt{'v'}) {
+        if ($str eq $prev) {
+            print "*\n" unless $dupl;
+            $dupl = 1;
+            $adr += scalar @chars;
+            undef @chars;
+            return;
+        }
+        $dupl = 0;
+        $prev = $str;
+    }
+    printf "$fmt ", $adr;
+    my @words = unpack 'S*', $str;
+    foreach my $i (@words) {
+        printf ' %06o ', $i;
+    }
+    print "\n";
     $adr += scalar @chars;
     undef @chars;
 }
@@ -128,8 +242,16 @@ sub revert {
 }
 
 sub xd {
+    $prev = '';
     $adr = $nread = 0;
-    if ($opt{'c'}) {
+    $fmt = '%08lx';
+    $dump = \&dump_hex2;
+
+    if ($opt{'b'}) {
+        $dump = \&dump_oct1;
+    } elsif ($opt{'C'}) {
+        $dump = \&dump_hex1;
+    } elsif ($opt{'c'}) {
         $fmt = '%07lx';
         $dump = \&dump_c;
         $cesc[0]  = ' \0 ';
@@ -140,9 +262,10 @@ sub xd {
         $cesc[11] = ' \v ';
         $cesc[12] = ' \f ';
         $cesc[13] = ' \r ';
-    } else {
-        $fmt = '%08lx';
-        $dump = \&dump_x;
+    } elsif ($opt{'d'}) {
+        $dump = \&dump_dec2;
+    } elsif ($opt{'o'}) {
+        $dump = \&dump_oct2;
     }
     if (@ARGV) {
         while (@ARGV) {
@@ -161,9 +284,9 @@ sub xd {
     printf "$fmt\n", $adr;
 }
 
-getopts('cn:rs:', \%opt)
+getopts('bCcdn:ors:vx', \%opt)
     or do {
-    	warn "usage: $Program [-cr] [-n length] [-s skip] [file ...]\n";
+    	warn "usage: $Program [-bCcdorvx] [-n length] [-s skip] [file ...]\n";
     	exit EX_FAILURE;
     	};
 
@@ -187,16 +310,16 @@ hexdump - print input as hexadecimal
 
 =head1 SYNOPSIS
 
-hexdump [-c] [-n NUMBER] [-s NUMBER] [file ...]
+hexdump [-bCcdovx] [-n NUMBER] [-s NUMBER] [file ...]
 
 hexdump [-r] [file ...]
 
 =head1 DESCRIPTION
 
-Data is read from standard input if no file arguments are provided. The
-default output mode is canonical hex+ASCII. Each line begins with an offset
-number followed by a space-separated list of 16 hex bytes. Finally, printable
-input characters are listed between two '|' characters.
+Input files are taken as a single stream of data and formatted as hexadecimal.
+Standard input is used if no file arguments are provided.
+Duplicate lines of input are filtered by default.
+A '*' character is printed to indicate one or more duplicate input lines.
 
 =head2 OPTIONS
 
@@ -204,16 +327,34 @@ The following options are available:
 
 =over 4
 
+=item -b
+
+One-byte octal output.
+
+=item -C
+
+Output canonical hex+ASCII. Each line begins with an offset number followed
+by a space-separated list of 16 hex bytes.
+Printable input characters are listed between two '|' characters.
+
 =item -c
 
 Output a space-separated list of ASCII characters. Non-print characters
 are listed in octal, or a C-escape code.
+
+=item -d
+
+Format output as two-byte decimal.
 
 =item -n NUMBER
 
 Terminate the process after reading a set NUMBER of input bytes.
 The number argument must be given in decimal. Input skipped by the -s
 option is not counted.
+
+=item -o
+
+Format output as two-byte octal.
 
 =item -r
 
@@ -223,8 +364,8 @@ each line are ignored. Input lines may have zero or more hex bytes;
 running over 16 bytes  is supported. Spaces between hex digits are ignored.
 An odd number of hex digits on a line results in an error.
 
-Setting -r causes all other options to be ignored except -u. It is
-possible to specify multiple input files.
+Setting -r causes all other options.
+It is possible to specify multiple input files.
 
 =item -s NUMBER
 
@@ -232,14 +373,20 @@ Skip a set NUMBER of bytes at the beginning of input. The number argument
 must be given in decimal. The offset number printed on output is advanced
 to reflect the skipped bytes.
 
+=item -v
+
+Duplicate lines of output are displayed.
+
+=item -x
+
+Format output as two-byte hexadecimal. This is the default.
+
 =back
 
 =head1 BUGS
 
 No option exists for setting an output filename, so the -r option will
 write binary data to a terminal if output is not redirected.
-
-No support for multi-byte hex display, or plain hex output.
 
 =head1 AUTHOR
 
