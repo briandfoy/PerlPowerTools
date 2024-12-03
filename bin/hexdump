@@ -57,18 +57,6 @@ sub doskip {
 }
 
 sub dump_c {
-    unless ($opt{'v'}) {
-        my $str = join '', @chars;
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
     printf "$fmt ", $adr;
     foreach my $c (@chars) {
         if ($c =~ m/[[:print:]]/) {
@@ -87,17 +75,6 @@ sub dump_c {
 
 sub dump_hex1 {
     my $str = join '', @chars;
-    unless ($opt{'v'}) {
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
     my $hex = unpack 'H*', $str;
     $hex =~ s/^(.{16})/$1 /;
     $hex =~ s/(\S{2})/ $1/g;
@@ -110,19 +87,8 @@ sub dump_hex1 {
 
 sub dump_hex2 {
     my $str = join '', @chars;
-    unless ($opt{'v'}) {
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
-    printf "$fmt ", $adr;
     my @words = unpack 'S*', $str;
+    printf "$fmt ", $adr;
     foreach my $i (@words) {
         printf '  %04x  ', $i;
     }
@@ -133,19 +99,8 @@ sub dump_hex2 {
 
 sub dump_dec2 {
     my $str = join '', @chars;
-    unless ($opt{'v'}) {
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
-    printf "$fmt ", $adr;
     my @words = unpack 'S*', $str;
+    printf "$fmt ", $adr;
     foreach my $i (@words) {
         printf ' %05d  ', $i;
     }
@@ -155,18 +110,6 @@ sub dump_dec2 {
 }
 
 sub dump_oct1 {
-    unless ($opt{'v'}) {
-        my $str = join '', @chars;
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
     printf "$fmt ", $adr;
     foreach my $c (@chars) {
         my $i = ord $c;
@@ -179,19 +122,8 @@ sub dump_oct1 {
 
 sub dump_oct2 {
     my $str = join '', @chars;
-    unless ($opt{'v'}) {
-        if ($str eq $prev) {
-            print "*\n" unless $dupl;
-            $dupl = 1;
-            $adr += scalar @chars;
-            undef @chars;
-            return;
-        }
-        $dupl = 0;
-        $prev = $str;
-    }
-    printf "$fmt ", $adr;
     my @words = unpack 'S*', $str;
+    printf "$fmt ", $adr;
     foreach my $i (@words) {
         printf ' %06o ', $i;
     }
@@ -205,7 +137,21 @@ sub dofile {
     my $c;
     while (defined($c = getchar())) {
         push @chars, $c;
-        &$dump if (scalar(@chars) == 16);
+        if (scalar(@chars) == 16) {
+            unless ($opt{'v'}) {
+                my $str = join '', @chars;
+                if ($str eq $prev) {
+                    print "*\n" unless $dupl;
+                    $dupl = 1;
+                    $adr += 16;
+                    undef @chars;
+                    next;
+                }
+                $dupl = 0;
+                $prev = $str;
+            }
+            &$dump;
+        }
         if ($opt{'n'} && $opt{'n'} == $nread) {
             return 1;
         }
