@@ -198,17 +198,20 @@ sub emit_offset {
 }
 
 sub dump_line {
-    if (&diffdata || $opt_v) {
+    unless ($opt_v) {
+	if (diffdata()) {
+	    $lastline = $data . '|';
+	    $ml = 0;
+	} else {
+	    print "*\n" unless $ml;
+	    $ml = 1;
+	}
+    }
+    unless ($ml) {
 	emit_offset();
 	&$fmt;
 	printf "$strfmt\n", @arr;
-	$ml = 0;
     }
-    else {
-	print "*\n" unless $ml;
-	$ml = 1;
-    }
-    $lastline = $data . '|';
     $offset1 += length $data;
     undef $data;
 }
