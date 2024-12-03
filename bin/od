@@ -28,7 +28,7 @@ $opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_v $opt_X $opt_x /;
 
 our $VERSION = '1.1';
 
-my ($offset1, $radix, $data, @arr, $len, $lim);
+my ($offset1, $radix, $data, @arr, $lim);
 my ($lastline, $strfmt, $ml);
 
 my %charescs = (
@@ -218,7 +218,7 @@ sub dump_file {
     my $buf;
 
     while (!limit_reached() && !eof($fh)) {
-	$len = read $fh, $buf, 1;
+	my $len = read $fh, $buf, 1;
 	unless (defined $len) {
 	    warn "$Program: read error: $!\n";
 	    $rc = EX_FAILURE;
@@ -236,7 +236,7 @@ sub do_skip {
     my $buf;
 
     while ($opt_j > 0) {
-	$len = read $fh, $buf, 1;
+	my $len = read $fh, $buf, 1;
 	if ($len == 0) {
 	    warn "$Program: skip past end of input\n";
 	    exit EX_FAILURE;
