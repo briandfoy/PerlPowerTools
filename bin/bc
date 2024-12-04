@@ -783,6 +783,8 @@ repository:
 
 use strict;
 
+use Math::Trig;
+
 # The symbol table : the keys are the identifiers, the value is in the
 # "var" field if it is a variable, in the "func" field if it is a
 # function.
@@ -2204,6 +2206,39 @@ sub bi_sqrt
   return sqrt($_);
 }
 
+# mathlib sine function
+sub bi_s
+{
+  my $stack = shift;
+
+  my $val = pop @$stack;
+  my $bignum = ref $val;
+  $val = $val->numify() if $bignum;
+  return sin($val);
+}
+
+# mathlib cosine function
+sub bi_c
+{
+  my $stack = shift;
+
+  my $val = pop @$stack;
+  my $bignum = ref $val;
+  $val = $val->numify() if $bignum;
+  return cos($val);
+}
+
+# mathlib arctan function
+sub bi_a
+{
+  my $stack = shift;
+
+  my $val = pop @$stack;
+  my $bignum = ref $val;
+  $val = $val->numify() if $bignum;
+  return Math::Trig::atan($val);
+}
+
 # Initialize the symbol table
 sub init_table
 {
@@ -2211,12 +2246,27 @@ sub init_table
   $sym_table{'ibase'} = { type => 'var', value => 0};
   $sym_table{'obase'} = { type => 'var', value => 0};
   $sym_table{'last'} = { type => 'var', value => 0};
-  $sym_table{'length()'} = { type => 'builtin',
-			   value => \&bi_length };
-  $sym_table{'scale()'} = { type => 'builtin',
-			   value => \&bi_scale };
-  $sym_table{'sqrt()'} = { type => 'builtin',
-			   value => \&bi_sqrt };
+
+  register_builtin('length', \&bi_length);
+  register_builtin('scale', \&bi_scale);
+  register_builtin('sqrt', \&bi_sqrt);
+  if ($mathlib) {
+    register_builtin('a', \&bi_a);
+    register_builtin('c', \&bi_c);
+    register_builtin('s', \&bi_s);
+  }
+}
+
+sub register_builtin {
+  my $name = shift;
+  my $func = shift;
+
+  $name .= '()';
+  if (exists $sym_table{$name}) {
+    die "conflicting builtin: $name\n";
+  }
+  $sym_table{$name} = { 'type' => 'builtin', 'value' => $func };
+  return;
 }
 
 #
@@ -2742,8 +2792,8 @@ select(STDERR);
 $| = 1;
 select(STDOUT);
 
-init_table();
 command_line();
+init_table();
 next_file();
 start_stmt();
 main();
@@ -2873,122 +2923,6 @@ define l(x) {
     v += e
   }
 }
-
-/* Sin(x)  uses the standard series:
-   sin(x) = x - x^3/3! + x^5/5! - x^7/7! ... */
-
-define s(x) {
-  auto  e, i, m, n, s, v, z
-
-  /* precondition x. */
-  z = scale
-  scale = 1.1*z + 2;
-  v = a(1)
-  if (x < 0) {
-    m = 1;
-    x = -x;
-  }
-  scale = 0
-  n = (x / v + 2 )/4
-  x = x - 4*n*v
-  if (n%2) x = -x
-
-  /* Do the loop. */
-  scale = z + 2;
-  v = e = x
-  s = -x*x
-  for (i=3; 1; i+=2) {
-    e *= s/(i*(i-1))
-    if (e == 0) {
-      scale = z
-      if (m) return (-v/1);
-      return (v/1);
-    }
-    v += e
-  }
-}
-
-/* Cosine : cos(x) = sin(x+pi/2) */
-define c(x) {
-  auto v;
-  scale += 1;
-  v = s(x+a(1)*2);
-  scale -= 1;
-  return (v/1);
-}
-
-/* Arctan: Using the formula:
-     atan(x) = atan(c) + atan((x-c)/(1+xc)) for a small c (.2 here)
-   For under .2, use the series:
-     atan(x) = x - x^3/3 + x^5/5 - x^7/7 + ...   */
-
-define a(x) {
-  auto a, e, f, i, m, n, s, v, z
-
-  /* a is the value of a(.2) if it is needed. */
-  /* f is the value to multiply by a in the return. */
-  /* e is the value of the current term in the series. */
-  /* v is the accumulated value of the series. */
-  /* m is 1 or -1 depending on x (-x -> -1).  results are divided by m. */
-  /* i is the denominator value for series element. */
-  /* n is the numerator value for the series element. */
-  /* s is -x*x. */
-  /* z is the saved user's scale. */
-
-  /* Negative x? */
-  m = 1;
-  if (x<0) {
-    m = -1;
-    x = -x;
-  }
-
-  /* Special case and for fast answers */
-  if (x==1) {
-    if (scale <= 25) return (.7853981633974483096156608/m)
-    if (scale <= 40) return (.7853981633974483096156608458198757210492/m)
-    if (scale <= 60) \
-      return (.785398163397448309615660845819875721049292349843776455243736/m)
-  }
-  if (x==.2) {
-    if (scale <= 25) return (.1973955598498807583700497/m)
-    if (scale <= 40) return (.1973955598498807583700497651947902934475/m)
-    if (scale <= 60) \
-      return (.197395559849880758370049765194790293447585103787852101517688/m)
-  }
-
-
-  /* Save the scale. */
-  z = scale;
-
-  /* Note: a and f are known to be zero due to being auto vars. */
-  /* Calculate atan of a known number. */
-  if (x > .2)  {
-    scale = z+5;
-    a = a(.2);
-  }
-
-  /* Precondition x. */
-  scale = z+3;
-  while (x > .2) {
-    f += 1;
-    x = (x-.2) / (1+x*.2);
-  }
-
-  /* Initialize the series. */
-  v = n = x;
-  s = -x*x;
-
-  /* Calculate the series. */
-  for (i=3; 1; i+=2) {
-    e = (n *= s) / i;
-    if (e == 0) {
-      scale = z;
-      return ((f*a+v)/m);
-    }
-    v += e
-  }
-}
-
 
 /* Bessel function of integer order.  Uses the following:
    j(-n,x) = (-1)^n*j(n,x)
