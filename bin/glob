@@ -249,7 +249,7 @@ sub match_glob($) {
     }
 
     # debugging
-    print "regexp is $_\n" if ($verbose);
+    warn "regexp is $_\n" if $verbose;
 
     # now split it into directory components
     my @comps = split($dirsep);
@@ -287,7 +287,7 @@ sub recurseglob($ $ @) {
         # look for found, and if you find one, glob the rest of the
         # components. We eval the loop so the regexp gets compiled in,
         # making searches on large directories faster.
-        print "component re is qr($re)\n" if ($verbose);
+        warn "component re is qr($re)\n" if $verbose;
         my $regex = qr($re);
         foreach (@names) {
             if ( m{$regex} ) {
