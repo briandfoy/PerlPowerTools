@@ -204,7 +204,7 @@ $matched = 0;
 # recursively wildcard expand a list of strings
 #
 
-sub match_glob($) {
+sub match_glob {
     local $_ = shift;
 
     $matched = 0;
@@ -267,7 +267,7 @@ sub match_glob($) {
     return sort(@res);
 }
 
-sub recurseglob($ $ @) {
+sub recurseglob {
     my($dir, $dirname, @comps) = @_;
     my(@res) = ();
     my($re, @names);
@@ -315,13 +315,13 @@ my %map_esc = ( '\\\\' => "\001",
               );
 my %unmap_esc = reverse %map_esc;
 
-sub escape_glob($) {
+sub escape_glob {
     local $_ = shift;
     s/( \\\\ | \\\{ | \\\} | \{\} )/$map_esc{$1}/gex;
     $_;
 }
 
-sub unescape_glob($) {
+sub unescape_glob {
     local $_ = shift;
     s/([\001-\004])/$unmap_esc{$1}/ge;
     $_;
@@ -334,7 +334,7 @@ sub unescape_glob($) {
 #    So, for example, explode("ab{c,d}ef{g,h}ij") would be the
 #    resulting list: qw(abcefgij abdefgij abcefhij abdefhij)
 #
-sub explode_glob($) {
+sub explode_glob {
     local $_ = shift;
 
     # Escape special characters and sequences
@@ -404,7 +404,7 @@ sub explode_glob($) {
 # glob()
 #    explode a glob into words and match it against filenames
 #
-sub glob($) {
+sub glob {
     local $_ = shift;
     my @globbed = ();
     my @errmsgs = ();
