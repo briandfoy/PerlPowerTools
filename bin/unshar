@@ -11,6 +11,7 @@ License: perl
 
 =cut
 
+use Getopt::Std qw(getopts);
 
 #
 # unshar - extract files from a shell archive
@@ -18,17 +19,11 @@ License: perl
 # v 1.1 by Larry Wall
 # v 1.2 by Fuzzy - uudecode, chmod, touch, $variables, `backticks`, if/else/fi
 
-while (@ARGV && $ARGV[0] =~ s/^-//) {
-    local $_ = shift;
-    last if $_ eq '-'; # '--' terminator
-    while (/([cdfq])/g) {
-	if ($1 eq 'd') {
-	    $opts{'d'} = /\G(.*)/g && $1 ? $1 : shift;
-	} else {
-	    $opts{$1}++;
-	}
-    }
-}
+my %opts;
+getopts('cd:fq', \%opts) or do {
+    warn "usage: unshar [-d dir] [-cfq] file ...\n";
+    exit 1;
+};
 
 local $SIG{__WARN__} = $opts{'q'} ? sub {} : sub { print @_ };
 
