@@ -216,6 +216,10 @@ sub xd {
     if (@ARGV) {
         while (@ARGV) {
             my $path = shift @ARGV;
+            if (-d $path) {
+                warn "$Program: $path: is a directory\n";
+                next;
+            }
             unless (open $curf, '<', $path) {
                 warn "$Program: $path: $!\n";
                 exit EX_FAILURE;
