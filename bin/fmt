@@ -11,9 +11,7 @@ License: perl
 
 =cut
 
-
 use strict;
-use warnings;
 
 use File::Basename qw(basename);
 use Getopt::Long;
@@ -21,9 +19,12 @@ use Getopt::Long;
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
+use constant MAX => 75;
+
 my $Program = basename($0);
 
-my $MAX_WIDTH = 75;
+my $MAX_WIDTH = MAX;
+my @linedesc;
 
 @ARGV = new_argv();
 Getopt::Long::config('bundling');
@@ -34,17 +35,6 @@ if ($MAX_WIDTH <= 0) {
     warn "$Program: width must be positive\n";
     exit EX_FAILURE;
 }
-
-my $fmt_line = '<' x $MAX_WIDTH;
-
-my $line;
-
-eval <<"FORMAT";
-format =
-^$fmt_line~~
-\$line
-.
-FORMAT
 
 my $rc = EX_SUCCESS;
 foreach my $file (@ARGV) {
@@ -68,8 +58,8 @@ foreach my $file (@ARGV) {
 unless (@ARGV) {
     fmt_file(*STDIN);
 }
-if (length $line) {
-    do write while length $line;
+while (@linedesc) {
+    fmt_line() # remainder
 }
 exit $rc;
 
@@ -83,21 +73,87 @@ sub fmt_file {
 
     while (<$fh>) {
         chomp;
-        if (length) {
-            if (length $line) {
-                my $last_char = substr $line, -1, 1;
-                if ('.' eq $last_char) {
-                    $line .= "  ";
-                } elsif (' ' ne $last_char and "\t" ne $last_char) {
-                    $line .= " ";
-                }
+        fmt_line();
+        my @line = split_line($_);
+        push @linedesc, @line;
+    }
+}
+
+sub split_line {
+    my $line = shift;
+
+    my $indent = 0;
+    if ($line =~ s/\A(\s+)//) {
+        $indent = length $1;
+    }
+    my @tok;
+    while (length $line) {
+        if ($line =~ s/\A(\S+)//) {
+            my $t = {};
+            $t->{'indent'} = $indent;
+            $t->{'word'}   = $1;
+            $t->{'len'}    = length $1;
+            $t->{'suffix'} = 1;
+            if ($line =~ s/\A(\s+)//) {
+                $t->{'suffix'} = length $1;
             }
-            $line .= $_;
-        } else {
-            do write while length $line;
-            print "\n";
+            push @tok, $t;
         }
     }
+    my $end = { 'len' => 0 };
+    push @tok, $end;
+    return @tok;
+}
+
+sub fmt_line {
+    return unless @linedesc;
+
+    my $max = int($MAX_WIDTH * 1.05);
+    my $remain = $max;
+    my (@out, $tok);
+    my $indent;
+
+    while (@linedesc) {
+        $tok = shift @linedesc;
+        if ($tok->{'len'} == 0) {
+            next unless @linedesc;
+            next if $linedesc[0]->{'len'} != 0; # "\n\n" paragraph
+            shift @linedesc;
+            $tok->{'len'} = 1;
+            $tok->{'word'} = "\n";
+            $tok->{'suffix'} = 0;
+            $tok->{'indent'} = 0;
+        }
+        unless (defined $indent) {
+            $indent = $tok->{'indent'};
+            $remain -= $indent;
+        }
+        my $len = $tok->{'len'} + $tok->{'suffix'};
+        if (@out) {
+            if ($remain - $len < 0) { # word overrun
+                unshift @linedesc, $tok;
+                last;
+            }
+            if ($out[-1]->{'len'} && $out[-1]->{'indent'} != $tok->{'indent'}){
+                unshift @linedesc, $tok; # mismatch indent paragraph
+                last;
+            }
+        }
+        $remain -= $len;
+        push @out, $tok;
+    }
+
+    return unless @out;
+    my $s = ' ' x $out[0]->{'indent'};
+    print $s;
+
+    foreach $tok (@out) {
+        $s = $tok->{'word'};
+        $s .= ' ' x $tok->{'suffix'};
+        print $s;
+    }
+    print "\n";
+    return;
 }
 
 # Take care of special case, bare -width option
