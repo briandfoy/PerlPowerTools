@@ -24,8 +24,6 @@ License: perl
 # 99/03/02 : first version
 #
 
-$| = 1;
-
 use strict;
 
 use File::Basename qw(basename);
@@ -38,6 +36,8 @@ use constant EX_FAILURE => 1;
 use vars qw($opt_b $opt_c $opt_f $opt_n $opt_r);
 
 my $me = basename $0;
+
+$| = 1;
 
 sub usage
 {
@@ -58,7 +58,7 @@ my $block_size = 512;
 
 # Command-line parsing
 
-sub check_number($)
+sub check_number
 {
     my $opt = shift;
     if ($opt =~ m/\A\+(\d+)\Z/) {
@@ -91,7 +91,7 @@ sub new_argv
     return @new;
 }
 
-sub parse_args()
+sub parse_args
 {
     my $files;
     my $point=-10;
@@ -134,7 +134,7 @@ sub parse_args()
 
 # Prints the tail of a file according to the options passed on the
 # command line.
-sub print_tail(*$$$)
+sub print_tail
 {
     my ($fh, $f, $point, $type) = @_;
 
@@ -241,7 +241,7 @@ my %info;
 my @filelist;
 my @dirlist;
 
-sub get_existing_files(\@\@)
+sub get_existing_files
 {
     my ($filelist, $dirlist) = @_;
 
@@ -272,11 +272,11 @@ sub get_existing_files(\@\@)
 # xtail C source code, improvements could be obtained using fstat() on file
 # handles instead of stat(). I'll do something if people need it.
 
-sub tail_f(\@\@$$)
+sub tail_f
 {
-    @filelist = @{shift @_};
-    @dirlist = @{shift @_};
-    my ($point, $type) = @_;
+    my ($files, $dirs, $point, $type) = @_;
+    @filelist = @{ $files };
+    @dirlist = @{ $dirs };
 
     local $SIG{'INT'}  = \&handle_INT;
     local $SIG{'QUIT'} = sub { exit 0 }; # do not core dump
@@ -287,7 +287,7 @@ sub tail_f(\@\@$$)
     (undef, $ino, undef, undef, undef, undef, undef, $size,
      undef, $mtime) = stat($_);
     $info{$_} = [$ino, $size, $mtime];
-    } get_existing_files(@filelist, @dirlist);
+    } get_existing_files($files, $dirs);
 
     my $current;
 
@@ -301,7 +301,7 @@ sub tail_f(\@\@$$)
             # Set size to zero to print the whole new file
             $info{$_} = [$ino, 0, $mtime];
             }
-        } get_existing_files(@filelist, @dirlist);
+        } get_existing_files($files, $dirs);
 
         # Loop on files
         for my $file (keys %info) {
@@ -331,7 +331,7 @@ sub tail_f(\@\@$$)
                 print "\n*** '$file' has been truncated or replaced ***\n";
                 print "\n*** $file ***\n";
                 $current = $file;
-                print_tail \*FH, $file, $point, $type;
+                print_tail(\*FH, $file, $point, $type);
                 close FH;
             }
             elsif($size > $oldsize)
@@ -364,7 +364,7 @@ sub tail_f(\@\@$$)
 }
 
 # Prints the recently changed files, the most recent first
-sub handle_INT()
+sub handle_INT
 {
     print "\n*** recently changed files ***\n";
 
@@ -373,7 +373,7 @@ sub handle_INT()
         print sprintf("%3d  %s  %s", $i, scalar localtime($info{$f}[2]), $f)."\n";
         $i++;
     }
-    my @existing = get_existing_files(@filelist, @dirlist);
+    my @existing = get_existing_files(\@filelist, \@dirlist);
     my @unknown = grep {! -e $_} @filelist;
 
     print "currently watching: ".
@@ -388,7 +388,7 @@ sub handle_INT()
 #
 # Main function
 #
-sub handle_args($$$)
+sub handle_args
 {
     my ($point, $type, $files_) = @_;
     my $rc = EX_SUCCESS;
@@ -428,7 +428,7 @@ sub handle_args($$$)
         # Do not print the tail of the files if we are using xtail
         unless($me eq "xtail") {
             print "==> $file <==\n" if(scalar @files >= 2);
-            print_tail \*FH, $file, $point, $type;
+            print_tail(\*FH, $file, $point, $type);
             print "\n" if(++$i < scalar(@files));
         }
 
@@ -436,11 +436,11 @@ sub handle_args($$$)
     }
 
     if($opt_f or ($me eq "xtail")) {
-        tail_f(@files, @dirs, $point, $type);
+        tail_f(\@files, \@dirs, $point, $type);
     }
 
     } else {
-        print_tail \*STDIN, "stdout", $point, $type;
+        print_tail(\*STDIN, "stdout", $point, $type);
         # Ignore the -f option
     }
     return $rc;
