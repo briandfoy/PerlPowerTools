@@ -2162,6 +2162,7 @@ sub bi_length
   my $stack = shift;
 
   $_ = pop @$stack;
+  die "length(n): missing argument\n" unless defined;
 
   my ($a, $b);
   die "NaN" unless ($a, $b) = /[-+]?(\d*)\.?(\d+)?/;
@@ -2179,6 +2180,7 @@ sub bi_scale
   my $stack = shift;
 
   $_ = pop @$stack;
+  die "scale(n): missing argument\n" unless defined;
 
   my ($a, $b);
   die "NaN" unless ($a, $b) = /[-+]?(\d*)\.?(\d+)?/;
@@ -2191,6 +2193,7 @@ sub bi_sqrt
   my $stack = shift;
 
   $_ = pop @$stack;
+  die "sqrt(n): missing argument\n" unless defined;
 
   return sqrt($_);
 }
@@ -2201,6 +2204,7 @@ sub bi_s
   my $stack = shift;
 
   my $val = pop @$stack;
+  die "s(n): missing argument\n" unless defined $val;
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return sin($val);
@@ -2212,6 +2216,7 @@ sub bi_c
   my $stack = shift;
 
   my $val = pop @$stack;
+  die "c(n): missing argument\n" unless defined $val;
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return cos($val);
@@ -2223,6 +2228,7 @@ sub bi_a
   my $stack = shift;
 
   my $val = pop @$stack;
+  die "a(n): missing argument\n" unless defined $val;
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return Math::Trig::atan($val);
@@ -2234,6 +2240,7 @@ sub bi_l
   my $stack = shift;
 
   my $val = pop @$stack;
+  die "l(n): missing argument\n" unless defined $val;
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return log($val);
@@ -2245,6 +2252,7 @@ sub bi_e
   my $stack = shift;
 
   my $val = pop @$stack;
+  die "e(n): missing argument\n" unless defined $val;
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return exp($val);
@@ -2257,6 +2265,7 @@ sub bi_j
 
   my $val = pop @$stack;
   my $n = pop @$stack;
+  die "j(n,x): missing argument\n" if (!defined($n) || !defined($val));
   my $bignum = ref $val;
   $val = $val->numify() if $bignum;
   return POSIX::jn($n, $val);
