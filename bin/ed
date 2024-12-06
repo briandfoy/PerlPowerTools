@@ -113,7 +113,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -273,6 +273,11 @@ sub maxline {
         $n = 0;
     }
     return $n;
+}
+
+sub getrc {
+    return EX_FAILURE if defined $Error;
+    return EX_SUCCESS;
 }
 
 sub edChangeLines {
@@ -646,7 +651,7 @@ sub edWrite {
 
     $NeedToSave = $UserHasBeenWarned = 0;
     print "$chars\n" unless $Scripted;
-    exit EX_SUCCESS if $qflag;
+    exit getrc() if $qflag;
     return;
 }
 
@@ -815,7 +820,7 @@ sub edQuit {
         $UserHasBeenWarned = 1;
         return E_UNSAVED;
     }
-    exit EX_SUCCESS;
+    exit getrc();
 }
 
 #
@@ -1237,6 +1242,16 @@ Write buffer to file, then quit
 =item =
 
 Display current line number
+
+=back
+
+=head1 EXIT STATUS
+
+=over 4
+
+=item * 0 - All commands were processed successfully
+
+=item * 1 - An error occurred
 
 =back
 
