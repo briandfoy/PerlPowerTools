@@ -109,7 +109,6 @@ When invoking B<glob> as a function from the C<FastGlob> module, There
 are several module-local variables that can be set for alternate
 environments, they are listed below with their (UNIX-ish) defaults.
 
-        $FastGlob::dirsep = '/';        # directory path separator
         $FastGlob::rootpat = '\A\Z';    # root directory prefix pattern
         $FastGlob::curdir = '.';        # name of current directory in dir
         $FastGlob::parentdir = '..';    # name of parent directory in dir
@@ -117,7 +116,6 @@ environments, they are listed below with their (UNIX-ish) defaults.
 
 So for MS-DOS for example, you could set these to:
 
-        $FastGlob::dirsep = '\\';       # directory path separator
         $FastGlob::rootpat = '[A-Z]:';  # <Drive letter><colon> pattern
         $FastGlob::curdir = '.';        # name of current directory in dir
         $FastGlob::parentdir = '..';    # name of parent directory in dir
@@ -178,19 +176,21 @@ plain alternation), and made callable as a standalone script.
 =cut
 
 use Exporter ();
+use File::Spec;
+
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
-$VERSION = 1.2_05;
+$VERSION = 1.2_06;
 @ISA = qw(Exporter);
 @EXPORT = qw(&glob);
-@EXPORT_OK = qw(dirsep rootpat curdir parentidr hidedotfiles);
+@EXPORT_OK = qw(dirsep rootpat curdir parentdir hidedotfiles);
 
 # platform specifics
 
 use vars qw($dirsep $rootpat $curdir $parentdir $hidedotfiles $nested);
 use vars qw($verbose $matched @errors);
 
-$dirsep = '/';
+$dirsep = getdirsep();
 $rootpat= '\A\Z';
 $curdir = '.';
 $parentdir = '..';
@@ -265,6 +265,12 @@ sub match_glob {
 
     $matched = @res;
     return sort(@res);
+}
+
+sub getdirsep {
+    my $sep = File::Spec->catfile('a', 'a');
+    $sep =~ s/a//g;
+    return $sep;
 }
 
 sub recurseglob {
