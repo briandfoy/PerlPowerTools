@@ -97,7 +97,7 @@ those CPAN web interfaces, but you can also look at files directly in
 the source repository: L<https://github.com/briandfoy/PerlPowerTools>
 
 If you find a problem, file a ticket in the L<issue
-tracker|https://github.com/briandfoy/PerlPowerTools/issues>/
+tracker|https://github.com/briandfoy/PerlPowerTools/issues>.
 
 Starting with v1.046, PerlPowerTools now uses
 L<GitHub Attestations|https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>,
