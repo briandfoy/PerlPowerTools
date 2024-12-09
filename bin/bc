@@ -681,7 +681,7 @@ The library provides these functions:
 
 =item * e(X) - the natural base, e, raised to the X power
 
-=item * j(X) - the Bessel function of order X, where X is an integer
+=item * j(n,x) - the Bessel function of order n, where n is an integer
 
 =item * l(X) - the natural logarithm of X
 
