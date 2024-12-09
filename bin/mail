@@ -634,12 +634,13 @@ EDLOOP: {
 package main;
 
 use File::Basename qw(basename);
+use File::Spec;
 use File::Temp;
 use Getopt::Std;
 
 use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $ROWS = 23;         # Screen Dimensions.  Yeah, this sucks.
 our $COLS = 80;
 our $BUFFERL = 2;	  # Lines needed for "fluff"
@@ -1044,27 +1045,30 @@ sub VERSION_MESSAGE {
 	exit;
 }
 
-getopts("f:s:c:b:v") || die <<USAGE;
-usage: $Program [-s subject] [-c cc-addrs] [-b bcc-addrs] to-addr [..toaddr..]
-   or: $Program [-f mailbox]
-USAGE
+sub usage {
+	warn "usage: $Program [-s subject] [-c cc-addrs] [-b bcc-addrs] " .
+	    "to-addr ...\n       $Program [-f mailbox]\n";
+	exit 1;
 
-if (@ARGV) {   # Assume batch-mode
+}
+
+getopts('f:s:c:b:v') or usage();
+if (@ARGV) {
+	if (defined $opt_f) {
+		warn "$Program: to-addr may not be specified with a mailbox\n";
+		usage();
+	}
 	Batch(@ARGV);
 } else {
+	my $mbox = 'mbox';
 	if (defined $opt_f) {
-		Interactive($opt_f);
-	} else {
-		if (exists $ENV{MAIL}) {
-			Interactive($ENV{MAIL});
-		} else {
-			if (! exists $ENV{HOME}) {
-				Interactive("mbox");
-			} else {
-				Interactive($ENV{HOME} . "/mbox");
-			}
-		}
+		$mbox = $opt_f;
+	} elsif (exists $ENV{'MAIL'}) {
+		$mbox = $ENV{'MAIL'};
+	} elsif (exists $ENV{'HOME'}) {
+		$mbox = File::Spec->catfile($ENV{'HOME'}, 'mbox');
 	}
+	Interactive($mbox);
 }
 
 =pod
