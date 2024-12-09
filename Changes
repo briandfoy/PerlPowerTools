@@ -1,5 +1,170 @@
 Revision history for Perl module PerlPowerTools
 
+1.048 2024-12-09T21:14:46Z
+	* All changes from Michael Mikonos
+	* apply
+		- allow a space after -a so it isn't confused with bundled options (#806)
+	* bc
+		- use Math::Trig (released with 5.004) for trig (#857)
+		- change for GNU mathlib to internal perl (#861)
+		- catch situations where there are missing arguments to functions (#865)
+		- simplify docs and correct some typos (#868)
+	* cal
+		- silence some warnings with better checks (#805)
+	* chgrp
+		- accept group ID argument (#798)
+	* chmod
+		- various internals improvements (#813)
+		- exit with 1 if a file fails (#814)
+		- check for redline failures and exit with failure code when they fail (#828)
+		- handle symbolic permissions correctly  (#843)
+	* chown
+		- allow numeric UID argument (#804)
+		- allow for numeric group in user:group notation (#822)
+	* cmp
+		- better messages when files differ at end of file (#766)
+	* cp
+		- cp -i will continue to next file if there is an error. (#827)
+	* cut
+		- correctly handle "start, no end" (`n-`) range in `-b` (#783)
+		- handle -f consistently (#789)
+	* du
+		- properly handle illegal BLOCKSIZE env values (#784)
+		- exit code 1 on error (#818)
+	* ed
+		- w commands prints byte count when ed is started without a filename (#760)
+		- correctly escape literal $ in binary output (#762)
+		- various internals improvements (#763)
+		- an empty search reuses the previous search (#764)
+		- add g command to grep a buffer (#765)
+		- -s now also suppresses diagnostics when editing a file (#767)
+		- allow repeated search with // and ?? (#768)
+		- add v command for inverted searches (#770)
+		- various internals improvements (#771)
+		- various internals improvements (#772)
+		- re-add support for /re/ address-mode (#773)
+		- support ?re? address mode (#774)
+		- various internals improvements (#775)
+		- various internals improvements (#777)
+		- various internals improvements (#780)
+		- % takes OpenBSD meaning of "all addresses"; it can only be used alone (#782)
+		- implement global substitute: g/search1/s/search2/replace/ allows search1 to filter the lines to process, then search2 determines the text to replace per line (#786)
+		- implement repeat search for g// & v// (#787)
+		- various internals improvements (#788)
+		- make wq shortcut work again after previous fix changed it (#790)
+		- implement ';' addressing mode (#792)
+		- remove -d (debugging) switch since the debugging output isn't that helpful (#793)
+		- support '^' addressing (#797)
+		- various internals improvements (#808)
+		- basic support for mark (K) command (#812)
+		- implement reading output from a command (`r !cmd`) and writing to a command (`w !cmd`), and reject filenames that start with ! for f command. (#824)
+		- various internals improvements (#829)
+		- m command accepts address argument (#830)
+		- various internals improvements (#831)
+		- various internals improvements (#834)
+		- disallow trailing '/' when setting filename (#845)
+		- reject filename of '.' or '..' (#849)
+		- always exit with 1 for failure (#863)
+		- add undo (u) command (#869)
+		- update current line in undo (#871)
+	* expr
+		- == is no longer accepted as a synonym for = since this is not a standard option (#751)
+		- numbers can start with +  (#836)
+		- ignore -- if it's the first argument (fatal is it is the only argument) (#840)
+	* file
+		- -f works properly by checking the definedness of its argument instead of truthiness, and chomps the lines it reads. (#769)
+	* fmt
+		- use GNU's method for formatting so single words aren't broken up (#866)
+	* fold
+		- fix possbile infinite loop in -bs (#796)
+		- improve usage message (no longer takes a parameter) (#835)
+	* glob
+		- various internals improvements (#848)
+		- debug info goes to STDERR instead of STDOUT (#855)
+		- silence some warnings by removing prototypes (#859)
+		- various internals improvements (#862)
+		- with ~someuser, if that user is not found, treat it as a non-match instead of an error (#867)
+	* grep
+		- be more careful with handling the TERM env var  (#749)
+		- various internals improvements (#756)
+		- allow multiple -e or -f on the command line (#757)
+		- -Fi shows original line, not line as all lowercase (#776)
+		- -a (binary files) changed to act like the OpenBSD/GNU by printing the "line" that matched (#795)
+		- add -Z to operate in zgrep mode (don't automatically decompress everything) (#799)
+		- Remove -1 switch. Use -m 1 instead, for GNU compatibility (#809)
+		- implement -A for context after a match (#810)
+		- various internals improvements (#811)
+		- add -I (capital i) switch to ignore binary files (#815)
+		- make space after -e or -f optional (#816)
+		- remove -p and -P for paragraph mode, which was a non-standard perl extension (#817)
+		- make -R a synonym for -r (#820)
+		- return no match exit code for an empty pattern file used with -f (#821)
+		- various internals improvements (#826)
+	* hangman
+		- consistently handle eof when there is not a guess (#842)
+	* hexdump
+		- remove non-standard -u (unbuffered) option (#847)
+		- add -b, -d, -o and -x format options (#850)
+		- various internals improvements (#851)
+		- don't die for directory argument; warn and move to next argument (#858)
+	* id
+		- exit 1 on failure (not die with 255) (#846)
+	* install
+		- allow mode to be 0 (make thing temporarily unavailable even when installed) (#837)
+		- implement -b to preserve existing files  (#839)
+		- handle symbolic permissions correctly (#841)
+	* kill
+		- remove undocumented -L option, which was the same as -l (lowercase) (#778)
+		- various internals improvements (#781)
+	* ls
+		- don't automatically opendir everything (#801)
+	* mail
+		- don't die for message id 0 (#785)
+		- trim leading spaces from command input (#800)
+		- use VISUAL for the path to vi, or look for vi in the PATH (#823)
+		- various internals improvements (#825)
+		- various internals improvements (#832)
+		- add --version and improve usage message (#833)
+		- -f usage forbids extra args  (#870)
+	* mkdir
+		- default permissions are 0777 unless you specify them (#854)
+	* od
+		- various internals improvements (#852)
+		- various internals improvements (#853)
+	* par
+		- change to using getopts, so now unrecognized options complain (#752)
+	* patch
+		- note that patch exists with 0 for success (#779)
+	* pr
+		- allow 0 to be a valid header (check for definedness, not truth) (#791)
+	* rmdir
+		- test that an argument is a directory before trying to remove it (better error message) (#803)
+	* spell
+		- various internals improvements (#838)
+	* split
+		- allow /0/ pattern split (check pattern is defined, not true) (#807)
+	* tail
+		- use File::Spec to construct paths portably (#856)
+		- some fixups to make strict happy (#864)
+	* tsort
+		- raise error for an odd number of input tokens (#758)
+		- various internals improvements (#759)
+		- allow nodes to refer to themselves (has no dependency). This previously created a cycle error. (#761)
+	* uniq
+		- arguments are now exactly one input file and optionally one output file (#819)
+	* units
+		- allow -fFILE (no space before argument) (#844)
+	* unshar
+		- change to Getopt::Std (#860)
+	* what
+		- various internals improvements (#750)
+		- handle -s and nulls properly (#753)
+		- exit with 0 only if there are matches (#754)
+		- various internals improvements (#755)
+		- line prefix is a tab instead of eight spaces (#794)
+	* wump
+		- various internals improvements (#802)
+
 1.047 2024-09-30T02:33:14Z
 	* All changes from Michael Mikonos
 	* addbib
