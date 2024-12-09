@@ -90,42 +90,6 @@ C<bc> will never read from the standard input.)
 C<bc> will terminate interactive input via stdin if you enter C<quit>
 or press C<CTRL-C>.
 
-=head1 OPTIONS
-
-C<bc> takes the following options from the command line:
-
-=over 4
-
-=item -b
-
-Use Math::BigFloat for arbitrarily large number support.
-
-=item -d
-
-Print debugging data (using Data::Dumper).
-
-=item -y
-
-Turn on parser debugging.
-
-=begin comment      ### -l hidden because it generate syntax errors
-
-=item -l
-
-Define the standard math library.
-
-=end comment
-
-=begin comment      ### -h and hidden because it's not supported
-
-=item -h
-
-Print the documentation.
-
-=end comment
-
-=back
-
 =head1 BASIC ELEMENTS
 
 =head2 Numbers
@@ -395,7 +359,7 @@ The result is 1 if either expression is non-zero.
 
 The expression precedence is as follows: (lowest to highest)
 
-	= += etc     operators (assigment)   right associative
+	= += etc     operators (assignment)  right associative
 	||           OR operator             left associative
 	&&           AND operator            left associative
 	!            NOT operator            nonassociative
@@ -606,45 +570,6 @@ example, C<if (0 == 1) quit> will cause C<bc> to terminate.
 
 =back
 
-=begin comment      ### hidden because functions aren't working
-
-=head1 MATH LIBRARY FUNCTIONS
-
-If C<bc> is invoked with the C<-l> option, a math library is preloaded
-and the default SCALE is set to 20. The math functions will calculate
-their results to the scale set at the time of their call. The math
-library defines the following functions:
-
-=over 4
-
-=item C<s (X)>
-
-The sine of X, X is in radians.
-
-=item C<c (X)>
-
-The cosine of X, X is in radians.
-
-=item C<a (X)>
-
-The arctangent of X, arctangent returns radians.
-
-=item C<l (X)>
-
-The natural logarithm of X.
-
-=item C<E (X)>
-
-The exponential function of raising E to the value X.
-
-=item C<J (N,X)>
-
-The bessel function of integer order N of X.
-
-=back
-
-=end comment
-
 =head1 EXAMPLE
 
 The following illustrates how C<bc> expressions can be written in
@@ -688,7 +613,7 @@ extensions to GNU C<bc>. However, some features and extensions are
 either not supported or are not working.
 
 Perhaps the biggest non-working feature would be Function definitions
-via the C<define> syntax, which if used generats syntax errors. As a
+via the C<define> syntax, which if used generates syntax errors. As a
 consequence, the -l option (to load math library definitions) doesn't
 work either.
 
@@ -729,7 +654,7 @@ The following C<bc> features are not supported in this implementation.
 	* "warranty" pseudo statement
 	* function definitions
 
-In addition, the GNU implementation set the precedence of assignent
+In addition, the GNU implementation set the precedence of assignment
 below + and - and above relational operators (< > etc). This
 implementation seems to make it the lowest precedence (i.e. below ||),
 as most perl (and C) users would expect.
