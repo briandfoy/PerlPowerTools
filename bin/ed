@@ -92,6 +92,7 @@ my %marks;
 my $isGlobal;
 my $HelpMode = 0;
 my $UndoFile;
+my $UndoLine;
 
 # constants
 
@@ -269,14 +270,16 @@ sub input {
         return;
     }
 
-    my $saved_buf;
+    my ($saved_buf, $saved_ln);
     if (!exists($ro_cmds{$command})) {
         $saved_buf = write_undo();
+        $saved_ln = $CurrentLineNum;
     }
     my $err = $func->();
     edWarn($err) if $err;
     if ($NeedToSave && $saved_buf) {
         $UndoFile = $saved_buf;
+        $UndoLine = $saved_ln;
     }
     return;
 }
@@ -839,6 +842,7 @@ sub edUndo {
     return E_ARGEXT if defined $args[0];
     return E_UNDO unless defined $UndoFile;
 
+    $CurrentLineNum = $UndoLine;
     @lines = <$UndoFile>;
     unshift @lines, undef;
     $UserHasBeenWarned = 0;
@@ -1270,6 +1274,7 @@ The current address is set to the last line copied.
 =item u
 
 Undo the last command, restoring the editor buffer to its previous state.
+The current address is set to what it was before the previous command.
 The undo function is its own inverse, so multiple levels of undo are not possible.
 
 =item W [FILE]
