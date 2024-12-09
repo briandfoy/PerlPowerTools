@@ -33,22 +33,10 @@ License: gpl
 #
 # Irony:  This was, of course, edited originaly with emacs...
 #
-# Commentary:
-#        The guiding principals of this implentation are:
-#                - Functionality
-#                - Understandability
-#
-#        "perl coolness" was not a guiding principal, as the author is at best
-#        an accomplished perl user.  If you like the program, use it.
-#        If you don't, don't.
-#
 # Legaleese:
 #        This program is released under the GNU Public License.
 #
 # Todo:
-#        - Implement the following commands from the v7 docs:
-#                u - undo
-#
 #        - add a "-e" flag to allow it to be used in sed(1) like fashion.
 #        - add buffer size limitations for strict compatability
 #        - discard NULS, chars after \n
@@ -57,6 +45,7 @@ License: gpl
 
 use strict;
 
+use File::Temp qw();
 use Getopt::Std qw(getopts);
 
 use constant A_NOMATCH => -1;
@@ -79,6 +68,7 @@ use constant E_CMDBAD  => 'unknown command';
 use constant E_PATTERN => 'invalid pattern delimiter';
 use constant E_NOMATCH => 'no match';
 use constant E_NOPAT   => 'no previous pattern';
+use constant E_UNDO    => 'nothing to undo';
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
@@ -101,6 +91,7 @@ my @args;                       # command arguments (filenames, search patterns.
 my %marks;
 my $isGlobal;
 my $HelpMode = 0;
+my $UndoFile;
 
 # constants
 
@@ -113,7 +104,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -185,8 +176,28 @@ my %cmdtab = (
     'E' => \&edEdit,
     'e' => \&edEditAsk,
     'r' => \&edRead,
+    'u' => \&edUndo,
     '_' => \&edSetCurrentLine,
     'nop' => sub {},
+);
+
+my %ro_cmds = (
+    '!' => 1,
+    '=' => 1,
+    'f' => 1,
+    'P' => 1,
+    'p' => 1,
+    'H' => 1,
+    'h' => 1,
+    'k' => 1,
+    'n' => 1,
+    'l' => 1,
+    'Q' => 1,
+    'q' => 1,
+    'W' => 1,
+    'w' => 1,
+    '_' => 1,
+    'nop' => 1,
 );
 
 $SIG{HUP} = sub {
@@ -257,8 +268,16 @@ sub input {
         edWarn(E_CMDBAD);
         return;
     }
+
+    my $saved_buf;
+    if (!exists($ro_cmds{$command})) {
+        $saved_buf = write_undo();
+    }
     my $err = $func->();
     edWarn($err) if $err;
+    if ($NeedToSave && $saved_buf) {
+        $UndoFile = $saved_buf;
+    }
     return;
 }
 
@@ -806,6 +825,27 @@ sub edPrintLineNum {
     return;
 }
 
+sub write_undo {
+    my $fh = File::Temp->new;
+    foreach (@lines) {
+         print {$fh} $_;
+    }
+    seek $fh, 0, 0;
+    return $fh;
+}
+
+sub edUndo {
+    return E_ADDREXT if defined $adrs[0];
+    return E_ARGEXT if defined $args[0];
+    return E_UNDO unless defined $UndoFile;
+
+    @lines = <$UndoFile>;
+    unshift @lines, undef;
+    $UserHasBeenWarned = 0;
+    $NeedToSave = 1; # new tmpfile
+    return;
+}
+
 #
 # Quit ed
 #
@@ -907,7 +947,7 @@ sub edParse {
         $isGlobal = 1;
         @adrs = @found;
     }
-    if (s/\A([acdEefHhijklmnPpQqrstWw=\!])//) { # optional argument
+    if (s/\A([acdEefHhijklmnPpQqrstuWw=\!])//) { # optional argument
         $command = $1;
         if ($command eq 'W' || $command eq 'w') {
             if (s/\A[Qq]//) {
@@ -1226,6 +1266,11 @@ Substitute text with a regular expression
 
 Copy (transfer) lines to a destination address.
 The current address is set to the last line copied.
+
+=item u
+
+Undo the last command, restoring the editor buffer to its previous state.
+The undo function is its own inverse, so multiple levels of undo are not possible.
 
 =item W [FILE]
 
