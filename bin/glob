@@ -180,7 +180,7 @@ use File::Spec;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
-$VERSION = 1.2_06;
+$VERSION = 1.2_07;
 @ISA = qw(Exporter);
 @EXPORT = qw(&glob);
 @EXPORT_OK = qw(dirsep rootpat curdir parentdir hidedotfiles);
@@ -211,20 +211,29 @@ sub match_glob {
     @errors  = ();
 
     # check for and do  tilde expansion
-    if ( /^\~([^${dirsep}]*)/ ) {
+    if ( s/\A\~([^${dirsep}]*)// ) {
         my $usr = $1;
-        my $usrdir = (length $usr)
-                       ? (getpwnam($usr))[7]
-                       : (defined $ENV{HOME} ? $ENV{HOME}
-                                             : (getpwuid($<))[7]);
-        push @errors, "Unknown user: $usr" unless $usrdir;
-
+        my $dir;
         if (length $usr) {
-            s/\A\~\Q$usr\E/$usrdir/;
+            my @pwent = getpwnam $usr;
+            unless (@pwent) { # username not found
+                return join('', '~', $usr, $_);
+            }
+            $dir = $pwent[7];
         }
-        else {
-            s/\A\~/$usrdir/;
+        else { # bare '~'
+            my @pwent = getpwuid $<;
+            if (@pwent) {
+                $dir = $pwent[7];
+            }
+            elsif (defined $ENV{'HOME'}) {
+                $dir = $ENV{'HOME'};
+            }
+            else {
+                push @errors, 'Failed to locate home directory';
+            }
         }
+        $_ = join('', $dir, $_);
     }
 
     # If there's no wildcards, just return it
@@ -257,10 +266,10 @@ sub match_glob {
 
     if ( $comps[0] =~ /($rootpat)/ ) {
         shift(@comps);
-        @res = &recurseglob( "$1$dirsep", "$1$dirsep" , @comps );
+        @res = recurseglob( "$1$dirsep", "$1$dirsep" , @comps );
     }
     else {
-        @res = &recurseglob( $curdir, '' , @comps );
+        @res = recurseglob( $curdir, '' , @comps );
     }
 
     $matched = @res;
@@ -298,7 +307,7 @@ sub recurseglob {
         foreach (@names) {
             if ( m{$regex} ) {
                 if ( $_ ne "$curdir" and $_ ne "$parentdir") {
-                    unshift(@res, &recurseglob( "$dir$dirsep$_",
+                    unshift(@res, recurseglob( "$dir$dirsep$_",
                                                 "$dirname$_$dirsep",
                                                 @comps ));
                 }
@@ -344,7 +353,7 @@ sub explode_glob {
     local $_ = shift;
 
     # Escape special characters and sequences
-    $_ = &escape_glob($_);
+    $_ = escape_glob($_);
 
     # Recursively handle nested '{}' sub-globs
     while ( $nested and
@@ -375,7 +384,7 @@ sub explode_glob {
 
     # Unescape special characters and sequences
     for (@elements) {
-       $_ = &unescape_glob($_) for ( ref($_) ? @$_ : ($_) );
+       $_ = unescape_glob($_) for ( ref($_) ? @$_ : ($_) );
     }
 
     # Return the result now if there is only one element
@@ -415,8 +424,8 @@ sub glob {
     my @globbed = ();
     my @errmsgs = ();
     my $matches = 0;
-    for (explode_glob $_) {
-        my @found = &match_glob($_);
+    for (explode_glob($_)) {
+        my @found = match_glob($_);
         $matches += $matched;
         unless (!$matched  and  /(?:^|[^\\])[*?\[\]]/) {
             push @globbed, (@found ? @found : $_);
@@ -437,7 +446,7 @@ if (!caller() || caller(0) =~ /^(PerlPowerTools::Packed|PAR)$/ || caller(1) eq '
     my @globbed = ();
     my @errmsgs = ();
     for (@ARGV) {
-        push @globbed, &glob($_);
+        push @globbed, FastGlob::glob($_);
         push @errmsgs, @errors  if (@errors);
     }
     $\ = $opt_0 ? "\0" : "\n";
