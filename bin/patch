@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.29';
+my $VERSION = '0.30';
 
 $|++;
 
@@ -1092,13 +1092,18 @@ package
 
 sub TIEHANDLE {
     my ($class, $file) = @_;
-    local *FH;
+    my $fh;
     if ($file eq '-') {
-        *FH = *STDIN;
+        $fh = *STDIN;
     } else {
-        open *FH, '<', $file or return;
+        if (-d $file) {
+            die "$0: '$file' is a directory\n";
+        }
+        unless (open $fh, '<', $file) {
+            die "$0: failed to open '$file': $!\n";
+	}
     }
-    bless [*FH], $class;
+    bless [$fh], $class;
 }
 
 sub READLINE {
