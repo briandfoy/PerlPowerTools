@@ -278,8 +278,7 @@ sub tail_f
     @filelist = @{ $files };
     @dirlist = @{ $dirs };
 
-    local $SIG{'INT'}  = \&handle_INT;
-    local $SIG{'QUIT'} = sub { exit 0 }; # do not core dump
+    local $SIG{'QUIT'} = \&handle_INT;
 
     my ($ino, $size, $mtime);
 
@@ -382,7 +381,7 @@ sub handle_INT
 
     # On some systems (NT, for instance), it is necessary to
     # reinstall the signal handler
-    $SIG{'INT'} = \&handle_INT;
+    $SIG{'QUIT'} = \&handle_INT;
 }
 
 #
@@ -491,9 +490,8 @@ line doesn't exist, the program will watch for it and monitor it once
 created.  When switching files in the display, a banner showing the
 pathname of the file is printed.
 
-An interrupt character (usually CTRL/C or DEL) will display a list of
-the most recently modified files being watched.  Send a quit signal
-(usually CTRL/backslash) to stop the program.
+Send a quit signal (usually CTRL/backslash) to display a list of
+the most recently modified files being watched.
 
 The options are the following for I<tail> (no options are
 supported by I<xtail>) :
