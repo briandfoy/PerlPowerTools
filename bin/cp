@@ -15,7 +15,6 @@ package PerlPowerTools::cp;
 
 use strict;
 
-use Cwd;
 use Config;
 use ExtUtils::MakeMaker   qw(prompt);
 use File::Basename        qw(basename);
