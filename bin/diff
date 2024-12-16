@@ -482,15 +482,18 @@ sub output_ed_diff {
     warn ("Expecting one block in an ed diff hunk!") if scalar @blocklist != 1;
     my $block = $blocklist[0];
     my $op = $block->op; # +, -, or !
+    my $action = $op_hash{$op} || warn "unknown op $op";
 
     # Calculate item number range.
     # old diff range is just like a context diff range, except the ranges
     # are on one line with the action between them.
     my $range1 = $hunk->context_range(1);
-    $range1 =~ s/,/ / if $diff_type eq "REVERSE_ED";
-    my $action = $op_hash{$op} || warn "unknown op $op";
-    print ($diff_type eq "ED" ? "$range1$action\n" : "$action$range1\n");
-
+    if ($diff_type eq 'REVERSE_ED') {
+	$range1 =~ s/,/ /;
+	print $action, $range1, "\n";
+    } else {
+	print $range1, $action, "\n";
+    }
     if ($block->insert) {
 	my @outlist = @$fileref2[$hunk->{"start2"}..$hunk->{"end2"}];
 	print join("\n", @outlist), "\n.\n"; # '.' signifies end of 'c' or 'a'
