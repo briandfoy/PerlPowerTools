@@ -43,7 +43,7 @@ if (defined $options{'r'}) {
     ($atime, $mtime) = (stat $options {r}) [8, 9] or die "$options{r}: $!\n";
     $special_time = 1;
 }
-elsif ($options {t}) {
+elsif (defined $options{'t'}) {
     $atime = $mtime = parse_time($options{'t'});
     die "-t $options{t}: Time out of range!\n" if $atime < 0;
     $special_time = 1;
@@ -84,7 +84,6 @@ foreach my $file (@ARGV) {
     utime $aset, $mset, $file or do {
         warn "$Program: $file: $!\n";
         $rc = EX_FAILURE;
-        next;
     };
 }
 exit $rc;
