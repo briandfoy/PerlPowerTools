@@ -91,7 +91,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 
     # Simple flags
     if (s/^m//) { warn "-m flag already set" if $multimerge++; redo OPTION; }
-    if (s/^s//) { warn "-a flag already set" if $roundrobin++; redo OPTION; }
+    if (s/^a//) { warn "-a flag already set" if $roundrobin++; redo OPTION; }
     if (s/^d//) { warn "-d flag already set" if $doublespace++; redo OPTION; }
     if (s/(^F)//i) { warn "-$1 flag already set" if $formfeed++; redo OPTION; }
     if (s/^r//) { warn "-r flag already set" if $quietskip++; redo OPTION; }
