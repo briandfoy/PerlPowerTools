@@ -14,6 +14,7 @@ License: perl
 use strict;
 
 use File::Basename qw(basename);
+use File::Spec;
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
@@ -21,7 +22,7 @@ use constant EX_PARTIAL => 1;
 use constant EX_FAILURE => 2;
 
 my $Program = basename($0);
-my ($VERSION) = '1.4';
+my ($VERSION) = '1.5';
 
 sub usage {
     warn "$Program version $VERSION\n";
@@ -36,7 +37,6 @@ getopts('a', \%opt) or usage();
 my @PATH = ();
 my $PATHVAR = 'PATH';
 my $path_sep = ':';
-my $file_sep = '/';
 my @PATHEXT = ();
 
 my $Is_DOSish = ($^O eq 'MSWin32') ||
@@ -51,7 +51,6 @@ if ($^O eq 'MacOS') {
     $PATHVAR = 'Commands';
     # since $ENV{Commands} contains a trailing ':'
     # we don't need it here:
-    $file_sep = '';
 }
 
 # Split the path.
@@ -74,7 +73,6 @@ if ($^O eq 'VMS') {
         $i++;
     }
     # PATH and DCL$PATH are likely to use native dirspecs.
-    $file_sep = '';
 }
 
 # trailing file types (NT/VMS)
@@ -110,7 +108,7 @@ foreach my $command (@ARGV) {
     next COMMAND if $found;
 
     foreach my $dir (@PATH) {
-        my $path = $dir . $file_sep . $command;
+        my $path = File::Spec->catfile($dir, $command);
 
         if (-d $path) {
             next;
