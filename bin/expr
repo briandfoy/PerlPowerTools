@@ -5,17 +5,12 @@
 Name: expr
 Description: evaluate expression
 Author: Michael Robinson, smrf@sans.vuw.ac.nz
-License:
+Author: Michael Mikonos
+License: artistic2
 
 =end metadata
 
 =cut
-
-
-#
-# perl implementation of expr(1)
-# Michael Robinson (smrf@sans.vuw.ac.nz) 1999-03-03
-#
 
 use strict;
 use integer;
@@ -24,98 +19,308 @@ use constant EX_TRUE  => 0;
 use constant EX_FALSE => 1;
 use constant EX_ERROR => 2;
 
+use constant T_OR      => 1;
+use constant T_AND     => 2;
+use constant T_EQ      => 3;
+use constant T_LT      => 4;
+use constant T_GT      => 5;
+use constant T_ADD     => 6;
+use constant T_SUB     => 7;
+use constant T_MUL     => 8;
+use constant T_DIV     => 9;
+use constant T_MOD     => 10;
+use constant T_MATCH   => 11;
+use constant T_LP      => 12;
+use constant T_RP      => 13;
+use constant T_NE      => 14;
+use constant T_LE      => 15;
+use constant T_GE      => 16;
+use constant T_OPERAND => 17;
+use constant T_EOI     => 18;
+
 $SIG{__DIE__} = sub {
     warn "expr: $_[0]";
     exit EX_ERROR;
 };
 
-if (scalar(@ARGV) == 0) {
-    warn "usage: expr expression\n";
-    exit EX_ERROR;
-}
-if ($ARGV[0] eq '--') {
-    if (scalar(@ARGV) > 1) {
-        shift @ARGV;
-    } else {
-        warn "expr: syntax error\n";
-        exit EX_ERROR;
-    }
-}
-
-# check that it is a number
-sub num($) {
-    $_[0] =~ /^[+-]?[0-9]+$/ or die "non numeric-argument\n";
-    $_[0];
-}
-
-# table of operators
-my @global_ops = (
-    # logical or
-    { 	"|" => sub { $_[0] or $_[1]; }
-    },
-    # logical and
-    { 	"&" => sub { ($_[0] && $_[1]) ? $_[0] : 0; },
-    },
-    # comparison
-    { 	">"  => sub { $_[0] >  $_[1] || 0; },
-	"<=" => sub { $_[0] <= $_[1] || 0; },
-	"="  => sub { $_[0] == $_[1] || 0; },
-	">=" => sub { $_[0] >= $_[1] || 0; },
-	"!=" => sub { $_[0] != $_[1] || 0; },
-	"<"  => sub { $_[0] <  $_[1] || 0; },
-    },
-    # add, subtract
-    { 	"+"  => sub { num($_[0]) + num($_[1]); },
-	"-"  => sub { num($_[0]) - num($_[1]); },
-    },
-    # multiplication, division, modulo
-    { 	"*"  => sub { num($_[0]) * num($_[1]); },
-	"/"  => sub { die("divide by zero\n") if num($_[1]) == 0; num($_[0]) / $_[1]; },
-	"%"  => sub { die("modulo by zero\n") if num($_[1]) == 0; num($_[0]) % $_[1]; },
-    },
-    # regexp match
-    { 	":"  => sub { ($_[0] =~ /^$_[1]/) ? ($1 ? $1 : length $&) : 0; },
-    }
-    # should we handle GNUish match, index, etc?
+my %tokmap = (
+    '|'  => T_OR,
+    '&'  => T_AND,
+    '='  => T_EQ,
+    '<'  => T_LT,
+    '>'  => T_GT,
+    '+'  => T_ADD,
+    '-'  => T_SUB,
+    '*'  => T_MUL,
+    '/'  => T_DIV,
+    '%'  => T_MOD,
+    ':'  => T_MATCH,
+    '('  => T_LP,
+    ')'  => T_RP,
+    '!=' => T_NE,
+    '<=' => T_LE,
+    '>=' => T_GE,
 );
 
-my @stack = @ARGV;	# yuck, a global to handle the argument stack
-			# could just use @ARGV, but it'd look ugly
-sub evaluate {
-    my ($op, @ops) = @_;
+my $token;
+my $tokval;
 
-    # if we're passed an operator to test...
-    if ($op) {
-	die "syntax error\n" if $op->{$stack[0]};
+if (scalar(@ARGV) > 1 && $ARGV[0] eq '--') {
+    shift @ARGV;
+}
+get_tok(0);
+my $vp = eval0();
+error() if $token != T_EOI;
+print $vp->{'val'}, "\n";
+exit is_zero_or_null($vp);
 
-	return evaluate(@ops) unless $op->{$stack[1]}; # recurse
-
-	my $retval = evaluate(@ops);
-	while ($op->{$stack[0]}) {		      # handle equal precendence
-	    my $o = shift @stack;
-	    $retval = $op->{$o}->($retval, evaluate(@ops));
-	}
-	return $retval;
-    }
-
-    defined $stack[0] or die "syntax error\n";
-
-    # handle brackets, the lowest precedence and not a binary operator
-    if ($stack[0] eq "(") {
-	shift @stack; 				# remove the bracket
-	my $retval = evaluate(@global_ops); 	# restart
-	$stack[0] eq ")" or die "syntax error\n";
-	shift @stack; 				# remove the bracket
-	return $retval;
-    }
-
-    return shift @stack; # remove the primitive and return as value
+sub error {
+    warn "expr: syntax error\n";
+    exit EX_ERROR;
 }
 
-my $retval = evaluate(@global_ops);
-die "syntax error\n" if (@stack);
-print $retval || 0, "\n";
-exit ($retval ? EX_TRUE : EX_FALSE);
+sub make_int {
+    my $i = shift;
+    my $val = { 'type' => 'i', 'val' => $i };
+    return $val;
+}
+
+sub make_str {
+    my $s = shift;
+    my $val = { 'type' => 's', 'val' => $s };
+    return $val;
+}
+
+sub is_int {
+    my $val = shift;
+
+    if ($val->{'type'} eq 'i') {
+        return (1, $val->{'val'});
+    }
+    if ($val->{'val'} =~ m/\A[\+\-]?[0-9]+\z/) {
+        return (1, int $val->{'val'});
+    }
+    return (0, 0);
+}
+
+sub to_int {
+    my $val = shift;
+
+    return 1 if $val->{'type'} eq 'i';
+    my ($is_int, $x) = is_int($val);
+    if ($is_int) {
+        $val->{'type'} = 'i';
+        $val->{'val'} = $x;
+        return 1;
+    }
+    return 0;
+}
+
+sub to_str {
+    my $val = shift;
+
+    return if $val->{'type'} eq 's';
+    $val->{'type'} = 's';
+    $val->{'val'} = qq{$val->{'val'}};
+    return;
+}
+
+sub is_zero_or_null {
+    my $val = shift;
+
+    if ($val->{'type'} eq 'i') {
+        return $val->{'val'} == 0;
+    }
+    return 1 if length($val->{'val'}) == 0;
+    my ($is_int, $x) = is_int($val);
+    return 1 if $is_int && $x == 0;
+    return 0;
+}
+
+sub get_tok {
+    my $pat = shift;
+
+    my $p = shift @ARGV;
+    unless (defined $p) {
+        $token = T_EOI;
+        return;
+    }
+    if ($pat == 0 && length($p) != 0) {
+        if (exists $tokmap{$p}) {
+            $token = $tokmap{$p};
+            return;
+        }
+    }
+    $tokval = make_str($p);
+    $token = T_OPERAND;
+    return;
+}
+
+sub eval6 {
+    if ($token == T_OPERAND) {
+        get_tok(0);
+        return $tokval;
+    }
+    if ($token == T_LP) {
+        get_tok(0);
+        my $v = eval0();
+        error() if $token != T_RP;
+        get_tok(0);
+        return $v;
+    }
+    error();
+}
+
+sub eval5 {
+    my $l = eval6();
+    while ($token == T_MATCH) {
+        get_tok(1);
+        my $r = eval6();
+        to_str($l);
+        to_str($r);
+
+        my $v;
+        my $re = qr{$r->{'val'}};
+        if ($l->{'val'} =~ m/\A$re/) {
+            if (defined $1) {
+                $v = make_str($1);
+            } else {
+                $v = make_int(length $&);
+            }
+        } else {
+            $v = make_int(0);
+        }
+        $l = $v;
+    }
+    return $l;
+}
+
+sub eval4 {
+    my $l = eval5();
+    while ($token == T_MUL || $token == T_DIV || $token == T_MOD) {
+        my $op = $token;
+        get_tok(0);
+        my $r = eval5();
+        unless (to_int($l)) {
+            die "expr: not a number: " . $l->{'val'} . "\n";
+        }
+        unless (to_int($r)) {
+            die "expr: not a number: " . $r->{'val'} . "\n";
+        }
+        if ($op == T_MUL) {
+            my $res = $l->{'val'} * $r->{'val'};
+            if ($r->{'val'} != 0 && $l->{'val'} != $res / $r->{'val'}) {
+                die "expr: overflow\n";
+            }
+            $l->{'val'} = $res;
+        } else {
+            if ($r->{'val'} == 0) {
+                die "expr: division by zero\n";
+            }
+            if ($op == T_DIV) {
+                $l->{'val'} /= $r->{'val'};
+            } else {
+                $l->{'val'} %= $r->{'val'};
+            }
+        }
+    }
+    return $l;
+}
+
+sub eval3 {
+    my $l = eval4();
+    while ($token == T_ADD || $token == T_SUB) {
+        my $op = $token;
+        get_tok(0);
+        my $r = eval4();
+        unless (to_int($l)) {
+            die "expr: not a number: " . $l->{'val'} . "\n";
+        }
+        unless (to_int($r)) {
+            die "expr: not a number: " . $r->{'val'} . "\n";
+        }
+        if ($op == T_ADD) {
+            $l->{'val'} += $r->{'val'};
+        } else {
+            $l->{'val'} -= $r->{'val'};
+        }
+    }
+    return $l;
+}
+
+sub eval2 {
+    my $l = eval3();
+    while ($token == T_EQ || $token == T_NE || $token == T_LT || $token == T_GT ||
+      $token == T_LE || $token == T_GE) {
+        my $op = $token;
+        get_tok(0);
+        my $r = eval3();
+        my ($is_int_l, $li) = is_int($l);
+        my ($is_int_r, $ri) = is_int($r);
+        my $v = 0;
+
+        if ($is_int_l && $is_int_r) {
+            if ($op == T_GT) {
+                $v = $li > $ri;
+            } elsif ($op == T_GE) {
+                $v = $li >= $ri;
+            } elsif ($op == T_LT) {
+                $v = $li < $ri;
+            } elsif ($op == T_LE) {
+                $v = $li <= $ri;
+            } elsif ($op == T_EQ) {
+                $v = $li == $ri;
+            } elsif ($op == T_NE) {
+                $v = $li != $ri;
+            }
+        } else {
+            to_str($l);
+            to_str($r);
+            my $ls = $l->{'val'};
+            my $rs = $r->{'val'};
+
+            if ($op == T_GT) {
+                $v = $ls gt $rs;
+            } elsif ($op == T_GE) {
+                $v = $ls ge $rs;
+            } elsif ($op == T_LT) {
+                $v = $ls lt $rs;
+            } elsif ($op == T_LE) {
+                $v = $ls le $rs;
+            } elsif ($op == T_EQ) {
+                $v = $ls eq $rs;
+            } elsif ($op == T_NE) {
+                $v = $ls ne $rs;
+            }
+        }
+        $l = make_int($v);
+    }
+    return $l;
+}
+
+sub eval1 {
+    my $l = eval2();
+    while ($token == T_AND) {
+        get_tok(0);
+        my $r = eval2();
+        if (is_zero_or_null($l) || is_zero_or_null($r)) {
+            $l = make_int(0);
+        }
+    }
+    return $l;
+}
+
+sub eval0 {
+    my $l = eval1();
+    while ($token == T_OR) {
+        get_tok(0);
+        my $r = eval1();
+        if (is_zero_or_null($l)) {
+            $l = $r;
+        }
+    }
+    return $l;
+}
 
 __END__
 
@@ -225,5 +430,16 @@ The expr utility exits with one of the following values:
 =head1 STANDARDS
 
 The expr utility conforms to IEEE Std1003.2 (``POSIX.2'').
+
+=head1 AUTHOR
+
+The original Perl implementation was written by Michael Robinson,
+I<smrf@sans.vuw.ac.nz>.
+The current version was written by Michael Mikonos and is based on
+the C version by John T. Conklin.
+
+=head1 COPYRIGHT and LICENSE
+
+This program may be used under the terms of the Artistic License 2.0.
 
 =cut
