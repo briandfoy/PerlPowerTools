@@ -22,6 +22,10 @@ getopts('s', \%opt) or usage();
 
 for my $file (@ARGV)
     {
+        if (-d $file) {
+            print $file, ":\n";
+            next;
+        }
         my $fh;
         unless (open $fh, '<', $file) {
             warn "Unable to open '$file': $!\n";
