@@ -22,7 +22,7 @@ use strict;
 use locale;
 use vars qw($VERSION *sortsub *sort1 *sort2 *map1 *map2 %fh);
 
-$VERSION = '1.00';
+$VERSION = '1.01';
 Getopt::Long::config('bundling');  # -cmu == -c -m -u
 
 {
@@ -82,9 +82,6 @@ sub _sort_file {
     # "K" == "no k", for later
     $opts->{K} = $opts->{k} ? 0 : 1;
     $opts->{k} = $opts->{k} ? [$opts->{k}] : [] if !ref $opts->{k};
-
-    # set output and other defaults
-    $opts->{o}   = !$opts->{o} ? '' : $opts->{o};
 
     $opts->{'y'} ||= $ENV{'MAX_SORT_RECORDS'} || 200000;  # default max records
     $opts->{'F'} ||= $ENV{'MAX_SORT_FILES'}   || 40;      # default max files
