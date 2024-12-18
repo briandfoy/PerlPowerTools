@@ -85,7 +85,6 @@ B<OpenBSD> implementation.
 This implementation of I<dirname> was adapted by Michael Mikonos.
 
 The original version was written by Abigail, but the code was completely replaced.
-Most of the documeantion is the original version.
 
 =head1 COPYRIGHT and LICENSE
 
