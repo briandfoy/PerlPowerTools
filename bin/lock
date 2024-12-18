@@ -164,6 +164,7 @@ sub handler
     if ( $sig eq 'ALRM' )
       {
 	print "lock: timeout\n";
+	echo();
 	exit 0;
       }
     else
