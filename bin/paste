@@ -21,7 +21,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 my (@fh, @sep, %opt);
 
 sub usage {
@@ -73,13 +73,16 @@ if ($opt{'s'}) {
 }
 
 my $files_still_open = 1;
-while (1) {
+INPUT: while (1) {
 	my $current_sep = 0;
 	$files_still_open = 0;
-	for my $i (0..$#fh) {
-		$files_still_open = 1 if not eof $fh[$i];
+	CHECKEOF: for my $i (0 .. $#fh) {
+		unless (eof $fh[$i]) {
+			$files_still_open = 1;
+			last CHECKEOF;
+		}
 	}
-	last if not $files_still_open;
+	last INPUT unless $files_still_open;
 
 	my $tline;
 	for my $i (0..$#fh) {
