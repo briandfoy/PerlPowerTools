@@ -17,7 +17,7 @@ use strict;
 use File::Basename qw(basename dirname);
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 my $Program = basename($0);
 
 $SIG{__WARN__} = sub { warn "$Program: @_\n" };
@@ -88,8 +88,8 @@ foreach my $directory (@ARGV) {
     # Special case the intermediate directories.
     if ($intermediate) {
         # Get the current permissions of the directory; in oct.
-        my $mode = sprintf "%03o" => (stat $dir)[2];
-        unless (defined $mode) {
+        my @st = stat $dir;
+        unless (@st) {
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
             shift while @ARGV && $ARGV[0][1];
@@ -98,18 +98,11 @@ foreach my $directory (@ARGV) {
             $err++;
             next;
         }
-        # Individual parts.
-        my @modes   = split // => substr $mode => -3;
-
         # Turn on write and search permission for the user.
-        $modes[0] |= 3;
-
-        # Reassemble.
-        $mode       = join "" => @modes;
-
-        # Mode is an oct, remember?
-        chmod oct($mode) => $dir or do {
-            warn "stat on $dir failed: $!\n";
+        my $mode = $st[2];
+        $mode |= 3 << 6;
+        chmod $mode => $dir or do {
+            warn "chmod on $dir failed: $!\n";
             $err++;
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
