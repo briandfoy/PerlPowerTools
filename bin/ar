@@ -390,10 +390,9 @@ sub strmode {
 	my ($mode) = @_;
 
 	die "bad file mode: $mode" if $mode !~ m/([0-7]+)/;
-	my $ugo     = substr $1, -3;    # only rwx bits
+	my $m = oct $mode;
 	my $modestr = '';
-	foreach ( split //, $ugo ) {
-		my $i = oct;
+	foreach my $i ($m >> 6, $m >> 3, $m) {
 		$modestr .= $i & 4 ? 'r' : '-';
 		$modestr .= $i & 2 ? 'w' : '-';
 		$modestr .= $i & 1 ? 'x' : '-';
