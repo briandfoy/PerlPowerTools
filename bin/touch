@@ -23,7 +23,7 @@ use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
 
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 my $rc = EX_SUCCESS;
 
@@ -34,12 +34,16 @@ unless (@ARGV) {
     usage();
 }
 
-my $access_time       = exists $options {a}  ||  !exists $options {m};
-my $modification_time = exists $options {m}  ||  !exists $options {a};
-my $no_create         = exists $options {c};
+my $access_time       = exists $options{'a'}  ||  !exists $options{'m'};
+my $modification_time = exists $options{'m'}  ||  !exists $options{'a'};
+my $no_create         = exists $options{'c'};
 
 my ($atime, $mtime, $special_time);
 if (defined $options{'r'}) {
+    if (defined $options{'t'}) {
+        warn "$Program: options -r and -t cannot be used together\n";
+        usage();
+    }
     ($atime, $mtime) = (stat $options {r}) [8, 9] or die "$options{r}: $!\n";
     $special_time = 1;
 }
@@ -88,8 +92,12 @@ foreach my $file (@ARGV) {
 }
 exit $rc;
 
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
+
 sub usage {
-    warn "$Program (Perl bin utils) $VERSION\n";
     warn "usage: $Program [-acm] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file...\n";
     exit EX_FAILURE;
 }
