@@ -237,8 +237,7 @@ sub parse_args {
 			my $line;
 			while (defined($line = <$fh>)) {
 				chomp $line;
-				$pattern = $line;
-				push @patterns, $pattern;
+				push @patterns, $line;
 			}
 			close $fh;
 
