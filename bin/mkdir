@@ -14,7 +14,8 @@ License: perl
 
 use strict;
 
-use File::Basename qw(basename dirname);
+use File::Basename qw(basename);
+use File::Spec;
 use Getopt::Std qw(getopts);
 
 our $VERSION = '1.6';
@@ -51,13 +52,15 @@ if (defined $options{'m'}) {
 }
 
 my $rc = EX_SUCCESS;
-foreach my $dir (@ARGV) {
+DIRS: foreach my $dir (@ARGV) {
     if ($options{'p'}) {
         my @subdir = split_dir($dir);
 	$dir = shift @subdir;
-	create_dir($dir, 0);
+	my $ok = create_dir($dir, 0);
+        next DIRS unless $ok;
 	foreach my $d (@subdir) {
-            create_dir($d, 1);
+            $ok = create_dir($d, 1);
+            next DIRS unless $ok;
 	}
     } else {
         create_dir($dir, 0);
@@ -69,7 +72,7 @@ sub create_dir {
     my ($dir, $intermediate) = @_;
 
     # Existing directories don't create a warning when -p is in effect.
-    return if $options{'p'} && -d $dir;
+    return 1 if $options{'p'} && -d $dir;
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
@@ -105,10 +108,10 @@ sub create_dir {
         };
 
         # -m has no effect on intermediate directories created due to -p.
-        return;
+        return 1;
     }
 
-    return unless exists $options{'m'};
+    return 1 unless exists $options{'m'};
 
     my $realmode = $options{'m'};
     if ($symbolic) {
@@ -116,22 +119,19 @@ sub create_dir {
                        die "invalid mode: $options{m}\n";
     }
     chmod oct($realmode) => $dir or warn "$!\n";
-    return;
+    return 1;
 }
 
 sub split_dir {
     my $dir = shift;
 
-    my @parts;
-    while ($dir ne dirname($dir)) {
-        push @parts, $dir;
-        $dir = dirname($dir);
+    my (@parts, @dirs);
+    @parts = File::Spec->splitdir($dir);
+    for (0 .. $#parts) {
+        push @dirs, File::Spec->catfile(@parts[0 .. $_]);
     }
-    @parts = reverse @parts;
-    if (-e $parts[0] && ! -d $parts[0]) { # drop intermediate for non-directory
-        @parts = splice @parts, 0, 1;
-    }
-    return @parts;
+    shift @dirs if (@dirs && $dirs[0] eq ''); # absolute path
+    return @dirs;
 }
 
 #
