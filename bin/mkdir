@@ -69,7 +69,7 @@ sub create_dir {
     my ($dir, $intermediate) = @_;
 
     # Existing directories don't create a warning when -p is in effect.
-    return if !$intermediate && $options{'p'} && -d $dir;
+    return if $options{'p'} && -d $dir;
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
