@@ -11,21 +11,13 @@ License: perl
 
 =cut
 
-
-use Term::Cap;
 use strict;
 
-my $OSPEED = 9600;
-eval {
-	require POSIX;
-	my $termios = POSIX::Termios->new();
-	$termios->getattr;
-	$OSPEED = $termios->getospeed;
-};
+use Term::Cap;
 
-my $terminal = Term::Cap->Tgetent({OSPEED=>$OSPEED});
 my $cl = "";
 eval {
+	my $terminal = Term::Cap->Tgetent;
 	$terminal->Trequire("cl");
 	$cl = $terminal->Tputs('cl', 1);
 };
