@@ -472,9 +472,7 @@ sub store_ed_diff {
 
 sub output_ed_diff {
 # This sub is used for ed ('diff -e') OR reverse_ed ('diff -f').
-# last arg is type of diff
-    my $diff_type = $_[-1];
-    my ($hunk, $fileref1, $fileref2) = @_;
+    my ($hunk, $fileref1, $fileref2, $diff_type) = @_;
     my %op_hash = ('+' => 'a', '-' => 'd', '!' => 'c');
 
     # Can't be any context for this kind of diff, so each hunk has one block
