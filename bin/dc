@@ -11,6 +11,7 @@ License:
 
 =cut
 
+use strict;
 
 #  dc.pl - an arbitrary precision RPN calculator, using only string ops
 #
@@ -45,18 +46,15 @@ License:
 ##  Limitations: 	scale <= 999; |obase| >= 1; input digits in [0..F]
 ##  Completed:		1am Feb 4, 1997
 
-eval 'exec /usr/local/bin/perl -S $0 ${1+"$@"}'
-	if $running_under_some_shell;
-
-if (scalar(@ARGV) == 0) {
-    push @ARGV, "-";
-}
+my ($hold, $line);
+@ARGV = ( '-' ) unless @ARGV;
 $_ = "|P|K0|I10|O10|?";
 
 for (;;) {
     s/\|\?./|?/s;
     if (/\|\?!*[lLsS;:<>=]?$/) {
-	last unless $line = <>;
+	$line = <>;
+	last unless defined $line;
 	$line =~ tr/|~/\36\37/;
 	$_ .= $line;
     }
@@ -171,7 +169,8 @@ X^*dZkdXK-1+ktsc0kdSb-[Lbdlb*lc+tdSbO*-lb0!=aldx]dsaxLbsb]sad1!>a[[.]POX
     goto Pop;
 
   Input:
-    last unless $line = <STDIN>;
+    $line = <STDIN>;
+    last unless defined $line;
     $line =~ tr/|~/\36\37/;
     $_ .= "\n" . $line;
     s/\|\?\?(.*)(\n.*)\n/|?$2~$1/s;
@@ -218,7 +217,8 @@ X^*dZkdXK-1+ktsc0kdSb-[Lbdlb*lc+tdSbO*-lb0!=aldx]dsaxLbsb]sad1!>a[[.]POX
   String:
     do {
 	if (/\|\?[^]]*$/) {
-	    last unless $line = <>;
+	    $line = <>;
+	    last unless defined $line;
 	    $line =~ tr/|~/\36\37/;
 	    $_ .= $line;
 	}
