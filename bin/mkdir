@@ -14,10 +14,11 @@ License: perl
 
 use strict;
 
-use File::Basename qw(basename dirname);
+use File::Basename qw(basename);
+use File::Spec;
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 my $Program = basename($0);
 
 $SIG{__WARN__} = sub { warn "$Program: @_\n" };
@@ -50,39 +51,34 @@ if (defined $options{'m'}) {
 	$symbolic = 1 if $options{'m'} =~ /[^0-7]/;
 }
 
-# Pay attention before you get lost. The argument list will be turned
-# into a list of anon arrays. Each anon array has 2 elements, a directory
-# name, and a flag to indicate whether it's an "intermediate" directory
-# or not. "intermediate" directories are the directories interfered by
-# -p, but not given on the command line.
-if (exists $options{'p'}) {
-    my @ARGV2;
-    while (@ARGV) {
-        my $dir = pop @ARGV;
-        my $intermediate = 0;
-        while( $dir ne dirname($dir) ) {
-            push @ARGV2 => [$dir, $intermediate ++];
-            $dir = dirname($dir);
-        }
+my $rc = EX_SUCCESS;
+DIRS: foreach my $dir (@ARGV) {
+    if ($options{'p'}) {
+        my @subdir = split_dir($dir);
+	$dir = shift @subdir;
+	my $ok = create_dir($dir, 0);
+        next DIRS unless $ok;
+	foreach my $d (@subdir) {
+            $ok = create_dir($d, 1);
+            next DIRS unless $ok;
+	}
+    } else {
+        create_dir($dir, 0);
     }
-    @ARGV = reverse @ARGV2;
 }
-else {
-    @ARGV = map {[$_ => 0]} @ARGV;
-}
+exit $rc;
 
-my $err = 0;
-foreach my $directory (@ARGV) {
-    my($dir, $intermediate) = @$directory;
+sub create_dir {
+    my ($dir, $intermediate) = @_;
 
     # Existing directories don't create a warning when -p is in effect.
-    next if -d $dir && exists $options{'p'};
+    return 1 if $options{'p'} && -d $dir;
 
     # Umask is applied on mkdir.
     mkdir $dir => 0777 or do {
         warn "cannot create directory '$dir': $!\n";
-        $err++;
-        next;
+        $rc = EX_ERROR;
+        return;
     };
 
     # Special case the intermediate directories.
@@ -95,27 +91,27 @@ foreach my $directory (@ARGV) {
             shift while @ARGV && $ARGV[0][1];
             shift if    @ARGV;
             warn "stat on $dir failed: $!\n";
-            $err++;
-            next;
+            $rc = EX_ERROR;
+            return;
         }
         # Turn on write and search permission for the user.
         my $mode = $st[2];
         $mode |= 3 << 6;
         chmod $mode => $dir or do {
             warn "chmod on $dir failed: $!\n";
-            $err++;
+            $rc = EX_ERROR;
             # Skip to next directory of arg list.
             # The tests for @ARGV aren't really necessary.
             shift while @ARGV && $ARGV[0][1];
             shift if    @ARGV;
-            next;
+            return;
         };
 
         # -m has no effect on intermediate directories created due to -p.
-        next;
+        return 1;
     }
 
-    next unless exists $options{'m'};
+    return 1 unless exists $options{'m'};
 
     my $realmode = $options{'m'};
     if ($symbolic) {
@@ -123,8 +119,20 @@ foreach my $directory (@ARGV) {
                        die "invalid mode: $options{m}\n";
     }
     chmod oct($realmode) => $dir or warn "$!\n";
+    return 1;
 }
-exit($err ? EX_ERROR : EX_SUCCESS);
+
+sub split_dir {
+    my $dir = shift;
+
+    my (@parts, @dirs);
+    @parts = File::Spec->splitdir($dir);
+    for (0 .. $#parts) {
+        push @dirs, File::Spec->catfile(@parts[0 .. $_]);
+    }
+    shift @dirs if (@dirs && $dirs[0] eq ''); # absolute path
+    return @dirs;
+}
 
 #
 # $Id: SymbolicMode.pm,v 1.1 2004/07/23 20:10:01 cwest Exp $
