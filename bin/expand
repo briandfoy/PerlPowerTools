@@ -37,7 +37,6 @@ my $Program = basename($0);
 my %line_desc;
 my $tabstop = 8;
 my @tabstops;
-my @files;
 
 while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
     my $val = $1;
@@ -46,11 +45,9 @@ while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
         last;
     }
     @tabstops = split /,/, $val;
-    usage(1) if grep /\D/, @tabstops; # only integer arguments are allowed
+    usage() if grep /\D/, @tabstops; # only integer arguments are allowed
     shift @ARGV;
 }
-
-@files = @ARGV;
 
 # $tabstop is used only if multiple tab stops have not been defined
 if(scalar @tabstops == 0) {
@@ -68,7 +65,7 @@ if(scalar @tabstops == 0) {
     }
 }
 
-for my $file (@files) {
+for my $file (@ARGV) {
     my $in;
     unless (open $in, '<', $file) {
 	warn "$Program: couldn't open '$file' for reading: $!\n";
@@ -79,7 +76,7 @@ for my $file (@files) {
     }
     close $in;
 }
-unless (@files) {
+unless (@ARGV) {
     while (<>) {
 	expand_line($_);
     }
