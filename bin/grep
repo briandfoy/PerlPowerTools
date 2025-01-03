@@ -122,8 +122,6 @@ Options:
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
 	-Z   force grep to behave as zgrep
-
-May use GREP_OPTIONS environment variable to set default options.
 EOF
 	}
 
@@ -211,11 +209,6 @@ sub parse_args {
 			$Matches++ if $s ne lc($pattern);
 		}
 	};
-
-	if ( defined( $_ = $ENV{'GREP_OPTIONS'} ) ) {
-		s/^([^\-])/-$1/;    # add leading - if missing
-		unshift @ARGV, $_;
-		}
 
 	# multiple -e/-f options
 	my $opt_f = 0;
@@ -728,8 +721,7 @@ searching for the pattern.
 
 =head1 ENVIRONMENT
 
-The GREP_OPTIONS environment variable is taken as the default set of
-options to grep, placed at the front of any explicit options.
+The TERM variable is used for output formatting in the -g and -u options.
 
 =head1 EXAMPLES
 
