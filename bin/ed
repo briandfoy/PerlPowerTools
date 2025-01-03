@@ -105,7 +105,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -974,18 +974,10 @@ sub edParse {
 
 sub getAddr {
     my $n;
-    if (s/\A([\-\+])([0-9]+)//) { # '+1' or '-1'
-        my $is_neg = $1 eq '-';
-        my $x = $2;
-        $x = -$x if $is_neg;
-        $n = $CurrentLineNum + $x;
-    } elsif (s/\A([\-\^\+]+)//) { # '++--' == current+0
-        $n = $CurrentLineNum;
-        foreach my $c (split //, $1) {
-            $n += $c eq '+' ? 1 : -1;
-        }
-    } elsif (s/\A\'([a-z])//) {
-        $n = exists $marks{$1} ? $marks{$1} : A_NOMARK;
+    if (s/\A\'([a-z])//) {
+        my $letter = $1;
+        return A_NOMARK unless exists $marks{$letter};
+        $n = $marks{$letter};
     } elsif (s/\A([0-9]+)//) { # '10' == 10
         $n = $1;
     } elsif (s/\A\.//) { # '.' == current line
@@ -1001,7 +993,20 @@ sub getAddr {
             $re = $SearchPat;
         }
         $n = edSearch($re, $delim eq '?');
-        $n = A_NOMATCH unless $n;
+        return A_NOMATCH unless $n;
+    }
+    while (s/\A([\-\+])([0-9]+)//) { # '+1' or '-1'
+        $n = $CurrentLineNum unless defined $n;
+        my $is_neg = $1 eq '-';
+        my $x = $2;
+        $x = -$x if $is_neg;
+        $n += $x;
+    }
+    while (s/\A([\-\^\+]+)//) { # '++--' == current+0
+        $n = $CurrentLineNum unless defined $n;
+        foreach my $c (split //, $1) {
+            $n += $c eq '+' ? 1 : -1;
+        }
     }
     if (defined $n) {
         return A_RANGE if $n < 0 || $n > maxline();
