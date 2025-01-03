@@ -28,8 +28,9 @@ my $Program = basename($0);
 
 getopts('m:') and @ARGV or usage();
 
-my $default_mode = 0666;
-$default_mode &= ~(umask 0);
+sub default_mode {
+	return 0666 & ~(umask);
+}
 
 sub usage {
 	warn "$Program: [-m mode] filename...\n";
@@ -38,7 +39,7 @@ sub usage {
 
 sub sym_perms {
 	my $sym = shift;
-	my $mode = $default_mode;
+	my $mode = default_mode();
 
 	my %who = (u => 0700, g => 0070, o => 0007);
 	my %what = (r => 0444, w => 0222, x => 0111);
@@ -83,7 +84,7 @@ sub get_mode {
 	return $real_mode;
 }
 
-my $mode = defined $opt_m ? get_mode($opt_m) : $default_mode;
+my $mode = defined $opt_m ? get_mode($opt_m) : default_mode();
 
 my $rc = EX_SUCCESS;
 foreach my $fifo (@ARGV) {
