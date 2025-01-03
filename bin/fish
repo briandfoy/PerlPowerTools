@@ -11,9 +11,11 @@ License: perl
 
 =cut
 
-
 use strict;
-use Getopt::Std;
+
+use Getopt::Std qw(getopts);
+use List::Util qw(shuffle);
+
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
 my(@DECK, @PLAYERS_HAND, @COMPUTERS_HAND, %BOOKS, %opt);
@@ -145,15 +147,6 @@ sub havebook {
 	return($flag);
 }
 
-sub fisher_yates_shuffle { # From The Perl Cookbook, recipe 4.17
-	my $array=shift;
-	my $i;
-	for($i=@$array; --$i;) {
-		my $j=int rand ($i+1);
-		@$array[$i,$j] = @$array[$j,$i] if $i != $j;
-	}
-}
-
 sub printhand {
 	unless ($_[2]) {
 		print "$_[1] hand is: " , join(' ', sort
@@ -181,7 +174,7 @@ if ($status=~/^y/i) {
 }
 
 @DECK = (keys %iscard) x 4;
-fisher_yates_shuffle(\@DECK);
+@DECK = shuffle(@DECK);
 
 foreach(1..7) {
 	push(@PLAYERS_HAND, pop @DECK);
