@@ -24,11 +24,6 @@ my $Program = basename($0);
 my ($VERSION) = '1.4';
 my (@fh, @sep, %opt);
 
-sub usage {
-	print "usage: $Program [-s] [-d list] file ...\n";
-	exit EX_FAILURE;
-}
-
 getopts('d:s', \%opt) or usage();
 @ARGV or usage();
 
@@ -72,18 +67,8 @@ if ($opt{'s'}) {
 	exit EX_SUCCESS;
 }
 
-my $files_still_open = 1;
-INPUT: while (1) {
+while (files_open()) {
 	my $current_sep = 0;
-	$files_still_open = 0;
-	CHECKEOF: for my $i (0 .. $#fh) {
-		unless (eof $fh[$i]) {
-			$files_still_open = 1;
-			last CHECKEOF;
-		}
-	}
-	last INPUT unless $files_still_open;
-
 	my $tline;
 	for my $i (0..$#fh) {
 		if (not eof $fh[$i]) {
@@ -100,6 +85,23 @@ INPUT: while (1) {
 	print "$tline\n";
 }
 exit EX_SUCCESS;
+
+sub files_open {
+	for my $f (@fh) {
+		return 1 unless eof $f;
+	}
+	return 0;
+}
+
+sub usage {
+	print "usage: $Program [-s] [-d list] file ...\n";
+	exit EX_FAILURE;
+}
+
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
 
 __END__
 
