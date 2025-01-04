@@ -25,7 +25,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my $VERSION = '0.18';
+my $VERSION = '0.19';
 
 my %opts;
 getopts('bBrs:S:', \%opts) or usage();
@@ -57,6 +57,7 @@ unless ($fh) {
     exit EX_FAILURE;
 }
 print while <$fh>;
+exit EX_FAILURE if $fh->get_error;
 exit EX_SUCCESS;
 
 sub usage {
@@ -99,11 +100,12 @@ sub TIEHANDLE {
 
     *$self = {
         %opts,
-        lines   => [],  # Lines in memory.
-        scrap   => '',  # Incomplete line.
-        EOF     => 0,   # Finished reading current file.
-        count   => 0,   # Current line number.
-        ends    => [],  # Array of ORS for 'autoline'.
+        'lines'   => [],  # Lines in memory.
+        'scrap'   => '',  # Incomplete line.
+        'EOF'     => 0,   # Finished reading current file.
+        'count'   => 0,   # Current line number.
+        'ends'    => [],  # Array of ORS for 'autoline'.
+        'error'   => 0,
     };
 
     # Set mode for opening file.
@@ -120,15 +122,18 @@ sub TIEHANDLE {
         *$self->{'files'} = [];
         foreach my $file (@files) {
             if (-d $file) {
+                *$self->{'error'} = 1;
                 warn "$Program: '$file' is a directory\n";
                 next;
             }
             my $fh;
             unless (sysopen $fh, $file, $mode) {
+                *$self->{'error'} = 1;
                 warn "$Program: failed to open '$file': $!\n";
                 next;
             }
             unless (sysseek $fh, 0, 2) {
+                *$self->{'error'} = 1;
                 warn "$Program: seek failed for '$file': $!\n";
                 next;
             }
@@ -192,6 +197,11 @@ sub READLINE {
     $\ = pop @{*$self->{ends}}   if *$self->{autoline};
 
     pop @{*$self->{lines}};
+}
+
+sub get_error {
+    my $self = shift;
+    return *$self->{'error'};
 }
 
 sub get_lines {
