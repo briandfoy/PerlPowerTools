@@ -16,7 +16,7 @@ License: artistic2
 
 use POSIX;
 
-my $VERSION = '1.0.4';
+my $VERSION = '1.0.5';
 
 # set this if we do anything to select a timezone abbreviation, then
 # prefer this if it is defined.
@@ -80,8 +80,19 @@ sub run {
 	}
 
 sub select_format {
-	my( $supplied ) = grep { /\A\+/ } @_;
-	return $1 if $supplied =~ /\A\+(.+)/;
+	my $supplied;
+	foreach (@_) {
+		unless (s/\A\+//) {
+			print STDERR "Invalid date: $_\n";
+			exit 1;
+		}
+		if (defined $supplied) {
+			print STDERR "Extra operand: '+$_'\n";
+			exit 1;
+		}
+		$supplied = $_;
+	}
+	return $supplied if defined $supplied;
 
 	my $formats = get_formats();
 
