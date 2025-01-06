@@ -154,8 +154,8 @@ Don't output lines that are not repeated in the input.
 
 =item -f I<fields>
 
-Ignore the first fields in each input line when doing compar-
-isons.  A field is a string of non-blank characters separated
+Ignore the first fields in each input line when doing comparisons.
+A field is a string of non-blank characters separated
 from adjacent fields by blanks.  Field numbers are one based,
 i.e. the first field is field one.
 
@@ -163,8 +163,8 @@ i.e. the first field is field one.
 
 Ignore the first chars characters in each input line when doing
 comparisons.  If specified in conjunction with the B<-f> option, the
-first chars characters after the first fields fields will be ig-
-nored.  Character numbers are one based, i.e. the first character is
+first chars characters after the first fields fields will be ignored.
+Character numbers are one based, i.e. the first character is
 character one.
 
 =item -u
