@@ -20,9 +20,18 @@ use Getopt::Std;
 use File::Basename;
 use Cwd 'abs_path';
 
-our $VERSION = qw( 1.024 );
+our $VERSION = qw( 1.025 );
 my $program  = 'perlpowertools';
-my @tools    = qw( addbib apply ar arch arithmetic asa awk banner basename bc cal cat chgrp ching chmod chown clear cmp col colrm comm cp cut date dc deroff diff dirname du echo ed env expand expr factor false file find fish fmt fold fortune from glob grep hangman head hexdump id install join kill ln lock look ls mail maze mimedecode mkdir mkfifo moo morse nl od par paste patch perldoc pig ping pom ppt pr primes printenv printf pwd rain random rev rm rmdir robots rot13 shar sleep sort spell split strings sum tac tail tar tee test time touch tr true tsort tty uname unexpand uniq units unpar unshar uudecode uuencode wc what which whois words wump xargs yes );
+my @tools    = qw( addbib apply ar arch arithmetic asa awk banner base64
+ basename bc bcd cal cat chgrp ching chmod chown clear cmp col colrm comm cp
+ cut date dc deroff diff dirname du echo ed env expand expr factor false file
+ find fish fmt fold fortune from glob grep hangman head hexdump id install
+ join kill ln lock look ls mail maze mimedecode mkdir mkfifo moo morse nl od
+ par paste patch perldoc pig ping pom ppt pr primes printenv printf pwd rain
+ random rev rm rmdir robots rot13 seq shar sleep sort spell split strings sum
+ tac tail tar tee test time touch tr true tsort tty uname unexpand uniq units
+ unlink unpar unshar uudecode uuencode wc what which whoami whois words wump
+ xargs yes );
 my $usage    = <<EOF;
 
 Usage: $program [-hVl]
@@ -37,14 +46,15 @@ EOF
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 my %options = ();
 getopts("hVl", \%options) or die $usage;
-
-my $help        = $options{h} || 0;
-my $version     = $options{V} || 0;
-my $list        = $options{l} || 0;
-
-die $usage if $help;
-die $VERSION . "\n" if $version;
-die join ("\n", @tools) . "\n" if $list;
+die $usage if $options{'h'};
+if ($options{'V'}) {
+    print $VERSION, "\n";
+    exit;
+}
+if ($options{'l'}) {
+    print join ("\n", @tools), "\n";
+    exit;
+}
 
 ########
 # MAIN #
