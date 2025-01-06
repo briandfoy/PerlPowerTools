@@ -912,8 +912,7 @@ sub apply {
 
     # Pipe to ed.
     eval {
-        my $cmd =  'ed -s ' . $self->{'i_file'};
-        open ED, '|-', $cmd or die "Couldn't fork ed: $!";
+        open ED, '|-', 'ed', '-s', $self->{'i_file'} or die "Couldn't fork ed: $!";
         print ED map @$_, @cmd               or die "Couldn't print ed: $!";
         print ED "wq $self->{o_file}\n"     or die "Couldn't print ed: $!";
         close ED                             or die "Couldn't close ed: $?";
