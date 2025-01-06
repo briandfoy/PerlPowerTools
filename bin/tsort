@@ -30,12 +30,8 @@ if (@ARGV) {
     warn "$Program: extra operand '$ARGV[0]'\n";
     usage();
 }
-$file = '-' if (!defined($file));
-
 my $fh;
-if ($file eq '-') {
-    $fh = *STDIN;
-} else {
+if (defined $file) {
     if (-d $file) {
         warn "$Program: '$file' is a directory\n";
         exit EX_FAILURE;
@@ -44,6 +40,8 @@ if ($file eq '-') {
         warn "$Program: '$file': $!\n";
         exit EX_FAILURE;
     }
+} else {
+    $fh = *STDIN;
 }
 
 my %pairs;	# all pairs ($l, $r)
@@ -114,6 +112,7 @@ tsort - topological sort
 =over 2
 
 Does a topological sort of input pairs.
+Input is taken from the standard input if no filename argument is provided.
 
 For a more complete description, see the tsort(1) man page,
 For an explanation of the algorithm,
