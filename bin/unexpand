@@ -37,7 +37,6 @@ my $Program = basename($0);
 my $tabstop = 8;
 my $opt_a = 0;
 my @tabstops;
-my @files;
 
 while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
     my $val = $1;
@@ -53,12 +52,11 @@ while (@ARGV && $ARGV[0] =~ /\A\-(.+)/) {
     }
     shift @ARGV;
 }
-@files = @ARGV;
 
 # $tabstop is used only if multiple tab stops have not been defined
 $tabstop = $tabstops[0] if scalar @tabstops == 1;
 
-for my $file (@files) {
+for my $file (@ARGV) {
     my $in;
     unless (open $in, '<', $file) {
 	warn "$Program: couldn't open '$file' for reading: $!'\n";
@@ -69,7 +67,7 @@ for my $file (@files) {
     }
     close $in;
 }
-unless (@files) {
+unless (@ARGV) {
     while (<>) {
 	unexpand_line($_);
     }
@@ -77,7 +75,7 @@ unless (@files) {
 exit EX_SUCCESS;
 
 sub usage {
-    warn "usage: $Program [-a] [-tabstop] [-tab1, tab2, ...] [file ...]\n";
+    warn "usage: $Program [-a] [-tabstop] [-tab1,tab2,...] [file ...]\n";
     exit EX_FAILURE;
 }
 
@@ -128,7 +126,7 @@ unexpand - convert spaces to tabs
 
 =head1 SYNOPSIS
 
-unexpand [B<-a>] [B<-tabstop>] [B<-tab1, tab2, ...>] [B<file> ...]
+unexpand [B<-a>] [B<-tabstop>] [B<-tab1,tab2,...>] [B<file> ...]
 
 =head1 DESCRIPTION
 
