@@ -14,13 +14,14 @@ License: perl
 
 use strict;
 
-use File::Basename qw(basename dirname);
+use File::Basename qw(basename);
+use File::Spec;
 use Getopt::Std qw(getopts);
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-my ($VERSION) = '1.2';
+my ($VERSION) = '1.3';
 my $Program = basename($0);
 
 my $rc = EX_SUCCESS;
@@ -30,26 +31,28 @@ if (!getopts('p', \%opt) || scalar(@ARGV) == 0) {
     exit EX_FAILURE;
 }
 foreach my $directory (@ARGV) {
-    unless (rmdir $directory) {
-        warn "$Program: failed to remove '$directory': $!\n";
-        $rc = EX_FAILURE;
-        next;
-    };
+    next unless remove($directory);
     if ($opt{'p'}) {
-        # Errors are ignored once in recursion.
-        while (1) {
-            $directory = dirname($directory);
-            last if ($directory eq '.' || $directory eq '/');
-
-            unless (rmdir $directory) {
-                warn "$Program: failed to remove '$directory': $!\n";
-                $rc = EX_FAILURE;
-                last;
-            }
+        my @parts = File::Spec->splitdir($directory);
+        my @seq = 0 .. (scalar(@parts) - 2);
+        for (reverse @seq) {
+            my $d = File::Spec->catfile(@parts[0 .. $_]);
+            next if length($d) == 0; # absolute path
+            remove($d);
         }
     }
 }
 exit $rc;
+
+sub remove {
+    my $dir = shift;
+    unless (rmdir $dir) {
+        warn "$Program: failed to remove '$dir': $!\n";
+        $rc = EX_FAILURE;
+        return 0;
+    }
+    return 1;
+}
 
 __END__
 
