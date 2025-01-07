@@ -196,8 +196,6 @@ sub process_options {
 		);
 	usage() unless $ret;
 
-	$opts{'R'} = 1 if $opts{'r'};
-
 	$self->{options} = { map { defined $_ ? $_ : 0 } %opts };
 	$self->{files}   = $self->{args};
 
