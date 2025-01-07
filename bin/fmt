@@ -147,6 +147,7 @@ sub fmt_line {
     my $s = ' ' x $out[0]->{'indent'};
     print $s;
 
+    $out[-1]->{'suffix'} = 0;
     foreach $tok (@out) {
         $s = $tok->{'word'};
         $s .= ' ' x $tok->{'suffix'};
