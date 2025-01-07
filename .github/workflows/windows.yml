@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20240824.001
+# version 20250101.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -47,6 +47,8 @@ on:
             - 'Changes'
             - 'LICENSE'
             - 'README.pod'
+            - 'README.md'
+            - 'SECURITY.md'
     pull_request:
 
 jobs:
@@ -76,7 +78,7 @@ jobs:
             - name: Install dependencies
               run: |
                 cpan -M https://www.cpan.org -T .
-                cpan -M https://www.cpan.org -T Test::Manifest
+                cpan -M https://www.cpan.org -T Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
             - name: Run tests
               run: |
                 perl Makefile.PL

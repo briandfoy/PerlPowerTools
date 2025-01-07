@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20240825.001
+# version 20241118.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -80,7 +80,7 @@ jobs:
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest --installdeps --with-suggests --with-recommends .
+                cpanm --notest --installdeps --with-suggests --with-recommends . ${{ vars.EXTRA_CPAN_MODULES }}
 # This makes the distribution and tests it, but assumes by the time we
 # got here, everything else was already tested.
             - name: Create distro
@@ -94,7 +94,7 @@ jobs:
               id: version
             - name: Changes extract
               run: |
-                perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; print s/^\h+([*-])/$1/grm; last' Changes > Changes-latest
+                perl -00 -lne 'next unless /\A\d+\.\d+(_\d+)?/; s/^\h+([*-])/$1/gm; s/^-/    -/gm; print; last' Changes > Changes-latest
                 cat Changes-latest
               id: extract
 # https://cli.github.com/manual/gh_attestation_verify
@@ -117,4 +117,5 @@ jobs:
                   files: |
                     ${{ env.ASSET_NAME }}
                     ${{ steps.attestation.outputs.bundle-path }}
+                    ${{ vars.EXTRA_RELEASE_PATHS }}
                   token: ${{ secrets.RELEASE_ACTION_TOKEN }}
