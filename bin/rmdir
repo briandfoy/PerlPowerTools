@@ -33,7 +33,6 @@ if (!getopts('p', \%opt) || scalar(@ARGV) == 0) {
 foreach my $directory (@ARGV) {
     next unless remove($directory);
     if ($opt{'p'}) {
-        my @dirs;
         my @parts = File::Spec->splitdir($directory);
         my @seq = 0 .. (scalar(@parts) - 2);
         for (reverse @seq) {
