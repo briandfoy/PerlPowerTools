@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20240923.001
+# version 20250101.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -47,10 +47,12 @@ on:
             - 'Changes'
             - 'LICENSE'
             - 'README.pod'
+            - 'README.md'
+            - 'SECURITY.md'
     pull_request:
     # weekly build on the master branch just to see what CPAN is doing
     schedule:
-        - cron: "37 3 * * 0"
+        - cron: "24 20 * * 1"
 jobs:
     perl:
         environment: automated_testing
@@ -112,6 +114,9 @@ jobs:
                 perl -n -e 'next if /(^use 5)|(MIN_PERL)/; print' Makefile.PL.orig > Makefile.PL
                 cpan -T .
                 cd ..
+                pwd
+                ls
+                rm -rfv HTML-Tagset-*
 # I had some problems with openssl on Ubuntu, so I punted by installing
 # cpanm first, which is easy. I can install IO::Socket::SSL with that,
 # then switch back to cpan. I didn't explore this further, but what you
@@ -126,7 +131,7 @@ jobs:
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest --installdeps --with-suggests --with-recommends .
+                cpanm --notest --installdeps --with-suggests --with-recommends . ${{ vars.EXTRA_CPAN_MODULES }}
             - name: Show cpanm failures
               if: ${{ failure() }}
               run: |
