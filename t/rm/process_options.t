@@ -45,9 +45,9 @@ subtest process_options => sub {
 		[ [ qw(-f 1 2 3     ) ],   {f=>1      }, [qw(1 2 3)] ],
 
 		[ [ qw(-iR -P       ) ],   {i=>1, P=>1, R=>1}, [qw()         ] ],
-		[ [ qw(-ir -P       ) ],   {i=>1, P=>1, R=>1, r=>1}, [qw()         ] ],
+		[ [ qw(-ir -P       ) ],   {i=>1, P=>1, r=>1}, [qw()         ] ],
 		[ [ qw(-iR -P foo b ) ],   {i=>1, P=>1, R=>1}, [qw(foo b)    ] ],
-		[ [ qw(-ir -P f bar ) ],   {i=>1, P=>1, R=>1, r=>1}, [qw(f bar)    ] ],
+		[ [ qw(-ir -P f bar ) ],   {i=>1, P=>1, r=>1}, [qw(f bar)    ] ],
 		[ [ qw( -i -f -- -i ) ],   {f=>1            }, [qw( -i     ) ] ],
 		[ [ qw( -f -i -- -f ) ],   {i=>1            }, [qw( -f     ) ] ],
 		);
@@ -66,7 +66,7 @@ subtest process_options => sub {
 			is !! $instance->is_force,       !! $row->[1]{f}, 'is_force has expected value';
 			is !! $instance->is_interactive, !! $row->[1]{i}, 'is_interactive has expected value';
 			is !! $instance->is_overwrite,   !! $row->[1]{P}, 'is_overwrite has expected value';
-			is !! $instance->is_recursive,   !! $row->[1]{R}, 'is_recursive has expected value';
+			is !! $instance->is_recursive,   !! (!!$row->[1]{R} + !!$row->[1]{r}), 'is_recursive has expected value';
 			is !! $instance->is_verbose,     !! $row->[1]{v}, 'is_verbose has expected value';
 			};
 		}
