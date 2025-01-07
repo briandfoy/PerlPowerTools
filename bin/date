@@ -80,19 +80,8 @@ sub run {
 	}
 
 sub select_format {
-	my $supplied;
-	foreach (@_) {
-		unless (s/\A\+//) {
-			print STDERR "Invalid date: $_\n";
-			exit 1;
-		}
-		if (defined $supplied) {
-			print STDERR "Extra operand: '+$_'\n";
-			exit 1;
-		}
-		$supplied = $_;
-	}
-	return $supplied if defined $supplied;
+	my @format_args = grep { /\A\+/ } @_;
+ 	return $1 if $format_args[0] =~ /\A\+(.+)/;
 
 	my $formats = get_formats();
 
