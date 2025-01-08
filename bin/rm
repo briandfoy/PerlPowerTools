@@ -259,7 +259,7 @@ sub remove_file {
 		$self->message( "$filename: ? " );
 		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
     }
-    elsif( ! -w $filename && !$self->is_force ) {
+    elsif( !$self->is_force && ! -w $filename ) {
 		$self->message( "$filename: Read-only ? " );
 		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
     }
