@@ -255,16 +255,14 @@ sub remove_file {
     my( $self, $filename ) = @_;
 
 	# Answering no to skip a file is not an error
-    if( ! -w $filename && $self->is_interactive ) {
-		$self->message( "$filename: Read-only ? " );
-		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
-    }
-    elsif( $self->is_interactive ) {
+    if( $self->is_interactive ) {
 		$self->message( "$filename: ? " );
 		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
     }
-
-    chmod '0777', $filename if $self->is_force;
+    elsif( !$self->is_force && ! -w $filename ) {
+		$self->message( "$filename: Read-only ? " );
+		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
+    }
 
     unless( unlink $filename ) {
 		$self->error( "$Program: cannot remove '$filename': $!\n" ) unless $self->is_force;
