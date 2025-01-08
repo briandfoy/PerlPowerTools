@@ -609,6 +609,8 @@ package
 
 use strict;
 
+use List::Util qw(max);
+
 our $VERSION = '0.57';
 
 sub LCS_matrix {
@@ -626,13 +628,10 @@ sub LCS_matrix {
   $al = @$a;
   $bl = @$b;
 
-  my ($i, $j);
-
   $x[0] = [(0) x ($bl+1)];
-  for ($i=1; $i<=$al; $i++) {
-    my $r = $x[$i] = [];
-    $r->[0] = 0;
-    for ($j=1; $j<=$bl; $j++) {
+  for my $i (1 .. $al) {
+    my $r = $x[$i] = [ 0 ];
+    for my $j (1 .. $bl) {
       # If the first two items are the same...
       if (defined $eq
 	  ? $eq->($a->[-$i], $b->[-$j])
@@ -640,9 +639,7 @@ sub LCS_matrix {
 	 ) {
 	$r->[$j] = 1 + $x[$i-1][$j-1];
       } else {
-	my $pi = $x[$i][$j-1];
-	my $pj = $x[$i-1][$j];
-	$r->[$j] = ($pi > $pj ? $pi : $pj);
+	$r->[$j] = max($x[$i][$j-1], $x[$i-1][$j]);
       }
     }
   }
