@@ -550,7 +550,7 @@ sub edSubstitute {
         $PrintLastLine = 1;
     }
 
-    # do the search and substitution
+    $args[0] =~ s/\\n/n/g; # newline is not permitted
     for my $lineno (@adrs) {
         my $evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
