@@ -105,7 +105,7 @@ my $NO_QUESTIONS_MODE = 0;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -706,9 +706,15 @@ sub edEdit {
         }
     }
 
+    my $do_pipe = 0;
     if (defined $args[0]) {
         return E_FNAME unless (length $args[0]);
-        $filename = $RememberedFilename = $args[0];
+        if ($args[0] =~ s/\A\!//) {
+            $do_pipe = 1;
+        } else {
+            $RememberedFilename = $args[0];
+        }
+        $filename = $args[0];
     } elsif (defined $RememberedFilename) {
         $filename = $RememberedFilename;
     } else {
@@ -717,13 +723,13 @@ sub edEdit {
         return;
     }
 
-    if (-d $filename) {
-        warn "$filename: is a directory\n";
-        return E_READ;
-    }
-    if ($filename =~ s/\A\!//) {
+    if ($do_pipe) {
         return unless (open $fh, "$filename |"); # no error
     } else {
+        if (-d $filename) {
+            warn "$filename: is a directory\n";
+            return E_READ;
+        }
         unless (open $fh, '<', $filename) {
             warn "$filename: $!\n";
             return E_OPEN;
