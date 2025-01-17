@@ -711,7 +711,8 @@ sub edEdit {
         return E_FNAME unless (length $args[0]);
         if ($args[0] =~ s/\A\!//) {
             $do_pipe = 1;
-        } else {
+        }
+        if (!$InsertMode && !$do_pipe) {
             $RememberedFilename = $args[0];
         }
         $filename = $args[0];
