@@ -169,8 +169,9 @@ sub wc_fh {
             }
         }
         if ($opt{'w'}) {
-            s/\A\s+//;
-            @words = split /\s+/;
+            my $ln = $_;
+            $ln =~ s/\A\s+//;
+            @words = split /\s+/, $ln;
             $words += scalar @words;
         }
         if ($opt{'m'}) {
