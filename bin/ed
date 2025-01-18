@@ -346,6 +346,7 @@ sub edMark {
     my $ad = $adrs[1];
     $ad = $adrs[0] unless defined $ad;
     $ad = $CurrentLineNum unless defined $ad;
+    return E_ADDRBAD if $ad == 0;
     $marks{$c} = $ad;
     return;
 }
