@@ -601,9 +601,7 @@ sub edFilename {
         return E_ADDREXT;
     }
     if (defined($args[0])) {
-        return E_FNAME if $args[0] =~ m/\A\!/;
-        return E_FNAME if $args[0] =~ m/\/\Z/;
-        return E_FNAME if ($args[0] eq '.' || $args[0] eq '..');
+        return E_FNAME if illegal_file($args[0]);
         $RememberedFilename = $args[0];
     }
     if (defined($RememberedFilename)) {
@@ -613,6 +611,15 @@ sub edFilename {
         return E_NOFILE;
     }
     return;
+}
+
+sub illegal_file {
+    my $name = shift;
+    return 1 if length($name) == 0;
+    return 1 if $name eq '.' or $name eq '..';
+    return 1 if $name =~ m/\A\!/;
+    return 1 if $name =~ m/\/\Z/;
+    return 0;
 }
 
 #
@@ -694,6 +701,7 @@ sub edRead {
     }
 
     unless ($do_pipe) {
+        return E_FNAME if illegal_file($filename);
         $fh = open_file_ro($filename);
         return E_OPEN unless $fh;
     }
@@ -752,6 +760,7 @@ sub edEdit {
     }
 
     unless ($do_pipe) {
+        return E_FNAME if illegal_file($filename);
         $fh = open_file_ro($filename);
         return E_OPEN unless $fh;
     }
