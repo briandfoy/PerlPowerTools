@@ -655,7 +655,7 @@ sub edWrite {
             $fh = init_pipe($args[0], 1);
             return E_OPEN unless $fh;
         } else {
-            $filename = $RememberedFilename = $args[0];
+            $filename = $args[0];
         }
     } elsif (defined $RememberedFilename) {
         $filename = $RememberedFilename;
