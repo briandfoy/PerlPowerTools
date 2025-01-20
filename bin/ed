@@ -401,7 +401,10 @@ sub edPipe {
     return E_ADDREXT if defined $adrs[0];
 
     if (defined $args[0]) {
-        my $rc = system $args[0];
+        return E_SUFFBAD if $args[0] =~ m/\0/;
+        $args[0] =~ s/(\A\s+)|(\s+\z)//g;
+        my @arglist = quotewords('\s+', 0, $args[0]);
+        my $rc = system @arglist;
         print "$args[0]: $!\n" if ($rc == -1);
     }
     print "!\n";
@@ -628,9 +631,7 @@ sub illegal_file {
 
 sub edWrite {
     my($AppendMode) = @_;
-    my($fh, $filename, $chars, $qflag);
-
-    $chars = 0;
+    my($fh, $filename, $chars, $qflag, $do_pipe);
 
     if (!defined($adrs[0]) && !defined($adrs[1])) {
         $adrs[0] = 1;
@@ -649,21 +650,28 @@ sub edWrite {
     }
 
     if (defined $args[0]) {
-        $filename = $RememberedFilename = $args[0];
+        if ($args[0] =~ s/\A\!//) {
+            $do_pipe = 1;
+            $fh = init_pipe($args[0], 1);
+            return E_OPEN unless $fh;
+        } else {
+            $filename = $RememberedFilename = $args[0];
+        }
     } elsif (defined $RememberedFilename) {
         $filename = $RememberedFilename;
     } else {
         return E_NOFILE;
     }
-    if ($filename =~ s/\A\!//) {
-        return unless (open $fh, "| $filename"); # no error
-    } else {
+
+    unless ($do_pipe) {
+        return E_FNAME if illegal_file($filename);
         my $mode = $AppendMode ? '>>' : '>';
         unless (open $fh, $mode, $filename) {
             warn "$filename: $!\n";
             return E_OPEN;
         }
     }
+    $chars = 0;
     for my $line (@lines[$adrs[0]..$adrs[1]]) {
         print {$fh} $line;
         $chars += length($line);
@@ -782,13 +790,15 @@ sub edEdit {
 }
 
 sub init_pipe {
-    my $cmd = shift;
+    my ($cmd, $writemode) = @_;
+
     return if $cmd =~ m/\0/;
     return unless $cmd =~ m/\S/;
     $cmd =~ s/(\A\s+)|(\s+\z)//g;
     my @arglist = quotewords('\s+', 0, $cmd);
     my $fh;
-    unless (open $fh, '-|', @arglist) {
+    my $mode = $writemode ? '|-' : '-|';
+    unless (open $fh, $mode, @arglist) {
         warn "open: $!\n";
         return;
     }
