@@ -318,18 +318,18 @@ sub edPrompt {
     return;
 }
 
-sub edHelp {
-    my $toggle = shift;
-
+sub edSetHelp {
     return E_ADDREXT if defined $adrs[0];
     return E_ARGEXT if defined $args[0];
+    $HelpMode = !$HelpMode;
+    print "$Error\n" if $HelpMode && defined($Error);
+    return;
+}
 
-    if ($toggle) {
-        $HelpMode ^= 1;
-    }
-    if (defined($Error) && ($HelpMode || !$toggle)) {
-         print "$Error\n";
-    }
+sub edHelp {
+    return E_ADDREXT if defined $adrs[0];
+    return E_ARGEXT if defined $args[0];
+    print "$Error\n" if defined($Error);
     return;
 }
 
@@ -501,7 +501,6 @@ sub edMove {
 }
 
 sub edMoveDel { edMove(1); }
-sub edSetHelp { edHelp(1); }
 sub edPrintNum { edPrint($PRINT_NUM); }
 sub edPrintBin { edPrint($PRINT_BIN); }
 sub edQuitAsk { edQuit(1); }
