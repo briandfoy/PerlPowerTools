@@ -24,9 +24,10 @@ use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
 use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
-$opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_v $opt_X $opt_x /;
+    $opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_t $opt_v
+    $opt_X $opt_x /;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 my ($offset1, $radix, $data, @arr, $lim);
 my ($lastline, $strfmt, $ml);
@@ -85,7 +86,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:aBbcdeFfHij:lN:OosvXx') or help();
+getopts('A:aBbcdeFfHij:lN:Oost:vXx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -152,6 +153,19 @@ elsif ($opt_x) {
 }
 else {
     $fmt = \&octal2;
+}
+
+if (defined $opt_t) {
+    if ($opt_t eq 'x1') {
+        $fmt = \&hex1;
+    } elsif ($opt_t eq 'x2') {
+        $fmt = \&hex2;
+    } elsif ($opt_t eq 'x4') {
+        $fmt = \&hex4;
+    } else {
+        warn "$Program: unexpected output format specifier\n";
+	exit EX_FAILURE;
+    }
 }
 
 my $nread = 0;
@@ -258,6 +272,11 @@ sub octal1 {
     $strfmt = '%.3o ' x (scalar @arr);
 }
 
+sub hex1 {
+    @arr = unpack 'C*', $data;
+    $strfmt = '%.2x ' x (scalar @arr);
+}
+
 sub char1 {
     @arr = ();
     my @arr1 = unpack 'C*', $data;
@@ -348,7 +367,8 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-aBbcdeFfHilOosXxv] [-A radix] [-j skip_bytes] [-N limit_bytes] [file]...\n";
+    print "usage: od [-aBbcdeFfHilOosXxv] [-A radix] [-j skip_bytes] ",
+        "[-N limit_bytes] [-t type] [file]...\n";
     exit EX_FAILURE;
 }
 __END__
@@ -359,7 +379,8 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-aBbcdeFfHilOosXxv> ] [I<-j skip_n_bytes>] [I<-N read_n_bytes>] [ I<-A radix> ] [ F<file>... ]
+B<od> [ I<-aBbcdeFfHilOosXxv> ] [I<-j skip_bytes>] [I<-N limit_bytes>]
+      [ I<-A radix> ] [ I<-t type> ] [ F<file>... ]
 
 =head1 DESCRIPTION
 
@@ -444,6 +465,11 @@ Format input as two-byte octal numbers.
 =item -s
 
 Same as -i
+
+=item -t Type
+
+Select hexadecimal output size as either "x1", "x2" or "x4".
+This option overrides other formatting options.
 
 =item -X
 
