@@ -132,7 +132,7 @@ elsif ($opt_e || $opt_F) {
     $fmt = \&float8;
 }
 elsif ($opt_f) {
-    $fmt = \&float;
+    $fmt = \&float4;
 }
 elsif ($opt_H || $opt_X) {
     $fmt = \&hex4;
@@ -189,6 +189,10 @@ if (defined $opt_t) {
         $fmt = \&udecimal4;
     } elsif ($opt_t eq 'u8') {
         $fmt = \&udecimal8;
+    } elsif ($opt_t eq 'f4') {
+        $fmt = \&float4;
+    } elsif ($opt_t eq 'f8') {
+        $fmt = \&float8;
     } elsif ($opt_t eq 'a') {
         $fmt = \&char7bit;
     } elsif ($opt_t eq 'c') {
@@ -365,7 +369,7 @@ sub udecimal2 {
     $strfmt = '%5u ' x (scalar @arr);
 }
 
-sub float {
+sub float4 {
     @arr = unpack 'f*', $data . zeropad(length($data), 4);
     $strfmt = '%15.7e ' x (scalar @arr);
 }
@@ -569,6 +573,8 @@ Select output format as one of the following:
     x2     2-byte unsigned hexadecimal
     x4     4-byte unsigned hexadecimal
     x8     8-byte unsigned hexadecimal
+    f4     4-byte floating point. Same as -f
+    f8     8-byte floating point. Same as -F
 
 This option overrides other formatting options.
 
