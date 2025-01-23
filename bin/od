@@ -163,31 +163,49 @@ if (defined $opt_t) {
         $fmt = \&hex2;
     } elsif ($opt_t eq 'x4') {
         $fmt = \&hex4;
+    } elsif ($opt_t eq 'x8') {
+        $fmt = \&hex8;
     } elsif ($opt_t eq 'o1') {
         $fmt = \&octal1;
     } elsif ($opt_t eq 'o2') {
         $fmt = \&octal2;
     } elsif ($opt_t eq 'o4') {
         $fmt = \&octal4;
+    } elsif ($opt_t eq 'o8') {
+        $fmt = \&octal8;
     } elsif ($opt_t eq 'd1') {
         $fmt = \&decimal1;
     } elsif ($opt_t eq 'd2') {
         $fmt = \&decimal2;
     } elsif ($opt_t eq 'd4') {
         $fmt = \&decimal4;
+    } elsif ($opt_t eq 'd8') {
+        $fmt = \&decimal8;
     } elsif ($opt_t eq 'u1') {
         $fmt = \&udecimal1;
     } elsif ($opt_t eq 'u2') {
         $fmt = \&udecimal2;
     } elsif ($opt_t eq 'u4') {
         $fmt = \&udecimal4;
+    } elsif ($opt_t eq 'u8') {
+        $fmt = \&udecimal8;
     } elsif ($opt_t eq 'a') {
         $fmt = \&char7bit;
     } elsif ($opt_t eq 'c') {
         $fmt = \&char1;
     } else {
         warn "$Program: unexpected output format specifier\n";
-	exit EX_FAILURE;
+        exit EX_FAILURE;
+    }
+    if ($opt_t =~ m/\A[doux]8\Z/) {
+        my $has_quad = eval {
+            unpack 'Q', '';
+            1;
+        };
+        unless ($has_quad) {
+            warn "$Program: 64-bit perl needed for $opt_t format\n";
+            exit EX_FAILURE;
+        }
     }
 }
 
@@ -397,6 +415,26 @@ sub hex4 {
     $strfmt = '%.8x ' x (scalar @arr);
 }
 
+sub hex8 {
+    @arr = unpack 'Q*', $data . zeropad(length($data), 8);
+    $strfmt = '%.16x ' x (scalar @arr);
+}
+
+sub octal8 {
+    @arr = unpack 'Q*', $data . zeropad(length($data), 8);
+    $strfmt = '%.22o ' x (scalar @arr);
+}
+
+sub udecimal8 {
+    @arr = unpack 'Q*', $data . zeropad(length($data), 8);
+    $strfmt = '%22u ' x (scalar @arr);
+}
+
+sub decimal8 {
+    @arr = unpack 'Q*', $data . zeropad(length($data), 8);
+    $strfmt = '%22d ' x (scalar @arr);
+}
+
 sub zeropad {
     my ($len, $wantbytes) = @_;
     my $remain = $len % $wantbytes;
@@ -518,15 +556,19 @@ Select output format as one of the following:
     o1     1-byte unsigned octal
     o2     2-byte unsigned octal
     o4     4-byte unsigned octal
+    o8     8-byte unsigned octal
     d1     1-byte signed decimal
     d2     2-byte signed decimal
     d4     4-byte signed decimal
+    d8     8-byte signed decimal
     u1     1-byte unsigned decimal
     u2     2-byte unsigned decimal
     u4     4-byte unsigned decimal
+    u8     8-byte unsigned decimal
     x1     1-byte unsigned hexadecimal
     x2     2-byte unsigned hexadecimal
     x4     4-byte unsigned hexadecimal
+    x8     8-byte unsigned hexadecimal
 
 This option overrides other formatting options.
 
