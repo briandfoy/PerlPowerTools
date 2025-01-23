@@ -44,6 +44,7 @@ my %charescs = (
     92 => ' \\\\',
 );
 
+# embedded space allows formatting without sprintf
 my %charname = (
     0  => 'nul',
     1  => 'soh',
@@ -53,14 +54,14 @@ my %charname = (
     5  => 'enq',
     6  => 'ack',
     7  => 'bel',
-    8  => 'bs',
-    9  => 'ht',
-    10 => 'nl',
-    11 => 'vt',
-    12 => 'ff',
-    13 => 'cr',
-    14 => 'so',
-    15 => 'si',
+    8  => ' bs',
+    9  => ' ht',
+    10 => ' nl',
+    11 => ' vt',
+    12 => ' ff',
+    13 => ' cr',
+    14 => ' so',
+    15 => ' si',
     16 => 'dle',
     17 => 'dc1',
     18 => 'dc2',
@@ -70,14 +71,14 @@ my %charname = (
     22 => 'syn',
     23 => 'etb',
     24 => 'can',
-    25 => 'em',
+    25 => ' em',
     26 => 'sub',
     27 => 'esc',
-    28 => 'fs',
-    29 => 'gs',
-    30 => 'rs',
-    31 => 'us',
-    32 => 'sp',
+    28 => ' fs',
+    29 => ' gs',
+    30 => ' rs',
+    31 => ' us',
+    32 => ' sp',
     127 => 'del',
 );
 
@@ -125,7 +126,7 @@ elsif ($opt_c) {
     $fmt = \&char1;
 }
 elsif ($opt_d) {
-    $fmt = \&udecimal;
+    $fmt = \&udecimal2;
 }
 elsif ($opt_e || $opt_F) {
     $fmt = \&float8;
@@ -137,7 +138,7 @@ elsif ($opt_H || $opt_X) {
     $fmt = \&hex4;
 }
 elsif ($opt_i || $opt_s) {
-    $fmt = \&decimal;
+    $fmt = \&decimal2;
 }
 elsif ($opt_l) {
     $fmt = \&long;
@@ -162,6 +163,28 @@ if (defined $opt_t) {
         $fmt = \&hex2;
     } elsif ($opt_t eq 'x4') {
         $fmt = \&hex4;
+    } elsif ($opt_t eq 'o1') {
+        $fmt = \&octal1;
+    } elsif ($opt_t eq 'o2') {
+        $fmt = \&octal2;
+    } elsif ($opt_t eq 'o4') {
+        $fmt = \&octal4;
+    } elsif ($opt_t eq 'd1') {
+        $fmt = \&decimal1;
+    } elsif ($opt_t eq 'd2') {
+        $fmt = \&decimal2;
+    } elsif ($opt_t eq 'd4') {
+        $fmt = \&decimal4;
+    } elsif ($opt_t eq 'u1') {
+        $fmt = \&udecimal1;
+    } elsif ($opt_t eq 'u2') {
+        $fmt = \&udecimal2;
+    } elsif ($opt_t eq 'u4') {
+        $fmt = \&udecimal4;
+    } elsif ($opt_t eq 'a') {
+        $fmt = \&char7bit;
+    } elsif ($opt_t eq 'c') {
+        $fmt = \&char1;
     } else {
         warn "$Program: unexpected output format specifier\n";
 	exit EX_FAILURE;
@@ -272,6 +295,16 @@ sub octal1 {
     $strfmt = '%.3o ' x (scalar @arr);
 }
 
+sub decimal1 {
+    @arr = unpack 'c*', $data;
+    $strfmt = '%4d ' x (scalar @arr);
+}
+
+sub udecimal1 {
+    @arr = unpack 'C*', $data;
+    $strfmt = '%3u ' x (scalar @arr);
+}
+
 sub hex1 {
     @arr = unpack 'C*', $data;
     $strfmt = '%.2x ' x (scalar @arr);
@@ -285,7 +318,7 @@ sub char1 {
 	    $arr[0] .= $charescs{$val} . " ";
 	}
 	elsif ($val > PRINTMAX || chr($val) !~ m/[[:print:]]/) {
-	    $arr[0] .= sprintf(' %03o', $val);
+	    $arr[0] .= sprintf('%03o ', $val);
 	}
 	else {
 	    $arr[0] .= "  " . chr($val) . " ";
@@ -300,7 +333,7 @@ sub char7bit {
     for my $val (@arr1) {
         my $n = $val & 0x7f;
         if (exists $charname{$n}) {
-            $arr[0] .= sprintf '%4s', $charname{$n};
+            $arr[0] .= $charname{$n} . " ";
         }
         else {
 	    $arr[0] .= "  " . chr($n) . " ";
@@ -309,7 +342,7 @@ sub char7bit {
     $strfmt = '%s';
 }
 
-sub udecimal {
+sub udecimal2 {
     @arr = unpack 'S*', $data . zeropad(length($data), 2);
     $strfmt = '%5u ' x (scalar @arr);
 }
@@ -324,9 +357,9 @@ sub float8 {
     $strfmt = '%24.16e ' x (scalar @arr);
 }
 
-sub decimal {
+sub decimal2 {
     @arr = unpack 's*', $data . zeropad(length($data), 2);
-    $strfmt = '%5d ' x (scalar @arr);
+    $strfmt = '%6d ' x (scalar @arr);
 }
 
 sub long {
@@ -342,6 +375,16 @@ sub octal2 {
 sub octal4 {
     @arr = unpack 'L*', $data . zeropad(length($data), 4);
     $strfmt = '%.11o ' x (scalar @arr);
+}
+
+sub decimal4 {
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%11d ' x (scalar @arr);
+}
+
+sub udecimal4 {
+    @arr = unpack 'L*', $data . zeropad(length($data), 4);
+    $strfmt = '%11u ' x (scalar @arr);
 }
 
 sub hex2 {
@@ -468,7 +511,23 @@ Same as -i
 
 =item -t Type
 
-Select hexadecimal output size as either "x1", "x2" or "x4".
+Select output format as one of the following:
+
+    a      ASCII character names. Same as -a
+    c      Characters with C escapes. Same as -c
+    o1     1-byte unsigned octal
+    o2     2-byte unsigned octal
+    o4     4-byte unsigned octal
+    d1     1-byte signed decimal
+    d2     2-byte signed decimal
+    d4     4-byte signed decimal
+    u1     1-byte unsigned decimal
+    u2     2-byte unsigned decimal
+    u4     4-byte unsigned decimal
+    x1     1-byte unsigned hexadecimal
+    x2     2-byte unsigned hexadecimal
+    x4     4-byte unsigned hexadecimal
+
 This option overrides other formatting options.
 
 =item -X
