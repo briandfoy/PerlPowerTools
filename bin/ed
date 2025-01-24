@@ -100,7 +100,7 @@ my $UndoLine;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -744,7 +744,7 @@ sub edEdit {
     my(@tmp_lines, $chars, $fh, $filename);
 
     return E_ADDREXT if defined($adrs[0]) or defined($adrs[1]);
-    if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned) {
+    if ($NeedToSave && $QuestionsMode && !$UserHasBeenWarned && !$Scripted) {
         $UserHasBeenWarned = 1;
         return E_UNSAVED;
     }
@@ -913,7 +913,7 @@ sub edQuit {
     return E_ADDREXT if defined $adrs[0];
     return E_ARGEXT if defined $args[0];
 
-    if ($QuestionMode && $NeedToSave && !$UserHasBeenWarned) {
+    if ($QuestionMode && $NeedToSave && !$UserHasBeenWarned && !$Scripted) {
         $UserHasBeenWarned = 1;
         return E_UNSAVED;
     }
