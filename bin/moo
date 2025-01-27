@@ -11,13 +11,24 @@ License: perl
 
 =cut
 
-
 use strict;
 
-my ($VERSION) = '1.2';
+use List::Util qw(shuffle);
+
+my ($VERSION) = '1.3';
 
 sub usage {
     die "usage: moo [size]\n";
+}
+
+sub has_dupe {
+    my $guess = shift;
+    my %chars;
+    foreach my $c (split //, $guess) {
+        return 1 if exists $chars{$c};
+        $chars{$c} = 1;
+    }
+    return 0;
 }
 
 my $size = shift;
@@ -27,8 +38,12 @@ usage() if @ARGV;
 
 print "MOO\n";
 {
-    my   @secret_by_value = (0) x 10;
-    map {$secret_by_value [$_] ++} my @secret = map {int rand 10} 1 .. $size;
+    my @secret = shuffle(0 .. 9);
+    @secret = splice @secret, 0, $size;
+    my @secret_by_value = (0) x 10;
+    foreach my $i (@secret) {
+        $secret_by_value[$i] = 1;
+    }
 
     my $attempts = 0;
 
@@ -39,7 +54,7 @@ print "MOO\n";
         chomp (my $guess = <>);
         exit if (!defined($guess) || $guess =~ m/\Aq/i);
 
-        if ($guess =~ /\D/ || length $guess != $size) {
+        if ($guess =~ /\D/ || length $guess != $size || has_dupe($guess)) {
             print "Bad guess\n";
             redo
         }
@@ -99,7 +114,7 @@ moo [size]
 =head1 DESCRIPTION
 
 I<moo> is a game where the user guesses a random number chosen by
-the computer. By default, the computer takes a number of four digits
+the computer. By default, the computer takes a number of four distinct digits
 (including 0's), but that can be changed by giving I<moo> the number of
 digits to take.  After each guess, the number of B<bull>s and B<cow>s
 is displayed.  A B<bull> is a correctly guessed digit, in the right
