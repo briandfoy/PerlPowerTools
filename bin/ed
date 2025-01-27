@@ -679,8 +679,12 @@ sub edWrite {
         warn "$filename: $!\n";
         return E_CLOSE;
     }
-
-    $NeedToSave = $UserHasBeenWarned = 0;
+    unless ($do_pipe) {
+        my $lcount = $adrs[1] - $adrs[0] + 1;
+        if ($lcount == maxline()) {
+            $NeedToSave = $UserHasBeenWarned = 0;
+        }
+    }
     print "$chars\n" unless $Scripted;
     exit getrc() if $qflag;
     return;
