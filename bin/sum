@@ -184,7 +184,7 @@ sub do_md4 {
 		require Digest::MD4;
 		1;
 	} or do {
-		die "The md5 algorithm is not available on your system\n";
+		die "The md4 algorithm is not available on your system\n";
 	};
 	my $ctx = Digest::MD4->new;
 	$ctx->addfile($fh);
