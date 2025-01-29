@@ -44,12 +44,29 @@ if ($Program =~ m/cksum/) {
 if (defined $opt{'a'}) {
 	help() if defined $opt{'o'};
 	my %codetab = (
+		'blake224' => \&do_blake,
+		'blake256' => \&do_blake,
+		'blake384' => \&do_blake,
+		'blake512' => \&do_blake,
 		'crc'    => \&crc32,
+		'jh224' => \&do_jh,
+		'jh256' => \&do_jh,
+		'jh384' => \&do_jh,
+		'jh512' => \&do_jh,
+		'haval256' => \&do_haval256,
+		'md2'    => \&do_md2,
+		'md4'    => \&do_md4,
 		'md5'    => \&do_md5,
 		'sha1'   => \&sha_all,
+		'sha224' => \&sha_all,
 		'sha256' => \&sha_all,
 		'sha384' => \&sha_all,
 		'sha512' => \&sha_all,
+		'sha3-224' => \&do_sha3,
+		'sha3-256' => \&do_sha3,
+		'sha3-384' => \&do_sha3,
+		'sha3-512' => \&do_sha3,
+		'whirlpool' => \&do_whirlpool,
 	);
 	if (!exists($codetab{$opt{'a'}})) {
 		warn "$Program: invalid algorithm name\n";
@@ -146,11 +163,127 @@ sub sum2 {
 	return $num,$crc,($len+511)/512; # round # of blocks up ...
 }
 
+sub do_md2 {
+	my $fh = shift;
+
+	eval {
+		require Digest::MD2;
+		1;
+	} or do {
+		die "The md2 algorithm is not available on your system\n";
+	};
+	my $ctx = Digest::MD2->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_md4 {
+	my $fh = shift;
+
+	eval {
+		require Digest::MD4;
+		1;
+	} or do {
+		die "The md5 algorithm is not available on your system\n";
+	};
+	my $ctx = Digest::MD4->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
 sub do_md5 {
 	my $fh = shift;
 
 	require Digest::MD5;
 	my $ctx = Digest::MD5->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_haval256 {
+	my $fh = shift;
+
+	eval {
+		require Digest::Haval256;
+		1;
+	} or do {
+		die "The haval256 algorithm is not available on your system\n";
+	};
+	my $ctx = Digest::Haval256->new;
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_blake {
+	my $fh = shift;
+
+	eval {
+		require Digest::BLAKE;
+		1;
+	} or do {
+		die "The $opt{a} algorithm is not available on your system\n";
+	};
+	my $sz;
+	if ($opt{'a'} =~ m/\Ablake([0-9]+)\Z/) {
+		$sz = $1;
+	} else {
+		die "Unknown digest size: " . $opt{'a'};
+	}
+	my $ctx = Digest::BLAKE->new($sz);
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_sha3 {
+	my $fh = shift;
+
+	eval {
+		require Digest::SHA3;
+		1;
+	} or do {
+		die "The $opt{a} algorithm is not available on your system\n";
+	};
+	my $sz;
+	if ($opt{'a'} =~ m/\Asha3\-([0-9]+)\Z/) {
+		$sz = $1;
+	} else {
+		die "Unknown digest size: " . $opt{'a'};
+	}
+	my $ctx = Digest::SHA3->new($sz);
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_jh {
+	my $fh = shift;
+
+	eval {
+		require Digest::JH;
+		1;
+	} or do {
+		die "The $opt{a} algorithm is not available on your system\n";
+	};
+	my $sz;
+	if ($opt{'a'} =~ m/\Ajh([0-9]+)\Z/) {
+		$sz = $1;
+	} else {
+		die "Unknown digest size: " . $opt{'a'};
+	}
+	my $ctx = Digest::JH->new($sz);
+	$ctx->addfile($fh);
+	return (0, $ctx->hexdigest, undef);
+}
+
+sub do_whirlpool {
+	my $fh = shift;
+
+	eval {
+		require Digest::Whirlpool;
+		1;
+	} or do {
+		die "The whirlpool algorithm is not available on your system\n";
+	};
+	my $ctx = Digest::Whirlpool->new;
 	$ctx->addfile($fh);
 	return (0, $ctx->hexdigest, undef);
 }
@@ -252,9 +385,12 @@ sub help {
 	print "
 usage: $Program [-a alg] [-o 1|2] [file ...]
 
- -a alg    Select algorithm: crc, md5, sha1, sha256, sha384, sha512
+ -a alg    Select algorithm: crc, md5, sha1, sha224, sha256, sha384, sha512
  -o alg    Select historic algorithm: 1 (BSD), 2 (SYSV)
 
+Optional alorithms: blake224 blake256 blake384 blake512 jh224 jh256
+  jh384 jh512 haval256 md2 md4 sha3-224 sha3-256 sha3-384 sha3-512
+  whirlpool
 ";
 	exit EX_FAILURE;
 }
@@ -278,9 +414,53 @@ If no file names are specified, the standard input will be used.
 
 =over 4
 
+=item -a blake224
+
+BLAKE/224 algorithm (requires Digest::BLAKE)
+
+=item -a blake256
+
+BLAKE/256 algorithm (requires Digest::BLAKE)
+
+=item -a blake384
+
+BLAKE/384 algorithm (requires Digest::BLAKE)
+
+=item -a blake512
+
+BLAKE/512 algorithm (requires Digest::BLAKE)
+
 =item -a crc
 
 CRC32 algorithm
+
+=item -a jh224
+
+JH/224 algorithm (requires Digest::JH)
+
+=item -a jh256
+
+JH/256 algorithm (requires Digest::JH)
+
+=item -a jh384
+
+JH/384 algorithm (requires Digest::JH)
+
+=item -a jh512
+
+JH/512 algorithm (requires Digest::JH)
+
+=item -a haval256
+
+Haval256 algorithm (requires Digest::Haval256)
+
+=item -a md2
+
+MD2 algorithm (requires Digest::MD2)
+
+=item -a md4
+
+MD4 algorithm (requires Digest::MD4)
 
 =item -a md5
 
@@ -289,6 +469,10 @@ MD5 algorithm
 =item -a sha1
 
 SHA-1 algorithm
+
+=item -a sha224
+
+SHA-2/256 algorithm
 
 =item -a sha256
 
@@ -301,6 +485,26 @@ SHA-2/384 algorithm
 =item -a sha512
 
 SHA-2/512 algorithm
+
+=item -a sha3-224
+
+SHA-3/224 algorithm (requires Digest::SHA3)
+
+=item -a sha3-256
+
+SHA-3/256 algorithm (requires Digest::SHA3)
+
+=item -a sha3-384
+
+SHA-3/384 algorithm (requires Digest::SHA3)
+
+=item -a sha3-512
+
+SHA-3/512 algorithm (requires Digest::SHA3)
+
+=item -a whirlpool
+
+Whirlpool algorithm (requires Digest::Whirlpool)
 
 =item -o 1
 
