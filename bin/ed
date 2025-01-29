@@ -485,13 +485,11 @@ sub edMove {
 
     my $count = $end - $start + 1;
     my @copy = @lines[$start .. $end];
-    if ($start > $dst && $end > $dst) {
-        splice(@lines, $start, $count) if $delete;
-        splice @lines, $dst + 1, 0, @copy;
-    } else {
-        # avoid $dst referring to the wrong line
-        splice @lines, $dst + 1, 0, @copy;
-        splice(@lines, $start, $count) if $delete;
+    splice @lines, $dst + 1, 0, @copy;
+    if ($delete) {
+        my $i = $start;
+        $i += $count if $dst < $start; # lines moved up
+        splice @lines, $i, $count;
     }
 
     $NeedToSave = 1;
