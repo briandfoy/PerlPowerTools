@@ -51,14 +51,29 @@ usage() if @ARGV;
 
 sub get_number {
   my ($prompt, $value) = @_;
+  my $regmatch = 0;
+  my $inrange = 0;
 
-  while (!defined($value) or $value < 2) {
-    (defined $value) and ($value < 2) and print "$prompt too small.\n";
-    print "$prompt? ";
-    chomp($value = <STDIN>);
+  until ($regmatch && $inrange) {
+    if ($value =~ m/\A[0-9]+\Z/) {
+      $regmatch = 1;
+    } else {
+      print "expected an integer value, got '$value'\n";
+    }
+    if ($regmatch) {
+      if ($value >= 2) {
+        $inrange = 1;
+      } else {
+        print "$prompt too small\n";
+      }
+    }
+    if (!$regmatch || !$inrange) {
+      print "$prompt? ";
+      chomp($value = <STDIN>);
+      die "unexpected eof\n" unless defined $value;
+    }
   }
-
-  $value;
+  return $value;
 }
 
 $width  = &get_number('width',  $width);
