@@ -24,10 +24,10 @@ use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
 use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
-    $opt_H $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_t $opt_v
-    $opt_X $opt_x /;
+    $opt_H $opt_h $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_t
+    $opt_v $opt_X $opt_x /;
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 my ($offset1, $radix, $data, @arr, $lim);
 my ($lastline, $strfmt, $ml);
@@ -87,7 +87,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:aBbcdeFfHij:lN:Oost:vXx') or help();
+getopts('A:aBbcdeFfHhij:lN:Oost:vXx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -137,6 +137,9 @@ elsif ($opt_f) {
 elsif ($opt_H || $opt_X) {
     $fmt = \&hex4;
 }
+elsif ($opt_h || $opt_x) {
+    $fmt = \&hex2;
+}
 elsif ($opt_i || $opt_s) {
     $fmt = \&decimal2;
 }
@@ -148,9 +151,6 @@ elsif ($opt_O) {
 }
 elsif ($opt_B || $opt_o) {
     $fmt = \&octal2;
-}
-elsif ($opt_x) {
-    $fmt = \&hex2;
 }
 else {
     $fmt = \&octal2;
@@ -452,7 +452,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-aBbcdeFfHilOosXxv] [-A radix] [-j skip_bytes] ",
+    print "usage: od [-aBbcdeFfHhilOosXxv] [-A radix] [-j skip_bytes] ",
         "[-N limit_bytes] [-t type] [file]...\n";
     exit EX_FAILURE;
 }
@@ -464,7 +464,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-aBbcdeFfHilOosXxv> ] [I<-j skip_bytes>] [I<-N limit_bytes>]
+B<od> [ I<-aBbcdeFfHhilOosXxv> ] [I<-j skip_bytes>] [I<-N limit_bytes>]
       [ I<-A radix> ] [ I<-t type> ] [ F<file>... ]
 
 =head1 DESCRIPTION
@@ -522,6 +522,10 @@ Show input as floating point numbers in exponent form.
 =item -H
 
 Four-byte hex display.
+
+=item -h
+
+Two-byte hex display.
 
 =item -i
 
@@ -584,7 +588,7 @@ Same as -H
 
 =item -x
 
-Use two-byte hexadecimal format.
+Same as -h
 
 =item -v
 
