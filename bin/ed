@@ -100,7 +100,7 @@ my $UndoLine;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -380,7 +380,7 @@ sub edPrint {
         if ($do_bin) {
             print escape_line($i);
         } else {
-            print $lines[$i];
+            print get_terminated_line($i);
         }
     }
     $CurrentLineNum = $adrs[-1];
@@ -390,10 +390,15 @@ sub edPrint {
 sub escape_line {
     my $idx = shift;
 
-    my @chars = unpack 'C*', $lines[$idx];
+    my @chars = unpack 'C*', get_terminated_line($idx);
     die 'internal error: unpack' unless @chars;
     my @s = map { $ESC[$_] } @chars;
     return join '', @s;
+}
+
+sub get_terminated_line {
+    my $i = shift;
+    return $lines[$i] . "\n";
 }
 
 # does not modify buffer
@@ -433,15 +438,12 @@ sub edJoin {
     if ($adrs[0] == $adrs[1]) { # nop
         return;
     }
-
-    my $buf = $lines[$adrs[0]];
-    my $start = $adrs[0] + 1;
-    for my $i ($start .. $adrs[1]) {
-        chomp $buf;
-        $buf .= $lines[$i];
-    }
-    $lines[$adrs[0]] = $buf;
-    splice @lines, $start, $adrs[1] - $adrs[0];
+    my $i = $adrs[0];
+    my $j = $adrs[1];
+    my $delcount = $j - $i;
+    my @tmp = splice @lines, $i + 1, $delcount;
+    my $buf = join '', @tmp;
+    $lines[$i] .= $buf;
     $NeedToSave = 1;
     $UserHasBeenWarned = 0;
     $CurrentLineNum = $adrs[0];
@@ -669,7 +671,8 @@ sub edWrite {
         }
     }
     $chars = 0;
-    for my $line (@lines[$adrs[0]..$adrs[1]]) {
+    for my $i ($adrs[0] .. $adrs[1]) {
+        my $line = get_terminated_line($i);
         print {$fh} $line;
         $chars += length($line);
     }
@@ -814,9 +817,9 @@ sub readin_lines {
         push @tmp, $_;
     }
     if (@tmp && substr($tmp[-1], -1, 1) ne "\n") {
-        $tmp[-1] .= "\n";
         print "Newline appended\n";
     }
+    chomp @tmp;
     return @tmp;
 }
 
@@ -885,8 +888,8 @@ sub edPrintLineNum {
 
 sub write_undo {
     my $fh = File::Temp->new;
-    foreach (@lines) {
-         print {$fh} $_;
+    for my $i (1 .. maxline()) {
+         print {$fh} get_terminated_line($i);
     }
     seek $fh, 0, 0;
     return $fh;
@@ -899,6 +902,7 @@ sub edUndo {
 
     $CurrentLineNum = $UndoLine;
     @lines = <$UndoFile>;
+    chomp @lines;
     unshift @lines, undef;
     $UserHasBeenWarned = 0;
     $NeedToSave = 1; # new tmpfile
@@ -950,7 +954,7 @@ sub edSetCurrentLine {
         $CurrentLineNum++;
     }
 
-    print $lines[$CurrentLineNum];
+    print get_terminated_line($CurrentLineNum);
     return;
 }
 
