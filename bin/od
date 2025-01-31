@@ -23,11 +23,11 @@ use constant EX_FAILURE => 1;
 use constant LINESZ => 16;
 use constant PRINTMAX => 126;
 
-use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_d $opt_e $opt_F $opt_f
-    $opt_H $opt_h $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s $opt_t
-    $opt_v $opt_X $opt_x /;
+use vars qw/ $opt_A $opt_a $opt_B $opt_b $opt_c $opt_D $opt_d $opt_e $opt_F
+    $opt_f $opt_H $opt_h $opt_i $opt_j $opt_l $opt_N $opt_O $opt_o $opt_s
+    $opt_t $opt_v $opt_X $opt_x /;
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 my ($offset1, $radix, $data, @arr, $lim);
 my ($lastline, $strfmt, $ml);
@@ -87,7 +87,7 @@ $lastline = '';
 
 my $Program = basename($0);
 
-getopts('A:aBbcdeFfHhij:lN:Oost:vXx') or help();
+getopts('A:aBbcDdeFfHhij:lN:Oost:vXx') or help();
 if (defined $opt_A) {
     if ($opt_A !~ m/\A[doxn]\z/) {
 	warn "$Program: unexpected radix: '$opt_A'\n";
@@ -124,6 +124,9 @@ elsif ($opt_b) {
 }
 elsif ($opt_c) {
     $fmt = \&char1;
+}
+elsif ($opt_D) {
+    $fmt = \&udecimal4;
 }
 elsif ($opt_d) {
     $fmt = \&udecimal2;
@@ -452,7 +455,7 @@ sub diffdata {
 }
 
 sub help {
-    print "usage: od [-aBbcdeFfHhilOosXxv] [-A radix] [-j skip_bytes] ",
+    print "usage: od [-aBbcDdeFfHhilOosXxv] [-A radix] [-j skip_bytes] ",
         "[-N limit_bytes] [-t type] [file]...\n";
     exit EX_FAILURE;
 }
@@ -464,7 +467,7 @@ od - dump files in octal and other formats
 
 =head1 SYNOPSIS
 
-B<od> [ I<-aBbcdeFfHhilOosXxv> ] [I<-j skip_bytes>] [I<-N limit_bytes>]
+B<od> [ I<-aBbcDdeFfHhilOosXxv> ] [I<-j skip_bytes>] [I<-N limit_bytes>]
       [ I<-A radix> ] [ I<-t type> ] [ F<file>... ]
 
 =head1 DESCRIPTION
@@ -502,6 +505,10 @@ Single-byte octal display.
 =item -c
 
 Display characters literally, with non-printable characters displayed as C escape sequences.
+
+=item -D
+
+Four-byte unsigned decimal display.
 
 =item -d
 
