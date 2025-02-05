@@ -44,7 +44,7 @@ use constant EX_SUCCESS   => 0;
 use constant EX_DIFFERENT => 1;
 use constant EX_FAILURE   => 2;
 
-use vars qw($opt_C $opt_c $opt_e $opt_f $opt_q $opt_U $opt_u);
+use vars qw($opt_C $opt_c $opt_e $opt_f $opt_q $opt_s $opt_U $opt_u);
 
 # GLOBAL VARIABLES  ####
 # After we've read up to a certain point in each file, the number of items
@@ -58,14 +58,15 @@ my @Ed_Hunks = ();
 
 sub usage {
     warn << "ENDUSAGE";
-Usage: $Program [-c | -C lines | -e | -f | -q | -u | -U lines] oldfile newfile
+Usage: $Program [-c | -C lines | -e | -f | -q | -s | -u | -U lines] oldfile newfile
     -c do a context diff with 3 lines of context
     -C do a context diff with 'lines' lines of context (implies -c)
     -e create a script for the ed editor to change oldfile to newfile
     -f like -e but in reverse order
     -u do a unified diff with 3 lines of context
     -U do a unified diff with 'lines' lines of context (implies -u)
-    -q report only whether or not the files differ
+    -q show a message when the files differ, instead of the difference
+    -s show a message when the files are identical
 
 ENDUSAGE
     exit EX_FAILURE;
@@ -73,10 +74,9 @@ ENDUSAGE
 
 my $Context_Lines = 0; # lines of context to print. 0 for old-style diff
 my $Diff_Type = "OLD"; # by default, do standard UNIX diff
-getopts('C:cefqU:u') or usage();
+getopts('C:cefqsU:u') or usage();
 if (defined $opt_C) {
     $Context_Lines = checklen($opt_C);
-    $opt_c = 1;
     set_diff_type('CONTEXT');
 } elsif ($opt_c) {
     $Context_Lines = 3;
@@ -90,7 +90,6 @@ if ($opt_f) {
 }
 if (defined $opt_U) {
     $Context_Lines = checklen($opt_U);
-    $opt_u = 1;
     set_diff_type('UNIFIED');
 } elsif ($opt_u) {
     $Context_Lines = 3;
@@ -144,12 +143,11 @@ chomp(@f1 = <$fh1>);
 close $fh1;
 chomp(@f2 = <$fh2>);
 close $fh2;
-exit(EX_SUCCESS) if (scalar(@f1) == 0 && scalar(@f2) == 0);
+identical() if (scalar(@f1) == 0 && scalar(@f2) == 0);
 
 # diff yields lots of pieces, each of which is basically a Block object
 my $diffs = Algorithm::Diff::diff(\@f1, \@f2);
-exit(EX_SUCCESS) unless @$diffs;
-
+identical() unless @$diffs;
 if ($opt_q) {
     print "Files $file1 and $file2 differ\n";
     exit EX_DIFFERENT;
@@ -193,6 +191,11 @@ if ($Diff_Type eq 'ED') {
 
 exit EX_DIFFERENT;
 # END MAIN PROGRAM
+
+sub identical {
+  print "Files $file1 and $file2 are identical\n" if $opt_s;
+  exit EX_SUCCESS;
+}
 
 sub bag {
   my $msg = shift;
@@ -720,7 +723,7 @@ diff - compute `intelligent' differences between two files
 
 =head1 SYNOPSIS
 
-diff [-c | -C lines | -e | -f | -q | -u | -U lines] file1 file2
+diff [-c | -C lines | -e | -f | -q | -s | -u | -U lines] file1 file2
 
 =head1 DESCRIPTION
 
@@ -765,7 +768,12 @@ Output a unified diff with NUM lines of context
 
 =item -q
 
-Report only whether or not the files differ
+Print a message if the input files differ instead of displaying the difference.
+
+=item -s
+
+Print a message if the input files are identical.
+By default no output is produced in this case.
 
 =back
 
