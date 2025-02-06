@@ -1,5 +1,105 @@
 Revision history for Perl module PerlPowerTools
 
+1.049 2025-02-06T06:37:12Z
+	* All changes from Michael Mikonos
+	* ar
+		- various internals improvements (#889)
+	* clear
+		- various internals improvements (#894)
+	* cp
+		- various internals improvements (#873)
+	* date
+		- all formats must start with + and there can only be one (#908)
+	* dc
+		- various internals improvements (#899)
+	* diff
+		- various internals improvements (#875, #895, #915)
+		- add -s to show when files are the same instead of silently exiting (#940)
+	* dirname
+		- various internals improvements (#885)
+	* ed
+		- support relative line number in ranges (e.g. `-10,.`) (#886)
+		- allow repeated - and + for relative addresses, such as 3++ or $--10 (#902)
+		- initialize line placeholder so lines aren't lost after stating with an empty file (#916)
+		- \n in a substitution is now just a literal n, not a newline (#917)
+		- do not update filename on insert mode (#920)
+		- Avoid saving address 0 as a "marked address" (#921)
+		- w! does nut update the saved filename (#924)
+		- w command should not update current filename (#925)
+		- honour -s flag for w & e commands (#931)
+		- buffer is dirty unless all lines were written (#932)
+		- various internals improvements (#919, #922, #932, #926, #934, #938)
+	* expand
+		- various internals improvements (#900)
+	* expr
+		- various internals improvements (#879)
+		- unhyphenated some hard-coded line wrapping (#913)
+	* fish
+		- use List::Util instead of implementing our own shuffle (#896)
+	* fmt
+		- various internals improvements (#910)
+	* grep
+		- various internals improvements (#890)
+		- remove GREP_OPTIONS environment variable, which GNU grep removed (security) (#897)
+	* lock
+		- re-enable term echo after lockout (#881)
+	* maze
+		- reject fractional width/height (#935)
+	* mkdir
+		- various internals improvements (#887)
+		- suppress multiple errors for non-directory argument (#893)
+	* mkfifo
+		- various internals improvements (#901)
+	* moo
+		- enforce the distinct digits rule (#933)
+	* od
+		- support 1-byte hex format (#927)
+		- add other integer format options (u1,u2,u4,d1,d2,d4,o1,o2,o4), as well as the aliases for options -a and -c (#928)
+		- various internals improvements (#929)
+		- support arguments "-t f4" and "-t f8", which are already exposed as options -f and -F respectively (#930)
+		- add -h alias for -x (#937)
+		- add -D option as alias for -t u4 (four digit decimals) (#939)
+	* paste
+		- various internals improvements (#882)
+		- add --version; light refactoring (#898)
+	* patch
+		- patchfile argument may not be a directory (#872)
+		- various internals improvements (#904)
+		- add offending filenames to error messages about files (#941)
+	* perlpowertools
+		- various internals improvements (#884, #907)
+	* pr
+		- correctly detect -a (previously ignored due to bug) (#878)
+	* primes
+		- disallow 0 as an upper bound (inadvertently chooses the default) (#891)
+	* rm
+		- various internals improvements (#912, #914)
+	* rmdir
+		- various internals improvements (#911)
+	* sort
+		- the -o switch can accept 0 (zero) as a filename (check defined, not truth) (#880)
+	* sum
+		- add missing sha224, SHA3 functions as well as JH, Whirlpool, Haval256, BLAKE, MD2 and MD4 (#936)
+	* tac
+		- exit 1 on error (#903)
+	* tail
+		- the INT signal now terminates the program, while the QUIT signal shows the files being watched (#874)
+	* touch
+		- check -t argument for definedness, not truth (#876)
+		- -r and -t are mutually exclusive and together will throw an error (#888)
+	* tsort
+		- don't treat - as a special filename for stdin (#905)
+	* unexpand
+		- can't have spaces between multiple tabletop specifics (fixes usage string) (#906)
+	* uniq
+		- undo some line wrapping hyphenation in docs. Let the formatter figure it out (#909)
+	* wc
+		- various internals improvements (#918)
+	* what
+		- don't try to read lines from directories - directories are "files" that never match (#883)
+	* which
+		- various internals improvements (#877)
+
 1.048 2024-12-09T21:14:46Z
 	* All changes from Michael Mikonos
 	* apply
