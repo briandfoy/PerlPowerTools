@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.32';
+my $VERSION = '0.33';
 
 $|++;
 
@@ -38,6 +38,20 @@ sub version {
         Perl Artistic License.
     ];
     exit EX_SUCCESS;
+}
+
+sub type_conflict {
+    my $opts = shift;
+    my @types;
+    my $i = 0;
+    for (qw(context ed normal unified)) {
+        push @types, '--' . $_ if $opts->{$_};
+    }
+    if (scalar(@types) > 1) {
+        warn "$0: incompatible input type specifiers: @types\n";
+        exit EX_FAILURE;
+    }
+    return;
 }
 
 my ($patchfile, @options);
@@ -76,7 +90,9 @@ if (@ARGV) {
     my $next = 0;
     for (@options) {
         local @ARGV = @$_;
-        Getopt::Long::GetOptions(\my %opts, @desc) or die("Bad options\n");
+        my %opts;
+        Getopt::Long::GetOptions(\%opts, @desc) or die("Bad options\n");
+        type_conflict(\%opts);
         $opts{origfile} = shift;
         $_ = \%opts;
         $patchfile = shift unless $next++;
