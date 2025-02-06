@@ -167,6 +167,8 @@ subtest 'table' => sub {
 			my $error = '';
 			open my $error_fh, '>:utf8', \$error;
 
+			# XXX: Closing STDIN means we are ignoring some branches
+			close *STDIN;
 			$class->run( args => \@run_args, error_fh => $error_fh );
 			is $EXIT, $row->[EXIT], "Exit code is " . $row->[EXIT];
 
