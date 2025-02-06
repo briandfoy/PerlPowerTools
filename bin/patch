@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.31';
+my $VERSION = '0.32';
 
 $|++;
 
@@ -434,11 +434,12 @@ sub bless {
     }
 
     # Open original file.
-    local *IN;
-    open IN, '<', $in or $self->skip("Couldn't open INFILE: $!\n");
-    binmode IN;
-    $self->{i_fh} = *IN;    # input filehandle
-    $self->{i_file} = $in;  # input filename
+    my $in_fh;
+    open $in_fh, '<', $in
+        or $self->skip("Cannot open input file '$in': $!\n");
+    binmode $in_fh;
+    $self->{'i_fh'} = $in_fh;
+    $self->{'i_file'} = $in;
 
     # Open output file.
     if ($self->{check}) {
@@ -448,13 +449,14 @@ sub bless {
         $self->{'o_file'} = '-';
         $self->{'d_fh'} = length $self->{'ifdef'} ? *STDOUT : File::Temp->new;
     } else {
-        local *OUT;
-        open OUT, '+>', $out or $self->skip("Couldn't open OUTFILE: $!\n");
-        binmode OUT;
-        $|++, select $_ for select OUT;
-        $self->{o_fh}   = *OUT;
-        $self->{o_file} = $out;
-        $self->{d_fh}   = length $self->{ifdef} ? *OUT : File::Temp->new();
+        my $out_fh;
+        open $out_fh, '+>', $out
+            or $self->skip("Cannot open output file '$out': $!\n");
+        binmode $out_fh;
+        $|++, select $_ for select $out_fh;
+        $self->{'o_fh'}   = $out_fh;
+        $self->{'o_file'} = $out;
+        $self->{'d_fh'}   = length $self->{'ifdef'} ? $out_fh : File::Temp->new();
     }
 
     $self->{'reject-file'} = "$out.rej" unless defined $self->{'reject-file'};
