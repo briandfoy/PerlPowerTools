@@ -66,6 +66,7 @@ Revision history for Perl module PerlPowerTools
 		- patchfile argument may not be a directory (#872)
 		- various internals improvements (#904)
 		- add offending filenames to error messages about files (#941)
+		- raise error for incompatible options (#942)
 	* perlpowertools
 		- various internals improvements (#884, #907)
 	* pr
