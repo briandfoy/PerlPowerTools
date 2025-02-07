@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.33';
+my $VERSION = '0.34';
 
 $|++;
 
@@ -301,6 +301,7 @@ BEGIN {
 
 # Simple throw/catch error handling.
 sub throw {
+    my $self = shift;
     $@ = join '', @_;
     $@ .= sprintf " at %s line %d\n", (caller)[1..2] unless $@ =~ /\n\z/;
     goto CATCH;
@@ -382,7 +383,7 @@ sub bless {
     $self->note("Hmm...  Looks like a$n $type diff to me...\n");
 
     # Get original file to patch...
-    my $orig = $self->{origfile};                   # ...from -o
+    my $orig = $self->{origfile};
 
     unless (defined $orig) {
         $orig = $self->rummage($garbage);           # ...from leading garbage
@@ -681,7 +682,7 @@ sub suffix_backup {
 sub apply {
     my ($self, $i_start, $o_start, @hunk) = @_;
 
-    $self->{skip} and throw('SKIP...ignore this patch');
+    $self->{skip} and $self->throw('SKIP...ignore this patch');
 
     if ($self->{reverse}) {
         my $not = { qw/ + - - + / };
@@ -729,15 +730,15 @@ sub apply {
                             $self->{reverse} = 0;
                             $position = 0;
                             prompt ('Apply anyway? [n] ') =~ /^[yY]/
-                                or throw('SKIP...ignore this patch');
+                                or $self->throw('SKIP...ignore this patch');
                         }
                     }
                 } else {
-                    throw('SKIP...ignore this patch') if $self->{forward};
+                    $self->throw('SKIP...ignore this patch') if $self->{forward};
                 }
             }
         }
-        $position or throw("Couldn't find anywhere to put hunk.\n");
+        $position or $self->throw("Couldn't find anywhere to put hunk.\n");
     } else {
         # No context.  Use given position.
         $position = [$i_start - $self->{i_lines} - 1]
@@ -749,7 +750,7 @@ sub apply {
     my $ifdef = $self->{ifdef};
 
     # Make sure we're where we left off.
-    seek $in, $self->{i_pos}, 0 or throw("Couldn't seek INFILE: $!");
+    seek $in, $self->{i_pos}, 0 or $self->throw("Couldn't seek INFILE: $!");
 
     my $line = $self->{o_lines} + $position->[0] + 1;
     my $off  = $line - $o_start;
@@ -815,7 +816,7 @@ sub index {
     my ($self, $match, $pos, $lines) = @_;
     my $in = $self->{i_fh};
 
-    seek($in, $pos, 0) or throw("Couldn't seek INFILE [$in, 0, $pos]: $!");
+    seek($in, $pos, 0) or $self->throw("Couldn't seek INFILE: $!");
     <$in> while $lines--;
 
     if ($self->{'ignore-whitespace'}) {
@@ -835,7 +836,7 @@ sub index {
                 $line eq $match->[$_] or $fail++, last;
             }
             if ($fail) {
-                seek($in, $tell, 0) or throw("Couldn't seek INFILE: $!");
+                seek($in, $tell, 0) or $self->throw("Couldn't seek INFILE: $!");
                 <$in>;
             } else {
                 return ($tell, $line);
@@ -916,7 +917,7 @@ use base 'Patch';
 sub apply {
     my ($self, @cmd) = @_;
 
-    $self->{skip} and throw('SKIP...ignore this patch');
+    $self->{skip} and $self->throw('SKIP...ignore this patch');
 
     my $out = $self->{o_fh};
 
@@ -937,7 +938,7 @@ sub apply {
     };
 
     # Did pipe to ed work?
-    seek($out, 0, 0)  or throw("Couldn't seek OUT: $!");
+    seek($out, 0, 0)  or $self->throw("Couldn't seek OUT: $!");
     my $testline = <$out>;
     if (!$@ && $testline ne $magic) {
         $self->note("Hunk #$self->{hunk} succeeded at 1.\n");
@@ -945,8 +946,8 @@ sub apply {
     }
 
     # Erase any trace of magic line.
-    truncate($out, 0) or throw("Couldn't truncate OUT: $!");
-    seek($out, 0, 0)  or throw("Couldn't seek OUT: $!");
+    truncate($out, 0) or $self->throw("Couldn't truncate OUT: $!");
+    seek($out, 0, 0)  or $self->throw("Couldn't seek OUT: $!");
 
     # Try to apply ed script by hand.
     $self->note("Pipe to ed failed.  Switching to Plan J...\n");
@@ -963,7 +964,7 @@ sub apply {
         my @hunk = @{$cmd[$i]};
 
         shift(@hunk) =~ m!^(\d+)(?:,(\d+))?([acds])!
-            or throw('Unable to parse ed script');
+            or $self->throw('Unable to parse ed script');
 
         my ($start, $end, $cmd) = ($1, $2 || $1, $3);
 
