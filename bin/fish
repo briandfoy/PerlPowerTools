@@ -67,7 +67,9 @@ sub playguess {
 
 	do {
 		print "\nYou ask me for: ";
-		$guess=<STDIN>;  chomp($guess);
+		$guess = <STDIN>;
+		exit unless defined $guess;
+		chomp $guess;
 	} while(! defined ($stat=askfor(\@PLAYERS_HAND, \@COMPUTERS_HAND, $guess)));
 
 	# Professional mode....is watching you.
