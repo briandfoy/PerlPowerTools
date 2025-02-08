@@ -357,13 +357,9 @@ sub bless {
                {};
     bless $self, $class;
 
-    # 'options' and 'garbage'  are probably better off as class
-    # data.  Why didn't I do that before?  But it's not broken
-    # so I'm not fixing it.
-    $self->{options} = $options;    # @options
+    # Item 'garbage' is probably better off as class data
     $self->{garbage} = [];          # garbage lines
     $self->{i_pos}   = 0;           # current position in 'in' file
-    $self->{o_pos}   = 0;           # just for symmetry
     $self->{i_lines} = 0;           # lines read in 'in' file
     $self->{o_lines} = 0;           # lines written to 'out' file
     $self->{hunk}    = 1;           # current hunk number
