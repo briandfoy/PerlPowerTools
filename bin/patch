@@ -185,6 +185,7 @@ while (<PATCH>) {
             print PATCH;
             for ($o_start..$o_end) {
                 $_ = <PATCH>;
+                last unless defined $_; # EOF: no further hunks
                 unless (s/$re/$1/) {
                     $patch->note("Short hunk ignored.\n");
                     $patch->reject($i_range, @i_hunk, $o_range, @o_hunk);
