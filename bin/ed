@@ -548,6 +548,9 @@ sub edSubstitute {
     }
 
     $args[0] =~ s/\\n/n/g; # newline is not permitted
+    $args[0] =~ s/\\z/z/g;
+    $args[0] =~ s/\\Z/Z/g;
+
     for my $lineno (@adrs) {
         my $evalstring = "\$lines[\$lineno] =~ s$args[0]";
 
@@ -561,7 +564,7 @@ sub edSubstitute {
     return E_NOMATCH unless defined $LastMatch;
     $CurrentLineNum = $LastMatch;
 
-    print $lines[$LastMatch] if ($PrintLastLine);
+    print get_terminated_line($LastMatch) if $PrintLastLine;
     return;
 }
 
