@@ -15,10 +15,20 @@ use strict;
 
 use List::Util qw(shuffle);
 
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 sub usage {
     die "usage: moo [size]\n";
+}
+
+sub get_secret {
+    my $size = shift;
+
+    my $i = $size - 1;
+    my %digits = map { $_ => 1 } (0 .. 9);
+    my @s1 = keys %digits;
+    my @s2 = shuffle(@s1);
+    return @s2[0 .. $i];
 }
 
 sub has_dupe {
@@ -34,12 +44,12 @@ sub has_dupe {
 my $size = shift;
 $size = 4 unless defined $size;
 usage() if $size !~ m/\A[0-9]+\Z/ or !$size;
+die "secret size must be within range: 1-10\n" if $size > 10;
 usage() if @ARGV;
 
 print "MOO\n";
 {
-    my @secret = shuffle(0 .. 9);
-    @secret = splice @secret, 0, $size;
+    my @secret = get_secret($size);
     my @secret_by_value = (0) x 10;
     foreach my $i (@secret) {
         $secret_by_value[$i] = 1;
