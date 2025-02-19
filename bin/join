@@ -132,12 +132,12 @@ while (@buf1 && @buf2) {
 if ($unpairables[0] && @buf1) {
   do{
     print_joined_lines(shift @buf1, [])
-  } until !get_a_line(\@buf1, $fh1);
+  } while get_a_line(\@buf1, $fh1);
 }
 if ($unpairables[1] && @buf2) {
   do{
     print_joined_lines([], shift @buf2)
-  } until !get_a_line(\@buf2, $fh2);
+  } while get_a_line(\@buf2, $fh2);
 }
 
 unless (close $fh1) {
@@ -195,8 +195,9 @@ sub print_joined_lines {
 # OPTIONS STUFF BELOW #
 #######################
 sub get_arg {
-  # $_ contains current arg
-  my ($arg,$opt) = shift;
+  # $_ contains VAL in -oVAL
+  my $arg = shift;
+  my $opt;
   if    (length) { $opt = $_ }
   elsif (@ARGV)  { $opt = shift @ARGV }
   else {
