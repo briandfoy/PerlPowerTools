@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.34';
+my $VERSION = '0.35';
 
 $|++;
 
@@ -200,8 +200,15 @@ while (<PATCH>) {
     } elsif (/^(\s*)((\d+)(?:,(\d+))?([acd])(\d+)(?:,(\d+))?\n)/) {
         # NORMAL DIFF
         my ($space, $range, $i_start, $i_end, $cmd, $o_start, $o_end) =
-           ($1,     $2,     $3,     $4 || $3, $5,   $6,       $7 || $6);
+           ($1,     $2,     $3,       $4,     $5,   $6,       $7 || $6);
         $patch->bless('normal') or next PATCH;
+        if ($cmd eq 'a' && defined($i_end)) { # invalid input "X,YaZ"
+            my $input = $_;
+            chomp $input;
+            $patch->note("Malformed input at line $.: $input\n");
+            $patch->reject($range);
+            last;
+        }
         my (@d_hunk, @a_hunk);
         my $d_re = qr/^$space< /;
         my $a_re = qr/^$space> /;
@@ -278,8 +285,9 @@ if (ref $patch eq 'Patch') {
     $patch->end;
 }
 
+exit(EX_REJECTS) if $patch->error;
 $patch->note("done\n");
-exit($patch->error ? EX_REJECTS : EX_SUCCESS);
+exit EX_SUCCESS;
 
 END {
     close STDOUT || die "$0: can't close stdout: $!\n";
