@@ -209,6 +209,7 @@ while (<PATCH>) {
             $patch->reject($range);
             last;
         }
+        $i_end = $i_start unless defined $i_end; # for input "XcY,Z" and "XdY,Z"
         my (@d_hunk, @a_hunk);
         my $d_re = qr/^$space< /;
         my $a_re = qr/^$space> /;
