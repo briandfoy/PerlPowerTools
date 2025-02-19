@@ -98,12 +98,6 @@ sub modify_file {
         File::Find::find (\&modify_file, readlink $file);
         return;
     }
-    unless (-e $file) {
-        warn "$Program: '$file' does not exist\n";
-        $warnings++;
-        return;
-    }
-
     my @st = stat $file;
     unless (@st) {
         warn "$Program: failed to stat '$file': $!\n";
