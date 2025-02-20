@@ -210,6 +210,14 @@ while (<PATCH>) {
             last;
         }
         $i_end = $i_start unless defined $i_end; # for input "XcY,Z" and "XdY,Z"
+
+        if ($cmd ne 'a' && $i_start > $i_end) { # bad range "2,1c" and "2,1d"
+            my $input = $_;
+            chomp $input;
+            $patch->note("Malformed input at line $.: $input\n");
+            $patch->reject($range);
+            last;
+        }
         my (@d_hunk, @a_hunk);
         my $d_re = qr/^$space< /;
         my $a_re = qr/^$space> /;
