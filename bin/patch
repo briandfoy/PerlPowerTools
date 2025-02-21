@@ -54,6 +54,13 @@ sub type_conflict {
     return;
 }
 
+sub ifdef_id_check {
+    my $id = shift;
+    return if (length($id) != 0 && $id =~ m/\A[A-Za-z]\w*\Z/);
+    warn "$0: argument to -D is not an identifier\n";
+    exit EX_FAILURE;
+}
+
 my ($patchfile, @options);
 
 if (@ARGV) {
@@ -93,6 +100,7 @@ if (@ARGV) {
         my %opts;
         Getopt::Long::GetOptions(\%opts, @desc) or die("Bad options\n");
         type_conflict(\%opts);
+        ifdef_id_check($opts{'ifdef'}) if defined $opts{'ifdef'};
         $opts{origfile} = shift;
         $_ = \%opts;
         $patchfile = shift unless $next++;
