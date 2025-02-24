@@ -954,7 +954,7 @@ sub print_help
 
 	print <<EOF;
 
-Usage: $0 [-adefilosw] [-n length] [-m pattern] [[N%] file/dir/all]
+Usage: $0 [-adefilosvw] [-n length] [-m pattern] [[N%] file/dir/all]
 
 	See the POD for more information.
 
@@ -968,6 +968,7 @@ Usage: $0 [-adefilosw] [-n length] [-m pattern] [[N%] file/dir/all]
      -o Choose only from potentially offensive aphorisms.
      -s Short apothegms only.
      -i Ignore case for -m patterns.
+     -v Show version number.
      -w Wait before termination for a calculated amount of time.
 
      all Same as the -a switch.
@@ -992,13 +993,13 @@ fortune - print a random, hopefully interesting, adage
 
 =head1 SYNOPSIS
 
-fortune [-adefilosw] [-n length] [-m pattern] [[N%] file/dir/all]
+fortune [-adefilosvw] [-n length] [-m pattern] [[N%] file/dir/all]
 
 =head1 DESCRIPTION
 
 When fortune is run with no arguments it prints out a random epigram.
-Epigrams are divided into several categories, where each category is sub-
-divided into those which are potentially offensive and those which are
+Epigrams are divided into several categories, where each category is
+subdivided into those which are potentially offensive and those which are
 not.  The options are as follows:
 
      -a    Choose from all lists of maxims, both offensive and not.  (See the
@@ -1006,8 +1007,8 @@ not.  The options are as follows:
 
      -d    Enable debug messages.
 
-     -e    Consider all fortune files to be of equal size (see discussion be-
-           low on multiple files).
+     -e    Consider all fortune files to be of equal size (see discussion
+           below on multiple files).
 
      -f    Print out the list of files which would be searched, but do not
            print a fortune.
@@ -1027,13 +1028,13 @@ not.  The options are as follows:
 
      -o    Choose only from potentially offensive aphorisms.  Please, please,
            please request a potentially offensive fortune if and only if you
-           believe, deep down in your heart, that you are willing to be of-
-           fended.  (And that if you are, you'll just quit using -o rather
+           believe, deep down in your heart, that you are willing to be
+           offended.  (And that if you are, you'll just quit using -o rather
            than give us grief about it, okay?)
 
                  ... let us keep in mind the basic governing philosophy of The
-                 Brotherhood, as handsomely summarized in these words: we be-
-                 lieve in healthy, hearty laughter -- at the expense of the
+                 Brotherhood, as handsomely summarized in these words: we
+                 believe in healthy, hearty laughter -- at the expense of the
                  whole human race, if needs be.  Needs be.
                              --H. Allen Smith, "Rude Jokes"
 
@@ -1042,19 +1043,21 @@ not.  The options are as follows:
 
      -i    Ignore case for -m patterns.
 
+     -v    Show version number and exit.
+
      -w    Wait before termination for an amount of time calculated from the
-           number of characters in the message.  This is useful if it is exe-
-           cuted as part of the logout procedure to guarantee that the message
-           can be read before the screen is cleared.
+           number of characters in the message.  This is useful if it is
+           executed as part of the logout procedure to guarantee that the
+           message can be read before the screen is cleared.
 
      The user may specify alternate sayings.  You can specify a specific file,
      a directory which contains one or more files, or the special word all
-     which says to use all the standard databases.  Any of these may be pre-
-     ceded by a percentage, which is a number N between 0 and 100 inclusive,
+     which says to use all the standard databases.  Any of these may be
+     preceded by a percentage, which is a number N between 0 and 100 inclusive,
      followed by a %. If it is, there will be a N percent probability that an
      adage will be picked from that file or directory.  If the percentages do
-     not sum to 100, and there are specifications without percentages, the re-
-     maining percent will apply to those files and/or directories, in which
+     not sum to 100, and there are specifications without percentages, the
+     remaining percent will apply to those files and/or directories, in which
      case the probability of selecting from one of them will be based on their
      relative sizes.
 
@@ -1068,8 +1071,8 @@ not.  The options are as follows:
            fortune 90% funny 10% not-funny
 
      will pick out 90% of its fortunes from funny (the ``10% not-funny'' is
-     unnecessary, since 10% is all that's left).  The -e option says to con-
-     sider all files equal; thus
+     unnecessary, since 10% is all that's left).  The -e option says to
+     consider all files equal; thus
 
            fortune -e
 
@@ -1114,11 +1117,11 @@ Bundle files and possibly make an installer.
 	Dumped the -g option I tried in the original
 
 	Revision 1.0 1999/04/01 andy murren
-	Inital Revision
+	Initial Revision
 
 =head1 AUTHOR
 
-This Perl implmentation of I<fortune> was written by Andy Murren, I<andy@murren.org>.
+This Perl implementation of I<fortune> was written by Andy Murren, I<andy@murren.org>.
 
 =head1 COPYRIGHT and LICENSE
 
