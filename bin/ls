@@ -108,16 +108,8 @@ sub format_mode {
 }
 
 # ------ define variables
-my $Arg = "";		# file/directory name argument from @ARGV
-my $ArgCount = 0;	# file/directory argument count
-my $Attributes = "";	# File::stat from STDOUT (isatty() kludge)
-my %Attributes = ();	# File::stat directory entry attributes
-my %DirEntries = ();	# hash of dir entries and stat attributes
 my $Getgrgid = "";	# getgrgid() for this platform
 my $Getpwuid = "";	# getpwuid() for this platform
-my @Dirs = ();		# directories in ARGV
-my @Files = ();		# non-directories in ARGV
-my $First = 1;		# first directory entry on command line
 my $Maxlen = 1;		# longest string we've seen
 my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
@@ -509,7 +501,12 @@ if ($#ARGV < 0) {
 
 # ------ named files/directories if arguments
 } else {
-	$ArgCount = -1;
+	my $ArgCount = -1;  # file/directory argument count
+	my %Attributes;     # File::stat directory entry attributes
+	my @Dirs;           # directories in ARGV
+	my @Files;          # non-directories in ARGV
+	my $First = 1;      # first directory entry on command line
+
 	for my $Arg (@ARGV) {
 		if (!exists($Options{'d'}) && -d $Arg) {
 			$ArgCount++;
