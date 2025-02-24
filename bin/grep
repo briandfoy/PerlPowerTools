@@ -58,7 +58,7 @@ use constant EX_MATCHED => 0;
 use constant EX_NOMATCH => 1;
 use constant EX_FAILURE => 2;
 
-our $VERSION = '1.018';
+our $VERSION = '1.019';
 
 $| = 1;                   # autoflush output
 
@@ -367,7 +367,7 @@ sub matchfile {
 	$opt     = shift;    # reference to option hash
 	$matcher = shift;    # reference to matching sub
 
-	my ( $file, @list, $total, $name );
+	my ( $file, $total, $name );
 	local ($_);
 	$total = 0;
 
@@ -397,13 +397,12 @@ FILE: while ( defined( $file = shift(@_) ) ) {
 					}
 				next FILE;
 				}
-			@list = ();
+			my @list;
 			for (readdir $dh) {
 				next if $_ eq '.' or $_ eq '..';
 				push @list, File::Spec->catfile($file, $_);
 				}
 			closedir $dh;
-			@list = sort @list;
 			matchfile( $opt, $matcher, @list );    # process files
 			next FILE;
 			}
