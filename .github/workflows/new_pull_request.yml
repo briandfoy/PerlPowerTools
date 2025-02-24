@@ -1,0 +1,20 @@
+name: "New Pull Request Labeler"
+on:
+    pull_request_target:
+        types:
+            - opened
+
+env:
+    GH_TOKEN: ${{ github.token }}
+
+jobs:
+  new_pull_request:
+    environment: housekeeping
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+        perl .github/bin/labeler ${{ github.event.number }} add

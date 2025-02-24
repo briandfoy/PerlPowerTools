@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+use v5.10;
+use IPC::Open3;
+
+use subs qw(verbose);
+
+my( $issue_no, $command, @labels ) = @ARGV;
+$command //= 'remove';
+
+my $existing_labels = get_existing_labels($issue_no);
+verbose "Existing labels are " . join " ", keys %$existing_labels;
+
+my $action;
+
+if( $command eq 'add' ) {
+	@labels = get_default_labels_to_add() if @labels == 0;
+	verbose "Labels to add (before): " . join " ", @labels;
+
+	@labels = grep { ! exists $existing_labels->{$_} } @labels;
+	}
+elsif( $command eq 'remove' ) {
+	@labels = get_default_labels_to_remove() if @labels == 0;
+	verbose "Labels to remove (before): " . join " ", @labels;
+
+	@labels = grep { exists $existing_labels->{$_} } @labels;
+	}
+
+verbose "Labels to $command (after): " . join " ", @labels;
+
+label_action( $issue_no, $command, @labels );
+
+sub get_default_labels_to_add {
+	return (
+		'Priority: low',
+		'Status: needs verification',
+		'Type: bug'
+		);
+	}
+
+sub get_default_labels_to_remove {
+	chomp( my @labels = `gh label list --json name --jq .[].name` );
+	@labels = grep { /\A (?:Status|Priority) : /x } @labels;
+	}
+
+sub get_existing_labels {
+	my( $issue ) = @_;
+
+	chomp( my @l = `gh issue view 1 --json labels --jq .labels.[].name` );
+	my %h = map { $_, 1 } @l;
+	return \%h
+	}
+
+sub label_action {
+	my( $issue_no, $command, @labels ) = @_;
+	my $switch = "--${command}-label";
+
+	if( @labels == 0 ) {
+		say "No labels to $command";
+		return
+		};
+
+	my @command = qw(gh issue edit);
+	push @command, $issue_no;
+
+	foreach (@labels) {
+		push @command, $switch, $_;
+		}
+
+	verbose "COMMAND: @command";
+
+	my $pid = open3(my $chld_in, my $chld_out, my $chld_err = gensym,
+                        @command);
+
+	my $rc = system @command;
+	verbose "[$rc] Removed labels: @labels";
+	}
+
+sub verbose {
+	return unless $ENV{VERBOSE};
+	say STDERR @_;
+	}
