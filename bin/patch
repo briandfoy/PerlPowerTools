@@ -997,6 +997,8 @@ sub apply {
             $cmd[$i] = '';
             s/\.\././ for @{$cmd[$i-1][3]};
             next;
+        } elsif ($cmd eq 'a') {
+            $start = $end if $start < $end; # "1,10a" takes 10 as target
         }
 
         # Remove '.' line used to terminate hunks.
