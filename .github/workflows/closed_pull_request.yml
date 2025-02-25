@@ -18,8 +18,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - run: |
-        perl .github/bin/labeler ${{ github.event.number }} remove
-        perl .github/bin/labeler ${{ github.event.number }} add 'Status: accepted'
+        perl .github/bin/labeler ${{ github.event.number }} remove >> closed-pr.out.txt
+        perl .github/bin/labeler ${{ github.event.number }} add 'Status: accepted' >> closed-pr.out.txt
+        cat closed-pr.out.txt
   rejected:
     if: github.event.pull_request.merged == false
     environment: housekeeping
