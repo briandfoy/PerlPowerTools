@@ -15,11 +15,12 @@ License: gpl
 use strict;
 use FindBin qw($Bin);
 use File::Basename;
+use File::Spec;
 use Getopt::Std;
 
 $|++;
 
-my ($VERSION) = '2.1';
+my ($VERSION) = '2.2';
 
 my $home = $Bin;
 $home =~ s|/[^/]*/?$||;
@@ -232,8 +233,11 @@ sub find_path
 
     return $name if -d $name || is_fortune_file( $name );
 
-    foreach ( fortune_dirs() ) {
-	    return "$_/$name" if is_fortune_file( "$_/$name" );
+    unless (File::Spec->file_name_is_absolute($name)) {
+	    foreach ( fortune_dirs() ) {
+		    my $abs = File::Spec->catfile($_, $name);
+		    return $abs if is_fortune_file($abs);
+	    }
     }
 
     die "fortune: $name not a fortune file or directory\n";
