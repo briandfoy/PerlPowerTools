@@ -19,7 +19,7 @@ use strict;
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-my $VERSION = '1.1';
+my $VERSION = '1.2';
 
 END {
   close STDOUT || die "$0: can't close stdout: $!\n";
@@ -39,11 +39,12 @@ my ($optc, $optd, $optf, $opts, $optu);
 
 sub get_numeric_arg {
   # $_ contains current arg
-  my ($argname, $desc, $opt) = @_;
+  my ($argname, $desc) = @_;
+  my $opt;
   if    (length) { $opt = $_ }
   elsif (@ARGV)  { $opt = shift @ARGV }
   else           {die "$0: option requires an argument -- $argname\n"}
-  $opt =~ /\D/ && die "$0: invalid number of $desc: `$opt'\n";
+  die "$0: invalid number of $desc: `$opt'\n" unless $opt =~ m/\A[0-9]+\Z/;
   $opt;
 }
 
