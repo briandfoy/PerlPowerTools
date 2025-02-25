@@ -110,7 +110,6 @@ sub format_mode {
 # ------ define variables
 my $Getgrgid = "";	# getgrgid() for this platform
 my $Getpwuid = "";	# getpwuid() for this platform
-my $Maxlen = 1;		# longest string we've seen
 my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
@@ -314,12 +313,11 @@ sub List {
 	my $Expand = shift;	# do 1 level of dir expansion,
 				# for "ls DIRNAME"
 	my $Attributes = "";	# entry attributes hashref
-	my $BlockSize =		# block size in 512-byte units
-	 exists($Options->{'k'}) ? 2 : 1;
 	my $Cols = 0;		# output columns for this List()
 	my $Entry = "";		# directory entry
 	my @Dirs = ();		# directories from -R and DirEntries
 	my $Mask = "";		# sprintf() format/mask
+	my $Maxlen = 1;		# longest string for current directory
 	my $Mylen = 0;		# current entry length
 	my $Path = "";		# path for subdirectories
 	my $Piece = "";		# piece of entry list
