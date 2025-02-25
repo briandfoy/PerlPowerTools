@@ -68,9 +68,6 @@ sub label_action {
 
 	verbose "COMMAND: @command";
 
-	my $pid = open3(my $chld_in, my $chld_out, my $chld_err = gensym,
-                        @command);
-
 	my $rc = system @command;
 	verbose "[$rc] Removed labels: @labels";
 	}
