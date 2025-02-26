@@ -65,7 +65,7 @@ sub run {
 					my $unknown = () = keys %Unknown_users;
 
 					if( $^O ne 'MSWin32' && $pattern =~ /(?:\A|\s)~([\w-]+?)\b/ ) {
-						getpwnam($u) ? undef : "Unknown user $1.";
+						getpwnam($1) ? undef : "Unknown user $1.";
 						}
 					elsif( $pattern =~ $wildcards ) {
 						( EX_FAILURE, $class->no_match_message );
