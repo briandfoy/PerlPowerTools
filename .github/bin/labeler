@@ -45,7 +45,7 @@ sub get_default_labels_to_remove {
 sub get_existing_labels {
 	my( $issue ) = @_;
 
-	chomp( my @l = `gh issue view 1 --json labels --jq .labels.[].name` );
+	chomp( my @l = `gh issue view $issue --json labels --jq .labels.[].name` );
 	my %h = map { $_, 1 } @l;
 	return \%h
 	}
