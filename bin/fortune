@@ -44,15 +44,11 @@ my $STR_ROTATED = 0x4;
 my (%opts);
 
 getopts('adefilosvwm:n:', \%opts) or print_help();
+VERSION_MESSAGE() if $opts{'v'};
 
 my $debug = $opts{d};
 
 my $SHORT_LENGTH = $opts{n} || 160;
-
-if ($opts{v}) {
-	print "\n\n$0 $VERSION\n\n";
-	exit 1;
-}
 
 if ($debug) {
 	warn "opts are:\n";
@@ -105,6 +101,11 @@ if ($opts{m}) {
 #
 #  Sub Routines
 #
+
+sub VERSION_MESSAGE {
+	print "$0 version $VERSION\n";
+	exit 0;
+}
 
 # build_file_list
 #
@@ -279,7 +280,7 @@ sub is_fortune_file
 	    warn "$msg FALSE (can't read file)\n" if $debug;
 	    return 0;
     }
-    my @illegal_suffixes = qw(dat pos c h p i f pas ftn ins.c ins,pas
+    my @illegal_suffixes = qw(dat pos c h p i f pas ftn ins.c ins.pas
 			      ins.ftn sml);
     foreach (@illegal_suffixes) {
 	if ( $path =~ /\.$_$/ ) {
