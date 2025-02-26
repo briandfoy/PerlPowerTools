@@ -51,6 +51,10 @@ while (@ARGV && $ARGV [0] =~ /^-/) {
 my $mode = shift;
 usage() unless @ARGV;
 
+if (length($mode) == 0) {
+    warn "$Program: invalid user: ''\n";
+    exit EX_FAILURE;
+}
 my ($owner, $group) = split /:/ => $mode, 2;
 
 my $uid = getpwnam $owner;
