@@ -219,7 +219,7 @@ exit $saw_difference;
 
 sub skipnum {
     my $n = shift;
-    return hex($n) if ($n =~ m/\A0x/);
+    return hex($n) if ($n =~ m/\A0[Xx]/);
     return int($n) if ($n =~ m/\A[0-9]+\z/);
     warn "$Program: invalid offset number '$n'\n";
     usage();
@@ -261,7 +261,7 @@ I<skip1> and I<skip2> are optional byte offsets into I<file1> and
 I<file2>, respectively, that determine where the file comparison
 will begin.  Offsets may be given in decimal, octal, or hexadecimal
 form.  Indicate octal notation with a leading '0', and hexadecimal
-notation with a leading '0x'.
+notation with a leading '0x' or '0X'.
 
 file1 or file2 may be given as '-', which reads from standard input.
 
