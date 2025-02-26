@@ -137,6 +137,8 @@ sub my_home {
     return;
 	}
 
+sub no_match_message { 'glob: No match.' }
+
 sub output_list {
 	my( $class, $array, $separator ) = @_;
 	$separator = "\n" unless defined $separator;
