@@ -114,7 +114,7 @@ my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
 my $SixMonths =		# long listing time if < 6 months, else year
  60*60*24*(365/2);
-our $VERSION = '0.70';	# because we're V7-compatible :)
+our $VERSION = '0.71';
 my $WinCols;		# window columns of output
 
 # ------ compensate for lack of getpwuid/getgrgid on some platforms
@@ -517,10 +517,15 @@ if ($#ARGV < 0) {
 	for my $Arg (@Files) {
 		$Attributes{$Arg} = stat($Arg);
 	}
-	for my $Arg (Order(\%Options, \%Attributes, @Files)) {
+	if (@Files) {
 		$First = 0;
-		List($Arg, \%Options, 0, 0,
-		 DirEntries(\%Options, $Arg));
+		my %attrs;
+		foreach (@Files) {
+			my @ret = DirEntries(\%Options, $_);
+			%attrs = (%attrs, %{ $ret[-1] });
+		}
+		my @sorted = Order(\%Options, \%Attributes, @Files);
+		List('.', \%Options, 0, 0, @sorted, \%attrs);
 	}
 	for my $Arg (@Dirs) {
 		$Attributes{$Arg} = stat($Arg);
