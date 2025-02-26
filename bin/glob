@@ -86,7 +86,7 @@ sub exit {
 	my( $class, $code, $message ) = @_;
 
 	print STDERR $message if defined $message;
-	exit( $code // 0 );
+	exit( defined $code ? $code : 0 );
 	}
 
 sub expand_tilde {
