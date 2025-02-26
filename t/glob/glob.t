@@ -1,13 +1,10 @@
 use 5.006;
 use strict;
 
-BEGIN {
-	*CORE::GLOBAL::exit = sub { 1 }
-	}
-
 use Test::More 1;
 
-package Local::Glob {
+BEGIN {
+	package Local::Glob;
 	our @ISA = qw(PerlPowerTools::glob);
 
 	sub exit {
@@ -18,7 +15,7 @@ package Local::Glob {
 		( my $class, $Local::Glob::array, $Local::Glob::separator ) = @_;
 		$Local::Glob::separator = "\n" unless defined $Local::Glob::separator;
 		}
-	}
+}
 
 my $class = 'Local::Glob';
 
