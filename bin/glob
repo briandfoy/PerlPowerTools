@@ -95,7 +95,8 @@ sub expand_tilde {
 	local $_ = $_[0];
 
 	my $home = my_home();
-	my $dir  = dirname($home) // '/Users';
+	my $dir  = dirname($home);
+	$dir = '/Users' unless defined $dir;
 
 	return $_ unless m/ \A ~ (\w+)? /x;
 	my $user = $1;
