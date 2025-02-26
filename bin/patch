@@ -988,7 +988,14 @@ sub apply {
         shift(@hunk) =~ m!^(\d+)(?:,(\d+))?([acds])!
             or $self->throw('Unable to parse ed script');
 
-        my ($start, $end, $cmd) = ($1, $2 || $1, $3);
+        my ($start, $end, $cmd) = ($1, $2, $3);
+        $end = $start unless defined $end; # 0 can appear
+        if ($start > $end) {
+            $self->throw("Invalid address range: $start,$end\n");
+        }
+        if ($start == 0 && $cmd ne 'a') {
+            $self->throw("Address zero invalid for command: $start,$end$cmd\n");
+        }
 
         # We don't parse substitution commands and assume they all mean
         # s/\.\././ even if they really mean s/\s+// or such.  And we
