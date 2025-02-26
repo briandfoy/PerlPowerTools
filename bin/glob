@@ -12,50 +12,140 @@ License: perl
 
 =cut
 
+package PerlPowerTools::glob;
+
+use strict;
+use warnings;
+
 our $VERSION = '2.1';
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
+use constant EX_ERROR   => 2;
 
-use File::Glob qw(csh_glob);
+use File::Basename;
+use File::Glob qw(csh_glob GLOB_CSH);
 
-my $separator = "\n";
-if( $ARGV[0] eq '-0' ) {
-	shift @ARGV;
-	$separator = "\0";
+__PACKAGE__->run(@ARGV) unless caller();
+
+my %Unknown_users;
+my $wildcards = qr/[*?\[]/;
+
+sub run {
+	my( $class, @args ) = @_;
+
+	my( $code, $message ) = do {
+		if( @args == 0 ) {
+			( EX_ERROR, undef );
+			}
+		else {
+			my $separator = "\n";
+			if( $args[0] eq '-0' ) {
+				shift @args;
+				$separator = "\0";
+				}
+
+			my @ARGV_expanded = @args;
+			if( $^O =~ /\A MSWin32 \z/x ) {
+				@ARGV_expanded = map { expand_tilde($_) } @ARGV_expanded;
+				}
+
+			my @matches = csh_glob( "@ARGV_expanded", GLOB_CSH );
+
+			if( @matches ) {
+				$class->output_list( \@matches, $separator );
+				( EX_SUCCESS );
+				}
+			elsif( () = keys %Unknown_users ) {
+				( EX_FAILURE, $class->no_match_message );
+				}
+			else {
+				my $message = do {
+					my $pattern = "@args";
+					my $unknown = () = keys %Unknown_users;
+
+					if( $^O ne 'MSWin32' && $pattern =~ /(?:\A|\s)~([\w-]+?)\b/ ) {
+						getpwnam($u) ? undef : "Unknown user $1.";
+						}
+					elsif( $pattern =~ $wildcards ) {
+						( EX_FAILURE, $class->no_match_message );
+						}
+					else { undef }
+					};
+
+				( EX_FAILURE, $message );
+				}
+			}
+		};
+
+	$class->exit( $code, $message );
 	}
 
-my $pattern = "@ARGV";
+sub exit {
+	my( $class, $code, $message ) = @_;
 
-my @matches = csh_glob( $pattern );
-
-if( @matches ) {
-	print join $separator, @matches;
-	exit EX_SUCCESS;
+	print STDERR $message if defined $message;
+	exit( $code // 0 );
 	}
 
-my $message = do {
-	if( $pattern =~ /(?:\A|\s)~([\w-]+?)\b/ ) {
-		my $u = $1;
-		my $m = "Unknown user $u.";
+sub expand_tilde {
+	return $_[0] unless $^O eq 'MSWin32';
+	return $_[0] unless $_[0] =~ $wildcards;
+	local $_ = $_[0];
 
-		if( $^O =~ /\A MSWin32 \z/x ) {
-			local $_ = `net user $u`;
-			/could not be found|The syntax of this command/ ? $m : ();
-			}
-		elsif( ! getpwnam($u) ) {
-			$m
-			}
-		else { undef }
-		}
-	elsif( $pattern =~ /[*?\[]/ ) {
-		"No Match";
-		}
-	else { undef }
-	};
+	my $home = my_home();
+	my $dir  = dirname($home) // '/Users';
 
-print STDERR $message if defined $message;
-exit EX_FAILURE;
+	return unless m/ \A ~ (\w+)? /x;
+	my $user = $1;
+
+	if( $user && ! $Unknown_users{$user}  ) {
+		my $net_user = `net user "$user" 2>&1`;
+		if( $net_user =~ /could not be found|The syntax of this command/ ) {
+			print STDERR "Unknown user $user.\n";
+			$Unknown_users{$user}++;
+			return;
+			}
+		s/ \A ~ (\w+) /$dir\\$1/x
+		}
+	else {
+		s/ \A ~ /$home/x;
+		}
+
+	return $_;
+	}
+
+# Stolen from File::HomeDir::Windows;
+sub my_home {
+    # A lot of unix people and unix-derived tools rely on
+    # the ability to overload HOME. We will support it too
+    # so that they can replace raw HOME calls with File::HomeDir.
+    if (exists $ENV{HOME} and defined $ENV{HOME} and length $ENV{HOME}) {
+        return $ENV{HOME};
+    	}
+
+    # Do we have a user profile?
+    if (exists $ENV{USERPROFILE} and $ENV{USERPROFILE}) {
+        return $ENV{USERPROFILE};
+    	}
+
+    # Some Windows use something like $ENV{HOME}
+    if (exists $ENV{HOMEDRIVE} and exists $ENV{HOMEPATH} and $ENV{HOMEDRIVE} and $ENV{HOMEPATH}) {
+        return File::Spec->catpath($ENV{HOMEDRIVE}, $ENV{HOMEPATH}, '',);
+    	}
+
+    return;
+	}
+
+sub output_list {
+	my( $class, $array, $separator ) = @_;
+	$separator = "\n" unless defined $separator;
+
+	print STDOUT join $separator, @$array;
+	print "\n";
+	}
+
+=encoding utf8
 
 =head1 NAME
 
