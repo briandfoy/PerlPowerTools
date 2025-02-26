@@ -77,5 +77,5 @@ sub label_action {
 
 sub verbose {
 	return unless $ENV{VERBOSE};
-	say STDOUT @_;
+	say STDOUT '::notice::', @_;
 	}
