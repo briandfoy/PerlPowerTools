@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions macOS config for Perl 5 modules
-# version 20250101.001
+# version 20250125.002
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,6 +8,21 @@
 # in your repo settings. Or not. It still works if it isn't defined.
 # In that environment, add whatever environment variables or secrets
 # that you want.
+#
+# Variables that you can set in the "automated_testing" environment:
+#
+# EXTRA_CPAN_MODULES  - extra arguments to the first call to cpan.
+#                       Just use EXTRA_CPANM_MODULES though. This is
+#                       here for legacy
+#
+# EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
+#
+# MACOS_EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm
+#                       but only on macOS. Other workflows won't use this.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
 ---
 name: macos
 
@@ -78,14 +93,14 @@ jobs:
             - name: Prepare cpan
               run: |
                 openssl version
-                cpan -M http://www.cpan.org -T IO::Socket::SSL HTTP::Tiny
-                cpan -M https://www.cpan.org -T ExtUtils::MakeMaker Test::Manifest
+                cpan -M https://www.cpan.org -T App::cpanminus IO::Socket::SSL HTTP::Tiny ExtUtils::MakeMaker Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
+                cpanm --notest Test::Manifest  ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.MACOS_EXTRA_CPANM_MODULES }}
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpan -M https://www.cpan.org -T . ${{ vars.EXTRA_CPAN_MODULES }}
+                cpan -M https://www.cpan.org -T .
             - name: Run tests
               run: |
                 perl Makefile.PL

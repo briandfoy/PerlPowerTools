@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20250101.001
+# version 20250126.002
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,6 +8,24 @@
 # in your repo settings. Or not. It still works if it isn't defined.
 # In that environment, add whatever environment variables or secrets
 # that you want.
+#
+# Variables that you can set in the "automated_testing" environment:
+#
+# EXTRA_CPAN_MODULES  - extra arguments to the first call to cpan.
+#                       Just use EXTRA_CPANM_MODULES though. This is
+#                       here for legacy
+#
+# EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
+#
+# UBUNTU_EXTRA_APT_GET - extra packages to install before we start
+#
+# UBUNTU_EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm
+#                       but only on Ubuntu. Other workflows won't use this.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
+
 ---
 name: ubuntu
 
@@ -52,7 +70,7 @@ on:
     pull_request:
     # weekly build on the master branch just to see what CPAN is doing
     schedule:
-        - cron: "24 20 * * 1"
+        - cron: "37 3 * * 0"
 jobs:
     perl:
         environment: automated_testing
@@ -85,13 +103,17 @@ jobs:
             - uses: actions/checkout@v3
             - name: Platform check
               run: uname -a
+            - name: setup platform
+              run: |
+                apt-get upgrade
+                apt-get -y install curl ${{ vars.UBUNTU_EXTRA_APT_GET }}
             - name: Perl version check
               run: |
                 perl -V
                 perl -v | perl -0777 -ne 'm/(v5\.\d+)/ && print "PERL_VERSION=$1"' >> $GITHUB_ENV
 # Some older versions of Perl have trouble with hostnames in certs. I
 # haven't figured out why.
-            - name: Setup environment
+            - name: enhance environment
               run: |
                 echo "PERL_LWP_SSL_VERIFY_HOSTNAME=0" >> $GITHUB_ENV
 # HTML::Tagset bumped its minimum version to v5.10 for no good reason
@@ -106,13 +128,14 @@ jobs:
             - name: fix html-tagset for v5.8
               if: env.PERL_VERSION == 'v5.8'
               run: |
+                cpan App::Cpan
                 curl -L -O https://cpan.metacpan.org/authors/id/P/PE/PETDANCE/HTML-Tagset-3.24.tar.gz
                 tar -xzf HTML-Tagset-3.24.tar.gz
                 cd HTML-Tagset-3.24
                 rm META.*
                 mv Makefile.PL Makefile.PL.orig
                 perl -n -e 'next if /(^use 5)|(MIN_PERL)/; print' Makefile.PL.orig > Makefile.PL
-                cpan -T .
+                cpan -M http://www.cpan.org -T .
                 cd ..
                 pwd
                 ls
@@ -125,13 +148,14 @@ jobs:
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL LWP::Protocol::https App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
+                cpanm --notest IO::Socket::SSL LWP::Protocol::https App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.UBUNTU_EXTRA_CPANM_MODULES }}
+                cpan -M http://www.cpan.org -T Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest --installdeps --with-suggests --with-recommends . ${{ vars.EXTRA_CPAN_MODULES }}
+                cpanm --notest --installdeps --with-suggests --with-recommends .
             - name: Show cpanm failures
               if: ${{ failure() }}
               run: |
@@ -171,7 +195,7 @@ jobs:
             - name: Run coverage tests
               if: env.PERL_VERSION != 'v5.8' && env.PERL_VERSION != 'v5.10'
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL

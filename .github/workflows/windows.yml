@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20250101.001
+# version 20250126.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,6 +8,19 @@
 # in your repo settings. Or not. It still works if it isn't defined.
 # In that environment, add whatever environment variables or secrets
 # that you want.
+#
+# EXTRA_CPAN_MODULES  - extra arguments to the first call to cpan.
+#                       Just use EXTRA_CPANM_MODULES though. This is
+#                       here for legacy
+#
+# EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
+#
+# WINDOWS_EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm
+#                       but only on Windows. Other workflows won't use this.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
 ---
 name: windows
 
@@ -66,19 +79,32 @@ jobs:
             - uses: actions/checkout@v3
             - name: Set up Perl
               run: |
-                choco install strawberryperl
+                choco uninstall strawberryperl
+                choco upgrade strawberryperl
                 echo "C:\strawberry\c\bin"         | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
                 echo "C:\strawberry\perl\site\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
                 echo "C:\strawberry\perl\bin"      | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
             - name: Perl version
               run: perl -V
+# cpan can operate with https, but we need IO::SSL::Socket, which
+# does not come with Perl.
+#
+# When using cpan, use -M to specify the CDN-backed www.cpan.org
+# mirror. I've noticed that letting CPAN.pm auto-choose mirrors
+# sometimes selects things that the action can't reach.
+#
+# Also, use the -T option to not test the dependencies. Assume these
+# mainline modules are good and save lots of CI minutes.
+            - name: Install cpanm and multiple modules
+              run: |
+                cpan -M http://www.cpan.org -T App::cpanminus ${{ vars.EXTRA_CPAN_MODULES }}
+                cpanm --notest IO::Socket::SSL LWP::Protocol::https HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.WINDOWS_EXTRA_CPANM_MODULES }}
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
                 cpan -M https://www.cpan.org -T .
-                cpan -M https://www.cpan.org -T Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
             - name: Run tests
               run: |
                 perl Makefile.PL

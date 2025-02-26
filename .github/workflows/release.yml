@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20241118.001
+# version 20250226.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -12,6 +12,21 @@
 # This requires that you configure a repository secret named
 # RELEASE_ACTION_TOKEN with a GitHub Personal Access Token
 # that has "read and write" permissions on Repository/Contents
+#
+# Variables that you can set in the "automated_testing" environment:
+#
+# EXTRA_CPAN_MODULES  - extra arguments to the first call to cpan.
+#                       Just use EXTRA_CPANM_MODULES though. This is
+#                       here for legacy
+#
+# EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
+#
+# UBUNTU_EXTRA_CPANM_MODULES - extra arguments to the first call to cpanm
+#                       but only on Ubuntu. Other workflows won't use this.
+#                       this is useful to install very particular
+#                       modules, such as DBD::mysql@4.050
 ---
 name: release
 
@@ -49,7 +64,7 @@ jobs:
         strategy:
             matrix:
                 os:
-                    - ubuntu-20.04
+                    - ubuntu-24.04
                 perl-version:
                     - 'latest'
         container:
@@ -74,13 +89,14 @@ jobs:
             - name: Install cpanm and multiple modules
               run: |
                 curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL HTTP::Tiny ExtUtils::MakeMaker Test::Manifest
+                cpanm --notest IO::Socket::SSL HTTP::Tiny ExtUtils::MakeMaker Test::Manifest ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.UBUNTU_EXTRA_CPANM_MODULES }}
+                cpan -M http://www.cpan.org -T Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
             - name: Install dependencies
               run: |
-                cpanm --notest --installdeps --with-suggests --with-recommends . ${{ vars.EXTRA_CPAN_MODULES }}
+                cpanm --notest --installdeps --with-suggests --with-recommends .
 # This makes the distribution and tests it, but assumes by the time we
 # got here, everything else was already tested.
             - name: Create distro
