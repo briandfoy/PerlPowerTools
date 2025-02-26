@@ -29,7 +29,8 @@ use File::Glob qw(csh_glob GLOB_CSH);
 __PACKAGE__->run(@ARGV) unless caller();
 
 my %Unknown_users;
-my $wildcards = qr/[*?\[]/;
+my $wildcards;
+BEGIN { $wildcards = qr/[*?\[]/ }
 
 sub run {
 	my( $class, @args ) = @_;
@@ -96,7 +97,7 @@ sub expand_tilde {
 	my $home = my_home();
 	my $dir  = dirname($home) // '/Users';
 
-	return unless m/ \A ~ (\w+)? /x;
+	return $_ unless m/ \A ~ (\w+)? /x;
 	my $user = $1;
 
 	if( $user && ! $Unknown_users{$user}  ) {
