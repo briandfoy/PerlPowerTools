@@ -22,6 +22,7 @@ our $VERSION = '2.1';
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 use constant EX_ERROR   => 2;
+use constant IS_WINDOWS => ( $^O eq 'MSWin32' );
 
 use File::Basename;
 use File::Glob qw(csh_glob GLOB_CSH);
@@ -47,7 +48,7 @@ sub run {
 				}
 
 			my @ARGV_expanded = @args;
-			if( $^O =~ /\A MSWin32 \z/x ) {
+			if( IS_WINDOWS ) {
 				@ARGV_expanded = map { expand_tilde($_) } @ARGV_expanded;
 				}
 
@@ -65,7 +66,7 @@ sub run {
 					my $pattern = "@args";
 					my $unknown = () = keys %Unknown_users;
 
-					if( $^O ne 'MSWin32' && $pattern =~ /(?:\A|\s)~([\w-]+?)\b/ ) {
+					if( ! IS_WINDOWS && $pattern =~ /(?:\A|\s)~([\w-]+?)\b/ ) {
 						getpwnam($1) ? undef : "Unknown user $1.";
 						}
 					elsif( $pattern =~ $wildcards ) {
@@ -90,7 +91,7 @@ sub exit {
 	}
 
 sub expand_tilde {
-	return $_[0] unless $^O eq 'MSWin32';
+	return $_[0] unless IS_WINDOWS;
 	return $_[0] unless $_[0] =~ $wildcards;
 	local $_ = $_[0];
 
