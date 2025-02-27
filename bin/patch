@@ -943,39 +943,6 @@ sub apply {
 
     my $out = $self->{o_fh};
 
-    $self->{check} and goto PLAN_J;
-
-    # We start out by adding a magic line to our output.  If this line
-    # is still there after piping to ed, then ed failed.  We do this
-    # because win32 will silently fail if there is no ed program.
-    my $magic = "#!/i/want/a/moogle/stuffy\n";
-    print $out $magic;
-
-    # Pipe to ed.
-    eval {
-        open ED, '|-', 'ed', '-s', $self->{'i_file'} or die "Couldn't fork ed: $!";
-        print ED map @$_, @cmd               or die "Couldn't print ed: $!";
-        print ED "wq $self->{o_file}\n"     or die "Couldn't print ed: $!";
-        close ED                             or die "Couldn't close ed: $?";
-    };
-
-    # Did pipe to ed work?
-    seek($out, 0, 0)  or $self->throw("Couldn't seek OUT: $!");
-    my $testline = <$out>;
-    if (!$@ && $testline ne $magic) {
-        $self->note("Hunk #$self->{hunk} succeeded at 1.\n");
-        return 1;
-    }
-
-    # Erase any trace of magic line.
-    truncate($out, 0) or $self->throw("Couldn't truncate OUT: $!");
-    seek($out, 0, 0)  or $self->throw("Couldn't seek OUT: $!");
-
-    # Try to apply ed script by hand.
-    $self->note("Pipe to ed failed.  Switching to Plan J...\n");
-
-    PLAN_J:
-
     # Pre-process each ed command.  Ed diffs are reversed (so that each
     # command doesn't end up changing the line numbers of subsequent
     # commands).  But we need to apply diffs in a forward direction because
