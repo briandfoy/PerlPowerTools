@@ -20,4 +20,4 @@ jobs:
         perl .github/bin/labeler ${{ github.event.number }} add
     - uses: hkusu/review-assign-action@v1
       with:
-        reviewers: ${{ vars.REVIEWERS }}
+        reviewers: ${{ vars.ASSIGNEES }}
