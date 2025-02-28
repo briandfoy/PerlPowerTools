@@ -65,7 +65,7 @@ subtest 'one arg, some matches' => sub {
 
 	$class->run(@args);
 
-	is $Local::Glob::code, EX_NO_MATCHES, 'exit code is successful';
+	is $Local::Glob::code, EX_SUCCESS, 'exit code is successful';
 	is "$Local::Glob::message", '', 'there is no output message';
 	is_deeply
 		[ sort @$Local::Glob::array ],
