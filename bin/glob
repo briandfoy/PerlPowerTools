@@ -19,10 +19,11 @@ use warnings;
 
 our $VERSION = '2.1';
 
-use constant EX_SUCCESS => 0;
-use constant EX_FAILURE => 1;
-use constant EX_ERROR   => 2;
-use constant IS_WINDOWS => ( $^O eq 'MSWin32' );
+use constant EX_SUCCESS    => 0;
+use constant EX_NO_MATCHES => 1;
+use constant EX_FAILURE    => 1;
+use constant EX_ERROR      => 2;
+use constant IS_WINDOWS    => ( $^O eq 'MSWin32' );
 
 use File::Basename;
 use File::Glob qw(csh_glob GLOB_CSH);
@@ -39,6 +40,9 @@ sub run {
 	my( $code, $message ) = do {
 		if( @args == 0 ) {
 			( EX_ERROR, undef );
+			}
+		elsif( $class->globbrace(@args) == 0 ) {
+			( EX_FAILURE, $class->missing_brace_message );
 			}
 		else {
 			my $separator = "\n";
@@ -59,10 +63,10 @@ sub run {
 				( EX_SUCCESS );
 				}
 			elsif( () = keys %Unknown_users ) {
-				( EX_FAILURE, $class->no_match_message );
+				( EX_NO_MATCHES, $class->no_match_message );
 				}
 			else {
-				my $message = do {
+				my( $message, $code ) = do {
 					my $pattern = "@args";
 					my $unknown = () = keys %Unknown_users;
 
@@ -70,12 +74,13 @@ sub run {
 						getpwnam($1) ? undef : "Unknown user $1.";
 						}
 					elsif( $pattern =~ $wildcards ) {
-						( EX_FAILURE, $class->no_match_message );
+						$class->no_match_message;
 						}
-					else { undef }
+					else { (undef, EX_FAILURE) }
 					};
+                $code = EX_NO_MATCHES unless defined $code;
 
-				( EX_FAILURE, $message );
+				( $code, $message );
 				}
 			}
 		};
@@ -117,6 +122,40 @@ sub expand_tilde {
 
 	return $_;
 	}
+
+# https://github.com/aatrens-juniper/OpenBSD-src/blob/master/bin/csh/glob.c
+sub globbrace {
+	my( $class, @args ) = @_;
+
+	foreach my $s ( @args ) {
+		my $start = index $s, '{';
+		return 1 if $start == -1;
+
+		my $counter = 0;
+		STRING: for( my $i = 0; $i < length($s); $i++ ) {
+			if( '[' eq substr($s, $i, 1) ) {
+				SQUARE: for( $i++; $i <= length($s); $i++ ) {
+					last SQUARE if ']' eq substr( $s, $i, 1 );
+					return 0 if $i == length $s;
+					}
+				}
+			elsif( '{' eq substr( $s, $i, 1 ) ) {
+				$counter++
+				}
+			elsif( '}' eq substr( $s, $i, 1 ) ) {
+				next if $counter == 0;
+				$counter--
+				}
+			}
+
+		return 0 if $counter != 0;
+		}
+
+	return 1;
+	}
+
+
+sub missing_brace_message { q(Missing '}'.) }
 
 # Stolen from File::HomeDir::Windows;
 sub my_home {
