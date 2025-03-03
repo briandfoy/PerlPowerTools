@@ -520,11 +520,14 @@ if ($#ARGV < 0) {
 	if (@Files) {
 		$First = 0;
 		my %attrs;
+		my @okfiles;
 		foreach (@Files) {
 			my @ret = DirEntries(\%Options, $_);
+			next unless @ret; # stat() failed
 			%attrs = (%attrs, %{ $ret[-1] });
+			push @okfiles, $_;
 		}
-		my @sorted = Order(\%Options, \%Attributes, @Files);
+		my @sorted = Order(\%Options, \%Attributes, @okfiles);
 		List('.', \%Options, 0, 0, @sorted, \%attrs);
 	}
 	for my $Arg (@Dirs) {
