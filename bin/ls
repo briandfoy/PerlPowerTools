@@ -522,9 +522,10 @@ if ($#ARGV < 0) {
 		my %attrs;
 		foreach (@Files) {
 			my @ret = DirEntries(\%Options, $_);
+			next unless @ret; # stat() failed
 			%attrs = (%attrs, %{ $ret[-1] });
 		}
-		my @sorted = Order(\%Options, \%Attributes, @Files);
+		my @sorted = Order(\%Options, \%Attributes, keys %attrs);
 		List('.', \%Options, 0, 0, @sorted, \%attrs);
 	}
 	for my $Arg (@Dirs) {
