@@ -92,35 +92,35 @@ sub VERSION_MESSAGE {
 
 sub usage {
 	die <<EOF;
-usage: $Me [-IincwsxvHhLlFguRraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+usage: $Me [-acFgHhIiLlnqRrsTuvwxZ] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
            [-m NUM] [-f pattern-file] [pattern] [file...]
 
 Options:
-	-i   case insensitive
-	-n   number lines
-	-c   give count of lines matching
-	-w   word boundaries only
-	-q   quiet; nothing is written to standard output
-	-x   exact matches only
-	-v   invert search sense (lines that DON'T match)
-	-H   show filenames
-	-h   hide filenames
-	-e   expression (for exprs beginning with -)
-	-f   file with expressions
-	-l   list filenames matching
-	-L   list filenames which do not match
-	-F   search for fixed strings (disable regular expressions)
-	-m   limit total matches per file
-	-g   highlight matches
-	-u   underline matches
-	-r   recursive on directories or dot if none
-	-C   show lines of context around each matching line
-	-B   show lines before each matching line
 	-A   show lines after each matching line
 	-a   treat binary files as plain text files
+	-B   show lines before each matching line
+	-C   show lines of context around each matching line
+	-c   give count of lines matching
+	-e   expression (for exprs beginning with -)
+	-F   search for fixed strings (disable regular expressions)
+	-f   file with expressions
+	-g   highlight matches
+	-H   show filenames
+	-h   hide filenames
 	-I   ignore binary files
+	-i   case insensitive
+	-L   list filenames which do not match
+	-l   list filenames matching
+	-m   limit total matches per file
+	-n   number lines
+	-q   quiet; nothing is written to standard output
+	-r   recursive on directories or dot if none
 	-s   suppress errors for failed file and dir opens
 	-T   trace files as opened
+	-u   underline matches
+	-v   invert search sense (lines that DON'T match)
+	-w   word boundaries only
+	-x   exact matches only
 	-Z   force grep to behave as zgrep
 EOF
 	}
@@ -241,7 +241,7 @@ sub parse_args {
 	}
 	@ARGV = @tmparg;
 
-	getopts('IinC:cwsxvHhLlguRraqTFZm:A:B:', \%opt) or usage();
+	getopts('A:aB:C:cFgHhIiLlm:nqRrsTuvwxZ', \%opt) or usage();
 
 	$opt{'r'} ||= $opt{'R'};
 	if (defined $opt{'m'} && $opt{'m'} !~ m/\A[0-9]+\z/) {
@@ -546,7 +546,7 @@ grep - search for regular expressions and print
 
 =head1 SYNOPSIS
 
-    grep [-IincwsxvhHlLFiguRraqT] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
+    grep [-acFgHhIiLlnqRrsTuvwxZ] [-e pattern] [-A NUM] [-B NUM] [-C NUM]
          [-m NUM] [-f pattern-file] [pattern] [file ...]
 
 =head1 DESCRIPTION
