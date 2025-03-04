@@ -11,8 +11,6 @@ License: perl
 
 =cut
 
-
-
 use strict;
 
 use File::Basename qw(basename);
@@ -53,6 +51,10 @@ usage() unless @ARGV > 1;
 
 my $group = shift;
 
+if (length($group) == 0) {
+    warn "$Program: '' is an invalid group\n";
+    exit EX_FAILURE;
+}
 my $gid = getgrnam $group;
 unless (defined $gid) {
     $gid = $group if $group =~ m/\A[0-9]+\z/;
@@ -65,8 +67,6 @@ unless (defined $gid) {
 my %ARGV;
 %ARGV = map {$_ => 1} @ARGV if $options {H};
 
-sub modify_file;
-
 if (exists $options {R}) {
     # Recursion.
     require File::Find;
@@ -74,9 +74,10 @@ if (exists $options {R}) {
 }
 else {
     foreach my $file (@ARGV) {
-        modify_file $file;
+        modify_file($file);
     }
 }
+exit ($warnings ? EX_FAILURE : EX_SUCCESS);
 
 # File::Find is weird. If called with a directory, it will call
 # the sub with "." as file name, while having chdir()ed to the
@@ -110,8 +111,6 @@ sub modify_file {
 	$warnings++;
     }
 }
-
-exit ($warnings ? EX_FAILURE : EX_SUCCESS);
 
 __END__
 
