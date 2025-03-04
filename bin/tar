@@ -13,6 +13,7 @@ License:
 
 use strict;
 
+use Compress::Zlib qw(gzopen);
 use File::Basename qw(basename);
 use Getopt::Std;
 use IO::File;
@@ -20,27 +21,13 @@ use IO::File;
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
-use vars qw($opt);
-
 my $Program = basename($0);
 
-BEGIN
- {
-  $opt = 'ctxvmf:';
-  eval { require Compress::Zlib };
-  if ($@)
-   {
-    warn "No decompression available: $@\n";
-   }
-  else
-   {
-    Compress::Zlib->import;
-    $opt .= 'zZ';
-   }
- }
-
 my %opt;
-getopts($opt,\%opt);
+getopts('ctxvmf:Zz', \%opt) or do {
+  warn "usage: tar {-tx} [-mvZz] [-f archive] [file ...]\n";
+  exit EX_FAILURE;
+};
 
 sub fatal
 {
