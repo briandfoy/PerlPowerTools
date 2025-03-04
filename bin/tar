@@ -13,7 +13,6 @@ License:
 
 use strict;
 
-use Compress::Zlib qw(gzopen);
 use File::Basename qw(basename);
 use Getopt::Std;
 use IO::File;
@@ -212,7 +211,8 @@ else
 
   if ($opt{'z'} || $opt{'Z'})
    {
-    # quick and dirty till we sort out Compress::Zlib
+    eval { require Compress::Zlib } or fatal('Compress::Zlib not found');
+    Compress::Zlib->import;
     my $gz = gzopen($fh, 'rb') or fatal("Cannot gzopen: $Compress::Zlib::gzerrno");
     $read = sub { $gz->gzread($_[0],$_[1]) < 0 ? $Compress::Zlib::gzerrno : 0 };
    }
