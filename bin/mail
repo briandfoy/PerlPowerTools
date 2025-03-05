@@ -473,6 +473,8 @@ sub messagex {
 	my $self=shift;
 	my $num=shift;
 	return if $num <= 0;
+	my $size = @{ $self->{'messages'} };
+	return if $num >= $size;
 	return(${$self->{messages}}[$num]);
 }
 sub replace {
@@ -640,7 +642,7 @@ use Getopt::Std;
 
 use vars qw($opt_f $opt_s $opt_c $opt_b $opt_v);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $ROWS = 23;         # Screen Dimensions.  Yeah, this sucks.
 our $COLS = 80;
 our $BUFFERL = 2;	  # Lines needed for "fluff"
