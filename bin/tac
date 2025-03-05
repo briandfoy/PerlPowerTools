@@ -60,8 +60,12 @@ print while <$fh>;
 exit EX_FAILURE if $fh->get_error;
 exit EX_SUCCESS;
 
-sub usage {
+sub VERSION_MESSAGE {
     warn "$Program version $VERSION\n";
+    exit 0;
+}
+
+sub usage {
     warn "usage: $Program [-Bbr] [-s separator] [-S bytes] [file...]\n";
     exit EX_FAILURE;
 }
