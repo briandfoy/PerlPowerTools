@@ -54,6 +54,10 @@ if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
     warn "$Program: -d not allowed with -[CcDp]\n";
     usage();
 }
+if (defined $opt{'m'} && length($opt{'m'}) == 0) {
+    warn "$Program: invalid file mode: ''\n";
+    exit 1;
+}
 
 $opt{C}++ if $opt{p};
 $Debug = 1 if $opt{D};
