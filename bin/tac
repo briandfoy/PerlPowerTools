@@ -62,7 +62,7 @@ exit EX_SUCCESS;
 
 sub VERSION_MESSAGE {
     warn "$Program version $VERSION\n";
-    exit 0;
+    exit EX_SUCCESS;
 }
 
 sub usage {
@@ -364,9 +364,6 @@ sub CLOSE {
 sub DESTROY {
     shift->CLOSE;
 }
-
-# *readline = \&READLINE;
-# *close    = \&CLOSE;
 
 sub eof {
     my $self = shift;
