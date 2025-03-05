@@ -30,12 +30,12 @@ while (@ARGV && $ARGV [0] =~ /^-/) {
     my $opt = reverse shift;
     chop $opt;
     last if ($opt eq '-');
-    unless ($opt =~ /^[RHLP]+$/) {
-        warn "$Program: invalid option -- $opt\n";
-        usage();
-    }
     local $_;
     while (length ($_ = chop $opt)) {
+        unless (m/\A[RHLP]\Z/) {
+            warn "$Program: invalid option -- '$_'\n";
+            usage();
+        }
         /R/ && do {$options {R} = 1; next};
         usage() unless $options{'R'};
         /H/ && do {$options {L} = $options {P} = 0; $options {H} = 1; next};
