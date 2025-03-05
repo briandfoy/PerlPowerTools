@@ -159,6 +159,11 @@ while (<PATCH>) {
         my ($i_range, $i_start, $i_end, @i_hunk) = ($1, $2, $3 || $2);
         my ($o_range, $o_start, $o_end, @o_hunk);
         $patch->bless('context') or next PATCH;
+        if ($i_start > $i_end) {
+            $patch->note("Malformed input at line $.: $i_range\n");
+            $patch->reject($i_range);
+            last;
+        }
         my $o_hunk = qr/^$space(--- (\d+)(?:,(\d+))? ----\n)/;
         my $re = qr/^$space([ !-] )/;
         $_ = <PATCH>;
