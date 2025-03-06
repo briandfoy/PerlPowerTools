@@ -72,7 +72,7 @@ sub usage {
 
 getopts( 'afon:t:' ) or usage();
 if (defined $opt_n) {
-    if ($opt_n !~ m/\A[0-9]\Z/ || $opt_n == 0) {
+    if ($opt_n !~ m/\A[0-9]+\Z/ || $opt_n == 0) {
         warn "$Program: invalid minimum string length '$opt_n'\n";
         exit EX_FAILURE;
     }
