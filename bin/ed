@@ -100,7 +100,7 @@ my $UndoLine;
 my $PRINT_NUM = 1;
 my $PRINT_BIN = 2;
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 my @ESC = (
     '\\000', '\\001', '\\002', '\\003', '\\004', '\\005', '\\006', '\\a',
@@ -217,8 +217,20 @@ $args[0] = shift;
 $args[0] = undef if (defined($args[0]) && $args[0] eq '-');
 Usage() if @ARGV;
 $Scripted = $opt{'s'};
-edEdit(0);
+init_edit();
 input() while 1;
+
+sub init_edit {
+    my $err = edEdit(0);
+    if ($err) {
+        if ($err eq E_OPEN) { # silence warning
+            $Error = $err;
+        } else {
+            edWarn($err);
+        }
+    }
+    return;
+}
 
 sub input {
     $command = $commandsuf = '';
