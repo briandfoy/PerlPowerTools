@@ -54,9 +54,11 @@ if ($opt{d} and grep($_, @opt{qw/ C c D p /}) > 0) {
     warn "$Program: -d not allowed with -[CcDp]\n";
     usage();
 }
-if (defined $opt{'m'} && length($opt{'m'}) == 0) {
-    warn "$Program: invalid file mode: ''\n";
-    exit 1;
+foreach my $x (qw(g m o)) {
+    if (defined $opt{$x} && length($opt{$x}) == 0) {
+        warn "$Program: invalid argument for option -$x\n";
+        exit 1;
+    }
 }
 
 $opt{C}++ if $opt{p};
@@ -103,10 +105,12 @@ sub modify_file {
         }
     }
 
-    if ($opt{o} || $opt{g}) {
+    if (defined $opt{'o'} || defined $opt{'g'}) {
         my @st = stat $path;
-        my $uid = $opt{o} || $st[4];
-        my $gid = $opt{g} || $st[5];
+        my $uid = $opt{'o'};
+        $uid = $st[4] unless defined $uid;
+        my $gid = $opt{'g'};
+        $gid = $st[5] unless defined $gid;
 
         unless (chown $uid, $gid => $path) {
             warn "$Program: chown $uid.$gid $path: $!\n";
