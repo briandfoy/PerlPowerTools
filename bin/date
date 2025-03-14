@@ -103,7 +103,7 @@ sub select_format {
 
 sub setup_specifiers {
 	my %specifiers = (
-		'e'  => sprintf( '% 2d', (core_time)[3] ),
+		'e'  => sprintf( '%2d', (core_time)[3] ),
 		'P'  => lc(POSIX::strftime('%p', core_time())),
 		'q'  => quarter(),
 		'T'  => sprintf( '%02d:%02d:%02d', (core_time)[2,1,0] ),
