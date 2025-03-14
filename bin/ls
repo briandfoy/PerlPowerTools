@@ -142,9 +142,9 @@ sub DirEntries {
 	my $Name = "";		# entry name
 
 	if (exists $Options{'d'} || ! -d $_[0]) {
-		if (-e $_[0]) {
+		if (-l $_[0] or -e $_[0]) {
 			push(@Entries, $_[0]);
-			$Attributes{$_[0]} = stat($_[0]);
+			$Attributes{$_[0]} = -l $_[0] ? lstat($_[0]) : stat($_[0]);
 			push(@Entries, \%Attributes);
 			return @Entries;
 		}
@@ -159,7 +159,8 @@ sub DirEntries {
 		next if (!exists($Options->{'a'}) &&
 		 $Name =~ m/^\./o);
 		push(@Entries, $Name);
-		$Attributes{$Name} = stat( File::Spec->catfile( $_[0], $Name ) );
+		my $path = File::Spec->catfile( $_[0], $Name );
+		$Attributes{$Name} = -l $path ? lstat($path) : stat($path);
 	}
 	closedir($dh);
 
@@ -240,6 +241,7 @@ UNDEFSTAT
 		} else {
 			$Mode =
 			 format_mode($Attributes->{$Entry}->mode);
+			#$Mode =~ s/\A-/l/ if -l $Entry;
 			print "$Mode ";
 			printf("%3d ",
 			  $Attributes->{$Entry}->nlink);
@@ -300,6 +302,10 @@ UNDEFSTAT
 			} else {
 				printf(" %04d", $year + 1900);
 			}
+		}
+		if( -l $Entry ) {
+			my $target = readlink($Entry);
+			$Entry .= " -> $target";
 		}
 		print " $Entry\n";
 	}
@@ -515,7 +521,7 @@ if ($#ARGV < 0) {
 		}
 	}
 	for my $Arg (@Files) {
-		$Attributes{$Arg} = stat($Arg);
+		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
 	}
 	if (@Files) {
 		$First = 0;
@@ -531,7 +537,7 @@ if ($#ARGV < 0) {
 		List('.', \%Options, 0, 0, @sorted, \%attrs);
 	}
 	for my $Arg (@Dirs) {
-		$Attributes{$Arg} = stat($Arg);
+		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
 	}
 	for my $Arg (Order(\%Options, \%Attributes, @Dirs)) {
 		if (!exists($Options{'R'})) {
