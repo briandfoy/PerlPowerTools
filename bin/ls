@@ -52,7 +52,7 @@ sub get_columns {
 		next unless defined $cols;
 		return $cols;
 		}
-}
+	}
 
 sub windows {
 	return unless $^O eq 'MSWin32';
@@ -239,9 +239,7 @@ my $isdst = 0;
 __________ ___ ________ ________ ________ ___ __  _____
 UNDEFSTAT
 		} else {
-			$Mode =
-			 format_mode($Attributes->{$Entry}->mode);
-			#$Mode =~ s/\A-/l/ if -l $Entry;
+			$Mode = format_mode($Attributes->{$Entry}->mode);
 			print "$Mode ";
 			printf("%3d ",
 			  $Attributes->{$Entry}->nlink);
@@ -288,9 +286,7 @@ UNDEFSTAT
 			if (exists($Options->{'u'})) {
 				$Time = $Attributes->{$Entry}->atime;
 			}
-			($sec,$min,$hour,$mday,$mon,$year,
-			 $wday,$yday,$isdst) =
-                         localtime($Time);
+			($sec,$min,$hour,$mday,$mon,$year, $wday,$yday,$isdst) = localtime($Time);
 			print $Month[$mon];
 			if ($mday < 10) {
 				print "  $mday ";
