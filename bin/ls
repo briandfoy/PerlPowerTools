@@ -100,8 +100,8 @@ my $Getgrgid = "";	# getgrgid() for this platform
 my $Getpwuid = "";	# getpwuid() for this platform
 my $Now = time;		# time we were invoked
 my %Options = ();	# option/flag arguments
-my $SixMonths =		# long listing time if < 6 months, else year
- 60*60*24*(365/2);
+my $SixMonths = 60*60*24*(365/2); # long listing time if < 6 months, else year
+
 our $VERSION = '0.71';
 my $WinCols;		# window columns of output
 
@@ -638,16 +638,14 @@ The working of I<ls> is not influenced by any environment variables.
 
 =head1 BUGS
 
-The file metadata from stat() is used, which may not necessarily
-mean much on non-Unix systems.  Specifically, the uid, gid, inode,
-and block numbers may be meaningless (or less than meaningful
-at least).
+The file metadata from stat() is used, which may not necessarily mean
+much on non-Unix systems.  Specifically, the uid, gid, inode, and
+block numbers may be meaningless (or less than meaningful at least).
 
-The B<-l> option does not yet list the major and minor
-device numbers for special files, but it does list
-the value of the 'dev' field as 2 hex 16-bit words.
-Doing this properly would
-probably require filesystem type probing.
+The B<-l> option does not yet list the major and minor device numbers
+for special files, but it does list the value of the 'dev' field as 2
+hex 16-bit words. Doing this properly would probably require
+filesystem type probing.
 
 =head1 AUTHOR
 
