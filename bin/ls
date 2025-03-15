@@ -11,8 +11,7 @@ License: perl
 
 =cut
 
-
-# Perl Power Tool - ls(1)
+package PerlPowerTools::ls;
 
 use strict;
 
@@ -23,15 +22,12 @@ use File::stat;
 use Getopt::Std;
 use File::Spec;
 
-
-use constant EX_SUCCESS => 0;
-use constant EX_FAILURE => 1;
+use constant EX_SUCCESS         => 0;
+use constant EX_FAILURE         => 1;
+use constant NO_GETGRGID        => ! eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
+use constant SIX_MONTHS_SECONDS => 60*60*24*(365/2);
 
 my $Program = basename($0);
-
-my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
-my @ftype = qw(. p c ? d ? b ? - ? l ? s ? ? ?);
-$ftype[0] = '';
 
 sub get_columns {
 	my @methods = qw(windows unix default);
@@ -72,93 +68,83 @@ sub has {
 	return;
 	}
 
-sub format_mode {
-  my $mode = shift;
-  my %opts = @_;
+BEGIN {
+	my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
+	my @ftype = ( '', qw(p c ? d ? b ? - ? l ? s ? ? ?) );
 
-  my $setids = ($mode & 07000)>>9;
-  my @permstrs = @perms[($mode&0700)>>6, ($mode&0070)>>3, $mode&0007];
-  my $ftype = $ftype[($mode & 0170000)>>12];
+	sub format_mode {
+		my( $class, $mode, %opts ) = @_;
 
-  if ($setids) {
-    if ($setids & 01) {		# Sticky bit
-      $permstrs[2] =~ s/([-x])$/$1 eq 'x' ? 't' : 'T'/e;
-    }
-    if ($setids & 04) {		# Setuid bit
-      $permstrs[0] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
-    }
-    if ($setids & 02) {		# Setgid bit
-      $permstrs[1] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
-    }
-  }
+		my $setids   = ($mode & 07000)>>9;
+		my @permstrs = @perms[($mode&0700)>>6, ($mode&0070)>>3, $mode&0007];
+		my $ftype    = $ftype[($mode & 0170000)>>12];
 
-  join '', $ftype, @permstrs;
-}
+		if ($setids) {
+			if ($setids & 01) {		# Sticky bit
+				$permstrs[2] =~ s/([-x])$/$1 eq 'x' ? 't' : 'T'/e;
+				}
+			if ($setids & 04) {		# Setuid bit
+				$permstrs[0] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
+				}
+			if ($setids & 02) {		# Setgid bit
+				$permstrs[1] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
+				}
+			}
 
-# ------ define variables
-my $Getgrgid = "";	# getgrgid() for this platform
-my $Getpwuid = "";	# getpwuid() for this platform
-my $Now = time;		# time we were invoked
-my %Options = ();	# option/flag arguments
-my $SixMonths = 60*60*24*(365/2); # long listing time if < 6 months, else year
+		join '', $ftype, @permstrs;
+		}
+	} # BEGIN
 
 our $VERSION = '0.71';
 my $WinCols;		# window columns of output
 
-# ------ compensate for lack of getpwuid/getgrgid on some platforms
-eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
-if ($@) {
-	$Getpwuid = sub { return ($_[0], 0); };
-	$Getgrgid = sub { return ($_[0], 0); };
-} else {
-	$Getpwuid = sub { return getpwuid($_[0]); };
-	$Getgrgid = sub { return getgrgid($_[0]); };
-}
 
 # ------ functions
 sub VERSION_MESSAGE {
     print "$Program version $VERSION\n";
-    exit EX_SUCCESS;
+    my_exit( EX_SUCCESS );
 }
 
 # ------ get directory entries
 sub DirEntries {
-	my $Options = shift;	# option arguments hashref
-	my $dh;			# directory handle
-	my %Attributes = ();	# entry/attributes hash
-	my @Entries = ();	# entries in original order
-	my $Name = "";		# entry name
+	my $Options    = shift;
+	my %Attributes = ();
+	my @Entries    = ();
 
-	if (exists $Options{'d'} || ! -d $_[0]) {
+	if (exists $Options->{'d'} || ! -d $_[0]) {
 		if (-l $_[0] or -e $_[0]) {
-			push(@Entries, $_[0]);
+			push @Entries, $_[0] ;
 			$Attributes{$_[0]} = -l $_[0] ? lstat($_[0]) : stat($_[0]);
-			push(@Entries, \%Attributes);
+			push @Entries, \%Attributes;
 			return @Entries;
-		}
+			}
 		warn "$Program: can't access '$_[0]': $!\n";
-		return ();
-	}
+		return;
+		}
+
+	my $dh;
 	unless (opendir $dh, $_[0]) {
 		warn "$Program: failed to open directory '$_[0]': $!\n";
-		return ();
-	}
+		return;
+		}
+
+	my $Name = "";		# entry name
 	while ($Name = readdir($dh)) {
-		next if (!exists($Options->{'a'}) &&
-		 $Name =~ m/^\./o);
-		push(@Entries, $Name);
+		next if (!exists($Options->{'a'}) && $Name =~ m/^\./o);
+		push @Entries, $Name;
 		my $path = File::Spec->catfile( $_[0], $Name );
 		$Attributes{$Name} = -l $path ? lstat($path) : stat($path);
-	}
+		}
 	closedir($dh);
 
 	# ------ return list with %Attributes ref at end
 	push(@Entries, \%Attributes);
 	return @Entries;
-}
+	}
 
 # ------ format directory entry
 sub EntryFormat {
+	my $class = shift;
 	my $Options = shift;	# ls option arguments
 	my $Attributes = shift;	# entry attributes hashref
 	my $Entry = shift;	# directory entry name
@@ -185,118 +171,104 @@ sub EntryFormat {
 	my $Time = 0;		# file time
 	my $Uid = -1;		# user ID number
 
-# ------ for localtime()
-my $sec = 0;
-my $min = 0;
-my $hour = 0;
-my $mday = 0;
-my $mon = 0;
-my $year = 0;
-my $wday = 0;
-my $yday = 0;
-my $isdst = 0;
-
-	if (exists($Options->{'i'})) {
+	if( exists $Options->{'i'} ) {
 		if (defined($Attributes->{$Entry})) {
-#        1         2         3         4         5         6         7
-#23456789*123456789*123456789*123456789*123456789*123456789*123456789*
 			printf("%10d ", $Attributes->{$Entry}->ino);
-		} else {
-			print "_________ ";
-		}
-	}
-	if (exists($Options->{'s'})) {
-		if (defined($Attributes->{$Entry})) {
-			$Blocks = $Attributes->{$Entry}->blocks;
-			if ($Blocks eq '') {
-				$Blocks = 0;
 			}
-			printf("%4d ",
-			 $Blocks / $BlockSize +
-			  (($Blocks % $BlockSize)
-			   > 0));
-		} else {
-			print "____ ";
+		else {
+			print "_________ ";
+			}
 		}
-	}
-	if (!exists($Options->{'l'})) {
+
+	if( exists $Options->{'s'} ) {
+		if( defined $Attributes->{$Entry} ) {
+			$Blocks = $Attributes->{$Entry}->blocks;
+			$Blocks = 0 if $Blocks eq '';
+			printf "%4d ",  $Blocks / $BlockSize + (($Blocks % $BlockSize) > 0);
+			}
+		else {
+			print "____ ";
+			}
+		}
+
+	if( ! exists $Options->{'l'} ) {
 		print "$Entry\n";
-	} else {
-		if (!defined($Attributes->{$Entry})) {
-			print <<UNDEFSTAT;
+		}
+	else {
+		if( ! defined $Attributes->{$Entry} ) {
+			print <<'UNDEFSTAT';
 __________ ___ ________ ________ ________ ___ __  _____
 UNDEFSTAT
-		} else {
-			$Mode = format_mode($Attributes->{$Entry}->mode);
+			}
+		else {
+			$Mode = $class->format_mode($Attributes->{$Entry}->mode);
 			print "$Mode ";
-			printf("%3d ",
-			  $Attributes->{$Entry}->nlink);
-			if (exists($Options->{'n'})) {
-				printf("%-8d ",
-				 $Attributes->{$Entry}->uid);
-			} else {
-				$Uid =
-			  &$Getpwuid($Attributes->{$Entry}->uid);
-				if (defined($Uid)) {
-					printf("%-8s ", $Uid);
-				} else {
-					printf("%-8d ",
-				 $Attributes->{$Entry}->uid);
+			printf "%3d ", $Attributes->{$Entry}->nlink;
+
+			if( exists $Options->{'n'} ) {
+				printf "%-8d ", $Attributes->{$Entry}->uid;
 				}
-			}
+			else {
+				$Uid = Getpwuid($Attributes->{$Entry}->uid);
+				if( defined $Uid ) {
+					printf "%-8s ", $Uid;
+					}
+				else {
+					printf"%-8d ", $Attributes->{$Entry}->uid;
+					}
+				}
+
 			if (exists($Options->{'n'})) {
-				printf("%-8d ",
-				 $Attributes->{$Entry}->gid);
-			} else {
-				$Gid =
-			  &$Getgrgid($Attributes->{$Entry}->gid);
+				printf "%-8d ", $Attributes->{$Entry}->gid;
+				}
+			else {
+				$Gid = Getgrgid($Attributes->{$Entry}->gid);
 				if (defined($Gid)) {
-					printf("%-8s ", $Gid);
-				} else {
-					printf("%-8d ",
-				 $Attributes->{$Entry}->gid);
+					printf "%-8s ", $Gid;
+					}
+				else {
+					printf "%-8d ", $Attributes->{$Entry}->gid;
+					}
 				}
-			}
+
 			if ($Attributes->{$Entry}->mode & 0140000) {
-				printf("%9d ",
-				 $Attributes->{$Entry}->size);
-			} else {
+				printf "%9d ", $Attributes->{$Entry}->size;
+				}
+			else {
 				printf("%4x,%4x ",
 				 (($Attributes->{$Entry}->dev
 				  & 0xFFFF000) > 16),
 				 $Attributes->{$Entry}->dev
 				  & 0xFFFF);
-			}
+				}
+
 			$Time = $Attributes->{$Entry}->mtime;
-			if (exists($Options->{'c'})) {
-				$Time = $Attributes->{$Entry}->ctime;
-			}
-			if (exists($Options->{'u'})) {
-				$Time = $Attributes->{$Entry}->atime;
-			}
-			($sec,$min,$hour,$mday,$mon,$year, $wday,$yday,$isdst) = localtime($Time);
+			$Time = $Attributes->{$Entry}->ctime if exists $Options->{'c'};
+			$Time = $Attributes->{$Entry}->atime if exists $Options->{'u'};
+
+			my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime($Time);
 			print $Month[$mon];
-			if ($mday < 10) {
-				print "  $mday ";
-			} else {
-				print " $mday ";
-			}
-			if ($Now - $Time <= $SixMonths) {
-				printf("%02d:%02d", $hour, $min);
-			} else {
-				printf(" %04d", $year + 1900);
+			printf " %2d ", $mday;
+
+			if( start_time() - $Time <= SIX_MONTHS_SECONDS ) {
+				printf "%02d:%02d", $hour, $min;
+				}
+			else {
+				printf " %04d", $year + 1900;
+				}
 			}
 		}
-		if( -l $Entry ) {
-			my $target = readlink($Entry);
-			$Entry .= " -> $target";
+
+	if( -l $Entry ) {
+		my $target = readlink($Entry);
+		$Entry .= " -> $target";
 		}
-		print " $Entry\n";
+	print " $Entry\n";
 	}
-}
 
 # ------ list directory entries, breadth-first
 sub List {
+	my $class = shift;
 	my $Name = shift;	# directory name
 	my $Options = shift;	# options/flags hashref
 	my $is_dir = shift;
@@ -323,172 +295,160 @@ sub List {
 	# ------ precompute max entry length and total size
 	foreach (@_) {
 		$TotalBlocks +=
-		 (!defined($Attributes->{$_}) ||
-		  ($Attributes->{$_}->blocks eq '')) ?
-		   0: $Attributes->{$_}->blocks;
+			(!defined($Attributes->{$_}) || ($Attributes->{$_}->blocks eq '')) ? 0 : $Attributes->{$_}->blocks;
 		$Mylen = length($_);
-		if ($Mylen > $Maxlen) {
-			$Maxlen = $Mylen;
+		$Maxlen = $Mylen if $Mylen > $Maxlen;
 		}
-	}
 	$Maxlen += 1;	# account for spaces
 
-	# ------ print directory name if -R
-	if (exists($Options->{'R'})) {
-		print "$Name:\n" if $is_dir;
-	}
-
-	# ----- print total in blocks if -s or -l
-	if (exists($Options->{'l'}) || exists($Options->{'s'})) {
-		print "total $TotalBlocks\n" if $is_dir;
-	}
+	if( $is_dir ) {
+		print "$Name:\n"  if exists $Options->{'R'};
+		print "total $TotalBlocks\n" if grep { defined $Options->{$_} } qw(s i);
+		}
 
 	# ------ sort entry list
-	@SortedEntries = Order(\%Options, $Attributes, @_);
+	@SortedEntries = $class->Order($Options, $Attributes, @_);
 
 	# ------ user requested 1 entry/line, long, size, or inode
-	if (defined($Options->{'1'}) ||
-	 exists($Options->{'l'}) ||
-	 exists($Options->{'s'}) ||
-	 exists($Options->{'i'})) {
+	if( grep { defined $Options->{$_} } qw(1 l s i) ) {
 		for my $Entry (@SortedEntries) {
-			EntryFormat(\%Options,
-			 $Attributes, $Entry);
+			$class->EntryFormat($Options,$Attributes, $Entry);
+			}
 		}
-
 	# ------ multi-column output
-	} else {
-
+	else {
 		# ------ compute rows, columns, width mask
-		$WinCols = get_columns() unless defined $WinCols;
-		$Cols = int($WinCols / $Maxlen) || 1;
-		$Rows = int(($#_+$Cols) / $Cols);
-		$Mask = sprintf("%%-%ds ", $Maxlen);
+		$WinCols = $class->get_columns() unless defined $WinCols;
+		$Cols    = int($WinCols / $Maxlen) || 1;
+		$Rows    = int(($#_+$Cols) / $Cols);
+		$Mask    = sprintf "%%-%ds ", $Maxlen;
 
 		for ($elt = 0; $elt < $Rows * $Cols; $elt++) {
-			$Target =  ($elt % $Cols) * $Rows +
-			 int(($elt / $Cols));
-			$Piece = sprintf($Mask,
-			 $Target < ($#SortedEntries + 1) ?
-			  $SortedEntries[$Target] : "");
+			$Target =  ($elt % $Cols) * $Rows + int(($elt / $Cols));
+			$Piece = sprintf($Mask, $Target < ($#SortedEntries + 1) ? $SortedEntries[$Target] : "");
 			# don't blank pad to eol of line
-			$Piece =~ s/\s+$//
-			 if (($elt+1) % $Cols == 0);
+			$Piece =~ s/\s+$// if (($elt+1) % $Cols == 0);
 			print $Piece;
 			print "\n" if (($elt+1) % $Cols == 0);
-		}
+			}
 		print "\n" if (($elt+1) % $Cols == 0);
-	}
+		}
 
 	# ------ print blank line if -R
-	if (exists($Options->{'R'})) {
-		print "\n";
-	}
+	print "\n" if exists $Options->{'R'};
 
 	# ------ list subdirectories of this directory
-	if (!exists($Options{'d'}) &&
-	 ($Expand || exists($Options->{'R'}))) {
-		for my $Entry (Order(\%Options, $Attributes, @_)) {
+	if( !exists($Options->{'d'}) && ($Expand || exists $Options->{'R'} )) {
+		for my $Entry ($class->Order($Options, $Attributes, @_)) {
 			next if ($Entry eq "." || $Entry eq "..");
-			if (defined($Attributes->{$Entry}) &&
-			 $Attributes->{$Entry}->mode & 0040000) {
+			if (defined($Attributes->{$Entry}) && $Attributes->{$Entry}->mode & 0040000) {
 				$Path = File::Spec->canonpath(File::Spec->catdir($Name,$Entry));
-				@Dirs = DirEntries(\%Options, $Path);
-				List($Path, \%Options, 1, 0, @Dirs);
+				@Dirs = $class->DirEntries($Options, $Path);
+				$class->List($Path, $Options, 1, 0, @Dirs);
+				}
 			}
 		}
 	}
-}
 
 # ------ sort file list based on %Options
 sub Order {
-	my $Options = shift;	# parsed option/flag arguments
-	my $Attributes = shift;	# File::stat attributes hashref
-	my @Entries = @_;	# directory entry names
+	my $class   = shift;
+	my $Options = shift;
+	my $A       = shift;	# File::stat attributes hashref
+	my @Entries = @_;	    # directory entry names
 
 	# ------ sort by size, largest first
-	if (exists($Options->{'S'})) {
-		if (exists($Options->{'r'})) {
-			@Entries = sort
-			 { $Attributes->{$a}->size <=>
-			   $Attributes->{$b}->size }
-			 @Entries;
-		} else {
-			@Entries = sort
-			 { $Attributes->{$b}->size <=>
-			   $Attributes->{$a}->size }
-			 @Entries;
+	if( exists $Options->{'S'} ) {
+		if( exists $Options->{'r'} ) {
+			@Entries = sort { $A->{$a}->size <=> $A->{$b}->size } @Entries;
+			}
+		else {
+			@Entries = sort { $A->{$b}->size <=> $A->{$a}->size } @Entries;
+			}
 		}
-
 	# ------ sort by time, most recent first
-	} elsif (exists($Options->{'t'}) ||
-	 exists($Options->{'c'}) ||
-	 exists($Options->{'u'})) {
-		if (exists($Options->{'r'})) {
-			if (exists($Options->{'u'})) {
-				@Entries = sort
-				 { $Attributes->{$a}->atime <=>
-				   $Attributes->{$b}->atime }
-				 @Entries;
-			} elsif (exists($Options->{'c'})) {
-				@Entries = sort
-				 { $Attributes->{$a}->ctime <=>
-				   $Attributes->{$b}->ctime }
-				 @Entries;
-			} else {
-				@Entries = sort
-				 { $Attributes->{$a}->mtime <=>
-				   $Attributes->{$b}->mtime }
-				 @Entries;
+	elsif( grep { exists $Options->{$_} } qw(t c u) ) {
+		if( exists $Options->{'r'} ) {
+			if( exists $Options->{'u'} ) {
+				@Entries = sort { $A->{$a}->atime <=> $A->{$b}->atime } @Entries;
+				}
+			elsif( exists $Options->{'c'} ) {
+				@Entries = sort { $A->{$a}->ctime <=> $A->{$b}->ctime } @Entries;
+				}
+			else {
+				@Entries = sort { $A->{$a}->mtime <=> $A->{$b}->mtime } @Entries;
+				}
 			}
-		} else {
-			if (exists($Options->{'u'})) {
-				@Entries = sort
-				 { $Attributes->{$b}->atime <=>
-				   $Attributes->{$a}->atime }
-				 @Entries;
-			} elsif (exists($Options->{'c'})) {
-				@Entries = sort
-				 { $Attributes->{$b}->ctime <=>
-				   $Attributes->{$a}->ctime }
-				 @Entries;
-			} else {
-				@Entries = sort
-				 { $Attributes->{$b}->mtime <=>
-				   $Attributes->{$a}->mtime }
-				 @Entries;
+		else {
+			if( exists $Options->{'u'} ) {
+				@Entries = sort { $A->{$b}->atime <=> $A->{$a}->atime } @Entries;
+				}
+			elsif( exists $Options->{'c'} ) {
+				@Entries = sort { $A->{$b}->ctime <=> $A->{$a}->ctime } @Entries;
+				}
+			else {
+				@Entries = sort { $A->{$b}->mtime <=> $A->{$a}->mtime } @Entries;
+				}
+			}
+	# ------ sort by name
+		}
+	elsif( ! exists $Options->{'f'} ) {
+		if( exists $Options->{'r'} ) {
+			@Entries = sort { $b cmp $a } @Entries;
+			}
+		else {
+			@Entries = sort { $a cmp $b } @Entries;
 			}
 		}
 
-	# ------ sort by name
-	} elsif (!exists($Options->{'f'})) {
-		if (exists($Options->{'r'})) {
-			@Entries = sort { $b cmp $a } @Entries;
-		} else {
-			@Entries = sort { $a cmp $b } @Entries;
+	return @Entries;
+	}
+
+sub my_exit {
+	my( $class, $code ) = @_;
+	CORE::exit $code;
+	}
+
+sub Getgrgid { getgrgid($_[0]) }
+sub Getpwuid { getpwuid($_[0]) }
+
+BEGIN {
+	if( NO_GETGRGID ) {
+		no warnings qw(redefine);
+		sub Getgrgid { ($_[0], 0) }
+		sub Getpwuid { ($_[0], 0) }
 		}
 	}
 
-	# ------ return list sorted by options (or unsorted if -f)
-	return @Entries;
-}
+sub output_fh { \*STDOUT }
+sub output {
+	my( $class, @messages ) = @_;
+	print { $class->output_fh } @messages;
+	}
 
-# ------ process arguments
-unless (getopts('1ACFLRSTWacdfgiklmnopqrstux', \%Options)) {
-	warn "usage: $Program [-1RSacdfiklnrstu] [file ...]\n";
-	exit EX_FAILURE;
-}
-if ($Options{'f'}) {
-	$Options{'a'} = 1;
-}
-$Options{'1'} = 1 unless (-t *STDOUT);
+sub process_options {
+	my @args = @_;
+	my $Options;
 
-# ------ current directory if no arguments
-if ($#ARGV < 0) {
-	List('.', \%Options, 1, 0, DirEntries(\%Options, "."));
+	unless (getopts('1ACFLRSTWacdfgiklmnopqrstux', $Options)) {
+		warn "usage: $Program [-1RSacdfiklnrstu] [file ...]\n";
+		my_exit( EX_FAILURE );
+		}
 
-# ------ named files/directories if arguments
-} else {
+	$Options->{'a'} = 1 if $Options->{'f'};
+	$Options->{'1'} = 1 unless -t *STDOUT;
+
+	return ($Options, @args);
+	}
+
+sub run {
+	*{"start_time"} = do { my $time = time; sub { $time } };
+
+	my( $class, @args ) = @_;
+
+	my( $Options, @args ) = $class->process_options(@args);
+	@args = qw(.) unless @args; # current directory if nothing else
+
 	my $ArgCount = -1;  # file/directory argument count
 	my %Attributes;     # File::stat directory entry attributes
 	my @Dirs;           # directories in ARGV
@@ -496,47 +456,43 @@ if ($#ARGV < 0) {
 	my $First = 1;      # first directory entry on command line
 
 	for my $Arg (@ARGV) {
-		if (!exists($Options{'d'}) && -d $Arg) {
-			$ArgCount++;
-			push(@Dirs, $Arg);
-		} else {
-			$ArgCount += 2;
-			push(@Files, $Arg);
-		}
-	}
-	for my $Arg (@Files) {
+		$ArgCount++;
 		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
-	}
+		my $ref = ( -d $Arg and ! exists $Options->{'d'} ) ? \@Dirs : \@Files;
+		push @$ref, $Arg;
+		}
+
 	if (@Files) {
 		$First = 0;
 		my %attrs;
 		my @okfiles;
 		foreach (@Files) {
-			my @ret = DirEntries(\%Options, $_);
+			my @ret = $class->DirEntries($Options, $_);
 			next unless @ret; # stat() failed
 			%attrs = (%attrs, %{ $ret[-1] });
 			push @okfiles, $_;
+			}
+		my @sorted = $class->Order($Options, \%Attributes, @okfiles);
+		$class->List('.', $Options, 0, 0, @sorted, \%attrs);
 		}
-		my @sorted = Order(\%Options, \%Attributes, @okfiles);
-		List('.', \%Options, 0, 0, @sorted, \%attrs);
-	}
-	for my $Arg (@Dirs) {
-		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
-	}
-	for my $Arg (Order(\%Options, \%Attributes, @Dirs)) {
-		if (!exists($Options{'R'})) {
-			print "\n" if (!$First);
-			$First = 0;
-			print "$Arg:\n" if ($ArgCount > 0);
-		}
-		List($Arg, \%Options, 1, 0,
-		 DirEntries(\%Options, $Arg));
-	}
-}
 
-__END__
+	for my $Arg ($class->Order($Options, \%Attributes, @Dirs)) {
+		if( ! exists $Options->{'R'} ) {
+			print "\n" if !$First;
+			$First = 0;
+			print "$Arg:\n" if $ArgCount > 0;
+			}
+		$class->List($Arg, $Options, 1, 0, $class->DirEntries($Options, $Arg));
+		}
+	}
+
+sub start_time;
+
+__PACKAGE__;
 
 =pod
+
+=encoding utf8
 
 =head1 NAME
 
