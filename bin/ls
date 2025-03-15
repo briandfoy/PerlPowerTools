@@ -23,18 +23,6 @@ use File::stat;
 use Getopt::Std;
 use File::Spec;
 
-# ------ partial inline of Stat::lsMode v0.50 code
-# (see http://www.plover.com/~mjd/perl/lsMode/
-# for the complete module)
-
-#
-#
-# Stat::lsMode
-#
-# Copyright 1998 M-J. Dominus
-# (mjd-perl-lsmode@plover.com)
-#
-# You may distribute this module under the same terms as Perl itself.
 
 use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
@@ -663,9 +651,11 @@ probably require filesystem type probing.
 
 =head1 AUTHOR
 
-This Perl implementation of I<ls>
-was written by Mark Leighton Fisher of Thomson Consumer Electronics,
-I<fisherm@tce.com>.
+This Perl implementation of I<ls> was written by Mark Leighton Fisher
+of Thomson Consumer Electronics, I<fisherm@tce.com>.
+
+Portions of Stat::lsmode from Mark Jason Dominus have been inlined
+into this program uder the perl license. See L<http://www.plover.com/~mjd/perl/lsMode/>.
 
 =head1 COPYRIGHT and LICENSE
 
