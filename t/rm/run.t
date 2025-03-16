@@ -28,7 +28,7 @@ use constant LABEL    => $n++;
 
 unlink 't/x/y/bn/6/7/8/goo/txt/$$';
 my $no_such_error = "$!";  # No such file
-diag( "Missing file error text is <$no_such_error>" );
+#diag( "Missing file error text is <$no_such_error>" );
 
 my @table = (
 	[
@@ -165,6 +165,7 @@ subtest 'table' => sub {
 			my @run_args = ( @{ $row->[OPTIONS] }, @{ $row->[ARGS] } );
 
 			my $error = '';
+			no warnings 'io'; # from closing STDIN
 			open my $error_fh, '>:utf8', \$error;
 
 			# XXX: Closing STDIN means we are ignoring some branches
