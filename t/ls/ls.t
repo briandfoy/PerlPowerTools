@@ -1,5 +1,6 @@
 use Test::More 1;
 
+
 BEGIN {
 	package Local::ls;
 	our @ISA = qw(PerlPowerTools::ls);
@@ -9,6 +10,8 @@ BEGIN {
 	sub my_warn { $Local::ls::error  .= $_[1] }
 
 	sub output  { $Local::ls::output .= $_[1] }
+
+	sub get_columns { 137 }
 	}
 
 sub clear {
@@ -141,6 +144,16 @@ subtest 'process_options' => sub {
 		foreach my $h ( @table ) {
 			subtest $h->{label} => sub {
 				my( $opts, @files ) = $class->$method( @{ $h->{args} } );
+
+				# things common to all options
+				$h->{opts}{'w'} = $class->get_columns if ! exists $h->{opts}{'w'};
+
+				unless( grep { exists $h->{opts}{$_} } qw( C x l ) ) {
+					unless( -t *STDOUT ) {
+						$h->{opts}{'1'} = 1
+						}
+					}
+
 				is_deeply $opts,   $h->{opts}, 'options hash matches' or diag explain $opts;
 				is_deeply \@files, $h->{files}, 'file list matches' or diag explain \@files;
 				};

@@ -460,13 +460,18 @@ sub process_options {
 
 	my %Defaults = ( w => $class->get_columns );
 
-	foreach my $key ( %Defaults ) {
+	foreach my $key ( keys %Defaults ) {
 		next if defined $Options->{$key};
 		$Options->{$key} = $Defaults{$key};
 		}
 
 	$Options->{'a'} = 1 if $Options->{'f'};
-	$Options->{'1'} = 1 unless -t *STDOUT;
+
+	unless( -t *STDOUT ) {
+		$Options->{'1'} = 1 unless -t *STDOUT;
+		}
+
+	delete $Options->{'w'} if( defined $Options->{'w'} and  $Options->{'w'} == 0 );
 
 =pod
 
@@ -624,7 +629,8 @@ only C<1RSacdfiklnrstu> are implemented:
 
 =item -1
 
-List entries 1 per line (default if output is not a tty).
+List entries 1 per line (default if output is not a tty). This is
+disabled by any of C<-C>, C<-x>, or C<-l>.
 
 =item -R
 
@@ -632,7 +638,7 @@ Recursively list the contents of all directories, breadth-first.
 
 =item -S
 
-Sort descending by size.
+Sort descending by size. This is disabled by C<-t>.
 
 =item -a
 
@@ -640,7 +646,8 @@ List all files (normally files starting with '.' are ignored).
 
 =item -c
 
-Sort by descending last modification time of inode.
+Sort by descending last modification time of inode. This is
+disabled by any of C<-u> or C<-U>.
 
 =item -d
 
@@ -685,10 +692,11 @@ Sort by descending last modification time.
 
 Sort by descending last access time.
 
-=item -u
+=item -w
 
 Set the column width for the output. The default is the window size,
-or 80 if the program cannot determine the window size.
+or 80 if the program cannot determine the window size. A column
+width of 0 means unlimited.
 
 =back
 
