@@ -112,7 +112,7 @@ sub run_program_test {
 
 		subtest "$label - $program" => sub {
 			my( $override_file ) =
-				grep { m/ \b ([0-9]+\.) \Q$label\E \.t \z/ax }
+				grep { m/ \b ([0-9]+\.) \Q$label\E \.t \z/x }
 				glob( catfile( 't', basename($program), "*.t" ) );
 
 			if( defined $override_file and -e $override_file ) {
