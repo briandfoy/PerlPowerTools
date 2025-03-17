@@ -112,11 +112,10 @@ sub run_program_test {
 
 		subtest "$label - $program" => sub {
 			my( $override_file ) =
-				grep { m/ \/ ([0-9]+\.) \Q$label\E \.t \z/x }
-				glob( catfile( 't', basename($program), '*.t' ) );
+				grep { m/ \b ([0-9]+\.) \Q$label\E \.t \z/ax }
+				glob( catfile( 't', basename($program), "*.t" ) );
 
 			if( defined $override_file and -e $override_file ) {
-				diag( "Found $program specific override file" );
 				eval { use lib qw(.); require $override_file }
 					or fail ( "Could not run override file $override_file: $@" );
 				}
