@@ -9,9 +9,13 @@ use Test::Warnings qw(had_no_warnings);
 
 =head1 NAME
 
+t/lib/common.pl - common routines for tests
 
 =head1 SYNOPSIS
 
+	# in a test file
+	use lib qw(t/lib);
+	require "common.pl";
 
 =head1 DESCRIPTION
 
@@ -20,6 +24,8 @@ use Test::Warnings qw(had_no_warnings);
 =over
 
 =item * dumper
+
+Dump the data structure in a nicer way.
 
 =cut
 
@@ -106,11 +112,10 @@ sub run_program_test {
 
 		subtest "$label - $program" => sub {
 			my( $override_file ) =
-				grep { m/ \/ ([0-9]+\.) \Q$label\E \.t \z/x }
-				glob( catfile( 't', basename($program), '*.t' ) );
+				grep { m/ \b ([0-9]+\.) \Q$label\E \.t \z/ax }
+				glob( catfile( 't', basename($program), "*.t" ) );
 
 			if( defined $override_file and -e $override_file ) {
-				diag( "Found $program specific override file" );
 				eval { use lib qw(.); require $override_file }
 					or fail ( "Could not run override file $override_file: $@" );
 				}
@@ -135,7 +140,9 @@ sub run_program_test {
 
 =over
 
-=item * compile_test
+=item * compile_test( PROGRAM )
+
+Check that PROGRAM exists and compiles.
 
 =cut
 
@@ -151,7 +158,11 @@ sub compile_test {
 		};
 	}
 
-=item * sanity_test
+=item * sanity_test( PROGRAM )
+
+Check that PROGRAM exists and compiles, and stop the test if it doesn't.
+At the moment this is essentially C<compiile_test>, but it could have
+more later.
 
 =cut
 
