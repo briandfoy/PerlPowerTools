@@ -299,7 +299,7 @@ sub List {
 	else {
 		# ------ compute rows, columns, width mask
 		$Options->{'w'} = $class->get_columns() unless defined $Options->{'w'};
-		my $Cols    = (int($Options->{'w'} / $max_file_length) - 1) || 1;
+		my $Cols    = (int($Options->{'w'} / $max_file_length)) || 1;
 		my $Rows    = int(($#_+$Cols) / $Cols);
 		my $template = sprintf "%%-%ds ", $max_file_length;
 
