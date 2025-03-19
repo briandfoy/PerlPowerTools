@@ -154,8 +154,10 @@ t/echo/echo.t
 t/factor/factor.t
 t/false/false.t
 t/find/find.t
+t/glob/glob.t
 t/lib/common.pl
 t/lib/utils.pm
+t/ls/ls.t
 t/mimedecode/000.basic.t
 t/nl/nl.t
 t/od/od.t

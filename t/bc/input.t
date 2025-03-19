@@ -185,7 +185,7 @@ sub special_expr_table {
 	# 1.41421 35623 731                       -
 
 	my $perl_sqrt_2 = sqrt(2);
-	diag( "Perl sqrt(2) is <$perl_sqrt_2>" );
+	# diag( "Perl sqrt(2) is <$perl_sqrt_2>" );
 
     my $table = [
         'special expressions',
