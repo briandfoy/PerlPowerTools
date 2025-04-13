@@ -127,6 +127,7 @@ my %WriteMakefile = (
 	'PREREQ_PM'     => {
 		'App::a2p'       => '0',
 		'App::find2perl' => '0',
+		'version' => '0.86',
 		},
 
 	'META_MERGE' => {
