@@ -122,12 +122,12 @@ my %WriteMakefile = (
 		'Test::More'     => '1',
 		'Test::Pod'      => '0',
 		'Test::Warnings' => '0',
+		'version'        => '0.86',
 		},
 
 	'PREREQ_PM'     => {
 		'App::a2p'       => '0',
 		'App::find2perl' => '0',
-		'version' => '0.86',
 		},
 
 	'META_MERGE' => {
