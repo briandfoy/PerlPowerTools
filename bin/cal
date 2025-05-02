@@ -28,7 +28,7 @@ $cal::num_args = scalar( @ARGV );
 if( $cal::num_args == 0 ) {
 	my @tm = localtime(time);
 	$cal::year = $tm[5] + 1900;
-	$cal::month = $tm[4] unless $opts{'y'};
+	$cal::month = $tm[4] + 1 unless $opts{'y'};
 } elsif( $cal::num_args == 1 ) {
 	$cal::year = &get_year( $ARGV[ 0 ] );
 } elsif( $cal::num_args == 2 ) {
