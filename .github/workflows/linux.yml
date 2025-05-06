@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20250126.002
+# version 20250416.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -78,7 +78,7 @@ jobs:
         strategy:
             matrix:
                 os:
-                    - ubuntu-22.04
+                    - ubuntu-latest
                 perl-version:
                     - '5.8-buster'
                     - '5.10-buster'
@@ -105,7 +105,8 @@ jobs:
               run: uname -a
             - name: setup platform
               run: |
-                apt-get upgrade
+                apt-get -y update
+                apt-get -y upgrade
                 apt-get -y install curl ${{ vars.UBUNTU_EXTRA_APT_GET }}
             - name: Perl version check
               run: |
