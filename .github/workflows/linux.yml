@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20250416.001
+# version 20250617.003
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -101,13 +101,27 @@ jobs:
             image: perl:${{ matrix.perl-version }}
         steps:
             - uses: actions/checkout@v3
+            - name: git corrections
+              run: |
+                git config --global --add safe.directory "$(pwd)"
             - name: Platform check
               run: uname -a
             - name: setup platform
               run: |
                 apt-get -y update
                 apt-get -y upgrade
-                apt-get -y install curl ${{ vars.UBUNTU_EXTRA_APT_GET }}
+                apt-get -y install \
+                    curl \
+                    jq \
+                    ${{ vars.UBUNTU_EXTRA_APT_GET }}
+
+                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg --output /usr/share/keyrings/githubcli-archive-keyring.gpg
+                chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+                apt update
+                apt-get -y install gh
+
+                git config --global --add safe.directory $(pwd)
             - name: Perl version check
               run: |
                 perl -V
@@ -141,6 +155,31 @@ jobs:
                 pwd
                 ls
                 rm -rfv HTML-Tagset-*
+# Restore the last module installation for this OS/perl combination. This
+# saves several minutes in some cases. When cpan installs updates, the
+# 'save' counterpart for 'restore' will update the cache.
+            - name: Restore Perl modules
+              id: perl-modules-cache-restore
+              uses: actions/cache/restore@v4
+              with:
+                key: ${{ runner.os }}-${{ matrix.perl-version }}-modules
+                path: |
+                  /usr/local/lib/perl5
+                  /usr/local/bin/cover
+                  /usr/local/bin/cpan
+# We cannot reuse cache keys, so we'll delete it and then save it again
+# There are various hacks for this, but GitHub has so far declined to
+# do what so many people want. This seems like a long way to go to do
+# this, but most of the problem is translating the unique cache key name
+# to another hidden ID value. This is pervasive in the GitHub API.
+            - name: Delete cache
+              id: delete-cache
+              env:
+                GH_TOKEN: ${{ github.token }}
+              run: |
+                gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches \
+                  | jq -r '.actions_caches[] | select(.key == "${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}") | .id' \
+                  | xargs -I{} gh api --method DELETE -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches/{}
 # I had some problems with openssl on Ubuntu, so I punted by installing
 # cpanm first, which is easy. I can install IO::Socket::SSL with that,
 # then switch back to cpan. I didn't explore this further, but what you
@@ -195,9 +234,21 @@ jobs:
 # Devel::Cover 1.39
             - name: Run coverage tests
               if: env.PERL_VERSION != 'v5.8' && env.PERL_VERSION != 'v5.10'
+              continue-on-error: true
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
-                cover -test -report coveralls
+                cover -test +ignore 'Makefile.PL' -report coveralls
+# Now always save the Perl modules in case we updated some versions
+            - name: Save Perl modules
+              id: perl-modules-cache-save
+              uses: actions/cache/save@v4
+              if: always()
+              with:
+                key: ${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}
+                path: |
+                  /usr/local/lib/perl5
+                  /usr/local/bin/cover
+                  /usr/local/bin/cpan

@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20250316.001
+# version 20250515.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -77,6 +77,9 @@ jobs:
         steps:
             - run: git config --global core.autocrlf false
             - uses: actions/checkout@v3
+            - name: git corrections
+              run: |
+                git config --global --add safe.directory "%cd%"
             - name: Set up Perl
               run: |
                 choco uninstall strawberryperl
@@ -142,7 +145,8 @@ jobs:
               if: env.WINDOWS_SKIP_COVERAGE != 0
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              continue-on-error: true
               run: |
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
-                cover -test -report coveralls
+                cover -test +ignore 'Makefile.PL' -report coveralls

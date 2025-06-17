@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions macOS config for Perl 5 modules
-# version 20250125.002
+# version 20250617.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -72,6 +72,9 @@ jobs:
         runs-on: macOS-latest
         steps:
             - uses: actions/checkout@v3
+            - name: git corrections
+              run: |
+                git config --global --add safe.directory "$(pwd)"
             - name: Platform check
               run: uname -a
             - name: Set up Perl
@@ -81,6 +84,27 @@ jobs:
                 perl -v | perl -0777 -ne 'm/(v5\.\d+)/ && print "PERL_VERSION=$1"' >> $GITHUB_ENV
             - name: Perl version check
               run: perl -V
+# reload the cache so we don't need to reinstall modules, This can save
+# several minutes.
+            - name: Load cache
+              id: perl-modules-cache-restore
+              uses: actions/cache/restore@v4
+              with:
+                key: ${{ runner.os }}-perl-modules
+                path: |
+                  /opt/homebrew/Cellar/perl/*/lib
+                  /opt/homebrew/Cellar/perl/*/bin
+# We cannot reuse cache keys, so we'll delete it and then save it again
+# There are various hacks for this, but GitHub has so far declined to
+# do what so many people want
+            - name: Delete cache
+              id: delete-cache
+              env:
+                GH_TOKEN: ${{ github.token }}
+              run: |
+                gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches \
+                  | jq -r '.actions_caches[] | select(.key == "${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}") | .id' \
+                  | xargs -I{} gh api --method DELETE -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches/{}
 # cpan can operate with https, but we need IO::SSL::Socket, which
 # does not come with Perl.
 #
@@ -134,9 +158,20 @@ jobs:
 # Devel::Cover instances don't work with 5.8
             - name: Run coverage tests
               if: env.PERL_VERSION != 'v5.8'
+              continue-on-error: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 cpan -M https://www.cpan.org -T Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
-                cover -test -report coveralls
+                cover -test +ignore 'Makefile.PL' -report coveralls
+# Now always save the Perl modules in case we updated some versions
+            - name: Save cache
+              id: perl-modules-cache-save
+              uses: actions/cache/save@v4
+              if: always()
+              with:
+                key: ${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}
+                path: |
+                  /opt/homebrew/Cellar/perl/*/lib
+                  /opt/homebrew/Cellar/perl/*/bin
