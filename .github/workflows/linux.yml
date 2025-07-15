@@ -74,7 +74,7 @@ on:
     pull_request:
     # weekly build on the master branch just to see what CPAN is doing
     schedule:
-        - cron: "14 1 * * 6"
+        - cron: "24 20 * * 6"
 jobs:
     perl:
         environment: automated_testing
@@ -84,17 +84,6 @@ jobs:
                 os:
                     - ubuntu-latest
                 perl-version:
-                    - '5.8-buster'
-                    - '5.10-buster'
-                    - '5.12-buster'
-                    - '5.14-buster'
-                    - '5.16-buster'
-                    - '5.18-buster'
-                    - '5.20-buster'
-                    - '5.22-buster'
-                    - '5.24-buster'
-                    - '5.26-buster'
-                    - '5.28-buster'
                     - '5.30-bullseye'
                     - '5.32-bullseye'
                     - '5.34-bullseye'

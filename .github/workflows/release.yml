@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions release config for Perl 5 modules
-# version 20250515.001
+# version 20250713.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -8,10 +8,6 @@
 # on GitHub. This does not upload to PAUSE, but that wouldn't be
 # that hard, but that doesn't fit with my workflow since this part
 # happens after everything else has succeeded.
-#
-# This requires that you configure a repository secret named
-# RELEASE_ACTION_TOKEN with a GitHub Personal Access Token
-# that has "read and write" permissions on Repository/Contents
 #
 # Variables that you can set in the "automated_testing" environment:
 #
@@ -137,4 +133,4 @@ jobs:
                     ${{ env.ASSET_NAME }}
                     ${{ steps.attestation.outputs.bundle-path }}
                     ${{ vars.EXTRA_RELEASE_PATHS }}
-                  token: ${{ secrets.RELEASE_ACTION_TOKEN }}
+                  token: ${{ github.token }}
