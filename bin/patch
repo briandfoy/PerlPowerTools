@@ -375,6 +375,7 @@ sub bless {
     my $class = "Patch::\u$type";
 
     my ($options, $garbage) = @{$_[0]}{'options', 'garbage'};
+	$options //= [];
 
     # New hunk, same patch.
     $_[0]{hunk}++, return 1 if $_[0]->isa($class) && ! @$garbage;
