@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20250515.001
+# version 20250811.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -76,7 +76,7 @@ jobs:
                     - windows-2025
         steps:
             - run: git config --global core.autocrlf false
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v5
             - name: git corrections
               run: |
                 git config --global --add safe.directory "%cd%"
