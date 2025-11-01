@@ -15,7 +15,7 @@ subtest 'test yes' => sub {
     if (defined($ENV{YESPATH})) {
         $yes_path = $ENV{YESPATH};
         diag "Testing yes at $ENV{YESPATH}";
-    }
+        }
 
     ok -e $yes_path && -f $yes_path, "found 'yes' program at $yes_path"
         or return; # fail rest of script
@@ -25,9 +25,9 @@ subtest 'test yes' => sub {
             skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
             fork_yes($yes_path);
             fork_yes($yes_path, 'iluvperl');
-        }
+            }
+        };
     };
-};
 
 sub fork_yes {
     my ($yes_path, $yes_str) = @_;
@@ -41,7 +41,7 @@ sub fork_yes {
             # NOTE <> must be called in scalar context to prevent blocking.
             my $line = <$child>;
             push @lines, $line;
-        }
+            }
 
         is $lines[0], "$yes_str\n", "First line is '$yes_str'.\n"; # superfluous?
         is scalar(@lines), 10, 'Expected no. of output lines (10).';
@@ -50,11 +50,12 @@ sub fork_yes {
         is $count_of_ys, 10, "All 10 lines contain '$yes_str' only.\n";
 
         close($child); # apparently superfluous
-    } else {
+        }
+    else {
         die "cannot fork:$!\n" unless defined $pid;
         # CHILD PROCESS
         exit; # apparently superfluous
+        }
     }
-}
 
 done_testing();
