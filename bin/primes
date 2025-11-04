@@ -23,19 +23,35 @@ my @primes = (2, 3, 5, 7, 11);          # None have been tested
 my @next_primes = ();                   # Avoid redoing work
 
 
-my $VERSION = '1.002';
+my $VERSION = '1.003';
 
 END {
   close STDOUT || die "$0: can't close stdout: $!\n";
   $? = 1 if $? == 255;  # from die
 }
 
-if (scalar(@ARGV) > 2) {
-    require Pod::Usage;
-    Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
+my ($start, $end);
+if (scalar(@ARGV) == 0) {
+  print "Start [default 2]: ";
+  chomp($start = <STDIN>);
+  $start = 2 unless $start =~ m/\S/;
+  print "End [default " . MAX . "]: ";
+  chomp($end = <STDIN>);
+  $end = MAX unless $end =~ m/\S/;
 }
-chomp(my $start = @ARGV ? $ARGV[0] : <STDIN>);
-my $end = defined $ARGV[1] ? $ARGV[1] : MAX;
+elsif (scalar(@ARGV) == 1) {
+  $start = $ARGV[0];
+  $end = MAX;
+}
+elsif (scalar(@ARGV) == 2) {
+  $start = $ARGV[0];
+  $end = $ARGV[1];
+}
+else {
+  require Pod::Usage;
+  Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
+}
+
 for ($start, $end) {
   s/\A\s*\+?(\d{1,10})\Z/$1/ || die "$0: $_: illegal numeric format\n";
   $_ > MAX && die "$0: $_: Numerical result out of range\n";
@@ -125,10 +141,9 @@ I<stop>. The I<start> value must be at least 0 and not greater than
 stop. The I<stop> value must not be greater than 4294967295.  The
 default value of I<stop> is 4294967295.
 
-When the primes utility is invoked with no arguments, I<start> is read
-from standard input.  I<stop> is taken to be 4294967295.  The I<start>
-value may be preceded by a single C<+>.  The I<start> value is
-terminated by a non-digit character (such as a newline).
+When the primes utility is invoked with no arguments, values are read
+from standard input. I<start> and I<stop> may be preceded by a single C<+>
+character.
 
 =head1 BUGS
 
@@ -147,4 +162,3 @@ This program is copyright (c) Jonathan Feinberg and Benjamin Tilly (1999).
 This program is free and open software. You may use, modify, distribute,
 and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others from doing the same.
-
