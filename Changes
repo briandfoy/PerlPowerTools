@@ -1,5 +1,8 @@
 Revision history for Perl module PerlPowerTools
 
+1.053 2025-11-04T14:05:06Z
+	* handle the start and end primes range (#993 by Michael Mikonos)
+
 1.052 2025-07-18T07:08:08Z
 	* fix uninit-ed array ref in patch (Johan Vromans in #991)
 	* fix month offset for cal (Michael Mikonos)
