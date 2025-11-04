@@ -1,6 +1,6 @@
 package PerlPowerTools;
 
-our $VERSION = '1.052';
+our $VERSION = '1.053';
 1;
 
 =encoding utf8
