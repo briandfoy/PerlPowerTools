@@ -4,7 +4,7 @@ use warnings;
 use File::Spec;
 use Test::More;
 
-$|++; # autoflush both processes (superfluous?)
+$|++;
 
 subtest 'test yes' => sub {
     # set default path to yes as seen from PPT root directory
@@ -32,30 +32,30 @@ subtest 'test yes' => sub {
 sub fork_yes {
     my ($yes_path, $yes_str) = @_;
     my ($pid, $child);
-    $yes_str ||= 'y';
-    if ($pid = open($child, '-|', "$yes_path $yes_str")) {
-        # PARENT PROCESS
-        # read ten lines from child
-        my @lines;
-        for (1..10) {
-            # NOTE <> must be called in scalar context to prevent blocking.
-            my $line = <$child>;
-            push @lines, $line;
-            }
+    my $line_count = 10;
+    $yes_str //= 'y';
 
-        is $lines[0], "$yes_str\n", "First line is '$yes_str'.\n"; # superfluous?
-        is scalar(@lines), 10, 'Expected no. of output lines (10).';
-        my $count_of_ys = grep { /^$yes_str$/ } @lines;
-        note $count_of_ys;
-        is $count_of_ys, 10, "All 10 lines contain '$yes_str' only.\n";
+    subtest "yes string = <$yes_str>" => sub {
+		if ($pid = open($child, '-|', "$yes_path $yes_str")) { # PARENT PROCESS
+			my @lines;
+			for (1..$line_count) {
+				# NOTE <> must be called in scalar context to prevent blocking.
+				my $line = <$child>;
+				push @lines, $line;
+				}
 
-        close($child); # apparently superfluous
-        }
-    else {
-        die "cannot fork:$!\n" unless defined $pid;
-        # CHILD PROCESS
-        exit; # apparently superfluous
-        }
+			is $lines[0], "$yes_str\n", "First line is '$yes_str'.";
+			is scalar(@lines), $line_count, "Expected no. of output lines ($line_count).";
+
+			my $count_of_ys = grep { /^$yes_str$/ } @lines;
+			is $count_of_ys, $line_count, "All $line_count lines contain '$yes_str' only.";
+
+			close $child;
+			}
+		else { # CHILD PROCESS
+			die "cannot fork:$!\n" unless defined $pid;
+			}
+		}
     }
 
 done_testing();
