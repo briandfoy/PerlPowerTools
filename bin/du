@@ -103,6 +103,7 @@ sub traverse {
   } else {
     warn "$0: could not read directory $fn: $!\n";
     $rc = EX_FAILURE;
+    return 0;
   }
   print "$total\t$fn\n" if $opt_s && $depth == 1;
   return $total;
