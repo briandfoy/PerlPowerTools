@@ -18,11 +18,8 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Std qw(getopts);
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 my $Program = basename($0);
-
-$SIG{__WARN__} = sub { warn "$Program: @_\n" };
-$SIG{__DIE__} =  sub { die  "$Program: @_\n" };
 
 my %options;
 getopts('m:p', \%options) or usage();
@@ -31,6 +28,9 @@ usage() unless @ARGV;
 use constant EX_SUCCESS => 0;
 use constant EX_ERROR   => 1;
 use constant EX_USAGE   => 2;
+
+$SIG{__WARN__} = sub { print { *STDERR } "$Program: @_" };
+$SIG{__DIE__}  = sub { print { *STDERR } "$Program: @_"; exit EX_ERROR };
 
 sub VERSION_MESSAGE {
 	print "$Program version $VERSION\n";
