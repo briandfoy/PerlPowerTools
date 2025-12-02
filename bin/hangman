@@ -17,7 +17,7 @@ use strict;
 srand();
 my( $cont ) = "y";
 my( %in_word, %guess, @guess, @word, @disp_word );
-my( $letter, $word, $x, $num_wrong, $tot_letters, $num_corr );
+my( $letter, $word, $x, $num_wrong, $tot_letters );
 
 while( $cont =~ /^y/io ) {
 	( %in_word, %guess, @disp_word ) = ();
@@ -29,9 +29,8 @@ while( $cont =~ /^y/io ) {
 	}
 	$tot_letters = scalar( keys( %in_word ) );
 	$num_wrong = 0;
-	$num_corr = 0;
 	&print_noose( $num_wrong, @disp_word );
-	while( ($num_wrong < 6) && ($num_corr < $tot_letters) ) {
+	while( ($num_wrong < 6) && ($tot_letters > 0) ) {
 		print "\nEnter a letter:  ";
 		$letter = <STDIN>;
 		exit unless defined $letter;
@@ -43,7 +42,7 @@ while( $cont =~ /^y/io ) {
 				if(! exists( $in_word{ $letter } ) ) {
 					$num_wrong++;
 				} else {
-					$num_corr++;
+					$tot_letters--;
 					for( $x = 0; $x <= $#word; $x++ ) {
 						if( $word[ $x ] eq $letter ) {
 							$disp_word[ $x ] = $letter;
