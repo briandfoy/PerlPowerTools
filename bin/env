@@ -29,7 +29,7 @@ while ( @ARGV && $ARGV[0] =~ /^-/ ) {
 		%ENV = ();
 	} elsif ( $arg =~ /^-u(.*)/ ) {
 		my $val = length $1 ? $1 : shift;
-		if ($val =~ m/=/) {
+		if (length($val) == 0 || $val =~ m/=/) {
 			warn "$Program: bad unset argument: '$val'\n";
 			exit 2;
 		}
