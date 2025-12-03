@@ -151,7 +151,7 @@ line occurred in the input, followed by a single space.
 
 =item -d
 
-Don't output lines that are not repeated in the input.
+Print only duplicate lines from the input.
 
 =item -f I<fields>
 
