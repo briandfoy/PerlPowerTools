@@ -32,7 +32,7 @@ unless (getopts('n:', \%opt)) {
 my $count;
 if (defined $opt{'n'}) {
     $count = $opt{'n'};
-    if ($count =~ m/[^0-9]/) {
+    if (length($count) == 0 || $count =~ m/[^0-9]/) {
         warn "$Program: invalid number '$count'\n";
         exit EX_FAILURE;
     }
