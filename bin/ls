@@ -97,9 +97,8 @@ BEGIN {
 		}
 	} # BEGIN
 
-sub VERSION { '0.71' };
+sub VERSION { '0.72' };
 
-use Data::Dumper;
 sub DirEntries {
 	my( $class, $Options, $file ) = @_;
 
@@ -406,6 +405,7 @@ sub my_warn {
 	my( $class, $message, $prepend ) = @_;
 	$prepend = 1 unless defined $prepend;
 	$message = PROGRAM . ": " . $message if $prepend;
+	$message =~ s/\n*\z/\n/;
 	print { $class->warn_fh } $message;
 	}
 
