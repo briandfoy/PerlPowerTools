@@ -405,7 +405,7 @@ sub my_warn {
 	my( $class, $message, $prepend ) = @_;
 	$prepend = 1 unless defined $prepend;
 	$message = PROGRAM . ": " . $message if $prepend;
-	$message .= "\n";
+	$message =~ s/\n*\z/\n/;
 	print { $class->warn_fh } $message;
 	}
 
