@@ -24,7 +24,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_REJECTS => 1;
 use constant EX_FAILURE => 2;
 
-my $VERSION = '0.35';
+my $VERSION = '0.36';
 
 $|++;
 
@@ -763,6 +763,13 @@ sub apply {
                     }
                 } else {
                     $self->throw('SKIP...ignore this patch') if $self->{forward};
+                }
+            } else {
+                unless ($position || $self->{reverse} || $self->{force}) {
+                    $self->{reverse_check} = 1;
+                    $self->{reverse} = 1;
+                    shift;
+                    return $self->apply(@_);
                 }
             }
         }
