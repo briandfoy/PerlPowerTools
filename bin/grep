@@ -599,8 +599,6 @@ Treat I<pattern> as a pattern.  This option is most useful when
 I<pattern> starts with a C<-> and the user wants to avoid confusing
 the option parser.
 
-The B<-f> option supercedes the B<-e> option.
-
 =item B<-F>
 
 B<fgrep> mode.  Disable regular expressions and perform Boyer-Moore
@@ -611,8 +609,6 @@ issue).
 
 Treat I<pattern-file> as a newline-separated list of patterns to use
 as search criteria.
-
-the B<-f> option supercedes the B<-e> option.
 
 =item B<-g>
 
