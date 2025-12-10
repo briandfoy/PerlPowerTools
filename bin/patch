@@ -867,6 +867,10 @@ sub index {
             my $fail;
             for (1..$#$match) {
                 my $line = <$in>;
+                unless (defined $line) {
+                    $fail++;
+                    last;
+                }
                 $line =~ s/\s+/ /g if $self->{'ignore-whitespace'};
                 $line eq $match->[$_] or $fail++, last;
             }
