@@ -22,6 +22,8 @@ use constant EX_FAILURE => 1;
 
 use constant DICT_FILE => '/usr/dict/words';
 
+my $VERSION = '1.0';
+
 my $Program = basename($0);
 
 my (
@@ -105,17 +107,20 @@ unless ( $inter ) {
 
 exit EX_SUCCESS;  # end of main program, below are subroutines.
 
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
+
 sub check_words {
 
   my @check = sort grep { !exists($words{$_}) } @_ ;
   my @suffs;
-  my $temp;
 
-  for my $orig ( @check ) {
-    $temp = suffix($orig);
-    if ($temp) {
-      push @suffs, $temp;
-      undef $orig;
+  if ($suff) {
+    for my $orig ( @check ) {
+      my $temp = suffix($orig);
+      push @suffs, $temp if $temp;
     }
   }
 
