@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions macOS config for Perl 5 modules
-# version 20250811.001
+# version 20250914.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -34,6 +34,10 @@ env:
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
     cancel-in-progress: true
+
+permissions:
+    actions: write
+    contents: read
 
 on:
     push:

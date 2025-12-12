@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20250811.001
+# version 20251210.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -74,7 +74,7 @@ on:
     pull_request:
     # weekly build on the master branch just to see what CPAN is doing
     schedule:
-        - cron: "0 15 * * 5"
+        - cron: "17 17 * * 4"
 jobs:
     perl:
         environment: automated_testing
@@ -101,9 +101,9 @@ jobs:
               run: uname -a
             - name: setup platform
               run: |
-                apt-get -y update
-                apt-get -y upgrade
-                apt-get -y install \
+                apt-get -y -o Acquire::Retries=5 update
+                apt-get -y -o Acquire::Retries=5 upgrade
+                apt-get -y -o Acquire::http::No-Cache=True -o Acquire::Retries=5 install \
                     curl \
                     jq \
                     ${{ vars.UBUNTU_EXTRA_APT_GET }}
@@ -111,8 +111,8 @@ jobs:
                 curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg --output /usr/share/keyrings/githubcli-archive-keyring.gpg
                 chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
                 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-                apt update
-                apt-get -y install gh
+                apt -y -o Acquire::Retries=5 update
+                apt-get -y -o Acquire::http::No-Cache=True -o Acquire::Retries=5 install gh
 
                 git config --global --add safe.directory $(pwd)
             - name: Perl version check
