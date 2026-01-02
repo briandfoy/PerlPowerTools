@@ -396,25 +396,27 @@ sub handle_args
     my @files;
     my @dirs;
 
-    for my $f (@$files_) {
-        if (-d $f) {
-            if ($opt_f) {
+    if ($opt_f) {
+        for my $f (@$files_) {
+            if (-d $f) {
                 push @dirs, $f;
             } else {
-                warn "$me: '$f' is a directory\n";
-                $rc = EX_FAILURE;
+                push @files, $f;
             }
-        } else {
-            push @files, $f;
         }
+    } else {
+        @files = @$files_;
     }
 
     if(scalar @files >= 1 or scalar @dirs >= 1) {
     my $i = 0;
 
-    # Ignore the directories
     for my $file (@files) {
-
+        if (!$opt_f && -d $file) {
+            warn "$me: '$file' is a directory\n";
+            $rc = EX_FAILURE;
+            next;
+        }
         # do not die if the file does not exist, when -f is used
         next if(!-e $file and ($opt_f or $me eq "xtail"));
 
