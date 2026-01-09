@@ -58,7 +58,8 @@ my $inst = <<_EOINST;
 	If you have to continue a field or add an unusual field,
 		a trailing backslash will allow a temporary escape.
 	Finally, (without -a) you will be prompted for an abstract.
-	Type in as many lines as you need, and end with a ctrl-d.
+	Type in as many lines as you need. Input is terminated when
+                a line containing only EOF is entered.
 	To quit, type `q' or `n' when asked if you want to continue.
 	To edit the database, type `edit', `vi', or `ex' instead.
 
@@ -99,6 +100,7 @@ while (1) {
 		next if (/^$/);
 		print $DATABASE "%X\t$_";
 		while (<>) {
+			last if /^EOF$/;
 			print $DATABASE $_;
 		}
 	}
