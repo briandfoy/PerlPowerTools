@@ -304,7 +304,7 @@ When addbib starts up, answering y to the initial Instructions? prompt
 yields directions. Typing n (or RETURN) skips the directions. addbib
 then prompts for various bibliographic fields, reads responses from
 the terminal, and sends output records to database. A null response
-(just RETURN) means to leave out that field. A ‘-’ (minus sign) means
+(just RETURN) means to leave out that field. A C<-> (minus sign) means
 to go back to the previous field. A trailing backslash allows a field
 to be continued on the next line. The repeating Continue? prompt
 allows the user either to resume by typing y (or RETURN), to quit the
@@ -318,9 +318,9 @@ editor (see vi(1), ex(1), ed(1)).
 =item -a
 
 Suppresses prompting for an abstract. Asking for an abstract is the
-default. Abstracts are ended with a Control−D.
+default. Abstracts are ended with a Control-D.
 
-=item –p promptfile
+=item -p promptfile
 
 Uses a new prompting skeleton, defined in promptfile. This file should
 contain prompt strings, a TAB, and the key-letters to be written to
@@ -381,9 +381,9 @@ to know this information.
 
 =item %V	 Volume number
 
-=item %X	 Abstract — used by roffbib, not by refer
+=item %X	 Abstract - used by roffbib, not by refer
 
-=itme %Y,Z   Ignored by	refer
+=item %Y,Z   Ignored by	refer
 
 =back
 
@@ -415,7 +415,7 @@ This file is part of the PerlPowerTools project:
 
 =head1 COPYRIGHT and LICENSE
 
-This program is Copyright © 2026-2026, brian d foy
+This program is Copyright E<copy> 2026-2026, brian d foy
 
 This program is licensed under the Artistic License 2.0. You can use
 and modify this program under the terms of the GNU Public License
