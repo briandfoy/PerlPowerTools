@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Ubuntu config for Perl 5 modules
-# version 20251210.001
+# version 20260106.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -32,6 +32,7 @@ name: ubuntu
 # https://github.com/actions/checkout/issues/1590
 env:
     ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+    PERL_LWP_SSL_VERIFY_HOSTNAME: 0
 
 # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/using-concurrency
 concurrency:
@@ -74,7 +75,7 @@ on:
     pull_request:
     # weekly build on the master branch just to see what CPAN is doing
     schedule:
-        - cron: "17 17 * * 4"
+        - cron: "49 14 * * 2"
 jobs:
     perl:
         environment: automated_testing
@@ -83,15 +84,9 @@ jobs:
             matrix:
                 os:
                     - ubuntu-latest
-                perl-version:
-                    - '5.30-bullseye'
-                    - '5.32-bullseye'
-                    - '5.34-bullseye'
-                    - '5.36-bookworm'
-                    - '5.38-bookworm'
-                    - 'latest'
+                perl-version: [ 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42 ]
         container:
-            image: perl:${{ matrix.perl-version }}
+            image: ghcr.io/perlreview/5.${{ matrix.perl-version }}-modules-amd64
         steps:
             - uses: actions/checkout@v5
             - name: git corrections
@@ -100,59 +95,22 @@ jobs:
             - name: Platform check
               run: uname -a
             - name: setup platform
+              if: vars.UBUNTU_EXTRA_APT_GET != ''
               run: |
                 apt-get -y -o Acquire::Retries=5 update
                 apt-get -y -o Acquire::Retries=5 upgrade
-                apt-get -y -o Acquire::http::No-Cache=True -o Acquire::Retries=5 install \
-                    curl \
-                    jq \
-                    ${{ vars.UBUNTU_EXTRA_APT_GET }}
-
-                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg --output /usr/share/keyrings/githubcli-archive-keyring.gpg
-                chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-                apt -y -o Acquire::Retries=5 update
-                apt-get -y -o Acquire::http::No-Cache=True -o Acquire::Retries=5 install gh
-
-                git config --global --add safe.directory $(pwd)
+                apt-get -y -o Acquire::http::No-Cache=True -o Acquire::Retries=5 install ${{ vars.UBUNTU_EXTRA_APT_GET }}
             - name: Perl version check
               run: |
                 perl -V
                 perl -v | perl -0777 -ne 'm/(v5\.\d+)/ && print "PERL_VERSION=$1"' >> $GITHUB_ENV
-# Some older versions of Perl have trouble with hostnames in certs. I
-# haven't figured out why.
-            - name: enhance environment
-              run: |
-                echo "PERL_LWP_SSL_VERIFY_HOSTNAME=0" >> $GITHUB_ENV
-# HTML::Tagset bumped its minimum version to v5.10 for no good reason
-# but this is a prereq to LWP, which runs on v5.8. To get around this,
-# download the tarball and fix it for v5.8. Install it before we try
-# to install things that depend on it. More recent versions will
-# install it normally.
-# 1. remove the META files which have references to v5.10 and ignore
-# the warnings
-# 2. fix Makefile.PL to remove two references to v5.10
-# https://github.com/libwww-perl/HTML-Tagset/pull/14
-            - name: fix html-tagset for v5.8
-              if: env.PERL_VERSION == 'v5.8'
-              run: |
-                cpan App::Cpan
-                curl -L -O https://cpan.metacpan.org/authors/id/P/PE/PETDANCE/HTML-Tagset-3.24.tar.gz
-                tar -xzf HTML-Tagset-3.24.tar.gz
-                cd HTML-Tagset-3.24
-                rm META.*
-                mv Makefile.PL Makefile.PL.orig
-                perl -n -e 'next if /(^use 5)|(MIN_PERL)/; print' Makefile.PL.orig > Makefile.PL
-                cpan -M http://www.cpan.org -T .
-                cd ..
-                pwd
-                ls
-                rm -rfv HTML-Tagset-*
 # Restore the last module installation for this OS/perl combination. This
 # saves several minutes in some cases. When cpan installs updates, the
-# 'save' counterpart for 'restore' will update the cache.
+# 'save' counterpart for 'restore' will update the cache. If this fails we
+# keep going, although the module installation will take longer
             - name: Restore Perl modules
               id: perl-modules-cache-restore
+              continue-on-error: true
               uses: actions/cache/restore@v4
               with:
                 key: ${{ runner.os }}-${{ matrix.perl-version }}-modules
@@ -160,12 +118,15 @@ jobs:
                   /usr/local/lib/perl5
                   /usr/local/bin/cover
                   /usr/local/bin/cpan
-# We cannot reuse cache keys, so we'll delete it and then save it again
+# We cannot reuse a cache key that exists, so we'll delete it and then save it again
 # There are various hacks for this, but GitHub has so far declined to
 # do what so many people want. This seems like a long way to go to do
 # this, but most of the problem is translating the unique cache key name
-# to another hidden ID value. This is pervasive in the GitHub API.
+# to another hidden ID value. This is pervasive in the GitHub API. If we
+# fail this step, no big whoop. Outside pull requesters are likely to fail
+# this step since their token won't have permissions to the repo cache
             - name: Delete cache
+              continue-on-error: true
               id: delete-cache
               env:
                 GH_TOKEN: ${{ github.token }}
@@ -173,16 +134,15 @@ jobs:
                 gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches \
                   | jq -r '.actions_caches[] | select(.key == "${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}") | .id' \
                   | xargs -I{} gh api --method DELETE -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/${{ github.repository }}/actions/caches/{}
-# I had some problems with openssl on Ubuntu, so I punted by installing
-# cpanm first, which is easy. I can install IO::Socket::SSL with that,
-# then switch back to cpan. I didn't explore this further, but what you
-# see here hasn't caused problems for me.
-# Need HTTP::Tiny 0.055 or later.
-            - name: Install cpanm and multiple modules
+# Most of the module stuff has moved into the images I created in GHCR
+            - name: Install cpanm modules
+              if: ( vars.EXTRA_CPANM_MODULES != '' || vars.UBUNTU_EXTRA_CPANM_MODULES != '' )
               run: |
-                curl -L https://cpanmin.us | perl - App::cpanminus
-                cpanm --notest IO::Socket::SSL LWP::Protocol::https App::Cpan HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.UBUNTU_EXTRA_CPANM_MODULES }}
-                cpan -M http://www.cpan.org -T Test::Manifest ${{ vars.EXTRA_CPAN_MODULES }}
+                cpanm --notest ${{ vars.EXTRA_CPANM_MODULES }} ${{ vars.UBUNTU_EXTRA_CPANM_MODULES }}
+            - name: Install cpan and multiple modules
+              if: vars.EXTRA_CPAN_MODULES != ''
+              run: |
+                cpan -M http://www.cpan.org -T ${{ vars.EXTRA_CPAN_MODULES }}
 # Install the dependencies, again not testing them. This installs the
 # module in the current directory, so we end up installing the module,
 # but that's not a big deal.
@@ -201,7 +161,6 @@ jobs:
             - name: Author tests
               if: hashFiles('xt') != ''
               run: |
-                cpanm --notest Test::CPAN::Changes
                 prove -r -b xt
 # Running tests in parallel should be faster, but it's also more
 # tricky in cases where different tests share a feature, such as a
@@ -234,8 +193,11 @@ jobs:
                 cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
                 perl Makefile.PL
                 cover -test +ignore 'Makefile.PL' -report coveralls
-# Now always save the Perl modules in case we updated some versions
+# Now always save the Perl modules in case we updated some versions. We'd like
+# this step to work, but if it doesn't, it's not a big deal. The always() captures
+# any work that we did even if something failed.
             - name: Save Perl modules
+              continue-on-error: true
               id: perl-modules-cache-save
               uses: actions/cache/save@v4
               if: always()
