@@ -33,7 +33,7 @@ sub fork_yes {
     my ($yes_path, $yes_str) = @_;
     my ($pid, $child);
     my $line_count = 10;
-    $yes_str //= 'y';
+    $yes_str = defined $yes_str ? $yes_str : 'y';
 
     subtest "yes string = <$yes_str>" => sub {
 		if ($pid = open($child, '-|', "$yes_path $yes_str")) { # PARENT PROCESS
