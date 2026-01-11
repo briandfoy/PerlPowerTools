@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use vars qw($opt_a $opt_p);
 
+use constant ABSTRACT              => 'Abstract';
 use constant STOP_ON_NEWLINE       => 0;
 use constant KEEP_GOING_ON_NEWLINE => 1;
 
@@ -88,6 +89,7 @@ sub default_prompts {
   	[ 'Date',        '%D' ],
   	[ 'Other',       '%O' ],
   	[ 'Keywords',    '%K' ],
+  	[ 'Abstract',    '%X' ],
 	);
 	}
 
@@ -168,25 +170,29 @@ sub get_record {
 	my @lines = ();
 
 	PROMPT: for (my $i=0; $i < @Prompts; $i++)  {
-		local $_ = $class->prompt( $Prompts[$i][0], undef, STOP_ON_NEWLINE );
+		next PROMPT if( $opt_a and $Prompts[$i][0] eq ABSTRACT );
+
+		local $_ = $class->prompt( $
+			Prompts[$i][0],
+			undef,
+			$Prompts[$i][0] eq ABSTRACT ? KEEP_GOING_ON_NEWLINE : STOP_ON_NEWLINE
+			);
 		$_ = defined $_ ? $_ : '';
 		chomp($_);
 		next PROMPT if /^$/;
+
 		if( /^-$/ ) {
 			$i -= 2;
 			next PROMPT;
 			}
 
-		push @lines, "$Prompts[$i][1]\t$_\n";
-		}
-
-	unless( $opt_a ) {
-		# Abstract is weird because a newline doesn't end it, so a newline
-		# is just a newline.
-		local $_ = $class->prompt( 'Abstract', undef, KEEP_GOING_ON_NEWLINE );
-		next if /^$/;
-		s/^\s*/%X\t/mg;
-		push @lines, "$_\n";
+		if( $Prompts[$i][0] eq ABSTRACT ) {
+			s/^\s*/%X\t/mg;
+			push @lines, "$_\n";
+			}
+		else {
+			push @lines, "$Prompts[$i][1]\t$_\n";
+			}
 		}
 
 	return \@lines;
