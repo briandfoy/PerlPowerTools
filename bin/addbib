@@ -93,9 +93,6 @@ sub default_prompts {
 	);
 	}
 
-sub dumper { require Data::Dumper; Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
-#print dumper( \@Prompts );
-
 sub error {
 	my $class = shift;
 	print {$class->error_fh} @_;
