@@ -42,7 +42,7 @@ exit( __PACKAGE__->run(@ARGV) ) unless caller();
 
 sub run {
 	my( $class, @args ) = @_;
-	$class->setup_terminal();
+	return EX_FAILURE unless $class->setup_terminal;
 	my $database_file = $class->process_options(@args);
 	unless( defined $database_file ) {
 		$class->usage();
@@ -299,12 +299,13 @@ sub setup_terminal {
 	my $has_term_readkey = eval { require Term::ReadKey };
 	unless( $has_term_readkey ) {
 		$class->error( "The Perl version of addbib ($0) needs the Term::ReadKey module\n\n$@" );
-		exit 1;
+		return;
 		}
 
 	Term::ReadKey->import;
 	ReadMode('raw');
 	$|++;
+	return 1;
 	}
 
 sub usage {
