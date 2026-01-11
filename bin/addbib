@@ -89,7 +89,7 @@ sub default_prompts {
   	[ 'Date',        '%D' ],
   	[ 'Other',       '%O' ],
   	[ 'Keywords',    '%K' ],
-  	[ 'Abstract',    '%X' ],
+  	[ ABSTRACT,      '%X' ],
 	);
 	}
 
