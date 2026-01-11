@@ -138,6 +138,7 @@ README.pod
 t/000.basic.t
 t/910.meta.t
 t/990.pod.t
+t/addbib/addbib.t
 t/bc/input.t
 t/cat/cat.t
 t/cp/gh-115-copy-into-dir.t
@@ -171,6 +172,7 @@ t/sort/sort.t
 t/true/true.t
 t/units/units.t
 t/uudecode/uudecode.t
+t/yes/yes.t
 xt/changes.t
 xt/perlcritic.t
 xt/perlcriticrc
