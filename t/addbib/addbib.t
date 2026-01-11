@@ -4,8 +4,20 @@ use strict;
 use Test::More 0.95;
 
 BEGIN {
-	unless( eval "require Term::ReadKey" ) {
-		plan skip_all => 'Term::ReadKey required for testing';
+	my $message = do {
+		if( ! eval "require Term::ReadKey" ) {
+			'Term::ReadKey required for testing'
+			}
+		elsif( $^O eq 'MSWin32' and $ENV{'GITHUB_ACTIONS'} ) {
+			q(Can't test on Windows in GitHub Actions);
+			}
+		else {
+			undef;
+			}
+		};
+
+	if( $message ) {
+		plan skip_all => $message;
 		done_testing();
 		exit;
 		}
