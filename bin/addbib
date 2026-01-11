@@ -21,6 +21,10 @@ use constant ABSTRACT              => 'Abstract';
 use constant STOP_ON_NEWLINE       => 0;
 use constant KEEP_GOING_ON_NEWLINE => 1;
 
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant EX_USAGE   => 2;
+
 use constant CONTROL_C => chr(3);
 use constant CONTROL_D => chr(4);
 use constant BACKSPACE => chr(8);
@@ -34,18 +38,30 @@ END { eval q( Term::ReadKey::ReadMode('restore') ) }
 $SIG{'INT'}  = sub { exit( 128 + get_signal_number('INT')  ) };
 $SIG{'TERM'} = sub { exit( 128 + get_signal_number('TERM') ) };
 
-__PACKAGE__->run(@ARGV) unless caller();
+exit( __PACKAGE__->run(@ARGV) ) unless caller();
 
 sub run {
 	my( $class, @args ) = @_;
 	$class->setup_terminal();
 	my $database_file = $class->process_options(@args);
+	unless( defined $database_file ) {
+		$class->usage();
+		return EX_USAGE;
+		}
+
 	my $db_fh = $class->open_db($database_file);
+	unless( defined $db_fh ) {
+		$class->error( "Could not open <$database_file>: $!\n" );
+		return EX_FAILURE;
+		}
 
 	my @Prompts = $class->default_prompts();
 	if( $opt_p ) {
 		@Prompts = ();
-		open my $fh, '<', $opt_p or die "can't read $opt_p: $!";
+		open my $fh, '<', $opt_p or do {
+			$class->error( "can't read $opt_p: $!" );
+			return EX_FAILURE;
+			};
 		while (<$fh>) {
 			push @Prompts, [ $1, $2 ] if /^\s*([^%]+)\t(%\w)/;
 			}
@@ -66,16 +82,22 @@ sub run {
 
 			if( $answer =~ /^\s*(ed|edit|ex|vi|view|emacs)\s*/ ) {
 				my $editor = $1;
-				close $db_fh or die "can't close $database_file: $!\n";
+				close $db_fh or do {
+					$class->error( "can't close $database_file: $!\n" );
+					return EX_FAILURE;
+					};
 				unless( 0 == system $editor, $database_file ) {
-					die "'$1 $database_file' failed: $?\n";
+					$class->error( "'$1 $database_file' failed: $?\n" );
+					return EX_FAILURE;
 					}
 				$db_fh = $class->open_db($database_file);
 				redo CONTINUE;
 				}
 			}
 		}
-}
+
+	return EX_SUCCESS;
+	}
 
 sub default_prompts {
 	(
@@ -215,7 +237,7 @@ sub get_signal_number {
 
 sub open_db {
 	my( $class, $file ) = @_;
-	open my $fh, '>>', $file or die "Could not open <$file>: $!\n";
+	open my $fh, '>>', $file or return;
 	return $fh;
 	}
 
@@ -249,8 +271,10 @@ sub process_options {
 	my $class = shift;
 
 	local @ARGV = @_;
+	{
+	local $SIG{__WARN__} = sub { 1 };
 	Getopt::Std::getopts( 'ap:');
-	usage() unless @ARGV == 1;
+	}
 
 	return $ARGV[0];
 	}
