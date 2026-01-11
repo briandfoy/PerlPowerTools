@@ -1,11 +1,19 @@
 use 5.006;
 use strict;
 
+use Test::More 0.95;
+
+BEGIN {
+	unless( eval "require Term::ReadKey" ) {
+		plan skip_all => 'Term::ReadKey required for testing';
+		done_testing();
+		exit;
+		}
+	}
+
 BEGIN {
 	*CORE::GLOBAL::exit = sub { $_[0] // 0 }
 	}
-
-use Test::More 0.95;
 
 use lib qw(t/lib);
 require "common.pl";
