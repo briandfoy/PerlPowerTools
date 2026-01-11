@@ -134,7 +134,7 @@ sub get_line {
 			select undef, undef, undef, 0.01;
 			next CHAR;
 			}
-
+		
 		if( $c eq CONTROL_C ) {
 			print "\n";
 			exit( 128 + 2 );
@@ -148,17 +148,9 @@ sub get_line {
 			chop $line;
 			print BACKSPACE, SPACE, BACKSPACE; # back up, overwrite, back up
 			}
-		elsif( $c eq CARRIAGE ) {
-			my $n = ReadKey(0);
-			if( $n eq LINEFEED ) {
-				$line .= CARRIAGE . LINEFEED;
-				print CARRIAGE . LINEFEED;
-				last CHAR;
-				}
-			}
-		elsif( $c eq LINEFEED ) {
-			$line .= $c;
-			print $c;
+		elsif( $c eq LINEFEED or $c eq CARRIAGE ) {
+			$line .= LINEFEED;
+			print LINEFEED;
 			next CHAR if $keep_going_on_newline;
 			last CHAR;
 			}
