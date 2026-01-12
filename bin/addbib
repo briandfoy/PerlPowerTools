@@ -1,55 +1,248 @@
-#!/usr/bin/perl
+#!perl
 
 =begin metadata
 
 Name: addbib
 Description: create or extend a bibliographic database
-Author: Jeffrey S. Haemer
-License: perl
+Author: brian d foy
+License: artistic2
 
 =end metadata
 
 =cut
 
+package PerlPowerTools::addbib;
 
 use strict;
-use Getopt::Std;
+use warnings;
 use vars qw($opt_a $opt_p);
 
-$0 =~ s(.*/)();
-my $usage = "usage: $0 [ -a ] [ -p promptfile ] database\n";
-getopts "ap:" and @ARGV==1 or die $usage;
+use constant ABSTRACT              => 'Abstract';
+use constant STOP_ON_NEWLINE       => 0;
+use constant KEEP_GOING_ON_NEWLINE => 1;
 
-my @prompts = (
-		"Author name:\t%A",
-		"Title:\t%T",
-		"Journal:\t%J",
-		"Volume:\t%V",
-		"Pages:\t%P",
-		"Publisher:\t%I",
-		"City:\t%C",
-		"Date:\t%D",
-		"Other:\t%O",
-		"Keywords:\t%K",
-);
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant EX_USAGE   => 2;
 
-if (defined $opt_p) {
-	@prompts = ();
-	open my $PROMPTFILE, '<', $opt_p or die "can't read $opt_p: $!";
-	foreach (<$PROMPTFILE>) {
-		if (/^\s*([^%]+)\t(%\w)/) {
-			push @prompts, "$1\t$2";
+use constant CONTROL_C => chr(3);
+use constant CONTROL_D => chr(4);
+use constant BACKSPACE => chr(8);
+use constant LINEFEED  => chr(hex('0A'));
+use constant CARRIAGE  => chr(hex('0D'));
+use constant SPACE     => chr(hex('20'));
+use constant BACKSLASH => chr(hex('5C'));
+use constant DELETE    => chr(hex('7F'));
+
+END { eval q( Term::ReadKey::ReadMode('restore') ) }
+$SIG{'INT'}  = sub { exit( 128 + get_signal_number('INT')  ) };
+$SIG{'TERM'} = sub { exit( 128 + get_signal_number('TERM') ) };
+
+exit( __PACKAGE__->run(@ARGV) ) unless caller();
+
+sub run {
+	my( $class, @args ) = @_;
+	return EX_FAILURE unless $class->setup_terminal;
+	my $database_file = $class->process_options(@args);
+	unless( defined $database_file ) {
+		$class->usage();
+		return EX_USAGE;
 		}
+
+	my $db_fh = $class->open_db($database_file);
+	unless( defined $db_fh ) {
+		$class->error( "Could not open <$database_file>: $!\n" );
+		return EX_FAILURE;
+		}
+
+	my @Prompts = $class->default_prompts();
+	if( $opt_p ) {
+		@Prompts = ();
+		open my $fh, '<', $opt_p or do {
+			$class->error( "can't read $opt_p: $!" );
+			return EX_FAILURE;
+			};
+		while (<$fh>) {
+			push @Prompts, [ $1, $2 ] if /^\s*([^%]+)\t(%\w)/;
+			}
+		}
+
+	my $answer = $class->prompt( 'Instructions?', 'n', STOP_ON_NEWLINE );
+	$class->output_instructions if $answer =~ /^y/i;
+
+	RECORD: while (1) {
+		print {$db_fh} "\n";		# start a new entry
+
+		my $lines = $class->get_record(@Prompts);
+		print {$db_fh} join '', @$lines;
+
+		CONTINUE: {
+			my $answer = $class->prompt( 'Continue?', 'y', STOP_ON_NEWLINE );
+			last RECORD if $answer =~ m/\A[nq]/i;
+
+			if( $answer =~ /^\s*(ed|edit|ex|vi|view|emacs)\s*/ ) {
+				my $editor = $1;
+				close $db_fh or do {
+					$class->error( "can't close $database_file: $!\n" );
+					return EX_FAILURE;
+					};
+				unless( 0 == system $editor, $database_file ) {
+					$class->error( "'$1 $database_file' failed: $?\n" );
+					return EX_FAILURE;
+					}
+				$db_fh = $class->open_db($database_file);
+				redo CONTINUE;
+				}
+			}
+		}
+
+	return EX_SUCCESS;
 	}
-	close($PROMPTFILE);
-}
 
-my $database = shift;
-my $DATABASE;
-open $DATABASE, '>>', $database or die "can't append to $database: $!";
+sub default_prompts {
+	(
+	[ 'Author name', '%A' ],
+	[ 'Title',       '%T' ],
+  	[ 'Journal',     '%J' ],
+  	[ 'Volume',      '%V' ],
+  	[ 'Pages',       '%P' ],
+  	[ 'Publisher',   '%I' ],
+  	[ 'City',        '%C' ],
+  	[ 'Date',        '%D' ],
+  	[ 'Other',       '%O' ],
+  	[ 'Keywords',    '%K' ],
+  	[ ABSTRACT,      '%X' ],
+	);
+	}
 
-my $inst = <<_EOINST;
-	Addbib will prompt you for various bibliographic fields.
+sub error {
+	my $class = shift;
+	print {$class->error_fh} @_;
+	}
+
+sub error_fh { \*STDERR }
+
+sub get_line {
+	my( $class, $keep_going_on_newline ) = @_;
+	$keep_going_on_newline = defined $keep_going_on_newline ? $keep_going_on_newline : STOP_ON_NEWLINE;
+
+	my $line = '';
+
+	CHAR: while(1) {
+		my $c = ReadKey(0);
+		if( ! defined $c ) {
+			select undef, undef, undef, 0.01;
+			next CHAR;
+			}
+		
+		if( $c eq CONTROL_C ) {
+			print "\n";
+			exit( 128 + 2 );
+			}
+		elsif( $c eq CONTROL_D ) { # Control-D
+			print "^D\n";
+			last CHAR;
+			}
+		elsif( $c eq BACKSPACE or $c eq DELETE ) {
+			next CHAR if length($line) == 0;
+			chop $line;
+			print BACKSPACE, SPACE, BACKSPACE; # back up, overwrite, back up
+			}
+		elsif( $c eq LINEFEED or $c eq CARRIAGE ) {
+			$line .= LINEFEED;
+			print LINEFEED;
+			next CHAR if $keep_going_on_newline;
+			last CHAR;
+			}
+		elsif( $c eq BACKSLASH ) {
+			print BACKSLASH;
+			my $n = ReadKey(0);
+			if( $n eq LINEFEED ) {
+				$line .= SPACE;
+				print LINEFEED . '> ';
+				}
+			else {
+				$line .= BACKSLASH . $n;
+				print $n;
+				}
+			}
+		else {
+			$line .= $c;
+			print $c;
+			}
+		}
+
+	return $line;
+	}
+
+sub get_record {
+	my $class = shift;
+	my @Prompts = @_;
+	my @lines = ();
+
+	PROMPT: for (my $i=0; $i < @Prompts; $i++)  {
+		next PROMPT if( $opt_a and $Prompts[$i][0] eq ABSTRACT );
+
+		local $_ = $class->prompt( $
+			Prompts[$i][0],
+			undef,
+			$Prompts[$i][0] eq ABSTRACT ? KEEP_GOING_ON_NEWLINE : STOP_ON_NEWLINE
+			);
+		$_ = defined $_ ? $_ : '';
+		chomp($_);
+		next PROMPT if /^$/;
+
+		if( /^-$/ ) {
+			$i -= 2;
+			next PROMPT;
+			}
+
+		if( $Prompts[$i][0] eq ABSTRACT ) {
+			s/^\s*/%X\t/mg;
+			push @lines, "$_\n";
+			}
+		else {
+			push @lines, "$Prompts[$i][1]\t$_\n";
+			}
+		}
+
+	return \@lines;
+	}
+
+sub get_signal_number {
+	require Config;
+    my( $sig_name ) = @_;
+    my %sig_num;
+
+	my @arrays =
+		map  { split /\s+/, $Config::Config{$_} }
+		grep { exists $Config::Config{$_} }
+		qw(sig_name sig_num);
+
+	return 0 unless @arrays == 2;
+	return 0 unless @{ $arrays[0] } == @{ $arrays[1] };
+
+	my %sig_hash = map { uc($arrays[0][$_]), $arrays[1][$_] } 0 .. $#{ $arrays[0] };
+
+	exists $sig_hash{uc($sig_name)} ? $sig_hash{uc($sig_name)} : 0;
+	}
+
+sub open_db {
+	my( $class, $file ) = @_;
+	open my $fh, '>>', $file or return;
+	return $fh;
+	}
+
+sub output {
+	my $class = shift;
+	print {$class->output_fh} @_;
+	}
+
+sub output_fh { \*STDOUT }
+
+sub output_instructions {
+	$_[0]->output( <<_EOINST );
+	addbib will prompt you for various bibliographic fields.
 	If you don't need a particular field, just hit RETURN,
 		and that field will not appear in the output file.
 	If you want to return to previous fields in the skeleton,
@@ -63,60 +256,57 @@ my $inst = <<_EOINST;
 	To edit the database, type `edit', `vi', or `ex' instead.
 
 _EOINST
-
-print "Instructions? (n) ";
-$_ = <>;
-print "$inst" if /^y/i;
-
-# The use of an array instead of a hash looks hokey here
-# I did it to preserve order.
-
-while (1) {
-	print $DATABASE "\n";		# start a new entry
-
-	PROMPT: for (my $i=0; $i < @prompts; $i++)  {
-		my ($prompt, $code) = split /\t/, $prompts[$i];
-		print "$prompt ";
-		$_ = <>;
-		next PROMPT if /^$/;	# blank line means "don't want it"
-		if (/^-$/) {		# go back to the last prompt
-			$i -= 2;
-			next PROMPT;
-		}
-		print $DATABASE "$code\t";
-		while (/\\$/) {
-			chop; chop;
-			print $DATABASE "$_\n";
-			print "> ";
-			$_ = <>;
-		}
-		print $DATABASE $_;
 	}
 
-	unless ($opt_a) {
-		print "Abstract: ";
-		$_ = <>;
-		next if (/^$/);
-		print $DATABASE "%X\t$_";
-		while (<>) {
-			print $DATABASE $_;
-		}
-	}
-} continue {
-	print "Continue? (y) ";
-	$_ = <>;
-	while (/^\s*(ed|edit|ex|vi|view|emacs)\s*/) {
-		close $DATABASE or die "can't close $database: $!";
-		system($1, $database) == 0
-		 or die "system '$1 $database' failed: $?";
-		open $DATABASE, '>>', $database or die "can't open $database: $!";
-		print "Continue? (y) ";
-		$_ = <>;
-	}
-	last if m/\A[nq]/i;
-}
+sub process_options {
+	require Getopt::Std;
+	my $class = shift;
 
-close $DATABASE or die "can't close $database: $!";
+	local @ARGV = @_;
+	{
+	local $SIG{__WARN__} = sub { 1 };
+	Getopt::Std::getopts( 'ap:');
+	}
+
+	return $ARGV[0];
+	}
+
+sub prompt {
+	my( $class, $prompt, $default, $is_abstract ) = @_;
+
+	$class->output(
+		$prompt,
+		(defined $default ? " [$default]" : '' ),
+		': '
+		);
+
+	chomp( my $answer = $class->get_line($is_abstract) );
+	$answer = $default if $answer =~ /^$/;
+	no warnings;
+	return $answer;
+	}
+
+sub setup_terminal {
+	my $class = shift;
+	my $has_term_readkey = eval { require Term::ReadKey };
+	unless( $has_term_readkey ) {
+		$class->error( "The Perl version of addbib ($0) needs the Term::ReadKey module\n\n$@" );
+		return;
+		}
+
+	Term::ReadKey->import;
+	ReadMode('raw');
+	$|++;
+	return 1;
+	}
+
+sub usage {
+	require File::Basename;
+	$_[0]->output(
+		sprintf "usage: %s [ -a ] [ -p promptfile ] database\n", File::Basename::basename($0)
+		);
+	exit 2;
+	}
 
 __END__
 
@@ -130,93 +320,125 @@ addbib - create or extend a bibliographic database
 
 =head1 DESCRIPTION
 
-When the program starts, you will be prompted for instructions.  Answering
-C<n> or simply hitting enter will continue without showing the instructions.
-Answering C<y> will display directions for using the program.  C<addbib>
-then prompts for various bibliographic fields, accepting input from the
-console and eventually saving records in a C<database> file.  At each
-prompt, if one enters a null response (i.e. simply hits the return/enter
-key), then this field is skipped.  Entering a minus sign (C<->) means to
-return to the previous field.  Using a trailing backslash allows a field to
-be continued to the next line.  Once all fields have been entered, the user
-is presented with the C<Continue? (y)> prompt in order to continue adding
-items to the database.  Entering C<y> or simply hitting return will start
-entering a new item into the database.  Entering C<n> or C<q> exits the
-program and saves the C<database> file to the filesystem.
+When addbib starts up, answering y to the initial Instructions? prompt
+yields directions. Typing n (or RETURN) skips the directions. addbib
+then prompts for various bibliographic fields, reads responses from
+the terminal, and sends output records to database. A null response
+(just RETURN) means to leave out that field. A C<-> (minus sign) means
+to go back to the previous field. A trailing backslash allows a field
+to be continued on the next line. The repeating Continue? prompt
+allows the user either to resume by typing y (or RETURN), to quit the
+current session by typing n or q, or to edit database with any system
+editor (see vi(1), ex(1), ed(1)).
 
-The C<-a> option suppresses prompting the user for an abstract; entering an
-abstract is the default behaviour.  To finish entering an abstract, enter
-C<Ctrl-d>.
+=head2 Options
 
-The C<-p> option allows for the definition of new prompt sequences.  The
-prompt file uses the following format: C<prompt text> followed by a C<tab
-character> and finally the C<field symbol> for writing into the C<database>
-file.  For instance, to define a set of prompts specifically for the
-addition of books, use something like this:
+=over 4
 
-    Author name	%A
-    Title	%T
-    Publisher	%I
-    Date	%D
-    Other	%O
-    Keywords	%K
+=item -a
 
-Note that the author name field can occur more than once to allow for
-multiple authors.
+Suppresses prompting for an abstract. Asking for an abstract is the
+default. Abstracts are ended with a Control-D.
 
-The most common field symbols are (adapted from the FreeBSD manual for
-C<addbib>):
+=item -p promptfile
 
-    %A	 Author's name
-    %B	 Book containing article referenced
-    %C	 City (place of publication)
-    %D	 Date of publication
-    %E	 Editor of book containing article referenced
-    %F	 Footnote number or label (supplied by refer)
-    %G	 Government order number
-    %H	 Header commentary, printed before reference
-    %I	 Issuer (publisher)
-    %J	 Journal containing article
-    %K	 Keywords to use in locating reference
-    %L	 Label field used by -k option of refer
-    %M	 Bell Labs Memorandum (undefined)
-    %N	 Number within volume
-    %O	 Other commentary, printed at end of reference
-    %P	 Page number(s)
-    %Q	 Corporate or Foreign Author (unreversed)
-    %R	 Report, paper, or thesis (unpublished)
-    %S	 Series title
-    %T	 Title of article or book
-    %V	 Volume number
-    %X	 Abstract
+Uses a new prompting skeleton, defined in promptfile. This file should
+contain prompt strings, a TAB, and the key-letters to be written to
+the database.
 
-An example C<database> file output is:
+=back
 
-    %A      M Bremner
-    %T      Quantum dynamics as a physical resource
-    %J      Physical Review A
-    %V      67
-    %P      523011-5230119
-    %I      American Physical Society
-    %D      2003
+=head2 Usage
 
-=head1 FILES
+=head3 Bibliography Key Letters
 
-    promptfile - optional file to define prompting
+The most common key-letters and their meanings are given below. addbib
+insulates you from these key-letters, since it gives you prompts in
+English, but if you edit the bibliography file later on, you will need
+to know this information.
+
+=over 4
+
+=item %A	 Author's name
+
+=item %B	 Book containing article referenced
+
+=item %C	 City (place of publication)
+
+=item %D	 Date of publication
+
+=item %E	 Editor of book containing article referenced
+
+=item %F	 Footnote number or label (supplied by refer)
+
+=item %G	 Government order number
+
+=item %H	 Header commentary, printed before reference
+
+=item %I	 Issuer (publisher)
+
+=item %J	 Journal containing article
+
+=item %K	 Keywords to use in locating reference
+
+=item %L	 Label field used by -k option of refer
+
+=item %M	 Bell Labs Memorandum (undefined)
+
+=item %N	 Number within volume
+
+=item %O	 Other commentary, printed at end of reference
+
+=item %P	 Page number(s)
+
+=item %Q	 Corporate or Foreign Author (unreversed)
+
+=item %R	 Report, paper, or thesis (unpublished)
+
+=item %S	 Series title
+
+=item %T	 Title of article or book
+
+=item %V	 Volume number
+
+=item %X	 Abstract - used by roffbib, not by refer
+
+=item %Y,Z   Ignored by	refer
+
+=back
+
+=head3 Examples
+
+Example 1 Editing the bibliography file.
+
+Except for A, each field should be given just once. Only relevant fields should be supplied.
+
+	%A	Mark Twain
+	%T	Life on the Mississippi
+	%I	Penguin Books
+	%C	New York
+	%D	1978
 
 =head1 AUTHOR
 
-Jeffrey S. Haemer
+Documentation is taken from the FreeBSD man page and adapted for Pod.
 
-=head1 BUGS
+A previous version of this program was written by Jeffrey S. Haemer. It was
+completely replaced by brian d foy to properly handle Control-D by using raw
+terminal interactions.
 
-Also wants both testing and the other bib/refer utilities to go with it.
-Release early and often, that's my motto.
+=head1 SOURCE AVAILABILITY
+
+This file is part of the PerlPowerTools project:
+
+	https://github.com/briandfoy/PerlPowerTools/
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright (c) Jeffrey S. Haemer (2004).
+This program is Copyright E<copy> 2026-2026, brian d foy
 
-This program is free and open software. You may use, modify, distribute,
-and sell this program (and any modified variants) in any way you wish,
-provided you do not restrict others from doing the same.
+This program is licensed under the Artistic License 2.0. You can use
+and modify this program under the terms of the GNU Public License
+version 2. A copy of this license is in the PerlPowerTools repository:
+
+=cut
