@@ -59,7 +59,7 @@ while (@ARGV) {
             shift;
             $argc_fixed = $ARGV[0];
         }
-        unless (length $magic) {
+        unless (length $argc_fixed) {
             warn "$Program: option -f requires an argument\n";
             usage();
         }
