@@ -8,8 +8,8 @@ BEGIN {
 		if( ! eval "require Term::ReadKey" ) {
 			'Term::ReadKey required for testing'
 			}
-		elsif( $^O eq 'MSWin32' and $ENV{'GITHUB_ACTIONS'} ) {
-			q(Can't test on Windows in GitHub Actions);
+		elsif( $^O eq 'MSWin32' ) {
+			q(Can't test on Windows);
 			}
 		else {
 			undef;
@@ -82,10 +82,9 @@ subtest "database" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt';
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
@@ -93,10 +92,9 @@ subtest "database" => sub {
 
 	subtest 'good path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt' ;
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
@@ -125,10 +123,9 @@ subtest "promptfile" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt' ;
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
