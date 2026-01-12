@@ -171,6 +171,28 @@ of the arguments is handed to a shell for interpretation of meta characters.
 This shell is determined by Perl, during its building phase, and is typically
 C</bin/sh -c> on Unix platforms.
 
+=head1 EXAMPLES
+
+    apply echo *
+
+is similar to ls;
+
+    apply -2 cmp a1 b1 a2 b2 a3 b3
+
+compares the C<a> files to the C<b> files;
+
+    apply -0 who 1 2 3 4 5
+
+runs who 5 times;
+
+    apply 'ln %1 /usr/joe' *
+
+links all files in the current directory to the directory I</usr/joe>;
+
+    apply 'ls -al %1' /usr /etc /dev
+
+list the contents of the /usr, /etc, and /dev directories in detail.
+
 =head1 BUGS
 
 I<apply> does not honor the users C<$SHELL> environment variable.
