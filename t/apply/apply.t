@@ -83,4 +83,41 @@ subtest "magic character" => sub {
 		};
 	};
 
+
+subtest "fixed arguments" => sub {
+	subtest "ls" => sub {
+		my $argv  = [ '-d', '-f', 1, 'ls', '-al', '/usr', '/etc', '/dev' ];
+		my @executed = (
+			'exec ls -al /usr',
+			'exec ls -al /etc',
+			'exec ls -al /dev',
+		);
+		my $result = run_command( $Script, $argv, undef );
+		is( $result->{stdout}, join( "\n", @executed, '' ) );
+		};
+	subtest "seq" => sub {
+		my $argv  = [ '-d', '-f', 2, 'seq', 1, 2, 3, 4, 5, 6 ];
+		my @executed = (
+			'exec seq 1 2 3',
+			'exec seq 1 2 4',
+			'exec seq 1 2 5',
+			'exec seq 1 2 6',
+		);
+		my $result = run_command( $Script, $argv, undef );
+		is( $result->{stdout}, join( "\n", @executed, '' ) );
+		};
+	subtest "cmp" => sub {
+		my $argv  = [ '-d', '-f', 1, 'cmp', 1, 2, 3, 4, 5, 6 ];
+		my @executed = (
+			'exec cmp 1 2',
+			'exec cmp 1 3',
+			'exec cmp 1 4',
+			'exec cmp 1 5',
+			'exec cmp 1 6',
+		);
+		my $result = run_command( $Script, $argv, undef );
+		is( $result->{stdout}, join( "\n", @executed, '' ) );
+		};
+	};
+
 done_testing();

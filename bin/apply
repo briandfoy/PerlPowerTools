@@ -24,6 +24,8 @@ my $Program = basename($0);
 my ($VERSION) = '1.5';
 
 my $argc  = 1;
+my $argc_fixed = 0;
+my @argv_fixed = ();
 my $debug = 0;
 my $magic = '%';
 
@@ -51,6 +53,17 @@ while (@ARGV) {
             usage();
         }
     }
+    elsif ($ARGV[0] =~ s/\A\-f//) {
+	$argc_fixed = $ARGV[0];
+        unless (length $argc_fixed) {
+            shift;
+            $argc_fixed = $ARGV[0];
+        }
+        unless (length $magic) {
+            warn "$Program: option -f requires an argument\n";
+            usage();
+        }
+    }
     elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
     }
@@ -69,7 +82,12 @@ usage() unless @ARGV;
 
 # Scan $command for ``%d''.
 my @thingies = $command =~ /${magic}(\d+)/g;
-$argc = max(@thingies) if @thingies;
+if (@thingies) {
+    $argc = max(@thingies);
+    $argc_fixed = 0;
+}
+
+@argv_fixed = splice(@ARGV, 0, $argc_fixed) if $argc_fixed > 0;
 
 # Now, apply the command till we run out.
 my $err = EX_SUCCESS;
@@ -81,7 +99,7 @@ while (@ARGV && @ARGV >= $argc) {
     }
     else {
         if ($argc) {
-            run_cmd($command, splice(@ARGV, 0, $argc));
+            run_cmd($command, ( @argv_fixed, splice(@ARGV, 0, $argc)));
         }
         else {
             shift;
@@ -111,7 +129,7 @@ sub run_cmd {
 }
 
 sub usage {
-    warn "usage: $Program [-a c] [-d] [-#] command argument [argument ...]\n";
+    warn "usage: $Program [-a c] [-f n] [-d] [-#] command argument [argument ...]\n";
     exit EX_FAILURE;
 }
 
@@ -125,7 +143,7 @@ apply - Run a command many times with different arguments
 
 =head1 SYNOPSIS
 
-apply [-a B<c>] [-d] [-#] command argument [argument ...]
+apply [-a B<c>] [-f B<n>] [-d] [-#] command argument [argument ...]
 
 =head1 DESCRIPTION
 
@@ -143,6 +161,13 @@ I<apply> accepts the following options:
 =item -a B<c>
 
 Use the character B<c> instead of B<%> for interpolation of arguments.
+
+=item -f B<n>
+
+The I<-f> option allows you to pin the initial B<n> arguments
+(refer to the examples for details).
+
+This option is ignored if I<command> has magic B<%d+> sequences.
 
 =item -d
 
@@ -192,6 +217,10 @@ links all files in the current directory to the directory I</usr/joe>;
     apply 'ls -al %1' /usr /etc /dev
 
 list the contents of the /usr, /etc, and /dev directories in detail.
+
+    apply -f 1 ls -al /usr /etc /dev
+
+Same as the example above.
 
 =head1 BUGS
 
