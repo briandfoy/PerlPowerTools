@@ -8,8 +8,8 @@ BEGIN {
 		if( ! eval "require Term::ReadKey" ) {
 			'Term::ReadKey required for testing'
 			}
-		elsif( $^O eq 'MSWin32' ) {
-			q(Can't test on Windows);
+		elsif( $^O eq 'MSWin32' and $ENV{'GITHUB_ACTIONS'} ) {
+			q(Can't test on Windows in GitHub Actions);
 			}
 		else {
 			undef;
