@@ -59,8 +59,8 @@ while (@ARGV) {
             shift;
             $argc_fixed = $ARGV[0];
         }
-        unless (length $argc_fixed) {
-            warn "$Program: option -f requires an argument\n";
+        unless (length $argc_fixed && $argc_fixed =~ /^\d+$/) {
+            warn "$Program: option -f requires an integer\n";
             usage();
         }
     }
