@@ -21,10 +21,20 @@ BEGIN {
 		done_testing();
 		exit;
 		}
+
+	if ( $^O eq 'MSWin32' ) {
+		system 'attrib +r ./t/data/unwriteable_file.txt';
+		}
 	}
 
 BEGIN {
 	*CORE::GLOBAL::exit = sub { $_[0] // 0 }
+	}
+
+END {
+	if ( $^O eq 'MSWin32' ) {
+		system 'attrib -r ./t/data/unwriteable_file.txt';
+		}
 	}
 
 use lib qw(t/lib);
