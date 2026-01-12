@@ -26,6 +26,7 @@ my ($VERSION) = '1.5';
 my $argc  = 1;
 my $argc_fixed = 0;
 my @argv_fixed = ();
+my $argc_shift;
 my $debug = 0;
 my $magic = '%';
 
@@ -64,6 +65,17 @@ while (@ARGV) {
             usage();
         }
     }
+    elsif ($ARGV[0] =~ s/\A\-s//) {
+	$argc_shift = $ARGV[0];
+        unless (length $argc_shift) {
+            shift;
+            $argc_shift = $ARGV[0];
+        }
+        unless (length $argc_shift && $argc_fixed =~ /^\d+$/) {
+            warn "$Program: option -s requires an integer\n";
+            usage();
+        }
+    }
     elsif ($ARGV[0] =~ m/\A\-(\d+)\Z/) {
         $argc = $1;
     }
@@ -88,6 +100,7 @@ if (@thingies) {
 }
 
 @argv_fixed = splice(@ARGV, 0, $argc_fixed) if $argc_fixed > 0;
+$argc_shift = $argc unless defined $argc_shift;
 
 # Now, apply the command till we run out.
 my $err = EX_SUCCESS;
@@ -95,11 +108,12 @@ while (@ARGV && @ARGV >= $argc) {
     if (@thingies) {
        (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
         run_cmd($new_command); # Reinterpreted by the shell!
-        splice @ARGV, 0, $argc;
+        splice @ARGV, 0, $argc_shift;
     }
     else {
         if ($argc) {
-            run_cmd($command, ( @argv_fixed, splice(@ARGV, 0, $argc)));
+            run_cmd($command, ( @argv_fixed, @ARGV[0..$argc-1]));
+            splice @ARGV, 0, $argc_shift;
         }
         else {
             shift;
@@ -107,11 +121,6 @@ while (@ARGV && @ARGV >= $argc) {
         }
     }
 }
-if (@ARGV) {
-    warn "$Program: unexpected number of arguments\n";
-    $err = EX_FAILURE;
-}
-exit $err;
 
 sub run_cmd {
     my $cmd = shift;
@@ -129,7 +138,7 @@ sub run_cmd {
 }
 
 sub usage {
-    warn "usage: $Program [-a c] [-f n] [-d] [-#] command argument [argument ...]\n";
+    warn "usage: $Program [-a c] [-f n] [-s m] [-d] [-#] command argument [argument ...]\n";
     exit EX_FAILURE;
 }
 
@@ -143,7 +152,7 @@ apply - Run a command many times with different arguments
 
 =head1 SYNOPSIS
 
-apply [-a B<c>] [-f B<n>] [-d] [-#] command argument [argument ...]
+apply [-a B<c>] [-f B<n>] [-s B<m>] [-d] [-#] command argument [argument ...]
 
 =head1 DESCRIPTION
 
@@ -168,6 +177,12 @@ The I<-f> option allows you to pin the initial B<n> arguments
 (refer to the examples for details).
 
 This option is ignored if I<command> has magic B<%d+> sequences.
+
+=item -s B<n>
+
+Set the number of arguments to shift in each step. The default value is
+identical to that of the I<-#> option. If neither I<-#> nor I<-s> is
+specified, both default to 1.
 
 =item -d
 
@@ -221,6 +236,10 @@ list the contents of the /usr, /etc, and /dev directories in detail.
     apply -f 1 ls -al /usr /etc /dev
 
 Same as the example above.
+
+    apply -s 1 -2 cmp 1 2 3 4 5
+
+Compare adjacent arguments.
 
 =head1 BUGS
 

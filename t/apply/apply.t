@@ -120,4 +120,19 @@ subtest "fixed arguments" => sub {
 		};
 	};
 
+subtest "shift arguments" => sub {
+	subtest "cmp" => sub {
+		my $argv  = [ '-d', '-s', 1, '-2', 'cmp', 1, 2, 3, 4, 5, 6 ];
+		my @executed = (
+			'exec cmp 1 2',
+			'exec cmp 2 3',
+			'exec cmp 3 4',
+			'exec cmp 4 5',
+			'exec cmp 5 6',
+		);
+		my $result = run_command( $Script, $argv, undef );
+		is( $result->{stdout}, join( "\n", @executed, '' ) );
+		};
+	};
+
 done_testing();
