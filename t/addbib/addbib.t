@@ -28,7 +28,7 @@ BEGIN {
 	}
 
 BEGIN {
-	*CORE::GLOBAL::exit = sub { $_[0] // 0 }
+	*CORE::GLOBAL::exit = sub { defined $_[0] ? $_[0] : 0 }
 	}
 
 END {
