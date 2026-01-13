@@ -21,10 +21,20 @@ BEGIN {
 		done_testing();
 		exit;
 		}
+
+	if ( $^O eq 'MSWin32' ) {
+		system 'attrib +r ./t/data/unwriteable_file.txt';
+		}
 	}
 
 BEGIN {
 	*CORE::GLOBAL::exit = sub { $_[0] // 0 }
+	}
+
+END {
+	if ( $^O eq 'MSWin32' ) {
+		system 'attrib -r ./t/data/unwriteable_file.txt';
+		}
 	}
 
 use lib qw(t/lib);
@@ -82,10 +92,9 @@ subtest "database" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt';
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
@@ -93,10 +102,9 @@ subtest "database" => sub {
 
 	subtest 'good path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt' ;
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
@@ -125,10 +133,9 @@ subtest "promptfile" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my @files = glob( '/etc/' );
-		my $file = $files[-1];
+		my $file = './t/data/unwriteable_file.txt' ;
 		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $files[-1] ) };
+		my $rc = eval { $subclass->run( $file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
