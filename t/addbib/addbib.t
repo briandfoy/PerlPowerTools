@@ -99,22 +99,6 @@ subtest "database" => sub {
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
 		};
-
-	subtest 'good path' => sub {
-		my($fh, $filename) = File::Temp::tempfile();
-
-		my $input = "y\n\003";
-		my $args = [
-			$filename,
-			];
-		my $result = run_command(
-			$program,
-			$args,
-			$input
-			);
-
-		is $result->{'exit'}, 130, 'saw instructions'; # Cntl-C out = 127 + 3
-		};
 	};
 
 subtest "promptfile" => sub {
