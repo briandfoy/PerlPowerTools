@@ -1,9 +1,19 @@
 use 5.006;
 use strict;
 
+use lib qw(t/lib);
+require "common.pl";
+
+use File::Basename qw(basename);
+use File::Spec::Functions qw(catfile);
+use File::Temp;
 use Test::More 0.95;
 
+my $unwritable_file;
+
 BEGIN {
+	$unwritable_file = catfile qw(t data unwriteable_file);
+
 	my $message = do {
 		if( ! eval "require Term::ReadKey" ) {
 			'Term::ReadKey required for testing'
@@ -23,7 +33,10 @@ BEGIN {
 		}
 
 	if ( $^O eq 'MSWin32' ) {
-		system 'attrib +r ./t/data/unwriteable_file.txt';
+		system 'attrib',  '+r',  $unwritable_file;  # make read-only
+		}
+	else {
+		chmod 0444, $unwritable_file;
 		}
 	}
 
@@ -31,18 +44,6 @@ BEGIN {
 	*CORE::GLOBAL::exit = sub { defined $_[0] ? $_[0] : 0 }
 	}
 
-END {
-	if ( $^O eq 'MSWin32' ) {
-		system 'attrib -r ./t/data/unwriteable_file.txt';
-		}
-	}
-
-use lib qw(t/lib);
-require "common.pl";
-
-use File::Basename qw(basename);
-use File::Spec::Functions qw(catfile);
-use File::Temp;
 
 my $program = 'bin/addbib';
 my $class = "PerlPowerTools::" . basename($program);
@@ -92,22 +93,27 @@ subtest "database" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my $file = './t/data/unwriteable_file.txt';
-		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $file ) };
+		ok ! -w $unwritable_file, 'database file is unwritable (good)' or return;
+		my $rc = eval { $subclass->run( $unwritable_file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
 		};
 
 	subtest 'good path' => sub {
-		reset_outputs();
-		my $file = './t/data/unwriteable_file.txt' ;
-		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $file ) };
-		is $rc, 1, 'returns 1';
-		output_empty();
-		like $main::error, qr/Could not open/, 'saw error message';
+		my($fh, $filename) = File::Temp::tempfile();
+
+		my $input = "y\n\003";
+		my $args = [
+			$filename,
+			];
+		my $result = run_command(
+			$program,
+			$args,
+			$input
+			);
+
+		is $result->{'exit'}, 130, 'saw instructions'; # Cntl-C out = 127 + 3
 		};
 	};
 
@@ -122,7 +128,7 @@ subtest "promptfile" => sub {
 	subtest 'bad path' => sub {
 		reset_outputs();
 		my $dir = '/does/not/exist';
-		ok ! -e $dir, 'directory does not exist (good)';
+		ok ! -e $dir, 'directory does not exist (good)' or return;
 		my $path = catfile $dir, 'db.txt';
 
 		my $rc = $subclass->run( -p $path );
@@ -133,9 +139,8 @@ subtest "promptfile" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		my $file = './t/data/unwriteable_file.txt' ;
-		ok ! -w $file, 'database file is unwritable (good)';
-		my $rc = eval { $subclass->run( $file ) };
+		ok ! -w $unwritable_file, 'database file is unwritable (good)' or return;
+		my $rc = eval { $subclass->run( $unwritable_file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
 		like $main::error, qr/Could not open/, 'saw error message';
