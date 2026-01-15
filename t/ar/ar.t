@@ -1,4 +1,3 @@
-## Please see file perltidy.ERR
 use 5.006;
 use strict;
 
