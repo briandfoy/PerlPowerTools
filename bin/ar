@@ -271,10 +271,36 @@ sub readFile {
 	return [ undef, $stat[9], $stat[4], $stat[5], sprintf( "%o", $stat[2] ), $stat[7], $data ];
 	}
 
+sub getVariant {
+	my ($archive) = @_;
+	return 'BSD';
+}
+
 # try to read an archive from $archive.
 # returns a ref to a hash of name => [ index, header, data ]
 # and a ref to an array of names in order, i.e., [ [name1], [name2], etc. ]
 sub readAr {
+	my ($archive) = @_;
+	my $variant = getVariant($archive);
+	my $pAr;
+	my $pNames;
+
+	if ( $variant eq 'BSD' ) {
+		($pAr, $pNames) = readArBSD($archive);
+		}
+	elsif ( $variant eq 'SVR4' ) {
+		die "$0: $archive: SVR4 variant is not supported yet\n";
+		}
+	else {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
+
+	return ($pAr, $pNames);
+
+	}
+
+
+sub readArBSD {
 	my ($archive) = @_;
 
 	# hash of header/data
