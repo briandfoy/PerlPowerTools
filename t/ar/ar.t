@@ -13,23 +13,62 @@ my $program = program_name();
 compile_test($program);
 sanity_test($program);
 
-my $a_f = File::Spec->catfile( 't' , 'data', 'ar', 'a');
-my $b_f = File::Spec->catfile( 't' , 'data', 'ar', 'b');
-my $c_f = File::Spec->catfile( 't' , 'data', 'ar', 'c');
-my $d_f = File::Spec->catfile( 't' , 'data', 'ar', 'd');
+my $test_data_dir = File::Spec->catfile( 't',       'data', 'ar' );
 
-my $out01_f = File::Spec->catfile( 't' , 'data', 'ar', 'out01.a');
-my $out02_f = File::Spec->catfile( 't' , 'data', 'ar', 'out02.a');
+# test files
+my %tf;
+foreach (qw /a b c d out01.a out02.a out03.a out04.a out05.a/) {
+	$tf{$_} = File::Spec->catfile( $test_data_dir, $_ );
+	}
+$tf{'another/a'} = File::Spec->catfile ($test_data_dir, 'another', 'a');
+$tf{'another/b'} = File::Spec->catfile ($test_data_dir, 'another', 'b');
 
-my $another_a_f = File::Spec->catfile( 't' , 'data', 'ar', 'another_a', 'a');
-my $another_b_f = File::Spec->catfile( 't' , 'data', 'ar', 'another_b', 'b');
+# We use a string to store the command to be tested, with the following format:
+# 'archive | opts of the 1st cmd | files of the 1st cmd | opts of the 2nd cmd | files of the 2nd cmd | ...'
+# We will use these strings to generate the tests, as well as the scripts used
+# to generate the test files.
+my @tests = (
+	'out01.a | qc | a b c',
+	'out02.a | rc | a b c',
+	'out03.a | qc | a b c | r | another/a',
+	'out04.a| qc | a b c | d | a',
+	'out05.a| qc |a b c another/a',
+    );
 
-subtest 'ar q out01.a a b c' => sub {
-	my ( $fh, $filename ) = File::Temp::tempfile();
-	my $result = run_command( $program, [ 'q', $filename, $a_f, $b_f, $c_f ], undef );
-	is $result->{'exit'},              0, 'exited successfully';
-	TODO: { local $TODO = 'not working yet'; is compare( $filename, $out01_f ), 0, 'execution succeeded'; }
-	};
+# Generate gen_out_a.sh, which is used to generate the test files.
+open my $fh, '>', File::Spec->catfile( 't', 'data', 'ar', 'gen_out_a.sh');
+print $fh '#!/bin/sh', "\n";
+print $fh 'rm -rf out*.a', "\n\n";
+foreach (@tests) {
+	my @fileds = map { s/^\s+|\s+$//g; $_ } split /\|/;
+	my $archive = shift @fileds;
+	while ( @fileds ) {
+		my $opts = shift @fileds;
+		my $files = shift @fileds;
+		print $fh "ar $opts $archive $files\n";
+		}
+	print $fh "\n";
+	}
 
+close $fh;
+
+foreach ( @tests ) {
+	my $label = $_;
+	my @fileds = map { s/^\s+|\s+$//g; $_ } split /\|/;
+	my $archive = $tf{shift @fileds};
+	my $final_result;
+	#  Do not create the archive file in advance.
+	#  Otherwise ar treats it as an existing non-archive file and fails.
+	my ( undef, $archive_by_ppt ) = File::Temp::tempfile( OPEN => 0);
+	subtest $label => sub {
+		while ( @fileds ) {
+			my @opts = split /\s+/, shift @fileds;
+			my @files = map { $tf{$_} } split /\s+/, shift @fileds;
+			my $result = run_command( $program, [ @opts, $archive_by_ppt, @files ], undef );
+			is $result->{'exit'}, 0, 'exited successfully';
+			}
+		TODO: { local $TODO = 'not working yet'; is compare( $archive_by_ppt, $archive ), 0, 'execution succeeded'; }
+		};
+    }
 
 done_testing();
