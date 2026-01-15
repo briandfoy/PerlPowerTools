@@ -8,7 +8,7 @@ use File::Compare;
 use lib qw(t/lib);
 require "common.pl";
 
-my $program = 'bin/ar'; # program_name();
+my $program = program_name();
 
 compile_test($program);
 sanity_test($program);
