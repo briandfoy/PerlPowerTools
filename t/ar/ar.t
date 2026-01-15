@@ -59,7 +59,7 @@ foreach ( @tests ) {
 	my $final_result;
 	#  Do not create the archive file in advance.
 	#  Otherwise ar treats it as an existing non-archive file and fails.
-	my ( undef, $archive_by_ppt ) = File::Temp::tempfile('', OPEN => 0);
+	my ( undef, $archive_by_ppt ) = File::Temp::tempfile( OPEN => 0);
 	subtest $label => sub {
 		while ( @fileds ) {
 			my @opts = split /\s+/, shift @fileds;
