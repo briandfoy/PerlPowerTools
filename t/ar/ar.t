@@ -98,6 +98,9 @@ while ( @tests_list ) {
 	my $output = join "\n", @{shift @tests_list};
 	subtest "list $label" => sub {
 		my $result = run_command ( $program, [ 't', $archive ], undef );
+		# Temporary code: use the dumper for debugging.
+		use Data::Dumper;
+		print $label, Dumper($result);
 		is $result->{'exit'}, 0, 'exited successfully';
 		is $result->{'stdout'}, $output, 'execution succeeded';
 		};
