@@ -273,7 +273,29 @@ sub readFile {
 
 sub getVariant {
 	my ($archive) = @_;
-	return 'BSD';
+	my $arfh = FileHandle->new( $archive, 'r' ) or die "$0: $archive: $!\n";
+	binmode($arfh);
+
+	# read magic
+	my $magic;
+	my $nread = read $arfh, $magic, length(MAGIC);
+	die "$0: $archive: $!\n" unless defined $nread;
+	if ( $magic ne MAGIC ) {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
+
+	# read first name
+	my $name;
+	$arfh->read( $name, 16 );
+	$arfh->close();
+	$name =~ s/\s+$//g;
+	# In the SVR4 variant, the name field of the header is terminated by a '/' character.
+	if ( $name =~ /\/$/ ) {
+		return 'SVR4';
+	}
+	else {
+		return 'BSD';
+	}
 }
 
 # try to read an archive from $archive.
