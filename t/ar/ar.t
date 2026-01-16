@@ -95,7 +95,7 @@ my @tests_list = (
 
 while ( @tests_list ) {
 	my $label = shift @tests_list;
-	my $archive = %tf{$label};
+	my $archive = $tf{$label};
 	my $output = join "\n", @{shift @tests_list};
 	subtest "list $label" => sub {
 		my $result = run_command ( $program, [ 't', $archive ], undef );
