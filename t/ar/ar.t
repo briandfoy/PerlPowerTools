@@ -62,7 +62,6 @@ foreach ( @tests_archive ) {
 	my $label = $_;
 	my @fileds = map { s/^\s+|\s+$//g; $_ } split /\|/;
 	my $archive = $tf{shift @fileds};
-	my $final_result;
 	#  Do not create the archive file in advance.
 	#  Otherwise ar treats it as an existing non-archive file and fails.
 	my ( undef, $archive_by_ppt ) = File::Temp::tempfile( OPEN => 0);
