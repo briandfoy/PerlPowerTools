@@ -13,7 +13,6 @@ License: perl
 
 use strict;
 
-use bytes;
 use POSIX qw(strftime);
 use File::Basename;
 use FileHandle;
@@ -444,7 +443,7 @@ sub readArSVR4 {
 			my $offset = 0;
 			foreach ( split /\/\n/, $data) {
 				$asTable{$offset} = $_;
-				$offset += bytes::length($_ . "/\n");
+				$offset += length($_ . "/\n");
 				}
 			next; # We don’t need to put the archive string table into pAr.
 			}
