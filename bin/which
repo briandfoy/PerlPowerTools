@@ -22,16 +22,20 @@ use constant EX_PARTIAL => 1;
 use constant EX_FAILURE => 2;
 
 my $Program = basename($0);
-my ($VERSION) = '1.5';
+my ($VERSION) = '1.6';
 
 sub usage {
-    warn "$Program version $VERSION\n";
-    warn "usage: $Program [-a] filename ...\n";
+    warn "usage: $Program [-as] program ...\n";
     exit EX_FAILURE;
 }
 
+sub VERSION_MESSAGE {
+    print "$Program version $VERSION\n";
+    exit EX_SUCCESS;
+}
+
 my %opt;
-getopts('a', \%opt) or usage();
+getopts('as', \%opt) or usage();
 @ARGV or usage();
 
 my @PATH = ();
@@ -89,7 +93,7 @@ foreach my $command (@ARGV) {
     if ($^O eq 'VMS') {
         my $symbol = `SHOW SYMBOL $command`; # line feed returned
         if (!$?) {
-            print "$symbol";
+            print "$symbol" unless $opt{'s'};
             $found = 1;
             next COMMAND unless $opt{'a'};
         }
@@ -99,7 +103,7 @@ foreach my $command (@ARGV) {
         foreach my $alias (@aliases) {
             if (lc($alias) eq lc($command)) {
                 # MPW-Perl cannot resolve using `Alias $alias`
-                print "Alias $alias\n";
+                print "Alias $alias\n" unless $opt{'s'};
                 $found = 1;
                 next COMMAND unless $opt{'a'};
             }
@@ -115,14 +119,14 @@ foreach my $command (@ARGV) {
         }
         if ($^O eq 'MacOS') {
             if (-e $path) {
-                print "$path\n";
+                print "$path\n" unless $opt{'s'};
                 $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
         else {
             if (-x $path) {
-                print "$path\n";
+                print "$path\n" unless $opt{'s'};
                 $found = 1;
                 next COMMAND unless $opt{'a'};
             }
@@ -133,14 +137,14 @@ foreach my $command (@ARGV) {
                 next;
             }
             if (-x $pathext) {
-                print "$pathext\n";
+                print "$pathext\n" unless $opt{'s'};
                 $found = 1;
                 next COMMAND unless $opt{'a'};
             }
         }
     }
     next COMMAND if $found;
-    warn "$Program: $command: command not found\n";
+    warn "$Program: $command: command not found\n" unless $opt{'s'};
     $rc = EX_PARTIAL;
 }
 exit $rc;
@@ -155,7 +159,7 @@ which - report full paths of commands
 
 =head1 SYNOPSIS
 
-    which [-a] filename ...
+    which [-as] program ...
 
 =head1 DESCRIPTION
 
@@ -172,6 +176,11 @@ I<which> accepts the following options:
 =item -a
 
 Print out all instances of command on I<$PATH> not just the first.
+
+=item -s
+
+No output, just exit 0 if all executables are found, or 1 if some were
+not found.
 
 =item --
 
