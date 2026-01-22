@@ -13,6 +13,12 @@ License: perl
 
 use strict;
 
+# To be able to output non-ASCII characters in Windows CMD and PowerShell
+if ($^O eq 'MSWin32') {
+    require Win32;
+    Win32::SetConsoleOutputCP(65001);
+}
+
 use File::Basename qw(basename);
 use Getopt::Std qw(getopts);
 
