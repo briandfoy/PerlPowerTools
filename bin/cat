@@ -14,10 +14,8 @@ License: perl
 use strict;
 
 # To be able to output non-ASCII characters in Windows CMD and PowerShell
-my $original_code_page;
 if ($^O eq 'MSWin32') {
     require Win32;
-    $original_code_page = Win32::GetConsoleOutputCP();
     Win32::SetConsoleOutputCP(65001);
 }
 
@@ -127,11 +125,6 @@ sub cook_file {
         }
         print;
     }
-}
-
-# Restore Windows' output code page
-if ($^O eq 'MSWin32') {
-    Win32::SetConsoleOutputCP($original_code_page);
 }
 
 __END__
