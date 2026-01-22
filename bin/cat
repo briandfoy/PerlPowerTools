@@ -16,7 +16,7 @@ use strict;
 # To be able to output non-ASCII characters in Windows CMD and PowerShell
 my $original_code_page;
 if ($^O eq 'MSWin32') {
-    use Win32;
+    require Win32;
     $original_code_page = Win32::GetConsoleOutputCP();
     Win32::SetConsoleOutputCP(65001);
 }
