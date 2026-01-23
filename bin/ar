@@ -271,10 +271,59 @@ sub readFile {
 	return [ undef, $stat[9], $stat[4], $stat[5], sprintf( "%o", $stat[2] ), $stat[7], $data ];
 	}
 
+sub getVariant {
+	my ($archive) = @_;
+	my $arfh = FileHandle->new( $archive, 'r' ) or die "$0: $archive: $!\n";
+	binmode($arfh);
+
+	# read magic
+	my $magic;
+	my $nread = read $arfh, $magic, length(MAGIC);
+	die "$0: $archive: $!\n" unless defined $nread;
+	if ( $magic ne MAGIC ) {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
+
+	# read first name
+	my $name;
+	$arfh->read( $name, 16 );
+	$arfh->close();
+	$name =~ s/\s+$//g;
+	# In the SVR4 variant, the name field of the header is terminated by a '/' character.
+	if ( $name =~ /\/$/ ) {
+		return 'SVR4';
+	}
+	else {
+		return 'BSD';
+	}
+}
+
 # try to read an archive from $archive.
 # returns a ref to a hash of name => [ index, header, data ]
 # and a ref to an array of names in order, i.e., [ [name1], [name2], etc. ]
 sub readAr {
+	my ($archive) = @_;
+	my $variant = getVariant($archive);
+	my $pAr;
+	my $pNames;
+
+	if ( $variant eq 'BSD' ) {
+		($pAr, $pNames) = readArBSD($archive);
+		}
+	elsif ( $variant eq 'SVR4' ) {
+		($pAr, $pNames) = readArSVR4($archive);
+		# die "$0: $archive: SVR4 variant is not supported yet\n";
+		}
+	else {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
+
+	return ($pAr, $pNames);
+
+	}
+
+
+sub readArBSD {
 	my ($archive) = @_;
 
 	# hash of header/data
@@ -343,6 +392,94 @@ sub readAr {
 	return ( \%Ar, \@Names );
 	}
 
+sub readArSVR4 {
+	my ($archive) = @_;
+
+	# hash of header/data
+	my %Ar;
+
+	# names in order in file
+	my @Names = (undef);
+
+	# An archive string table is used in the SVR4/GNU archive format to  hold
+        # file  names  that  are  too  large  to  fit into the constraints of the
+        # ar_name field of the archive header.
+	my %asTable;
+
+	my $arfh = FileHandle->new( $archive, 'r' ) or die "$0: $archive: $!\n";
+	binmode($arfh);
+
+	# read magic
+	my $magic;
+	my $nread = read $arfh, $magic, length(MAGIC);
+	die "$0: $archive: $!\n" unless defined $nread;
+	if ( $magic ne MAGIC ) {
+		die "$0: $archive: Inappropriate file type or format\n";
+		}
+
+	while ( !$arfh->eof() ) {
+		# read header
+		my ( $name, $modt, $uid, $gid, $mode, $sz, $delim );
+		(           $arfh->read( $name, 16 ) == 16
+				and $arfh->read( $modt,  12 ) == 12
+				and $arfh->read( $uid,   6 ) == 6
+				and $arfh->read( $gid,   6 ) == 6
+				and $arfh->read( $mode,  8 ) == 8
+				and $arfh->read( $sz,    10 ) == 10
+				and $arfh->read( $delim, 2 ) == 2
+				and $delim eq "`\n" )
+			or die "$0: $archive: Inappropriate file type or format\n";
+
+		# read the file
+		my $data;
+		( $arfh->read( $data, $sz ) == $sz )
+			or die "$0: $archive: Inappropriate file type or format\n";
+
+		# always an even number of bytes.  if odd, read another byte.
+		if ( $sz % 2 == 1 ) { getc($arfh); }
+
+		# If the name is //, it indicates an archive string table
+		if ( $name =~ /\/\// ) {
+			my $offset = 0;
+			foreach ( split /\/\n/, $data) {
+				$asTable{$offset} = $_;
+				$offset += length($_ . "/\n");
+				}
+			next; # We don’t need to put the archive string table into pAr.
+			}
+		else {
+			# strip trailing spaces and / in name.  There's no way
+			# to distinguish spaces in a filename with padding.
+			$name =~ s/\/\s+$//;
+			}
+
+		# add to list of names and hash of header/data
+		if ( exists( $Ar{$name} ) ) {
+
+			# complain if dup entries.  no need to do anything about it
+			# since spec requires to work on first occurrence only.
+			warn "$0: $name exists more than once in the archive.\n";
+			}
+		else {
+			push( @Names, [$name] );
+			$Ar{$name} = [ $#Names, $modt, $uid, $gid, $mode, $sz, $data ];
+			}
+		}
+
+	foreach (keys %Ar) {
+		if ($_ =~ /^\/(\d+)/) {
+			$Ar{$asTable{$1}} = $Ar{$_};
+			delete $Ar{$_};
+			}
+		}
+	foreach (0..$#Names) {
+		if ($Names[$_] && $Names[$_]->[0] =~ /^\/(\d+)/) {
+			$Names[$_] = [ $asTable{$1} ];
+			}
+	}
+	$arfh->close();
+	return ( \%Ar, \@Names );
+	}
 # write an archive to $archive
 sub writeAr {
 	my ( $pAr, $pNames, $archive, $append ) = @_;
