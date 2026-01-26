@@ -1,0 +1,59 @@
+name: FreeBSD-Perl
+
+on:
+    push:
+        branches:
+            - '**'
+            - '!**appveyor**'
+            - '!**circleci**'
+            - '!**macos**'
+            - '!**notest**'
+            - '!**release**'
+            - '!**windows**'
+        tags-ignore:
+            # I tag release pushes but those should have already been tested
+            - 'release-*'
+        paths-ignore:
+            # list all the files which are irrelevant to the tests
+            # non-code, support files, docs, etc
+            - '.appveyor.yml'
+            - '.circleci'
+            - '.gitattributes'
+            - '.github/workflows/linux.yml'
+            - '.github/workflows/macos.yml'
+            - '.github/workflows/release.yml'
+            - '.github/workflows/windows.yml'
+            - '.gitignore'
+            - '.releaserc'
+            - 'Changes'
+            - 'LICENSE'
+            - 'README.pod'
+            - 'README.md'
+            - 'SECURITY.md'
+
+jobs:
+      perl:
+          runs-on: ubuntu-latest
+          name: A job to run test in FreeBSD
+          steps:
+          - uses: actions/checkout@v6
+          - name: Perl test in FreeBSD
+            id: perl-test
+            uses: vmactions/freebsd-vm@v1
+            with:
+                usesh: true
+                sync: nfs
+                prepare: |
+
+                run: |
+                    freebsd-version
+                    pkg bootstrap -f
+                    pkg update -f
+                    pkg install -y gmake
+                    pkg install -y perl5
+                    pkg install -y p5-App-cpanminus
+                    cpanm --notest IO::Socket::SSL LWP::Protocol::https HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
+                    cpanm --notest Test::Warnings Test::Pod IPC::Run3
+                    cpanm --notest --installdeps --with-suggests --with-recommends .
+                    perl Makefile.PL
+                    gmake test

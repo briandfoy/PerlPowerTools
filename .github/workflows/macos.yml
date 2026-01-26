@@ -61,6 +61,7 @@ on:
             - '.github/workflows/linux.yml'
             - '.github/workflows/release.yml'
             - '.github/workflows/windows.yml'
+            - '.github/workflows/freebsd.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'

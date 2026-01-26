@@ -54,6 +54,7 @@ on:
             - '.gitattributes'
             - '.github/workflows/linux.yml'
             - '.github/workflows/macos.yml'
+            - '.github/workflows/freebsd.yml'
             - '.github/workflows/release.yml'
             - '.gitignore'
             - '.releaserc'
