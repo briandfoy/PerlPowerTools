@@ -50,14 +50,10 @@ sub run_yes {
     $yes_str = defined $yes_str ? $yes_str : 'y';
 
     subtest "yes string = <$yes_str>" => sub {
-    	unless( open($child, '-|', $yes_path, $yes_str) ) {
-			fail "cannot fork <$yes_path>: $!\n";
-			return;
-    	}
+    	open $child, '-|', $^X, $yes_path, $yes_str;
 
 		my $good;
 		for (1..$line_count) {
-			# NOTE <> must be called in scalar context to prevent blocking.
 			my $line = <$child>;
 			$good += is $line, "$yes_str\n", "line is '$yes_str'.";
 			}
