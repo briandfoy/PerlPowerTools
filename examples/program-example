@@ -1,0 +1,49 @@
+package PerlPowerTools::program_example;
+use PerlPowerTools::Modulino::Base;
+our @ISA = qw(PerlPowerTools::Modulino::Base);
+
+eval "no feature qw(module_true)" if $] > 5.39;
+
+use strict;
+use warnings;
+
+=head1 NAME
+
+program-example - a demonstration of the PerlPowerTools common setup
+
+=head1 SYNOPSIS
+
+	% perl -Ilib examples/program-example
+
+=head1 DESCRIPTION
+
+This module demonstrates using the L<PerlPowerTools::Modulino::Base> to handle
+most of the application details, including the shims to handle special platform
+considerations that we don't want to repeat in every program.
+
+All of this would be fatpacked into a single file so the utility is still a
+single-file drop in.
+
+
+=cut
+
+sub options_spec {
+	return [qw(a=s b|boo c)];
+	}
+
+sub program_coderef {
+	my $run_sub = sub {
+		my( $class, $options, $arguments ) = @_;
+		$class->output( "Hello there\n" );
+		$class->error( $class->dumper($options) );
+		$class->error( $class->dumper($arguments) );
+		$class->exit(137);
+		};
+	}
+
+# if we return without exiting, use that as the exit code
+exit( __PACKAGE__->run ) unless caller;
+
+no warnings;
+__PACKAGE__;
+
