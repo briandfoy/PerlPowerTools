@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use File::Spec;
+use File::Spec::Functions qw(catfile);
 use Test::More;
 
 $|++;
@@ -10,7 +10,11 @@ use lib qw(t/lib);
 require "common.pl";
 
 # set default path to yes
-my $yes_path = program_name();
+my $yes_path = catfile '.', program_name();
+diag "yespath is originally <$yes_path>";
+use Cwd; diag "pwd is " . getcwd();
+
+diag "glob is " . join " ", glob('bin/*');
 
 compile_test($yes_path);
 sanity_test($yes_path);
@@ -24,44 +28,39 @@ subtest 'test yes' => sub {
         diag "Testing yes at $ENV{YESPATH}";
         }
 
-    ok -e $yes_path && -f $yes_path, "found 'yes' program at $yes_path"
-        or return; # fail rest of script
+	my $failures = 0;
+    $failures += ! ok -e $yes_path, "<$yes_path> exists";
+    $failures += ! ok -f $yes_path, "<$yes_path> is a file";
+    $failures += ! ok -x $yes_path, "<$yes_path> is executable";
 
-    subtest 'fork and run yes in child process' => sub {
-        SKIP: {
-            skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
-            fork_yes($yes_path);
-            fork_yes($yes_path, 'iluvperl');
-            }
-        };
+	SKIP: {
+		skip "there was a problem with <$yes_path>", 1 if $failures;
+		skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
+		subtest 'fork and run yes in child process' => sub {
+			run_yes($yes_path);
+			run_yes($yes_path, 'iluvperl');
+			};
+		}
     };
 
-sub fork_yes {
+sub run_yes {
     my ($yes_path, $yes_str) = @_;
     my ($pid, $child);
     my $line_count = 10;
     $yes_str = defined $yes_str ? $yes_str : 'y';
 
     subtest "yes string = <$yes_str>" => sub {
-		if ($pid = open($child, '-|', "$yes_path $yes_str")) { # PARENT PROCESS
-			my @lines;
-			for (1..$line_count) {
-				# NOTE <> must be called in scalar context to prevent blocking.
-				my $line = <$child>;
-				push @lines, $line;
-				}
+    	open $child, '-|', $^X, $yes_path, $yes_str;
 
-			is $lines[0], "$yes_str\n", "First line is '$yes_str'.";
-			is scalar(@lines), $line_count, "Expected no. of output lines ($line_count).";
-
-			my $count_of_ys = grep { /^$yes_str$/ } @lines;
-			is $count_of_ys, $line_count, "All $line_count lines contain '$yes_str' only.";
-
-			close $child;
+		my $good;
+		for (1..$line_count) {
+			my $line = <$child>;
+			$good += is $line, "$yes_str\n", "line is '$yes_str'.";
 			}
-		else { # CHILD PROCESS
-			die "cannot fork:$!\n" unless defined $pid;
-			}
+
+		is $good, $line_count, "Expected number of output lines ($line_count).";
+
+		close $child;
 		}
     }
 
