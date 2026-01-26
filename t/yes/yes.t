@@ -11,11 +11,11 @@ require "common.pl";
 
 # set default path to yes
 my $yes_path = program_name();
+diag "yespath is originally <$yes_path>";
+use Cwd; diag "pwd is " . getcwd();
 
 compile_test($yes_path);
 sanity_test($yes_path);
-
-diag "YESPATH is set to <$ENV{'YESPATH'}>";
 
 subtest 'test yes' => sub {
     # Amend path to PPT yes, if required, by setting environment
@@ -26,16 +26,21 @@ subtest 'test yes' => sub {
         diag "Testing yes at $ENV{YESPATH}";
         }
 
-    ok -e $yes_path && -f $yes_path, "found 'yes' program at $yes_path"
-        or return; # fail rest of script
+	my $failures = 0;
+    $failures += ! ok -e $yes_path, "<$yes_path> exists";
+    $failures += ! ok -f $yes_path, "<$yes_path> is a file";
+    $failures += ! ok -x $yes_path, "<$yes_path> is executable";
 
-    subtest 'fork and run yes in child process' => sub {
-        SKIP: {
-            skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
-            fork_yes($yes_path);
-            fork_yes($yes_path, 'iluvperl');
-            }
-        };
+	SKIP: {
+		skip "there was a problem with <$yes_path>", 1 if $failures;
+		subtest 'fork and run yes in child process' => sub {
+			SKIP: {
+				skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
+				fork_yes($yes_path);
+				fork_yes($yes_path, 'iluvperl');
+				}
+			};
+		}
     };
 
 sub fork_yes {
