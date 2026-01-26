@@ -15,6 +15,8 @@ my $yes_path = program_name();
 compile_test($yes_path);
 sanity_test($yes_path);
 
+diag "YESPATH is set to <$ENV{'YESPATH'}>";
+
 subtest 'test yes' => sub {
     # Amend path to PPT yes, if required, by setting environment
     # variable YESPATH. This may also be used to compare with
@@ -60,7 +62,7 @@ sub fork_yes {
 			close $child;
 			}
 		else { # CHILD PROCESS
-			die "cannot fork:$!\n" unless defined $pid;
+			fail "cannot fork <$yes_path>: $!\n";
 			}
 		}
     }
