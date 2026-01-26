@@ -14,6 +14,8 @@ my $yes_path = catfile '.', program_name();
 diag "yespath is originally <$yes_path>";
 use Cwd; diag "pwd is " . getcwd();
 
+diag "glob is " . join " ", glob('bin/*');
+
 compile_test($yes_path);
 sanity_test($yes_path);
 
