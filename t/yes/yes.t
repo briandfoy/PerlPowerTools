@@ -31,7 +31,11 @@ subtest 'test yes' => sub {
 	my $failures = 0;
     $failures += ! ok -e $yes_path, "<$yes_path> exists";
     $failures += ! ok -f $yes_path, "<$yes_path> is a file";
-    $failures += ! ok -x $yes_path, "<$yes_path> is executable";
+
+    SKIP: {
+    	skip "Windows doesn't do -x", 1 if $^O eq 'MSWin32';
+    	$failures += ! ok -x $yes_path, "<$yes_path> is executable";
+    	}
 
 	SKIP: {
 		skip "there was a problem with <$yes_path>", 1 if $failures;
