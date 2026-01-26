@@ -33,42 +33,36 @@ subtest 'test yes' => sub {
 
 	SKIP: {
 		skip "there was a problem with <$yes_path>", 1 if $failures;
+		skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
 		subtest 'fork and run yes in child process' => sub {
-			SKIP: {
-				skip "Don't run fork test on Windows", 1 if $^O eq 'MSWin32';
-				fork_yes($yes_path);
-				fork_yes($yes_path, 'iluvperl');
-				}
+			run_yes($yes_path);
+			run_yes($yes_path, 'iluvperl');
 			};
 		}
     };
 
-sub fork_yes {
+sub run_yes {
     my ($yes_path, $yes_str) = @_;
     my ($pid, $child);
     my $line_count = 10;
     $yes_str = defined $yes_str ? $yes_str : 'y';
 
     subtest "yes string = <$yes_str>" => sub {
-		if ($pid = open($child, '-|', "$yes_path $yes_str")) { # PARENT PROCESS
-			my @lines;
-			for (1..$line_count) {
-				# NOTE <> must be called in scalar context to prevent blocking.
-				my $line = <$child>;
-				push @lines, $line;
-				}
-
-			is $lines[0], "$yes_str\n", "First line is '$yes_str'.";
-			is scalar(@lines), $line_count, "Expected no. of output lines ($line_count).";
-
-			my $count_of_ys = grep { /^$yes_str$/ } @lines;
-			is $count_of_ys, $line_count, "All $line_count lines contain '$yes_str' only.";
-
-			close $child;
-			}
-		else { # CHILD PROCESS
+    	unless( open($child, '-|', $yes_path, $yes_str) ) {
 			fail "cannot fork <$yes_path>: $!\n";
+			return;
+    	}
+
+		my $good;
+		for (1..$line_count) {
+			# NOTE <> must be called in scalar context to prevent blocking.
+			my $line = <$child>;
+			$good += is $line, "$yes_str\n", "line is '$yes_str'.";
 			}
+
+		is $good, $line_count, "Expected number of output lines ($line_count).";
+
+		close $child;
 		}
     }
 
