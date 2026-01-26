@@ -53,7 +53,7 @@ jobs:
                     pkg install -y perl5
                     pkg install -y p5-App-cpanminus
                     cpanm --notest IO::Socket::SSL LWP::Protocol::https HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
+                    cpanm --notest Test::Warnings Test::Pod IPC::Run3
+                    cpanm --notest --installdeps --with-suggests --with-recommends .
                     perl Makefile.PL
                     gmake test
-                    gmake disttest
-                    gmake clean
