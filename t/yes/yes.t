@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use File::Spec;
+use File::Spec::Functions qw(catfile);
 use Test::More;
 
 $|++;
@@ -10,7 +10,7 @@ use lib qw(t/lib);
 require "common.pl";
 
 # set default path to yes
-my $yes_path = program_name();
+my $yes_path = catfile '.', program_name();
 diag "yespath is originally <$yes_path>";
 use Cwd; diag "pwd is " . getcwd();
 
