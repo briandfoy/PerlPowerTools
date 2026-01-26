@@ -6,9 +6,16 @@ use Test::More;
 
 $|++;
 
+use lib qw(t/lib);
+require "common.pl";
+
+# set default path to yes
+my $yes_path = program_name();
+
+compile_test($yes_path);
+sanity_test($yes_path);
+
 subtest 'test yes' => sub {
-    # set default path to yes as seen from PPT root directory
-    my $yes_path = './bin/yes';
     # Amend path to PPT yes, if required, by setting environment
     # variable YESPATH. This may also be used to compare with
     # other yes implementations, e.g. at /usr/bin/yes.
