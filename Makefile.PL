@@ -144,6 +144,9 @@ my %WriteMakefile = (
 			},
 		},
 
+	'INSTALLSITEMAN1DIR' =>  '$(INSTALL_BASE)/man/man1',
+	'INSTALLSITEMAN3DIR' =>  '$(INSTALL_BASE)/man/man3',
+
 	clean => { FILES => "$dist-*" },
 	test => {TESTS => 't/*.t t/*/*.t'}
 	);
