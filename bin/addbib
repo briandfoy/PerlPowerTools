@@ -212,7 +212,6 @@ sub get_record {
 sub get_signal_number {
 	require Config;
     my( $sig_name ) = @_;
-    my %sig_num;
 
 	my @arrays =
 		map  { split /\s+/, $Config::Config{$_} }
