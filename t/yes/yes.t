@@ -43,7 +43,7 @@ sub fork_yes {
     $yes_str = defined $yes_str ? $yes_str : 'y';
 
     subtest "yes string = <$yes_str>" => sub {
-		if ($pid = open($child, '-|', "$yes_path $yes_str")) { # PARENT PROCESS
+		if ($pid = open($child, '-|', "$^X $yes_path $yes_str")) { # PARENT PROCESS
 			my @lines;
 			for (1..$line_count) {
 				# NOTE <> must be called in scalar context to prevent blocking.
