@@ -186,10 +186,7 @@ BEGIN { # EntryFormat
 				}
 			}
 
-		if( ! exists $Options->{'l'} ) {
-			$class->output( "$Entry\n" );
-			}
-		else {
+		if( exists $Options->{'l'} ) {
 			if( ! defined $Attributes->{$Entry} ) {
 				$class->output( <<'UNDEFSTAT' );
 __________ ___ ________ ________ ________ ___ __  _____
