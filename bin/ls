@@ -246,10 +246,10 @@ UNDEFSTAT
 				$class->output( sprintf " %2d ", $mday );
 
 				if( start_time() - $time <= SIX_MONTHS_SECONDS ) {
-					$class->output( sprintf "%02d:%02d", $hour, $min );
+					$class->output( sprintf "%02d:%02d ", $hour, $min );
 					}
 				else {
-					$class->output( sprintf " %04d", $year + 1900 );
+					$class->output( sprintf " %04d ", $year + 1900 );
 					}
 				}
 			}
@@ -259,7 +259,7 @@ UNDEFSTAT
 			my $target = readlink( $path );
 			$Entry .= " -> $target";
 			}
-		$class->output( " $Entry\n" );
+		$class->output( "$Entry\n" );
 		}
 	}
 
@@ -465,7 +465,7 @@ sub process_options {
 	$Options->{'a'} = 1 if $Options->{'f'};
 
 	unless( -t *STDOUT ) {
-		$Options->{'1'} = 1 unless -t *STDOUT;
+		$Options->{'1'} = 1;
 		}
 
 	delete $Options->{'w'} if( defined $Options->{'w'} and  $Options->{'w'} == 0 );
