@@ -217,7 +217,6 @@ UNDEFSTAT
 					}
 				else {
 					my $gid = $class->Getgrgid($Attributes->{$Entry}->gid);
-					my $max_gid_length = 8;
 					if( defined $gid ) {
 						$class->output( sprintf '%-*2$s ', $gid, $max_gid_length );
 						}
@@ -415,7 +414,7 @@ sub output {
 sub _opts_string {
 	#  macOS only                          *                  *
 	#                  1ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy%
-	my $opts_string = '1A CF   L  RST Wa cd fg iklmnopqrstu wx';
+	my $opts_string = '1A CF   L  RST Wa cd fg iklmnopqrstu w:x';
 	$opts_string =~ s/\s+//g;
 	$opts_string;
 	}
@@ -527,7 +526,8 @@ sub run {
 
 	my( $class, @args ) = @_;
 
-	my( $Options, @args ) = $class->process_options(@args);
+	my $Options;
+	( $Options, @args ) = $class->process_options(@args);
 	@args = qw(.) unless @args; # current directory if nothing else
 
 	my $ArgCount = -1;  # file/directory argument count
@@ -689,7 +689,7 @@ Sort by descending last modification time.
 
 Sort by descending last access time.
 
-=item -w
+=item -w WIDTH
 
 Set the column width for the output. The default is the window size,
 or 80 if the program cannot determine the window size. A column
@@ -718,7 +718,7 @@ This Perl implementation of I<ls> was written by Mark Leighton Fisher
 of Thomson Consumer Electronics, I<fisherm@tce.com>.
 
 Portions of Stat::lsmode from Mark Jason Dominus have been inlined
-into this program uder the perl license. See L<http://www.plover.com/~mjd/perl/lsMode/>.
+into this program under the perl license. See L<http://www.plover.com/~mjd/perl/lsMode/>.
 
 =head1 COPYRIGHT and LICENSE
 
