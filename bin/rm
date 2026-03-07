@@ -198,6 +198,7 @@ sub process_options {
 
 	$self->{options} = { map { defined $_ ? $_ : 0 } %opts };
 	$self->{files}   = $self->{args};
+	$self->{files}   = [ map { glob } @{$self->{files}} ] if $^O =~ m{Win}msx;
 
 	return $self;
 	}
