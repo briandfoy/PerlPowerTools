@@ -30,7 +30,8 @@ PerlPowerTools::Modulino::Base - basic functionality for all PerlPowerTools prog
 
 This module is the base class that handles the application framework
 for the utilities that L<PerlPowerTools> provides. Those utilities can
-subclass this module, override the parts they need to specialize.
+subclass this module, override the parts they need to specialize, and let
+the rest happen for them.
 
 This coordinates all the steps to run a program so individual programs
 don't have to handle all the tricky details themselves:
