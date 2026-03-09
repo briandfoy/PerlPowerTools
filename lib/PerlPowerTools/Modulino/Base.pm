@@ -168,7 +168,7 @@ so we can use them properly.
 =item * CLASS->arguments
 
 Returns the original, undecoded arguments as an array reference. These
-are I<not> safe to use. By default this is just C<@ARGV>, but you can
+are I<not> safe to use. By default, this is just C<@ARGV>, but you can
 override this.
 
 =cut
