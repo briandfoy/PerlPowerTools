@@ -112,30 +112,6 @@ sub windows_shell {
 	return;
 	}
 
-=item CLASS->is_powershell
-
-We want to know if we are running from PowerShell, which does its own
-globbing.
-
-=cut
-
-BEGIN {
-my $is_powershell;
-
-sub is_powershell {
-	return $is_powershell if defined $is_powershell;
-	my $class = shift;
-
-	my $cmd = $class->windows_shell;
-
-	return $is_powershell = do {
-		   if( ! defined $cmd )       { 0 }
-		elsif( $cmd =~ /powershell/ ) { 1 }
-		else                          { 0 }
-		};
-	}
-}
-
 =back
 
 =head2 Output
@@ -249,7 +225,7 @@ Powershell expands globs.
 =cut
 
 sub needs_to_expand_globs {
-	$_[0]->is_windows and ! $_[0]->is_powershell;
+	$_[0]->is_windows
 	}
 
 =back
