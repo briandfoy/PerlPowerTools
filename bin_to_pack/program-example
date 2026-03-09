@@ -1,3 +1,5 @@
+#!perl
+
 package PerlPowerTools::program_example;
 use PerlPowerTools::Modulino::Base;
 our @ISA = qw(PerlPowerTools::Modulino::Base);
@@ -24,12 +26,39 @@ considerations that we don't want to repeat in every program.
 All of this would be fatpacked into a single file so the utility is still a
 single-file drop in.
 
+First, the C<options_spec> method is a L<Getopts::Long> specification. That
+is all you need to do.
 
 =cut
 
 sub options_spec {
 	return [qw(a=s b|boo c)];
 	}
+
+=pod
+
+The C<program_coderef> returns an code reference that represents the main
+program. It receives as arguments:
+
+=over 4
+
+=item * the package name of the class, which should be the package name for the
+subclass representing this program
+
+=item * a hash reference created by L<Getopts::Long> to represent the options
+
+=item * an array ref of the remaining arguments that were not options, that have
+globs expanded
+
+=back
+
+Inside the code ref, call C<output> for normal output that would normally go
+to standard output, and C<error> for standard error. This allows tests to
+override these.
+
+Call the C<exit> method instead of C<exit> directly.
+
+=cut
 
 sub program_coderef {
 	my $run_sub = sub {
