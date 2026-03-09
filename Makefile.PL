@@ -131,7 +131,7 @@ my %WriteMakefile = (
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <briandfoy@pobox.com>',
 
-	'EXE_FILES'     => [ @exe_files[0,1] ],
+	'EXE_FILES'     => \@exe_files,
 
 	'CONFIGURE_REQUIRES' => {
 		'App::Fatpacker'        => '0',
