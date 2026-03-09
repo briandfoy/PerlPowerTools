@@ -98,6 +98,13 @@ my $module    = __PACKAGE__;
 my $github    = 'https://github.com/briandfoy/PerlPowerTools';
 my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
+use File::Basename;
+use File::Spec::Functions qw(catfile);
+my $bin = 'bin'; # used later in the postamble too
+my $bin_to_pack = 'bin_to_pack';
+my @packed_bins = map { catfile $bin, basename($_) } glob( catfile $bin_to_pack, '*' );
+
+
 my %WriteMakefile = (
 	'MIN_PERL_VERSION' => '5.008',
 
@@ -107,9 +114,10 @@ my %WriteMakefile = (
 	'LICENSE'       => 'perl',
 	'AUTHOR'        => 'brian d foy <briandfoy@pobox.com>',
 
-	'EXE_FILES'     => \@exe_files,
+	'EXE_FILES'     => [ @exe_files[0,1] ],
 
 	'CONFIGURE_REQUIRES' => {
+		'App::Fatpacker'        => '0',
 		'ExtUtils::MakeMaker'   => '6.64',
 		'File::Spec::Functions' => '0',
 		},
@@ -144,7 +152,7 @@ my %WriteMakefile = (
 			},
 		},
 
-	clean => { FILES => "$dist-*" },
+	clean => { FILES => "$dist-* @packed_bins" },
 	test => {TESTS => 't/*.t t/*/*.t'}
 	);
 
@@ -192,6 +200,34 @@ sub home {
 
 		return '~';
 	}
+}
+
+sub MY::postamble {
+	# these vars at lexicals at the file level
+	my $v = <<"VARS";
+
+PACK_SRC_DIR  := $bin_to_pack
+PACK_DEST_DIR := $bin
+
+VARS
+
+    $v .= <<'POSTAMBLE';
+
+SRC := $(wildcard $(PACK_SRC_DIR)/*)
+OUT := $(patsubst $(PACK_SRC_DIR)/%,$(PACK_DEST_DIR)/%,$(SRC))
+
+.PHONY: pack
+pack: $(PACK_DEST_DIR) $(OUT)
+
+config :: pack
+
+$(PACK_DEST_DIR):
+	$(PERL) -MFile::Path=make_path -e "make_path(q{$@})"
+
+$(PACK_DEST_DIR)/%: $(PACK_SRC_DIR)/%
+	fatpack pack "$<" > "$@"
+
+POSTAMBLE
 }
 
 no warnings;
