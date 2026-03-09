@@ -210,7 +210,12 @@ sub arguments_glob_resolved {
 	$class->load_module('File::glob');
 	my @resolved = ();
 	foreach my $arg ( @$decoded ) {
-		push @resolved, glob($arg)
+		if( -e $arg ) {
+			push @resolved, $arg
+			}
+		else {
+			push @resolved, glob($arg)
+			}
 		}
 
 	return \@resolved;
