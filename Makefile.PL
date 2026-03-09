@@ -44,6 +44,24 @@ Perl.
 
 =cut
 
+
+BEGIN {
+use ExtUtils::MM_Any;
+no warnings qw(redefine);
+
+# get rid of the warning about README.pod, because I'm using it.
+# It's also in INSTALL.SKIP
+sub ExtUtils::MM_Any::libscan {
+    my($self,$path) = @_;
+
+    my($dirs,$file) = ($self->splitpath($path))[1,2];
+    return '' if grep /^(?:RCS|CVS|SCCS|\.svn|_darcs)$/,
+                     $self->splitdir($dirs), $file;
+
+    return $path;
+	}
+}
+
 # You can specify INSTALL_BASE on the command line or in an environment
 # variable a tool sets. We should respect either of them.
 my $install_base_in_argv        = grep { /\AINSTALL_BASE\b/ } @ARGV;
@@ -51,7 +69,6 @@ my $install_base_in_perl_mm_opt = (defined $ENV{PERL_MM_OPT} ? $ENV{PERL_MM_OPT}
 my $has_install_base =
 	$install_base_in_argv || $install_base_in_perl_mm_opt || 0;
 
-use File::Spec::Functions qw(catfile);
 my $home = home();
 unless( $has_install_base ) {
 	my $path = catfile($home, 'perlpowertools');
