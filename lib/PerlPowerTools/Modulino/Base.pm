@@ -285,7 +285,7 @@ sub process_options {
 
 	my @args = @{ $class->arguments_glob_resolved };
 	Getopt::Long::GetOptionsFromArray(
-		@args,
+		\@args,
 		@opts,
 		);
 
