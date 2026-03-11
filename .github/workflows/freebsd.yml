@@ -47,11 +47,11 @@ jobs:
 
                 run: |
                     freebsd-version
-                    pkg bootstrap -f
-                    pkg update -f
-                    pkg install -y gmake
-                    pkg install -y perl5
-                    pkg install -y p5-App-cpanminus
+                    ASSUME_ALWAYS_YES=yes pkg bootstrap -f
+                    ASSUME_ALWAYS_YES=yes pkg update -f
+                    ASSUME_ALWAYS_YES=yes pkg install -y gmake
+                    ASSUME_ALWAYS_YES=yes pkg install -y perl5
+                    ASSUME_ALWAYS_YES=yes pkg install -y p5-App-cpanminus
                     cpanm --notest IO::Socket::SSL LWP::Protocol::https HTTP::Tiny ExtUtils::MakeMaker Test::Manifest Test::More
                     cpanm --notest Test::Warnings Test::Pod IPC::Run3
                     cpanm --notest --installdeps --with-suggests --with-recommends .
