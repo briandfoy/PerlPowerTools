@@ -529,6 +529,7 @@ sub run {
 	my $Options;
 	( $Options, @args ) = $class->process_options(@args);
 	@args = qw(.) unless @args; # current directory if nothing else
+	@args = map {glob} @args if $^O =~ m{Win}msx;
 
 	my $ArgCount = -1;  # file/directory argument count
 	my %Attributes;     # File::stat directory entry attributes
