@@ -13,9 +13,6 @@ use File::Basename;
 use File::Spec::Functions;
 use Storable qw(dclone);
 
-use constant EX_SUCCESS   => 0;
-use constant EX_FAILURE   => 1;
-use constant EX_USAGE     => 2;
 use constant OP_SUCCEEDED => 0;
 use constant OP_FAILED    => 1;
 
@@ -64,34 +61,24 @@ Call the C<exit> method instead of C<exit> directly.
 
 sub dumper { require Data::Dumper; Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
 
-sub program_coderef {
-	my $run_sub = sub {
-		my( $class, $options, $arguments, $resolved_arguments, $raw_arguments ) = @_;
+sub main {
+	my( $self ) = @_;
 
-		my $self = $class->new(
-			raw_arguments => $raw_arguments,
-			options       => $options,
-			files         => $arguments,
-			);
+	$self->error( "OPTIONS "  . dumper($self->options)            );
+	$self->error( "ARGS "     . dumper($self->arguments)          );
+	$self->error( "RESOLVED " . dumper($self->arguments_glob_resolved) );
+	$self->error( "RAW "      . dumper($self->argv)      );
 
-		$self->postprocess_options;
+	unless( () = $self->files ) {
+		return $self->exit_code_success if $self->is_force;
+		$self->error( "$Program: missing argument\n" );
+		$self->usage;
+		}
 
-		$self->error( "OPTIONS "  . dumper($options)            );
-		$self->error( "ARGS "     . dumper($arguments)          );
-		$self->error( "RESOLVED " . dumper($resolved_arguments) );
-		$self->error( "RAW "      . dumper($raw_arguments)      );
+	my $errors = grep { $self->process_file( $_ ) == OP_FAILED } $self->files;
 
-		unless( () = $self->files ) {
-			$self->exit(EX_SUCCESS) if $self->is_force;
-			$self->error( "$Program: missing argument\n" );
-			$self->usage;
-			}
-
-		my $errors = grep { $self->process_file( $_ ) } $self->files;
-		$self->exit( $errors ? EX_FAILURE : EX_SUCCESS );
-		};
+	return $errors ? $self->exit_code_failure : $self->exit_code_success;
 	}
-
 
 sub new {
 	my( $class, %args ) = @_;
@@ -99,9 +86,7 @@ sub new {
 	}
 
 sub files {
-	my $self = shift;
-	$self->{'files'} = [] unless exists $self->{'files'};
-	@{ $self->{files} }
+	@{ $_[0]->{'arguments'} }
 	}
 
 sub is_force       { $_[0]->options->{f} }
@@ -110,18 +95,15 @@ sub is_overwrite   { $_[0]->options->{P} }
 sub is_recursive   { $_[0]->options->{R} || $_[0]->options->{r} }
 sub is_verbose     { $_[0]->options->{v} }
 
-sub options { $_[0]->{options} }
-
 sub postprocess_options {
 	my( $self ) = @_;
 
 	# this is rm particular processing: -f and -i turn off each
 	# other, and the last one wins. Figure out which one is last
 	# then filter out all earlier of the other.
-	if( exists $self->options->{'f'} && exists $self->options->{'i'} ) {
-		my $last;
-		foreach ( reverse @{ $self->{raw_arguments} } ) {
-			print STDERR "looking at <$_>\n";
+	if( $self->is_force && $self->is_interactive ) {
+		my $last = '';
+		foreach ( reverse @{ $self->argv } ) {
 			next unless /\A-[fi]\z/;
 			$last = $_;
 			last;
@@ -189,16 +171,15 @@ sub remove_file {
     my( $self, $filename ) = @_;
 
     $self->output( "remove file: $filename\n");
-    return;
 
 	# Answering no to skip a file is not an error
     if( $self->is_interactive ) {
-		$self->message( "$filename: ? " );
-		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
+		$self->output( "$filename: ? " );
+		return OP_SUCCEEDED if $self->single_line_input =~ /^[Nn]/;
     	}
     elsif( !$self->is_force && -e $filename && ! -w $filename ) {
-		$self->message( "$filename: Read-only ? " );
-		return OP_SUCCEEDED if <STDIN> =~ /^[Nn]/;
+		$self->ouput( "$filename: Read-only ? " );
+		return OP_SUCCEEDED if $self->single_line_input =~ /^[Nn]/;
     	}
 
     unless( unlink $filename ) {

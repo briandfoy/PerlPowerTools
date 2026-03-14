@@ -56,21 +56,29 @@ Any of these parts can be overridden in the subclass.
 
 =cut
 
-sub program_coderef {
-	die "You must override program_coderef\n";
+sub program {
+	die "You must override program()\n";
+	}
+
+sub new {
+	my( $class ) = @_;
+
+	my $self = bless {}, $class;
+
+	return $self;
 	}
 
 sub run {
 	my( $class ) = @_;
 
-	my $raw_arguments      = dclone $class->arguments;
-	my $resolved_arguments = dclone $class->arguments_glob_resolved;
+	my $self = $class->new;
 
-	my( $options, $arguments ) = $class->process_options;
+	$self->preprocess_options;
+	$self->process_options;
+	$self->postprocess_options;
 
-	my $rc = eval {
-		$class->program_coderef->( $class, $options, $arguments, $resolved_arguments, $raw_arguments );
-		} or $class->exit(255);
+	my $rc = eval { $self->main };
+	$rc = $self->exit_code_program_failure unless defined $rc;
 
 	$class->exit($rc);
 	};
@@ -81,7 +89,7 @@ Probe the environment for certain things that we need to adapt.
 
 =over 4
 
-=item CLASS->is_windows
+=item is_windows
 
 Returns true if we think we are in a Windows environment. This is not true
 for environments on Windows that are trying to pretend to be something else.
@@ -92,7 +100,7 @@ sub is_windows {
 	$^O eq 'MSWin32';
 	}
 
-=item * CLASS->window_shell
+=item * window_shell
 
 Attempts to determine which shell invoked this program. C<cmd> and
 C<powershell> need different treatment.
@@ -125,20 +133,20 @@ this easily, so they should just do what they need to do.
 
 =over 4
 
-=item * CLASS->error(LIST)
+=item * error(LIST)
 
 Outputs C<LIST> to the result of C<error_fh>.
 
-=item * CLASS->error_fh()
+=item * error_fh()
 
 Returns the filehandle for error output. This exists so you can override it,
 perhaps by supplying a string filehandle. By default, this is C<STDERR>.
 
-=item * CLASS->output(LIST)
+=item * output(LIST)
 
 Outputs C<LIST> to the result of C<output_fh>.
 
-=item * CLASS->output_fh()
+=item * output_fh()
 
 Returns the filehandle for error output. This exists so you can override it,
 perhaps by supplying a string filehandle. By default, this is C<STDOUT>.
@@ -159,6 +167,10 @@ sub output {
 
 sub output_fh { \*STDOUT }
 
+sub input_fh { \*STDIN }
+
+sub single_line_input { scalar readline $_[0]->input_fh }
+
 =back
 
 =head2 Argument processing
@@ -168,20 +180,42 @@ so we can use them properly.
 
 =over 4
 
-=item * CLASS->arguments
+=item * arguments
 
 Returns the original, undecoded arguments as an array reference. These
 are I<not> safe to use. By default, this is just C<@ARGV>, but you can
 override this.
 
+This sets the C<arguments> value in the object.
+
 =cut
 
-sub arguments { [ @ARGV ] }
+sub arguments {
+	my($self) = @_;
+	$self->{'arguments'} = $self->argv unless defined $self->{'arguments'};
+	return $self->{'arguments'} if defined $self->{'arguments'};
+	}
 
-=item * CLASS->arguments_decoded
+=item * argv
+
+Return the command line (without the program name) as an array ref. By default,
+this is just C<@ARGV>. This allows tests (and programs) to override where
+arguments come from.
+
+This differs from C<arguments> in that it only provides a list. It doesn't
+have to know anything about the inner workings, whereas C<arguments> does.
+
+This should always be the original arguments as the program received them and
+before the program processed them.
+
+=cut
+
+sub argv { dclone \@ARGV }
+
+=item * arguments_decoded
 
 Returns the decoded arguments as Perl strings. These are safe to use. This
-calls C<arguments>.
+uses the result of C<arguments>.
 
 =cut
 
@@ -195,10 +229,10 @@ sub arguments_decoded {
 	$class->load_module('Encode');
     my @perl_strings = map { Encode::decode( $codeset, $_ ) } @$args;
 
-	return \@perl_strings;
+	dclone \@perl_strings;
 	}
 
-=item * CLASS->arguments_glob_resolved
+=item * arguments_glob_resolved
 
 Returns the arguments with globs expanded if the shell did not already do
 that for us.
@@ -206,11 +240,13 @@ that for us.
 =cut
 
 sub arguments_glob_resolved {
-	my $class = shift;
-	my $decoded = $class->arguments_decoded;
-	return $decoded unless $class->needs_to_expand_globs;
+	my $self = shift;
+	return $self->{'resolved_arguments'} if defined $self->{'resolved_arguments'};
 
-	$class->load_module('File::glob');
+	my $decoded = $self->arguments_decoded;
+	return $decoded unless $self->needs_to_expand_globs;
+
+	$self->load_module('File::glob');
 	my @resolved = ();
 	foreach my $arg ( @$decoded ) {
 		if( -e $arg ) {
@@ -221,10 +257,10 @@ sub arguments_glob_resolved {
 			}
 		}
 
-	return \@resolved;
+	$self->{'resolved_arguments'} = dclone \@resolved;
 	}
 
-=item * CLASS->needs_to_expand_globs
+=item * needs_to_expand_globs
 
 Use this to determine whether the command-line arguments require glob
 processing. So far, this should be only C<cmd> on Windows since
@@ -242,7 +278,15 @@ sub needs_to_expand_globs {
 
 =over 4
 
-=item * CLASS->options_spec
+=item * options
+
+Return the options hash created by C<process_options>.
+
+=cut
+
+sub options { $_[0]->{options} }
+
+=item * options_spec
 
 Returns the list of options for L<Getopt::Long>. These are only the
 keys for the options spec. Unless overridden this returns the empty
@@ -254,7 +298,19 @@ array ref.
 
 sub options_spec { [] }
 
-=item * CLASS->process_options
+=item * preprocess_options
+
+A hook to preprocess the command line before C<process_options>. By default it
+does nothing.
+
+=cut
+
+sub preprocess_options {
+	my($self) = @_;
+	return;
+	}
+
+=item * process_options
 
 Applies the L<Getopt::Long>, using the options from C<options_spec>.
 
@@ -266,8 +322,8 @@ The array ref is the leftover command-line arguments.
 =cut
 
 sub process_options {
-	my $class = shift;
-	my $spec = $class->options_spec;
+	my $self = shift;
+	my $spec = $self->options_spec;
 
 	my %opts;
 	# options name will be the first letter or the name
@@ -283,16 +339,33 @@ sub process_options {
 		$_ => \$opts{$s}
 		} @$spec;
 
-	$class->load_module("Getopt::Long");
+	$self->load_module("Getopt::Long");
 	Getopt::Long::Configure( qw(bundling no_ignore_case) );
 
-	my @args = @{ $class->arguments_glob_resolved };
+	my @args = @{ $self->arguments_glob_resolved };
+	$self->{'resolved_arguments'} = [ @args ];
+
 	Getopt::Long::GetOptionsFromArray(
 		\@args,
 		@opts,
 		);
 
-	return \%opts, \@args;
+	$self->{'options'}   = \%opts;
+	$self->{'arguments'} = \@args;
+
+	return $self;
+	}
+
+=item * postprocess_options
+
+A hook to preprocess the command line after C<process_options>. By default it
+does nothing.
+
+=cut
+
+sub postprocess_options {
+	my($self) = @_;
+	return;
 	}
 
 =back
@@ -303,24 +376,24 @@ Don't use C<exit> directly since that is onerous to override in tests.
 
 =over 4
 
-=item * CLASS->exit(N)
+=item * exit(N)
 
 This calls C<CORE::exit> with the value of C<N>. If C<N> is undefined,
 over 255, or under 0, this set C<N> to 1. Any error will C<carp>,
 which you should never allow to happen in your program.
 
-=item * CLASS->exit_failure()
+=item * exit_failure
 
 Calls C<exit> with the value of C<1>. If you want a different failure
-number, call C<exit(N)> directly.
+number, call C<exit(N)> directly, or override this method.
 
-=item * CLASS->exit_signal_n(SIGNAL_NUMBER)
+=item * exit_signal_n(SIGNAL_NUMBER)
 
 This adds 128 to C<SIGNAL_NUMBER> and calls C<exit(N)> with the
 result. You shouldn't have to call this yourself outside of tests. See
 C<exit_signal_name>.
 
-=item * CLASS->exit_signal_name(SIGNAL_NAME)
+=item * exit_signal_name(SIGNAL_NAME)
 
 Given a signal name, exit call C<exit_signal_n> with that signal's
 number. This is preferable because the signal numbers are not
@@ -329,15 +402,15 @@ consistent across systems.
 This takes the names and numbers from the L<Config> module, which has
 the C<sig_name> and C<sig_num> values.
 
-=item * CLASS->exit_success()
+=item * exit_success
 
 Use this when the program is ready to exit and no errors or problems came
-up. Exits with value C<0>.
+up. Exits with value from C<exit_code_success>.
 
 Note that this is only a convention. Some programs can exit with other values
-to indicate types of success. Use C<exit(N)> for those other values.
+to indicate types of success.
 
-=item * exit_usage()
+=item * exit_usage
 
 Exits with value C<2>. By convention, this is used when the invocation is improper
 in some way, such as missing arguments or unsupported arguments.
@@ -365,9 +438,19 @@ sub exit {
 	CORE::exit($n)
 	}
 
-sub exit_invalid { $_[0]->exit(128) }
+sub exit_code_program_failure { 255 }
 
-sub exit_failure { $_[0]->exit(1) }
+sub exit_code_failure { 1 }
+
+sub exit_code_invalid { 128 }
+
+sub exit_code_success { 0 }
+
+sub exit_code_usage   { 2 }
+
+sub exit_invalid { $_[0]->exit( $_[0]->exit_code_invalid ) }
+
+sub exit_failure { $_[0]->exit( $_[0]->exit_code_failure ) }
 
 sub exit_signal_n  {
 	my( $class, $n ) = @_;
@@ -399,9 +482,9 @@ sub exit_signal_name  {
 	$class->exit(127 + $n)
 	}
 
-sub exit_success { $_[0]->exit(0) }
+sub exit_success { $_[0]->exit( $_[0]->exit_code_success ) }
 
-sub exit_usage   { $_[0]->exit(2) }
+sub exit_usage   { $_[0]->exit( $_[0]->exit_code_usage   ) }
 
 =cut
 
@@ -474,7 +557,7 @@ sub load_module {
 		}
 	}
 
-=item * CLASS->program_name
+=item * program_name
 
 Returns the program name, which should be the last name of the namespace. For
 example, for the namespace C<PerlPowerTools::cp>, the program name would be
@@ -489,7 +572,7 @@ sub program_name {
 	( my $name = ref $_[0] ) =~ s/.*:://;
 	}
 
-=item * CLASS->windows_code_page_identifiers
+=item * windows_code_page_identifiers
 
 Returns a hash of the code page numbers Windows might return, and the encoding
 name that corresponds to that.
