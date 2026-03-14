@@ -6,7 +6,7 @@
 
 Name: rm
 Description: remove directory entries
-Author: brian d foy, bdfoy@cpan.org
+Author: brian d foy, briandfoy@pobox.com
 License: artistic2
 
 =end metadata
@@ -43,7 +43,7 @@ rm - remove directory entries
 
 =head1 AUTHOR
 
-Copyright (c) brian d foy, bdfoy@cpan.org
+Copyright (c) 2023-2026 brian d foy, briandfoy@pobox.com
 
 The original version of this program was written by Steve Kemp,
 steve@steve.org.uk, but almost none of that remains.
