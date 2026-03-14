@@ -1,20 +1,23 @@
 use strict;
 use warnings;
+use lib qw(lib);
 
 use Test::More;
 
 use File::Temp;
-my $class = require './bin/rm';
-is( $class, 'PerlPowerTools::rm' );
+my $class = require './bin_to_pack/rm';
+is $class, 'PerlPowerTools::rm';
 
+BEGIN {
+package PerlPowerTools::rm::test;
+use parent qw(PerlPowerTools::rm);
+
+sub exit { return $_[1] }
+
+}
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 chdir $dir or BAIL_OUT( "Could not change to $dir: $!" );
-
-my $EXIT;
-BEGIN {
-	*CORE::GLOBAL::exit = sub { $EXIT = $_[0] };
-	}
 
 # These are the elements in each row of the table
 my $n; BEGIN { $n = 0 }
@@ -28,7 +31,6 @@ use constant LABEL    => $n++;
 
 unlink 't/x/y/bn/6/7/8/goo/txt/$$';
 my $no_such_error = "$!";  # No such file
-#diag( "Missing file error text is <$no_such_error>" );
 
 my @table = (
 	[
@@ -162,15 +164,12 @@ subtest 'table' => sub {
 				ok( -e $file, "$file exists as expected" );
 				}
 
-			my @run_args = ( @{ $row->[OPTIONS] }, @{ $row->[ARGS] } );
+			local @ARGV = ( @{$row->[OPTIONS]}, @{$row->[FILES]} )
 
 			my $error = '';
-			no warnings 'io'; # from closing STDIN
 			open my $error_fh, '>:utf8', \$error;
+			*{ $subclass . '::error_fh' } = sub { $error_fh };
 
-			# XXX: Closing STDIN means we are ignoring some branches
-			close *STDIN;
-			$class->run( args => \@run_args, error_fh => $error_fh );
 			is $EXIT, $row->[EXIT], "Exit code is " . $row->[EXIT];
 
 			subtest 'what remains' => sub {
