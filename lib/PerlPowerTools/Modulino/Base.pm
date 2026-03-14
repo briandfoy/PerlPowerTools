@@ -3,6 +3,8 @@ use Carp;
 use strict;
 use warnings;
 
+use Storable qw(dclone);
+
 eval "no feature qw(module_true)" if $] > 5.39;
 
 =head1 NAME
@@ -61,13 +63,13 @@ sub program_coderef {
 sub run {
 	my( $class ) = @_;
 
-	my $arguments = $class->arguments_glob_resolved;
+	my $raw_arguments      = dclone $class->arguments;
+	my $resolved_arguments = dclone $class->arguments_glob_resolved;
 
-	my $options;
-	( $options, $arguments ) = $class->process_options;
+	my( $options, $arguments ) = $class->process_options;
 
 	my $rc = eval {
-		$class->program_coderef->( $class, $options, $arguments );
+		$class->program_coderef->( $class, $options, $arguments, $resolved_arguments, $raw_arguments );
 		} or $class->exit(255);
 
 	$class->exit($rc);
@@ -282,7 +284,7 @@ sub process_options {
 		} @$spec;
 
 	$class->load_module("Getopt::Long");
-	Getopt::Long::Configure('bundling');
+	Getopt::Long::Configure( qw(bundling no_ignore_case) );
 
 	my @args = @{ $class->arguments_glob_resolved };
 	Getopt::Long::GetOptionsFromArray(
