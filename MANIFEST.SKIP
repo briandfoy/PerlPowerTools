@@ -101,3 +101,5 @@ PROGRAMMING_STYLE.md
 .token
 
 .downstream.json
+
+bin/program-example
