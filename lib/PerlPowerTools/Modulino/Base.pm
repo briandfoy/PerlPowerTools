@@ -246,7 +246,7 @@ sub arguments_glob_resolved {
 	my $decoded = $self->arguments_decoded;
 	return $decoded unless $self->needs_to_expand_globs;
 
-	$self->load_module('File::glob');
+	$self->load_module('File::Glob');
 	my @resolved = ();
 	foreach my $arg ( @$decoded ) {
 		if( -e $arg ) {
