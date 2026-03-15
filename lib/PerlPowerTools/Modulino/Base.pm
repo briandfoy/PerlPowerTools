@@ -125,6 +125,61 @@ sub windows_shell {
 
 =back
 
+=head2 Windows size
+
+=over 4
+
+=item default_columns
+
+
+=cut
+
+sub default_columns { 80 }
+
+=item * get_columns
+
+Attempts to
+
+=cut
+
+sub get_columns {
+	my($self) = @_;
+
+	my $columns = do {
+		if( $self->is_windows ) {
+			my @lines = `powershell -command "&{(get-host).ui.rawui.WindowSize;}"`;
+
+			while( my $l = shift @lines ) { last if $l =~ /\A-----/ }
+			return $lines[0] =~ m/\A\s*(\d+)/ ? $1 : ();
+			}
+		elsif( has('tput') ) { `tput cols` }
+		elsif( has('stty') ) { `stty size  | cut -d' ' -f 2` }
+		else                 { () }
+		};
+
+	$columns = $self->default_columns unless defined $columns;
+	chomp $columns;
+	return $columns + 0;
+	}
+
+=item * has(COMMAND)
+
+Searches the C<PATH> for C<COMMAND> and returns the path it finds, or the empty
+list.
+
+=cut
+
+sub has {
+	my( $self, $program ) = @_;
+	foreach my $dir ( split /\Q$Config{path_sep}/, $ENV{PATH} ) {
+		next unless -x catfile( $dir, $program );
+		return 1;
+		}
+	return;
+	}
+
+=back
+
 =head2 Output
 
 This adds an abstraction layer over line-oriented output so we can
