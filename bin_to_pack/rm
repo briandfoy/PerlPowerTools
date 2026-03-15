@@ -28,36 +28,13 @@ rm - remove directory entries
 
 =head1 DESCRIPTION
 
+The B<rm> program removes the files or directories specified as arguments.
+
 =cut
 
 sub options_spec {
 	return [qw(f i P r R v)];
 	}
-
-=pod
-
-The C<program_coderef> returns an code reference that represents the main
-program. It receives as arguments:
-
-=over 4
-
-=item * the package name of the class, which should be the package name for the
-subclass representing this program
-
-=item * a hash reference created by L<Getopts::Long> to represent the options
-
-=item * an array ref of the remaining arguments that were not options, that have
-globs expanded
-
-=back
-
-Inside the code ref, call C<output> for normal output that would normally go
-to standard output, and C<error> for standard error. This allows tests to
-override these.
-
-Call the C<exit> method instead of C<exit> directly.
-
-=cut
 
 sub main {
 	my( $self ) = @_;
@@ -76,11 +53,6 @@ sub main {
 	my $errors = grep { $self->process_file( $_ ) == OP_FAILED } $self->files;
 
 	return $errors ? $self->exit_code_failure : $self->exit_code_success;
-	}
-
-sub new {
-	my( $class, %args ) = @_;
-	bless \%args, $class;
 	}
 
 sub files {
