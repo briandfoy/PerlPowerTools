@@ -1,9 +1,11 @@
 package PerlPowerTools::Modulino::Base;
-use Carp;
 use strict;
 use warnings;
 
-use Storable qw(dclone);
+use Carp                  qw(carp croak);
+use Config                qw(%Config);
+use File::Spec::Functions qw(catfile);
+use Storable              qw(dclone);
 
 eval "no feature qw(module_true)" if $] > 5.39;
 
