@@ -80,6 +80,10 @@ sub run {
 	$self->postprocess_options;
 
 	my $rc = eval { $self->main };
+	if( $@ ) {
+		$self->error( $@ );
+		$self->exit_code_program_failure;
+		}
 	$rc = $self->exit_code_program_failure unless defined $rc;
 
 	$self->exit($rc);
