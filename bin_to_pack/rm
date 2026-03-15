@@ -168,7 +168,7 @@ __PACKAGE__->run unless caller;
 
 =item * -i - prompt the user for each file.
 
-=item * -P - a no-op, for compatibility. So implementations would overwrite files with random data
+=item * -P - a no-op, for compatibility. Some implementations would overwrite files with random data
 
 =item * -r - same as -R
 
