@@ -15,6 +15,17 @@ use File::Spec::Functions;
 use constant OP_SUCCEEDED => 0;
 use constant OP_FAILED    => 1;
 
+=begin metadata
+
+Name: rm
+Description: remove directory entries
+Author: brian d foy, briandfoy@pobox.com
+License: perl
+
+=end metadata
+
+=cut
+
 =head1 NAME
 
 rm - remove directory entries
