@@ -234,11 +234,9 @@ sub cleanup_files {
 	foreach my $key ( sort keys %$spec ) {
 		next unless -e $key; # as long as it's gone we don't care
 		if( -d $key ) {
-			diag "cleanup: remove_tree $key";
 			eval { remove_tree( $key ) } or print STDERR $@;
 			}
 		else {
-			diag "cleanup: unlink $key";
 			chmod 0777, $key;
 			unlink $key or warn "Could not unlink <$key>: $!\n";
 			}
