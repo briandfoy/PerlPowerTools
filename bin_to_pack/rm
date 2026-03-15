@@ -59,8 +59,6 @@ Call the C<exit> method instead of C<exit> directly.
 
 =cut
 
-sub dumper { require Data::Dumper; Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump }
-
 sub main {
 	my( $self ) = @_;
 
