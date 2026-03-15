@@ -1,5 +1,16 @@
 #!perl
 
+=begin metadata
+
+Name: program-example
+Description: a demonstration of the PerlPowerTools common setup
+Author: brian d foy, briandfoy@pobox.com
+License: perl
+
+=end metadata
+
+=cut
+
 package PerlPowerTools::program_example;
 use PerlPowerTools::Modulino::Base;
 our @ISA = qw(PerlPowerTools::Modulino::Base);
