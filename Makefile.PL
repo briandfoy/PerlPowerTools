@@ -242,7 +242,7 @@ $(PACK_DEST_DIR):
 	$(PERL) -MFile::Path=make_path -e "make_path(q{$@})"
 
 $(PACK_DEST_DIR)/%: $(PACK_SRC_DIR)/%
-	fatpack pack "$<" > "$@"
+	PERL5LIB=lib fatpack pack "$<" > "$@"
 
 POSTAMBLE
 }
