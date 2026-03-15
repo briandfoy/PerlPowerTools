@@ -4,16 +4,24 @@ use lib qw(lib);
 
 use Test::More;
 
+use File::Path qw(make_path remove_tree);
 use File::Temp;
-my $class = require './bin_to_pack/rm';
-is $class, 'PerlPowerTools::rm';
 
+my $class;
+BEGIN {
+	$class = require './bin_to_pack/rm';
+	is $class, 'PerlPowerTools::rm';
+	}
+
+my $subclass;
 BEGIN {
 package PerlPowerTools::rm::test;
-use parent qw(PerlPowerTools::rm);
+use vars qw(@ISA);
+@ISA = qw(PerlPowerTools::rm);
 
 sub exit { return $_[1] }
 
+$subclass = __PACKAGE__;
 }
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
@@ -161,16 +169,21 @@ subtest 'table' => sub {
 			my $spec = $row->[FILES];
 			prepare_files( $spec );
 			foreach my $file ( sort keys %{ $spec } ) {
-				ok( -e $file, "$file exists as expected" );
+				ok -e $file, "$file exists as expected";
 				}
 
-			local @ARGV = ( @{$row->[OPTIONS]}, @{$row->[FILES]} )
+			local @ARGV = ( @{$row->[OPTIONS]}, @{$row->[ARGS]} );
 
 			my $error = '';
 			open my $error_fh, '>:utf8', \$error;
-			*{ $subclass . '::error_fh' } = sub { $error_fh };
+			{
+				no strict 'refs';
+				no warnings 'redefine';
+				*{ $subclass . '::error_fh' } = sub { $error_fh };
+			}
 
-			is $EXIT, $row->[EXIT], "Exit code is " . $row->[EXIT];
+			my $rc = $subclass->run;
+			is $rc, $row->[EXIT], "Exit code is " . $row->[EXIT];
 
 			subtest 'what remains' => sub {
 				pass() if @{ $row->[REMAINS] } == 0;
@@ -221,9 +234,11 @@ sub cleanup_files {
 	foreach my $key ( sort keys %$spec ) {
 		next unless -e $key; # as long as it's gone we don't care
 		if( -d $key ) {
-			eval { remove_tree $key };
+			diag "cleanup: remove_tree $key";
+			eval { remove_tree( $key ) } or print STDERR $@;
 			}
 		else {
+			diag "cleanup: unlink $key";
 			chmod 0777, $key;
 			unlink $key or warn "Could not unlink <$key>: $!\n";
 			}
