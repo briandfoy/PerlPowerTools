@@ -82,7 +82,7 @@ sub run {
 	my $rc = eval { $self->main };
 	$rc = $self->exit_code_program_failure unless defined $rc;
 
-	$class->exit($rc);
+	$self->exit($rc);
 	};
 
 =head2 Environment
