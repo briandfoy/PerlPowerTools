@@ -75,6 +75,8 @@ sub postprocess_options {
 		$self->options->{'f'} = undef if $last eq '-i';
 		}
 
+	$self->error( "-P ignored" ) if $self->is_overwrite;
+
 	return $self;
 	}
 
