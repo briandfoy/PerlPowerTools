@@ -153,21 +153,19 @@ perhaps by supplying a string filehandle. By default, this is C<STDOUT>.
 
 =cut
 
-sub error {
-	my $class = shift;
-	print { $class->error_fh } @_
-	}
+sub debug { my($self) = shift; print { $self->debug_fh } @_ }
+
+sub debug_fh { \*STDERR }
+
+sub error { my($self) = shift; print { $self->error_fh } @_ }
 
 sub error_fh { \*STDERR }
 
-sub output {
-	my $class = shift;
-	print { $class->output_fh } @_
-	}
+sub input_fh { \*STDIN }
+
+sub output { my($self) = shift; print { $self->output_fh } @_ }
 
 sub output_fh { \*STDOUT }
-
-sub input_fh { \*STDIN }
 
 sub single_line_input { scalar readline $_[0]->input_fh }
 
@@ -193,7 +191,7 @@ This sets the C<arguments> value in the object.
 sub arguments {
 	my($self) = @_;
 	$self->{'arguments'} = $self->argv unless defined $self->{'arguments'};
-	return $self->{'arguments'} if defined $self->{'arguments'};
+	return $self->{'arguments'};
 	}
 
 =item * argv
@@ -220,13 +218,20 @@ uses the result of C<arguments>.
 =cut
 
 sub arguments_decoded {
-	my $class = shift;
-	my $args = $class->arguments;
+	my($self) = @_;
+	my $args = $self->arguments;
 
-	$class->load_module('I18N::Langinfo');
+	$self->load_module('I18N::Langinfo');
     my $codeset = I18N::Langinfo::langinfo(I18N::Langinfo::CODESET());
 
-	$class->load_module('Encode');
+	if($self->is_windows) {
+		my $h = $self->windows_code_page_identifiers;
+		if(exists $h->{$codeset}){
+			$codeset = $h->{$codeset};
+			}
+		}
+
+	$self->load_module('Encode');
     my @perl_strings = map { Encode::decode( $codeset, $_ ) } @$args;
 
 	dclone \@perl_strings;
@@ -237,10 +242,18 @@ sub arguments_decoded {
 Returns the arguments with globs expanded if the shell did not already do
 that for us.
 
+This is a lot more tricky than it seems.
+
+First, if a glob does not find any
+matching files, the result is the literal string that was the glob. For example,
+if C<*.txt2> matches nothing, then the literal C<*.txt2> is the resolved argument.
+
+On
+
 =cut
 
 sub arguments_glob_resolved {
-	my $self = shift;
+	my($self) = @_;
 	return $self->{'resolved_arguments'} if defined $self->{'resolved_arguments'};
 
 	my $decoded = $self->arguments_decoded;
@@ -253,7 +266,9 @@ sub arguments_glob_resolved {
 			push @resolved, $arg
 			}
 		else {
-			push @resolved, glob($arg)
+			my @files = glob($arg);
+			if(@files) { push @resolved, @files }
+			else { push @resolved, $arg }
 			}
 		}
 
@@ -499,7 +514,7 @@ A nicely-configured L<Data::Dumper>.
 =cut
 
 sub dumper {
-	my $class = shift;
+	my($self) = shift;
 	require Data::Dumper;
 	Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump
 	}
@@ -542,16 +557,20 @@ goobledegook.
 =cut
 
 sub load_module {
-	my( $class, $module, $message ) = @_;
+	my( $self, $module, $message ) = @_;
+
 	unless( $module =~ m/\A[A-Z_][A-Z0-9_]+(?:::[A-Z_][A-Z0-9_]+)*\z/i ) {
 		carp "Invalid Perl module name <$module>. This is a problem with the program.";
-		$class->exit_failure;
+		$self->exit_failure;
 		}
 
 	my $result = eval "require $module; 1";
 	my $at = $@;
+	if( $at ) {
+		$self->error( "Could not load <$module>: $at\n ");
+		}
 	unless( defined $result ) {
-		$class->error(
+		$self->error(
 			defined $message ? $message : 'Tried to load the Perl module <$module>: $at'
 			);
 		}
@@ -582,7 +601,7 @@ name that corresponds to that.
 sub windows_code_page_identifiers {
 	# compiled by samuel-h-ku in https://github.com/briandfoy/PerlPowerTools/pull/1024
 	# https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
-	my %code_page_indentifiers = qw(
+	my %code_page_identifiers = qw(
 		  37 IBM037
 		 437 IBM437
 		 500 IBM500
@@ -725,7 +744,7 @@ sub windows_code_page_identifiers {
 		65001 utf-8
 		);
 
-	return \%code_page_indentifiers;
+	return \%code_page_identifiers;
 	}
 
 =back
