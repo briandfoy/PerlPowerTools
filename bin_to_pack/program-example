@@ -48,41 +48,23 @@ sub options_spec {
 
 =pod
 
-The C<program_coderef> returns an code reference that represents the main
-program. It receives as arguments:
+The C<main> does the actual work of the program, and returns the exit value
+for the program.
 
-=over 4
-
-=item * the package name of the class, which should be the package name for the
-subclass representing this program
-
-=item * a hash reference created by L<Getopts::Long> to represent the options
-
-=item * an array ref of the remaining arguments that were not options, that have
-globs expanded
-
-=back
-
-Inside the code ref, call C<output> for normal output that would normally go
-to standard output, and C<error> for standard error. This allows tests to
-override these.
-
-Call the C<exit> method instead of C<exit> directly.
+L<PerlPowerTools::Modulino::Base> does the rest of the work to parse the
+command line, handle input and output, and handle the orderly exit. See the
+methods in that module to see what you have access to and what you might want
+to override.
 
 =cut
 
-sub program_coderef {
-	my $run_sub = sub {
-		my( $class, $options, $arguments ) = @_;
-		$class->output( "Hello there\n" );
-		$class->error( $class->dumper($options) );
-		$class->error( $class->dumper($arguments) );
-		$class->exit(137);
-		};
+sub main {
+	my( $self ) = @_;
+	$self->output( "Hello there\n" );
+	$self->error( $self->dumper($self->options) );
+	$self->error( $self->dumper($self->arguments) );
+	return $self->exit_code_success;
 	}
-
-# if we return without exiting, use that as the exit code
-exit( __PACKAGE__->run ) unless caller;
 
 no warnings;
 __PACKAGE__;
