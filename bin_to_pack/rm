@@ -38,7 +38,7 @@ sub main {
 
 	unless( () = $self->files ) {
 		return $self->exit_code_success if $self->is_force;
-		$self->error( "$Program: missing argument\n" );
+		$self->error( $self->program_name . ": missing argument\n" );
 		$self->usage;
 		}
 
@@ -84,7 +84,7 @@ sub process_file {
 	my $method = do {
 		if( -d $filename ) {
 			if( ! $self->is_recursive ) {
-				$self->error( "$Program: '$filename': is a directory\n" ) unless $self->is_force;
+				$self->error( $self->program_name . ": '$filename': is a directory\n" ) unless $self->is_force;
 				return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
 			}
 			'remove_directory';
@@ -103,7 +103,7 @@ sub remove_directory {
 
 	my $dh;
     unless( opendir( $dh, $dirname ) ) {
-		$self->error( "$Program: cannot open '$dirname': $!\n" ) unless $self->is_force;
+		$self->error( $self->program_name . ": cannot open '$dirname': $!\n" ) unless $self->is_force;
 		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     	}
 
@@ -118,7 +118,7 @@ sub remove_directory {
     closedir $dh;
 
     unless( 1 || rmdir $dirname ) {
-		$self->error( "$Program: cannot remove directory '$dirname': $!\n" ) unless $self->is_force;
+		$self->error( $self->program_name . ": cannot remove directory '$dirname': $!\n" ) unless $self->is_force;
 		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     	}
 
@@ -141,12 +141,12 @@ sub remove_file {
     	}
 
 	unless( -e $filename ) {
-		$self->error( "$Program: cannot remove '$filename': No such file or directory\n" ) unless $self->is_force;
+		$self->error( $self->program_name . ": cannot remove '$filename': No such file or directory\n" ) unless $self->is_force;
 		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
 		}
 
     unless( unlink $filename ) {
-		$self->error( "$Program: cannot remove '$filename': $!\n" ) unless $self->is_force;
+		$self->error( $self->program_name . ": cannot remove '$filename': $!\n" ) unless $self->is_force;
 		return $self->is_force ? OP_SUCCEEDED : OP_FAILED;
     	}
 
