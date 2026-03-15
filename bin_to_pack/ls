@@ -1,0 +1,577 @@
+#!perl
+
+=begin metadata
+
+Name: ls
+Description: list file/directory information
+Author: Mark Leighton Fisher, fisherm@tce.com
+License: perl
+
+=end metadata
+
+=cut
+
+package PerlPowerTools::ls;
+use PerlPowerTools::Modulino::Base;
+our @ISA = qw(PerlPowerTools::Modulino::Base);
+
+eval "no feature qw(module_true)" if $] > 5.39;
+
+use strict;
+use warnings;
+
+use Config qw(%Config);
+use File::Basename qw(basename);
+use File::Spec;
+use File::Spec::Functions;
+use File::stat;
+
+use constant SIX_MONTHS_SECONDS => 60*60*24*(365/2);
+
+sub VERSION { '0.72' };
+
+BEGIN {
+	my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
+	my @ftype = ( '', qw(p c ? d ? b ? - ? l ? s ? ? ?) );
+
+	sub format_mode {
+		my( $class, $mode, %opts ) = @_;
+
+		my $setids   = ($mode & 07000)>>9;
+		my @permstrs = @perms[($mode&0700)>>6, ($mode&0070)>>3, $mode&0007];
+		my $ftype    = $ftype[($mode & 0170000)>>12];
+
+		if ($setids) {
+			if ($setids & 01) {		# Sticky bit
+				$permstrs[2] =~ s/([-x])$/$1 eq 'x' ? 't' : 'T'/e;
+				}
+			if ($setids & 04) {		# Setuid bit
+				$permstrs[0] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
+				}
+			if ($setids & 02) {		# Setgid bit
+				$permstrs[1] =~ s/([-x])$/$1 eq 'x' ? 's' : 'S'/e;
+				}
+			}
+
+		join '', $ftype, @permstrs;
+		}
+	} # BEGIN
+
+=head1 NAME
+
+ls - list file/directory information
+
+=head1 SYNOPSIS
+
+	% ls [-1ACFLRSTWacdfgiklmnopqrstux] [file ...]
+
+=head1 DESCRIPTION
+
+This program lists information about files and directories. If it is
+invoked without file/directory name arguments, it lists the contents
+of the current directory. Otherwise, B<ls> lists information about the
+files and information about the contents of the directories (but see
+B<-d>).  Furthermore, without any option arguments B<ls> just lists
+the names of files and directories. All files are listed before all
+directories. The default sort order is ascending ASCII on filename.
+
+=head2 OPTIONS
+
+The BSD options C<1ACFLRSTWacdfgiklmnopqrstux> are recognized, but
+only C<1RSacdfiklnrstu> are implemented:
+
+=over 4
+
+=item -1
+
+List entries 1 per line (default if output is not a tty). This is
+disabled by any of C<-C>, C<-x>, or C<-l>.
+
+=item -R
+
+Recursively list the contents of all directories, breadth-first.
+
+=item -S
+
+Sort descending by size. This is disabled by C<-t>.
+
+=item -a
+
+List all files (normally files starting with '.' are ignored).
+
+=item -c
+
+Sort by descending last modification time of inode. This is
+disabled by any of C<-u> or C<-U>.
+
+=item -d
+
+Do not list directory contents.
+
+=item -f
+
+Do not sort -- list in whatever order files/directories are returned
+by the directory read function. This option implies -a.
+
+=item -i
+
+List file inode number.  (Doesn't mean much on non-inode systems.)
+
+=item -k
+
+When used with B<-s>, list file/directory size in 1024-byte blocks.
+
+=item -l
+
+Long format listing of mode -- # of links, owner name, group name,
+size in bytes, time of last modification, and name.
+
+=item -n
+
+List numeric uid and gid (default on platforms without getpwuid()).
+
+=item -r
+
+Reverse sorting order.
+
+=item -s
+
+List file/directory size in 512-byte blocks.  (May not mean much
+on non-Unix systems.)
+
+=item -t
+
+Sort by descending last modification time.
+
+=item -u
+
+Sort by descending last access time.
+
+=item -w
+
+Set the column width for the output. The default is the window size,
+or 80 if the program cannot determine the window size. A column
+width of 0 means unlimited.
+
+=back
+
+=head1 ENVIRONMENT
+
+The working of I<ls> is not influenced by any environment variables.
+
+=head1 BUGS
+
+The file metadata from C<stat> is used, which may not necessarily mean
+much on non-Unix systems. Specifically, the uid, gid, inode, and
+block numbers may be meaningless (or less than meaningful at least).
+
+The C<-l> option does not yet list the major and minor device numbers
+for special files, but it does list the value of the 'dev' field as 2
+hex 16-bit words. Doing this properly would probably require
+filesystem type probing.
+
+=head1 AUTHOR
+
+This Perl implementation of I<ls> was written by Mark Leighton Fisher
+of Thomson Consumer Electronics, I<fisherm@tce.com>.
+
+Portions of Stat::lsmode from Mark Jason Dominus have been inlined
+into this program uder the perl license. See L<http://www.plover.com/~mjd/perl/lsMode/>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is free and open software. You may use, modify,
+distribute, and sell this program (and any modified variants) in any
+way you wish, provided you do not restrict others from doing the same.
+
+=cut
+
+sub default { 80 }
+
+sub is_ctime_sort           {   $_[0]->options->{'c'} }
+sub is_largest_first        {   $_[0]->options->{'S'} }
+sub is_last_access_sort     {   $_[0]->options->{'u'} }
+sub is_plain_dirs           {   $_[0]->options->{'d'} }
+sub is_recursive            {   $_[0]->options->{'R'} }
+sub is_reverse              {   $_[0]->options->{'r'} }
+sub is_rich_dirs            { ! $_[0]->options->{'d'} }
+sub is_modified_time_sort   {   $_[0]->options->{'t'} }
+sub is_turn_off_sort        {   $_[0]->options->{'f'} }
+sub show_blocks             {   $_[0]->options->{'s'} }
+sub show_hidden             {   $_[0]->options->{'a'} }
+sub show_uid_gid            {   $_[0]->options->{'n'} }
+sub hide_hidden             { ! $_[0]->options->{'a'} }
+sub show_inodes             {   $_[0]->options->{'i'} }
+sub is_one_entry_per_line   {   scalar grep { $_[0]->options->{$_} } qw(1 l s i) }
+sub is_long_listing         {   $_[0]->options->{'l'} }
+sub is_time_sort {
+	scalar grep { $_[0]->$_() } qw(is_ctime_sort is_last_access_sort is_modified_time_sort);
+	}
+
+sub options_spec {
+	return [qw(1 A C F L R S T W a c d f g i k l m n o p q r s t u w=i x)];
+	}
+
+sub preprocess_options {
+	my($self) = 80;
+
+	}
+
+sub postprocess_options {
+	my($self) = 80;
+
+	}
+
+sub main {
+	{
+	no strict 'refs';
+	*{"start_time"} = do { my $time = time; sub { $time } };
+	}
+
+	my($self) = @_;
+
+	my @args = @{ $self->arguments };
+
+	@args = qw(.) unless @args; # current directory if nothing else
+
+	my $ArgCount = -1;  # file/directory argument count
+	my %Attributes;     # File::stat directory entry attributes
+	my @Dirs;           # directories in ARGV
+	my @Files;          # non-directories in ARGV
+	my $First = 1;      # first directory entry on command line
+
+	for my $Arg (@args) {
+		$ArgCount++;
+		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
+		my $ref = ( -d $Arg and $self->is_rich_dirs ) ? \@Dirs : \@Files;
+		push @$ref, $Arg;
+		}
+
+	if (@Files) {
+		$First = 0;
+		my %attrs;
+		my @okfiles;
+		foreach my $file (@Files) {
+			my @ret = $self->DirEntries($file);
+			next unless @ret; # stat() failed
+			%attrs = (%attrs, %{ $ret[-1] });
+			push @okfiles, $file;
+			}
+		my @sorted = $self->Order(\%Attributes, @okfiles);
+		$self->List('.', 0, 0, @sorted, \%attrs);
+		}
+
+	for my $Arg ($self->Order(\%Attributes, @Dirs)) {
+		if( ! $self->is_recursive ) {
+			$self->output( "\n" ) unless $First;
+			$First = 0;
+			$self->output( "$Arg:\n" ) if $ArgCount > 0;
+			}
+		$self->List($Arg, 1, 0, $self->DirEntries($Arg));
+		}
+	}
+
+sub start_time;
+
+sub _supported_options {
+	my $class = shift;
+	my $opts_string = $class->_opts_string;
+	$opts_string =~ s/\s+//g;
+	my %Supported = map { $_, 1 } split //, $opts_string;
+	return \%Supported;
+	};
+
+sub usage {
+	my $self = shift;
+	require Pod::Usage;
+	Pod::Usage::pod2usage(
+		-verbose => 2,
+		-output  => $self->error_fh,
+		);
+	$self->my_exit( $self->exit_code_usage );
+	}
+
+sub VERSION_MESSAGE {
+	my $self = shift;
+    $self->output( $self->program_name . " version " . $self->VERSION . " (Perl Power Tools, Perl $^V)\n" );
+    $self->my_exit( $self->exit_code_success );
+	}
+
+sub DirEntries {
+	my( $self, $file ) = @_;
+
+	my %Attributes = ();
+	my @Entries    = ();
+
+	if( $self->is_plain_dirs || ! -d $file ) {
+		if (-l $file or -e $file) {
+			push @Entries, $file;
+			$Attributes{$file} = -l $file ? lstat($file) : stat($file);
+			push @Entries, \%Attributes;
+			return @Entries;
+			}
+		$self->error( "can't access '$file': $!\n" );
+		return;
+		}
+
+	my $dh;
+	unless( opendir $dh, $file ) {
+		$self->error( "failed to open directory '$file': $!\n" );
+		return;
+		}
+
+	my $Name = "";
+	while( $Name = readdir($dh) ) {
+		next if ( $self->hide_hidden && $Name =~ m/^\./o);
+		push @Entries, $Name;
+		my $path = File::Spec->catfile( $file, $Name );
+		$Attributes{$Name} = -l $path ? lstat($path) : stat($path);
+		}
+	closedir($dh);
+
+	# ------ return list with %Attributes ref at end
+	push @Entries, \%Attributes;
+	return @Entries;
+	}
+
+BEGIN { # EntryFormat
+	my @Month = (
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	);
+
+	sub EntryFormat {
+		my( $self, $Attributes, $Dirname, $Entry ) = @_;
+
+		my $max_file_size_length = do {
+			my( $max ) =
+				sort { $b <=> $a }
+				map { $Attributes->{$_}->size }
+				keys %$Attributes;
+
+			length $max;
+			};
+
+		my $BlockSize =	$self->options->{'k'} ? 2 : 1;	# block size in 512-byte units
+
+		if( $self->show_inodes ) {
+			if( defined $Attributes->{$Entry} ) {
+				$self->output( sprintf "%10d ", $Attributes->{$Entry}->ino );
+				}
+			else {
+				$self->output( "_________ " );
+				}
+			}
+
+		if( $self->show_blocks ) {
+			if( defined $Attributes->{$Entry} ) {
+				my $Blocks = $Attributes->{$Entry}->blocks;
+				$Blocks = 0 if $Blocks eq '';
+				$self->output( sprintf "%4d ",  $Blocks / $BlockSize + (($Blocks % $BlockSize) > 0) );
+				}
+			else {
+				$self->output( "____ " );
+				}
+			}
+
+		if( ! $self->is_long_listing ) {
+			$self->output( "$Entry\n" );
+			}
+		else {
+			if( ! defined $Attributes->{$Entry} ) {
+				$self->output( <<'UNDEFSTAT' );
+__________ ___ ________ ________ ________ ___ __  _____
+UNDEFSTAT
+				}
+			else {
+				my $mode = $self->format_mode($Attributes->{$Entry}->mode);
+				$self->output( "$mode " );
+				$self->output( sprintf "%3d ", $Attributes->{$Entry}->nlink );
+
+				my $max_uid_length = 8;
+				if( $self->show_uid_gid ) {
+					$self->output( sprintf '%-*2$d ', $Attributes->{$Entry}->uid, $max_uid_length );
+					}
+				else {
+					my $uid = $self->Getpwuid($Attributes->{$Entry}->uid);
+					if( defined $uid ) {
+						$self->output( sprintf '%-*2$s ', $uid, $max_uid_length );
+						}
+					else {
+						$self->output( sprintf'%-*2$d ', $Attributes->{$Entry}->uid, $max_uid_length );
+						}
+					}
+
+				my $max_gid_length = 8;
+				if( $self->show_uid_gid ) {
+					$self->output( sprintf '%-*2$d ', $Attributes->{$Entry}->gid, $max_gid_length );
+					}
+				else {
+					my $gid = $self->Getgrgid($Attributes->{$Entry}->gid);
+					my $max_gid_length = 8;
+					if( defined $gid ) {
+						$self->output( sprintf '%-*2$s ', $gid, $max_gid_length );
+						}
+					else {
+						$self->output( sprintf '%-*2$d ', $Attributes->{$Entry}->gid, $max_gid_length );
+						}
+					}
+
+				my $size_width = 9;
+				if( $Attributes->{$Entry}->mode & 0140000 ) {
+					$self->output( sprintf '%*2$d ', $Attributes->{$Entry}->size, $max_file_size_length );
+					}
+				else {
+					$self->output( sprintf "%4x,%4x ",
+						(($Attributes->{$Entry}->dev & 0xFFFF000) > 16),
+						$Attributes->{$Entry}->dev & 0xFFFF
+						);
+					}
+
+				my $time = $Attributes->{$Entry}->mtime;
+				$time = $Attributes->{$Entry}->ctime if $self->is_ctime_sort;
+				$time = $Attributes->{$Entry}->atime if $self->is_last_access_sort;
+
+				my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime($time);
+				$self->output( $Month[$mon] );
+				$self->output( sprintf " %2d ", $mday );
+
+				if( start_time() - $time <= SIX_MONTHS_SECONDS ) {
+					$self->output( sprintf "%02d:%02d", $hour, $min );
+					}
+				else {
+					$self->output( sprintf " %04d", $year + 1900 );
+					}
+				}
+			}
+
+		my $path = File::Spec->catfile($Dirname, $Entry);
+		if( -l $path ) {
+			my $target = readlink( $path );
+			$Entry .= " -> $target";
+			}
+		$self->output( " $Entry\n" );
+		}
+	}
+
+sub List {
+	my $Attributes = pop(@_);
+	my( $self, $dir_name, $is_dir, $Expand, @files ) = @_;
+
+	my $total_blocks    = 0;
+	my $max_file_length = 0;
+
+	foreach my $file (@files) {
+		$total_blocks +=
+			(!defined($Attributes->{$file}) || ($Attributes->{$file}->blocks eq '')) ? 0 : $Attributes->{$file}->blocks;
+		my $l = length $file;
+		$max_file_length = $l if $l > $max_file_length;
+		}
+	$max_file_length += 1;	# account for spaces
+
+	if( $is_dir ) {
+		$self->output( "$dir_name:\n" ) if $self->is_recursive;
+		$self->output( "total $total_blocks\n" ) if( $self->show_blocks or $self->show_inodes );
+		}
+
+	my @SortedEntries = $self->Order($Attributes, @files);
+
+	if( $self->is_one_entry_per_line ) {
+		for my $entry (@SortedEntries) {
+			$self->EntryFormat( $Attributes, $dir_name, $entry );
+			}
+		}
+	else {
+		$self->options->{'w'} = $self->get_columns unless $self->options->{'w'} =~ /\d+/; ### preprocess
+		my $Cols    = (int($self->options->{'w'} / $max_file_length)) || 1;
+		my $Rows    = int(($#_+$Cols) / $Cols);
+		my $template = sprintf "%%-%ds ", $max_file_length;
+
+		my $elt;
+		for ($elt = 0; $elt < $Rows * $Cols; $elt++) {
+			my $target = ($elt % $Cols) * $Rows + int(($elt / $Cols));
+			my $piece = sprintf $template, $target < ($#SortedEntries + 1) ? $SortedEntries[$target] : "";
+			# don't blank pad to eol of line
+			$piece =~ s/\s+$// if (($elt+1) % $Cols == 0);
+			$self->output( $piece );
+			$self->output( "\n" ) if (($elt+1) % $Cols == 0);
+			}
+		$self->output( "\n" ) if (($elt+1) % $Cols == 0);
+		}
+
+	# ------ print blank line if -R
+	$self->output( "\n" ) if $self->is_recursive;
+
+	# ------ list subdirectories of this directory
+	if( $self->is_rich_dirs && ($Expand || $self->is_recursive )) {
+		for my $entry ($self->Order($Attributes, @files)) {
+			next if ($entry eq "." || $entry eq "..");
+			if (defined($Attributes->{$entry}) && $Attributes->{$entry}->mode & 0040000) {
+				my $path = File::Spec->canonpath(File::Spec->catdir($dir_name,$entry));
+				my @dirs = $self->DirEntries($path);
+				$self->List($path, 1, 0, @dirs);
+				}
+			}
+		}
+	}
+
+sub Order {
+	my( $self, $A, @Entries ) = @_;
+
+	my $method = do {
+		if(    $self->is_largest_first )        { 'size'  }
+		elsif( $self->is_time_sort     ) {
+			   if( $self->is_last_access_sort ) { 'atime' }
+			elsif( $self->is_ctime_sort )       { 'ctime' }
+			else                                { 'mtime' }
+			}
+		elsif( ! $self->is_turn_off_sort )      { undef }
+		};
+
+	my $sub =
+		! $self->is_turn_off_sort
+			?
+		sub { $_[0] cmp $_[1] }
+			:
+		sub { $A->{$_[0]}->$method()  <=> $A->{$_[1]}->$method()  }
+			;
+
+	@Entries = sort {
+		$sub->($a, $b)
+		} @Entries;
+
+	@Entries = reverse @Entries if $self->is_reverse;
+
+	return @Entries;
+	}
+
+sub Getgrgid { getgrgid($_[1]) }
+sub Getpwuid { getpwuid($_[1]) }
+
+BEGIN {
+	my $NO_GETGRGID = ! eval { my $dummy = ""; $dummy = (getpwuid(0))[0] };
+
+	if( $NO_GETGRGID ) {
+		no warnings qw(redefine);
+		no strict qw(refs);
+		*{'Getgrgid'} = sub { ($_[1], 0) };
+		*{'Getpwuid'} = sub { ($_[1], 0) };
+		}
+	}
+
+# if we return without exiting, use that as the exit code
+__PACKAGE__->run unless caller;
+
+no warnings;
+__PACKAGE__;
+
