@@ -9,13 +9,6 @@ eval "no feature qw(module_true)" if $] > 5.39;
 use strict;
 use warnings;
 
-# Define these yourself per-program based on what the original BSD tool does
-# despite whatever it should do.
-use constant EX_SUCCESS   => 0;
-use constant EX_FAILURE   => 1;
-use constant EX_USAGE     => 2;
-
-
 =head1 NAME
 
 program-example - a demonstration of the PerlPowerTools common setup
