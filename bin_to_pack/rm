@@ -11,12 +11,9 @@ use warnings;
 
 use File::Basename;
 use File::Spec::Functions;
-use Storable qw(dclone);
 
 use constant OP_SUCCEEDED => 0;
 use constant OP_FAILED    => 1;
-
-my $Program = basename($0);
 
 =head1 NAME
 
@@ -38,11 +35,6 @@ sub options_spec {
 
 sub main {
 	my( $self ) = @_;
-
-	$self->error( "OPTIONS "  . dumper($self->options)            );
-	$self->error( "ARGS "     . dumper($self->arguments)          );
-	$self->error( "RESOLVED " . dumper($self->arguments_glob_resolved) );
-	$self->error( "RAW "      . dumper($self->argv)      );
 
 	unless( () = $self->files ) {
 		return $self->exit_code_success if $self->is_force;
