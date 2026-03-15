@@ -137,8 +137,6 @@ sub process_file {
 sub remove_directory {
     my( $self, $dirname ) = @_;
 
-    $self->output( "remove dir: $dirname");
-
 	my $dh;
     unless( opendir( $dh, $dirname ) ) {
 		$self->error( "$Program: cannot open '$dirname': $!\n" ) unless $self->is_force;
@@ -167,8 +165,6 @@ sub remove_directory {
 
 sub remove_file {
     my( $self, $filename ) = @_;
-
-    $self->output( "remove file: $filename\n");
 
 	# Answering no to skip a file is not an error
     if( $self->is_interactive ) {
