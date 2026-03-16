@@ -220,6 +220,14 @@ sub home {
 }
 
 sub MY::postamble {
+	my $pack_command =
+		$^O eq 'MSWin32'
+			?
+		q(set PERL5LIB=lib && fatpack pack "$<" > "$@")
+			:
+		q(PERL5LIB=lib fatpack pack "$<" > "$@")
+			;
+
 	# these vars at lexicals at the file level
 	my $v = <<"VARS";
 
@@ -242,10 +250,10 @@ $(PACK_DEST_DIR):
 	$(PERL) -MFile::Path=make_path -e "make_path(q{$@})"
 
 $(PACK_DEST_DIR)/%: $(PACK_SRC_DIR)/%
-	PERL5LIB=lib fatpack pack "$<" > "$@"
-
 POSTAMBLE
-}
+
+	$v .= "\t$pack_command\n\n";
+	}
 
 no warnings;
 __PACKAGE__;
