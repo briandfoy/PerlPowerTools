@@ -45,11 +45,9 @@ subtest process_options => sub {
 	my %defaults = map { $_ => undef } qw(i f R r P v);
 	foreach my $row ( @table ) {
 		local @ARGV = @{ $row->[0] };
-		my $instance = $subclass->new->$method();
+		my $instance = $subclass->new;
 
-		$instance->preprocess_options;
-		$instance->process_options;
-		$instance->postprocess_options;
+		$instance->$method();
 
 		isa_ok $instance, $class;
 		my $options = { %defaults, %{ $row->[1] } };
