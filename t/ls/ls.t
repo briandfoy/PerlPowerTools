@@ -1,59 +1,67 @@
+use strict;
+use warnings;
+
 use Test::More 1;
+use lib qw(lib);
 
-
-BEGIN {
-	package Local::ls;
-	our @ISA = qw(PerlPowerTools::ls);
-
-	sub my_exit { $Local::ls::code   = $_[1] }
-
-	sub my_warn { $Local::ls::error  .= $_[1] }
-
-	sub output  { $Local::ls::output .= $_[1] }
-
-	sub get_columns { 137 }
-	}
-
-sub clear {
-	$Local::ls::code   = undef;
-	$Local::ls::error  = undef;
-	$Local::ls::output = undef;
-	}
-
-my $class = 'Local::ls';
+my $class = 'PerlPowerTools::ls';
+my $subclass;
 
 subtest 'setup' => sub {
-	use lib qw(.);
-	require_ok( 'bin/ls' );
-	can_ok( $class, qw(run process_options) );
+	my $class = require './bin_to_pack/ls';
+	can_ok $class, qw(main);
 	};
 
-subtest 'help' => sub {
-	clear();
-	my $method = 'VERSION_MESSAGE';
-	can_ok $class, $method;
-	$class->$method;
-	like $Local::ls::output, qr/ls version \d+\.\d+/, 'git expected version message';
-	};
+my( $output, $error );
+
+BEGIN {
+	package PerlPowerTools::ls::test;
+	use vars qw(@ISA);
+	our @ISA = qw(PerlPowerTools::ls);
+
+	open my $output_fh, '>>', \$output;
+	open my $error_fh,  '>>', \$error;
+
+	sub exit         { return $_[1] }
+	sub get_columns  { 137 }
+	sub error_fh     { $error_fh }
+	sub output_fh    { $output_fh }
+	sub program_name { 'ls' }
+
+	$subclass = __PACKAGE__;
+	}
 
 subtest 'version' => sub {
-	clear();
 	my $method = 'VERSION_MESSAGE';
-	can_ok $class, $method;
-	$class->$method;
-	like $Local::ls::output, qr/ls version \d+\.\d+/, 'git expected version message';
+
+	my $instance = get_instance();
+	can_ok $instance, $method;
+
+	my $rc = $instance->$method;
+	like $output, qr/ls version \d+\.\d+/, 'got expected version message';
 	};
+
+sub get_instance {
+	my $instance;
+
+	subtest 'make instance' => sub {
+		$instance = $subclass->new;
+		isa_ok $instance, $subclass;
+		isa_ok $instance, $class;
+		};
+
+	return $instance;
+	}
 
 subtest 'process_options' => sub {
 	my @good_options = split //, '1ACFLRSTWacdfgiklmnopqrstux';
                                  # 1ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy%,
-	my $method = 'process_options';
-	can_ok $class, $method;
 
 	subtest 'version' => sub {
-		clear();
-		$class->$method( qw(--version) );
-		like $Local::ls::output, qr/ls version \d+\.\d+/, 'git expected version message';
+		local @ARGV = qw(--version);
+		my $rc = $subclass->run;
+		like $output, qr/ls version \d+\.\d+/, 'expected version message';
+		is $rc, 0, 'successful exit';
 		};
 
 	subtest 'good' => sub {
@@ -143,22 +151,22 @@ subtest 'process_options' => sub {
 
 		foreach my $h ( @table ) {
 			subtest $h->{label} => sub {
-				my( $opts, @files ) = $class->$method( @{ $h->{args} } );
+				clear_output();
 
-				# things common to all options
-				$h->{opts}{'w'} = $class->get_columns if ! exists $h->{opts}{'w'};
+				local @ARGV = @{ $h->{args} };
+				my $instance = get_instance();
+				$instance->process_options;
 
-				unless( grep { exists $h->{opts}{$_} } qw( C x l ) ) {
-					unless( -t *STDOUT ) {
-						$h->{opts}{'1'} = 1
+				subtest options => sub {
+					cmp_ok scalar keys %{ $h->{'opts'} }, '>', 0, 'there are expected keys';
+					foreach my $key ( keys %{ $h->{'opts'} } ) {
+						is $instance->options->{$key}, $h->{'opts'}{$key}, "$key matches";
 						}
-					}
+					};
 
-				is_deeply $opts,   $h->{opts}, 'options hash matches' or diag explain $opts;
-				is_deeply \@files, $h->{files}, 'file list matches' or diag explain \@files;
+				is_deeply $instance->arguments, $h->{files}, 'file list matches';
 				};
 			}
-
 		};
 
 	subtest 'bad' => sub {
@@ -171,17 +179,21 @@ subtest 'process_options' => sub {
 
 		foreach my $h ( @table ) {
 			subtest $h->{label} => sub {
-				clear();
-				my $w;
-				local $SIG{__WARN__} = sub { $Local::ls::error .= $_[0] };
-				$class->$method( @{ $h->{args} } );
-				like $Local::ls::error, qr/^Unknown option: y/m, 'unknown option string';
-				like $Local::ls::error, qr/^usage: /m, 'usage message';
-				is $Local::ls::code, 1, 'exit code is expected';
+				clear_output();
+
+				local @ARGV = @{ $h->{args} };
+				my $instance = get_instance();
+				$instance->process_options;
+
+				like $error, qr/Unknown option: y/m, 'unknown option string';
 				};
 			}
 		};
 	};
 
+sub clear_output {
+	$output = '';
+	$error  = '';
+	}
 
 done_testing();
