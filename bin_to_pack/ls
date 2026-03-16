@@ -28,7 +28,7 @@ use File::stat;
 
 use constant SIX_MONTHS_SECONDS => 60*60*24*(365/2);
 
-sub VERSION { '0.72' };
+sub VERSION { '1.001' };
 
 BEGIN {
 	my @perms = qw(--- --x -w- -wx r-- r-x rw- rwx);
@@ -63,7 +63,7 @@ ls - list file/directory information
 
 =head1 SYNOPSIS
 
-	% ls [-1ACFLRSTWacdfgiklmnopqrstux] [file ...]
+	% ls [-1ACFLRSTWacdfgiklmnopqrstux --version] [file ...]
 
 =head1 DESCRIPTION
 
@@ -207,32 +207,49 @@ sub is_long_listing         {   $_[0]->options->{'l'} }
 sub is_time_sort {
 	scalar grep { $_[0]->$_() } qw(is_ctime_sort is_last_access_sort is_modified_time_sort);
 	}
+sub force_multicolumn       {   $_[0]->options->{'C'} }
+sub sort_across             {   $_[0]->options->{'x'} }
+
+sub is_multicolumn          { scalar grep { $_[0]->$_() } qw(force_multicolumn is_long_listing sort_across) }
+
+sub option_error {
+	my($self, @args) = @_;
+	$self->error( join ': ', $self->program_name, $_ ) for @args;
+	}
 
 sub options_spec {
-	return [qw(1 A C F L R S T W a c d f g i k l m n o p q r s t u w=i x)];
+	return [qw(1 A C F L R S T W a c d f g i k l m n o p q r s t u version w=i x)];
 	}
 
 sub preprocess_options {
-	my($self) = 80;
+	my($self) = @_;
+	return $self;
+	}
 
+sub postprocess_arguments {
+	my($self) = @_;
+	$self->{'arguments'} = [qw(.)] unless @{ $self->{'arguments'} }; # current directory if nothing else
 	}
 
 sub postprocess_options {
-	my($self) = 80;
-
-	}
-
-sub main {
-	{
-	no strict 'refs';
-	*{"start_time"} = do { my $time = time; sub { $time } };
-	}
-
 	my($self) = @_;
 
-	my @args = @{ $self->arguments };
+	$self->options->{'a'} = 1 if $self->options->{'f'};
 
-	@args = qw(.) unless @args; # current directory if nothing else
+	if( $self->is_multicolumn and ! $self->is_interactive_terminal ) {
+		$self->options->{'1'} = 1;
+		}
+
+	return $self;
+	}
+
+
+sub main {
+	my($self) = @_;
+
+	return $self->VERSION_MESSAGE if $self->options->{'version'};
+
+	my @args = @{ $self->arguments };
 
 	my $ArgCount = -1;  # file/directory argument count
 	my %Attributes;     # File::stat directory entry attributes
@@ -240,7 +257,7 @@ sub main {
 	my @Files;          # non-directories in ARGV
 	my $First = 1;      # first directory entry on command line
 
-	for my $Arg (@args) {
+	foreach my $Arg (@args) {
 		$ArgCount++;
 		$Attributes{$Arg} = -l $Arg ? lstat($Arg) : stat($Arg);
 		my $ref = ( -d $Arg and $self->is_rich_dirs ) ? \@Dirs : \@Files;
@@ -261,7 +278,7 @@ sub main {
 		$self->List('.', 0, 0, @sorted, \%attrs);
 		}
 
-	for my $Arg ($self->Order(\%Attributes, @Dirs)) {
+	foreach my $Arg ($self->Order(\%Attributes, @Dirs)) {
 		if( ! $self->is_recursive ) {
 			$self->output( "\n" ) unless $First;
 			$First = 0;
@@ -282,19 +299,19 @@ sub _supported_options {
 	};
 
 sub usage {
-	my $self = shift;
-	require Pod::Usage;
+	my($self) = @_;
+	$self->load_module('Pod::Usage');
 	Pod::Usage::pod2usage(
 		-verbose => 2,
 		-output  => $self->error_fh,
 		);
-	$self->my_exit( $self->exit_code_usage );
+	$self->exit( $self->exit_code_usage );
 	}
 
 sub VERSION_MESSAGE {
-	my $self = shift;
+	my($self) = @_;
     $self->output( $self->program_name . " version " . $self->VERSION . " (Perl Power Tools, Perl $^V)\n" );
-    $self->my_exit( $self->exit_code_success );
+    return $self->exit_code_success;
 	}
 
 sub DirEntries {
