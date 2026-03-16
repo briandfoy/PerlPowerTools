@@ -78,7 +78,7 @@ sub postprocess_options {
 		my $last = '';
 
 		my @argv;
-		foreach ( @{ $self->argv } ) {
+		foreach ( @{ $self->command_line } ) {
 			last if /\A--\z/;
 			s/\A-//;
 			push @argv, map { "-$_" } split //, $_;
