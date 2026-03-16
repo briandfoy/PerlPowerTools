@@ -21,14 +21,11 @@ PerlPowerTools::Modulino::Base - basic functionality for all PerlPowerTools prog
 
 	... override what is different ...
 
-	sub program_coderef {
-		sub {
-			my( $class, $options, $args ) = @_;
-			...;
-	 		};
-	 	}
+	sub main {
+		my( $program ) = @_;
 
-	exit( __PACKAGE__->run ) unless caller;
+		return $exit_value;
+	 	}
 
 =head1 DESCRIPTION
 
@@ -54,44 +51,132 @@ don't have to handle all the tricky details themselves:
 
 =back
 
-Any of these parts can be overridden in the subclass.
+Anything that you want to change should be done through a subclass where you
+override the method. The use of override-able methods makes these things easy
+to test.
+
+=head2 Methods you must define
+
+=over 4
+
+=item * main
+
+The C<main> method represents the bulk of your program. This should be everything
+between option processing and exiting. The only argument is the program instance
+object, which has access to everything. This should return the exit value of the
+program (but don't call C<exit>!.
+
+See the section on L</Exit Values>, which has many methods that return particular
+exit values. If your program does not use the convention exit values, override the
+ones you need to change.
 
 =cut
 
-sub program {
+sub main {
 	die "You must override program()\n";
 	}
 
-sub new {
-	my( $class ) = @_;
+=item * handle_main_failure
 
-	my $self = bless {}, $class;
+C<run> wraps the call to C<main> in an C<eval>. If the C<eval> catches an error,
+C<run> calls C<handle_main_failure> with the value of C<$@>.
 
-	return $self;
+By default this outputs to the error filehandle the value of C<$@>, then exits
+with C<exit_code_program_failure>.
+
+=cut
+
+sub handle_main_failure {
+	my( $self, $at ) = @_;
+
+	$self->error( $@ );
+	$self->exit_code_program_failure;
 	}
 
+=item * program_name
+
+Returns the program name, which should be the last part of the Perl namespace. For
+example, for the namespace C<PerlPowerTools::cp>, the program name would be
+C<cp>.
+
+If you want a different name, perhaps because the name contains characters that
+cannot be in the namespace, override this.
+
+=cut
+
+sub program_name {
+	( my $name = ref $_[0] ) =~ s/.*:://;
+	return $name;
+	}
+
+=back
+
+=head2 Program instance construction
+
+=over 4
+
+=item * new(ARGS)
+
+Creates a blessed hash ref with one key: C<start_time>, then calls C<init>
+with C<ARGS>.
+
+Instead of overriding C<new>, you should probably handle everything in C<init>.
+
+=cut
+
+
+
+sub new {
+	my( $class, @args ) = @_;
+	my $self = bless { start_time => time }, $class;
+	$self->init(@args);
+	$self;
+	}
+
+=item * init
+
+By default this does nothing, but this is called in C<new> after it creates
+the program instance.
+
+=cut
+
+sub init {
+	return 1;
+	}
+
+=item * run
+
+This actually runs the program by calling C<process_options>, calling C<main>,
+and using the return value of C<main> as value it sends to the C<exit> method.
+
+=cut
+
 sub run {
-	my( $class ) = @_;
+	my( $either ) = @_;
 
-	my $self = $class->new;
+	my $program = ref $either ? $either : $either->new;
 
-	$self->preprocess_options;
-	$self->process_options;
-	$self->postprocess_options;
+	$program->process_options;
 
-	my $rc = eval { $self->main };
-	if( $@ ) {
-		$self->error( $@ );
-		$self->exit_code_program_failure;
-		}
-	$rc = $self->exit_code_program_failure unless defined $rc;
+	my $rc = do {
+		if($program->had_option_errors && $program->stop_on_option_error) {
+			$program->exit_code_usage
+			}
+		else {
+			my $rc = eval { $program->main };
+			$rc = $program->handle_main_failure($@) if $@;
+			$rc;
+			}
+		};
 
-	$self->exit($rc);
+	$program->exit($rc);
 	};
 
-=head2 Environment
+=back
 
-Probe the environment for certain things that we need to adapt.
+=head2 Platform details
+
+Probe the platform for certain things that we need to adapt.
 
 =over 4
 
@@ -136,7 +221,6 @@ sub windows_shell {
 =over 4
 
 =item default_columns
-
 
 =cut
 
@@ -186,6 +270,20 @@ sub has {
 
 =back
 
+=head2 Program details
+
+=over 4
+
+=item * start_time
+
+Returns the time that the program started.
+
+=cut
+
+sub start_time { $_[0]->{'start_time'} }
+
+=back
+
 =head2 Output
 
 This adds an abstraction layer over line-oriented output so we can
@@ -194,27 +292,57 @@ this easily, so they should just do what they need to do.
 
 =over 4
 
-=item * error(LIST)
+=item * debug(LIST)
 
-Outputs C<LIST> to the result of C<error_fh>.
+Outputs C<LIST> to the result of C<error_fh> if C<am_debugging> returns true.
+Otherwise, nothing is output.
 
-=item * error_fh()
+This is the value of C<debugging> in the program instance.
+
+=item * debug_fh
 
 Returns the filehandle for error output. This exists so you can override it,
 perhaps by supplying a string filehandle. By default, this is C<STDERR>.
 
-=item * output(LIST)
+=item * error(LIST)
 
-Outputs C<LIST> to the result of C<output_fh>.
+Outputs C<LIST> to the result of C<error_fh> if C<is_silent> returns false.
+Otherwise, nothing is output.
 
-=item * output_fh()
+Use this where you would use standard error.
+
+=item * error_fh
 
 Returns the filehandle for error output. This exists so you can override it,
+perhaps by supplying a string filehandle. By default, this is C<STDERR>.
+
+=item * is_silent
+
+Returns true if the program wants to run in silent mode (with no output).
+
+This is the value of C<silent> in the program instance.
+
+=item * output(LIST)
+
+Outputs C<LIST> to the result of C<output_fh> if C<is_silent> returns false.
+Otherwise, nothing is output.
+
+Use this where you would use standard output.
+
+=item * output_fh
+
+Returns the filehandle for standard output. This exists so you can override it,
 perhaps by supplying a string filehandle. By default, this is C<STDOUT>.
 
 =cut
 
-sub debug { my($self) = shift; print { $self->debug_fh } @_ }
+sub am_debugging { $_[0]->{debugging} || 0 }
+
+sub debug {
+	my($self) = shift;
+	return unless $self->am_debugging;
+	print { $self->debug_fh } @_
+	}
 
 sub debug_fh { \*STDERR }
 
@@ -224,7 +352,13 @@ sub error_fh { \*STDERR }
 
 sub input_fh { \*STDIN }
 
-sub output { my($self) = shift; print { $self->output_fh } @_ }
+sub is_silent { $_[0]->{silent} || 0 }
+
+sub output {
+	my($self) = shift;
+	return if $self->is_silent;
+	print { $self->output_fh } @_
+	}
 
 sub output_fh { \*STDOUT }
 
@@ -234,53 +368,38 @@ sub single_line_input { scalar readline $_[0]->input_fh }
 
 =head2 Argument processing
 
-We need to translate the arguments from their input encoding to UTF-8
+We need to translate the arguments from their input encoding to Perl strings
 so we can use them properly.
 
 =over 4
 
 =item * arguments
 
-Returns the original, undecoded arguments as an array reference. These
-are I<not> safe to use. By default, this is just C<@ARGV>, but you can
-override this.
+Returns the portion of the command line left over after options have been
+processed.
 
-This sets the C<arguments> value in the object.
+If called before option processing, this is the same as C<command_line>. Option
+processing will set the value for this method.
 
 =cut
 
 sub arguments {
 	my($self) = @_;
-	$self->{'arguments'} = $self->argv unless defined $self->{'arguments'};
+	$self->{'arguments'} = $self->command_line unless defined $self->{'arguments'};
 	return $self->{'arguments'};
 	}
 
-=item * argv
+=item * command_line_decoded
 
-Return the command line (without the program name) as an array ref. By default,
-this is just C<@ARGV>. This allows tests (and programs) to override where
-arguments come from.
-
-This differs from C<arguments> in that it only provides a list. It doesn't
-have to know anything about the inner workings, whereas C<arguments> does.
-
-This should always be the original arguments as the program received them and
-before the program processed them.
+Returns the decoded command line as Perl strings. These are safe to use. This
+uses the result of C<command_line> and has the values before any option
+processing.
 
 =cut
 
-sub argv { dclone \@ARGV }
-
-=item * arguments_decoded
-
-Returns the decoded arguments as Perl strings. These are safe to use. This
-uses the result of C<arguments>.
-
-=cut
-
-sub arguments_decoded {
+sub command_line_decoded {
 	my($self) = @_;
-	my $args = $self->arguments;
+	my $args = $self->command_line;
 
 	$self->load_module('I18N::Langinfo');
     my $codeset = I18N::Langinfo::langinfo(I18N::Langinfo::CODESET());
@@ -295,29 +414,43 @@ sub arguments_decoded {
 	$self->load_module('Encode');
     my @perl_strings = map { Encode::decode( $codeset, $_ ) } @$args;
 
-	dclone \@perl_strings;
+	$self->{'decoded_command_line'} = dclone \@perl_strings;
 	}
 
-=item * arguments_glob_resolved
+=item * command_line
 
-Returns the arguments with globs expanded if the shell did not already do
-that for us.
+Return the undecoded command line (without the program name) as an array
+ref. By default, this is just C<@ARGV>. This allows tests (and programs)
+to override where arguments come from.
+
+This should always be the original command line as the program received it
+and before the program processed it. Different shells may process a command
+line differently
+
+=cut
+
+sub command_line { dclone \@ARGV }
+
+=item * command_line_glob_resolved
+
+Returns the command line with globs expanded if the shell did not already do
+that for us as controlled by C<needs_to_expand_globs>.
 
 This is a lot more tricky than it seems.
 
-First, if a glob does not find any
-matching files, the result is the literal string that was the glob. For example,
-if C<*.txt2> matches nothing, then the literal C<*.txt2> is the resolved argument.
+If a glob does not find any matching files, the result is the literal
+string that was the glob. For example, if C<*.txt2> matches nothing, then
+the literal C<*.txt2> is the resolved argument.
 
 On
 
 =cut
 
-sub arguments_glob_resolved {
+sub command_line_glob_resolved {
 	my($self) = @_;
-	return $self->{'resolved_arguments'} if defined $self->{'resolved_arguments'};
+	return $self->{'resolved_command_line'} if defined $self->{'resolved_command_line'};
 
-	my $decoded = $self->arguments_decoded;
+	my $decoded = $self->command_line_decoded;
 	return $decoded unless $self->needs_to_expand_globs;
 
 	$self->load_module('File::Glob');
@@ -333,14 +466,13 @@ sub arguments_glob_resolved {
 			}
 		}
 
-	$self->{'resolved_arguments'} = dclone \@resolved;
+	$self->{'resolved_command_line'} = dclone \@resolved;
 	}
 
 =item * needs_to_expand_globs
 
 Use this to determine whether the command-line arguments require glob
-processing. So far, this should be only C<cmd> on Windows since
-Powershell expands globs.
+processing. So far this is the same as C<is_windows>.
 
 =cut
 
@@ -352,7 +484,34 @@ sub needs_to_expand_globs {
 
 =head2 Option processing
 
+Everything is done with L<Getopt::Long>, although you can override all of
+that.
+
 =over 4
+
+=item * had_option_errors
+
+Returns true if there were option errors.
+
+=cut
+
+sub had_option_errors {
+	my($self) = @_;
+	!! $self->{'option_errors'}
+	}
+
+=item * option_error
+
+Called for each warning raised by L<Getopt::Long>. By default, each message is
+sent unchanged to C<error>.
+
+=cut
+
+sub option_error {
+	my( $self, @args ) = @_;
+	$self->{'option_errors'} += @args;
+	$self->error( "option error: $_" ) for @args;
+	}
 
 =item * options
 
@@ -370,9 +529,39 @@ array ref.
 
 	sub options_spec { [ qw( a b c|count=i aardvark )] }
 
+Each option value will be stored in a hash. You can handle options
+errors with C<option_error>.
+
 =cut
 
 sub options_spec { [] }
+
+=item * postprocess_arguments
+
+A hook called after L<Getopt::Long> has done its work and allows you to fix
+up the list of arguments after options processing has been done.
+
+=cut
+
+sub postprocess_arguments { return }
+
+=item * postprocess_options
+
+A hook called inside C<process_options> before it does anything.
+
+=cut
+
+sub postprocess_options { return }
+
+=item * preprocess_arguments
+
+A hook called before L<Getopt::Long> has done its work. This is here for
+parallel structure, but L<process_options> is likely to overwrite anything
+you do.
+
+=cut
+
+sub preprocess_arguments { return }
 
 =item * preprocess_options
 
@@ -381,27 +570,38 @@ does nothing.
 
 =cut
 
-sub preprocess_options {
-	my($self) = @_;
-	return;
-	}
+sub preprocess_options { return }
 
 =item * process_options
 
-Applies the L<Getopt::Long>, using the options from C<options_spec>.
+Applies the L<Getopt::Long>, using the options from C<options_spec>. The
+option values are stored as a hash in the C<options> key in the instance,
+which you can get through C<options>. The leftover command-line values
+are stored as an array ref in the C<args> key in the instance.
 
-Returns a hash ref and an array ref. The hash ref is the processed
-options, where the keys are the shortest form of the option names.
+Before any work is done, this calls C<preprocess_arguments> and
+C<preprocess_options> so that programs can fix up anything it needs to
+modify before L<Getopt::Long> does its work. For example, some programs
+have weird edge cases that are easier to handle by adding or subtracting
+values from the command line before processing.
 
-The array ref is the leftover command-line arguments.
+Likewise, after all work is done, this calls C<postprocess_arguments> and
+C<postprocess_options> to modify the work that L<Getopt::Long> did. For
+example, some programs have options that are actually shorthand for
+turning on collections of other options, such as C<ls -f> implying C<-a>.
+That can happen here.
+
+All L<Getopt::Long> warnings are passed to C<option_error> so you can
+modify the warnings. By default, each warning is sent to C<error>.
 
 =cut
 
 sub process_options {
-	my $self = shift;
-	my $spec = $self->options_spec;
+	my($self) = @_;
 
-	my %opts;
+	$self->preprocess_arguments;
+	$self->preprocess_options;
+
 	# options name will be the first letter or the name
 	# a            => a
 	# a=s          => a
@@ -409,46 +609,98 @@ sub process_options {
 	# a|aardvark=s => a
 	# aardvark     => aardvark
 	# ...
+	my %opts;
+	my $spec = $self->options_spec;
 	my @opts = map {
 		my $s = $_;
 		$s =~ s/[|=].*//g;
 		$_ => \$opts{$s}
 		} @$spec;
 
+	my @args = @{ $self->command_line_glob_resolved };
+	$self->{'resolved_command_line'} = [ @args ];
+
+	{
 	$self->load_module("Getopt::Long");
+	local $SIG{'__WARN__'} = sub { $self->option_error(@_) };
 	Getopt::Long::Configure( qw(bundling no_ignore_case) );
-
-	my @args = @{ $self->arguments_glob_resolved };
-	$self->{'resolved_arguments'} = [ @args ];
-
 	Getopt::Long::GetOptionsFromArray(
 		\@args,
 		@opts,
 		);
+	}
 
 	$self->{'options'}   = \%opts;
 	$self->{'arguments'} = \@args;
 
-	return $self;
+	$self->postprocess_arguments;
+	$self->postprocess_options;
+
+	return $self->had_option_errors;
 	}
 
-=item * postprocess_options
+=item * stop_on_option_error
 
-A hook to preprocess the command line after C<process_options>. By default it
-does nothing.
+Some programs will want to stop for option erros, while others will continue.
+You can handle errors yourself with C<option_error>, override C<had_option_errors>
+to return 0, or unset C<option_errors> in the program instance.
+
+By default this returns true.
 
 =cut
 
-sub postprocess_options {
-	my($self) = @_;
-	return;
-	}
+sub stop_on_option_error { 1 }
+
+=back
+
+=head2 Environment
+
+=over 4
+
+=item * is_interactive_terminal
+
+Returns true if it thinks this is an interactive session. Some programs will
+implicitly sety options based on their estimation of interactivity.
+
+=cut
+
+# stolen directly from IO::Interactive
+sub is_interactive_terminal {
+    my ($out_handle) = (@_, select);    # Default to default output handle
+
+    # Not interactive if output is not to terminal...
+    return 0 if not -t $out_handle;
+
+    # If *ARGV is opened, we're interactive if...
+    if ( tied(*ARGV) or defined(fileno(ARGV)) ) { # this is what 'Scalar::Util::openhandle *ARGV' boils down to
+
+        # ...it's currently opened to the magic '-' file
+        return -t *STDIN if defined $ARGV && $ARGV eq '-';
+
+        # ...it's at end-of-file and the next file is the magic '-' file
+        return @ARGV>0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
+
+        # ...it's directly attached to the terminal
+        return -t *ARGV;
+    }
+
+    # If *ARGV isn't opened, it will be interactive if *STDIN is attached
+    # to a terminal.
+    else {
+        return -t *STDIN;
+    }
+}
 
 =back
 
 =head2 Exiting
 
-Don't use C<exit> directly since that is onerous to override in tests.
+Don't use C<exit> directly since that is onerous to override in tests. This is
+handled in C<run>.
+
+There are two sets of methods: ones that exit, and ones that provide values
+for exit. The default values are for the conventional Unix program return values,
+but not every Unix program follows those conventions.
 
 =over 4
 
@@ -568,9 +820,9 @@ sub exit_usage   { $_[0]->exit( $_[0]->exit_code_usage   ) }
 
 =over 4
 
-=item * CLASS->dumper( REF [, REF] )
+=item * dumper( REF [, REF] )
 
-A nicely-configured L<Data::Dumper>.
+A nicely-configured L<Data::Dumper> that returns a string.
 
 =cut
 
@@ -580,7 +832,7 @@ sub dumper {
 	Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump
 	}
 
-=item * CLASS->get_signal_number(NAME)
+=item * get_signal_number(NAME)
 
 Turn the signal C<NAME> into its number for this B<perl>. These numbers are not
 consistent across systems, so don't assume you know what the number is.
@@ -609,9 +861,9 @@ sub get_signal_number {
 	exists $sig_hash{uc($sig_name)} ? $sig_hash{uc($sig_name)} : ();
 	}
 
-=item * CLASS->load_module( MODULE [, FRIENDLY_MESSAGE] )
+=item * load_module( MODULE [, FRIENDLY_MESSAGE] )
 
-Dynamically load C<MODULE>, and if that fails, print a message. If
+Dynamically load C<MODULE>, and if that fails, output a message. If
 C<FRIENDLY_MESSAGE> is present, this outputs that message instead of perl's
 goobledegook.
 
@@ -635,21 +887,6 @@ sub load_module {
 			defined $message ? $message : 'Tried to load the Perl module <$module>: $at'
 			);
 		}
-	}
-
-=item * program_name
-
-Returns the program name, which should be the last name of the namespace. For
-example, for the namespace C<PerlPowerTools::cp>, the program name would be
-C<cp>.
-
-If you want a different name, perhaps because the name contains characters that
-cannot be in the namespace, override this.
-
-=cut
-
-sub program_name {
-	( my $name = ref $_[0] ) =~ s/.*:://;
 	}
 
 =item * windows_code_page_identifiers
