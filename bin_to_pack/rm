@@ -76,13 +76,24 @@ sub postprocess_options {
 	# then filter out all earlier of the other.
 	if( $self->is_force && $self->is_interactive ) {
 		my $last = '';
-		foreach ( reverse @{ $self->argv } ) {
+
+		my @argv;
+		foreach ( @{ $self->argv } ) {
+			last if /\A--\z/;
+			s/\A-//;
+			push @argv, map { "-$_" } split //, $_;
+			}
+
+		foreach ( reverse @argv ) {
 			next unless /\A-[fi]\z/;
 			$last = $_;
 			last;
 			}
 
 		$self->options->{'i'} = undef if $last eq '-f';
+		$self->options->{'f'} = 1     if $last eq '-f';
+
+		$self->options->{'i'} = 1     if $last eq '-i';
 		$self->options->{'f'} = undef if $last eq '-i';
 		}
 

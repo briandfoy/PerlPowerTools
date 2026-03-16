@@ -1,38 +1,25 @@
 use strict;
 use warnings;
+use lib qw(lib);
 
 use Test::More;
 
-my $class = require './bin/rm';
+my $class = require './bin_to_pack/rm';
 
-is( $class, 'PerlPowerTools::rm' );
+is $class, 'PerlPowerTools::rm';
 
-subtest preprocess_options => sub {
-	my $method = 'preprocess_options';
-	can_ok $class, 'new', 'options', $method;
+my $subclass;
+{
+package PerlPowerTools::rm::test;
+use vars qw(@ISA);
+@ISA = ($class);
 
-	my @table = (
-		[ [ qw(a b c        ) ],  [ qw( a b c        ) ] ],
-		[ [ qw(-- a b c     ) ],  [ qw(-- a b c      ) ] ],
-		[ [ qw(-abc         ) ],  [ qw(-a -b -c      ) ] ],
-		[ [ qw(-a -bc       ) ],  [ qw(-a -b -c      ) ] ],
-		[ [ qw(-ab -c       ) ],  [ qw(-a -b -c      ) ] ],
-		[ [ qw(-ab -- -c    ) ],  [ qw(-a -b -- -c   ) ] ],
-		[ [ qw(-ab -- -c    ) ],  [ qw(-a -b -- -c   ) ] ],
-		[ [ qw(-ab -- -abc  ) ],  [ qw(-a -b -- -abc ) ] ],
-		[ [ qw( -i -f       ) ],  [ qw( -f           ) ] ],
-		[ [ qw( -f -i       ) ],  [ qw( -i           ) ] ],
-		[ [ qw( -i -f -- -i ) ],  [ qw( -f -- -i     ) ] ],
-		[ [ qw( -f -i -- -f ) ],  [ qw( -i -- -f     ) ] ],
-		);
+my $error;
+open my $error_fh, '>>', \$error;
+sub error_fh { $error_fh }
 
-	foreach my $row ( @table ) {
-		my $instance = $class->new( {args => $row->[0]} )->$method();
-		isa_ok $instance, $class;
-		is_deeply $instance->{preprocessed_args}, $row->[1],
-			qq(preprocessed_args match for <@{$row->[0]}> -> <@{$row->[1]}>);
-		}
-	};
+$subclass = __PACKAGE__;
+}
 
 subtest process_options => sub {
 	my $method = 'process_options';
@@ -48,13 +35,22 @@ subtest process_options => sub {
 		[ [ qw(-ir -P       ) ],   {i=>1, P=>1, r=>1}, [qw()         ] ],
 		[ [ qw(-iR -P foo b ) ],   {i=>1, P=>1, R=>1}, [qw(foo b)    ] ],
 		[ [ qw(-ir -P f bar ) ],   {i=>1, P=>1, r=>1}, [qw(f bar)    ] ],
-		[ [ qw( -i -f -- -i ) ],   {f=>1            }, [qw( -i     ) ] ],
-		[ [ qw( -f -i -- -f ) ],   {i=>1            }, [qw( -f     ) ] ],
+
+		[ [ qw( -i -f -- -i ) ],   {f=>1            }, [qw( -i ) ] ],
+		[ [ qw( -f -i -- -f ) ],   {i=>1            }, [qw( -f ) ] ],
+		[ [ qw( -if         ) ],   {f=>1            }, [qw(    ) ] ],
+		[ [ qw( -fi         ) ],   {i=>1            }, [qw(    ) ] ],
 		);
 
-	my %defaults = map { $_ => 0 } qw(i f R r P v);
+	my %defaults = map { $_ => undef } qw(i f R r P v);
 	foreach my $row ( @table ) {
-		my $instance = $class->new( { args => $row->[0] } )->$method();
+		local @ARGV = @{ $row->[0] };
+		my $instance = $subclass->new->$method();
+
+		$instance->preprocess_options;
+		$instance->process_options;
+		$instance->postprocess_options;
+
 		isa_ok $instance, $class;
 		my $options = { %defaults, %{ $row->[1] } };
 		is_deeply $instance->options, $options,
