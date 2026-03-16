@@ -266,7 +266,7 @@ sub run_table {
             my ( $fh, $temp_filename ) = tempfile();
 			print {$fh} $input, "\n";
 
-			my $output = `"$^X" $Script $temp_filename`;
+			my $output = `"$^X" $Script $temp_filename 2>/dev/null`;
 
 			TODO: {
 				local $TODO = $todo;
