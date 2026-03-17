@@ -238,6 +238,14 @@ sub postprocess_options {
 		$self->options->{'1'} = 1;
 		}
 
+	if( ! defined $self->options->{'w'} ) {
+		$self->options->{'w'} = $self->get_columns;
+		}
+
+	if( defined $self->options->{'w'} and $self->options->{'w'} == 0 ) {
+		$self->options->{'w'} = $self->get_columns;
+		}
+
 	return $self;
 	}
 
