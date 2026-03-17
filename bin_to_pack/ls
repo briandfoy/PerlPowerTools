@@ -186,8 +186,6 @@ way you wish, provided you do not restrict others from doing the same.
 
 =cut
 
-sub default { 80 }
-
 sub is_ctime_sort           {   $_[0]->options->{'c'} }
 sub is_largest_first        {   $_[0]->options->{'S'} }
 sub is_last_access_sort     {   $_[0]->options->{'u'} }
