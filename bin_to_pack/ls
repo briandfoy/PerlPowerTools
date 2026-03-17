@@ -212,7 +212,16 @@ sub is_multicolumn          { scalar grep { $_[0]->$_() } qw(force_multicolumn i
 
 sub option_error {
 	my($self, @args) = @_;
-	$self->error( join ': ', $self->program_name, $_ ) for @args;
+
+	foreach my $arg ( @args ) {
+		if( $args[0] =~ /Option w requires an argument/ ) {
+			$self->{'options'}->{'w'} =  $self->terminal_width;
+			next;
+			}
+
+		$self->error( join ': ', $self->program_name, $arg );
+		$self->{'option_errors'}++;
+		}
 	}
 
 sub options_spec {
@@ -515,7 +524,6 @@ sub List {
 			}
 		}
 	else {
-		$self->options->{'w'} = $self->get_columns unless $self->options->{'w'} =~ /\d+/; ### preprocess
 		my $Cols    = (int($self->options->{'w'} / $max_file_length)) || 1;
 		my $Rows    = int(($#_+$Cols) / $Cols);
 		my $template = sprintf "%%-%ds ", $max_file_length;
