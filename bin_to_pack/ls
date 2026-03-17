@@ -303,8 +303,6 @@ sub main {
 		}
 	}
 
-sub start_time;
-
 sub _supported_options {
 	my $class = shift;
 	my $opts_string = $class->_opts_string;
@@ -478,7 +476,7 @@ UNDEFSTAT
 				$self->output( $Month[$mon] );
 				$self->output( sprintf " %2d ", $mday );
 
-				if( start_time() - $time <= SIX_MONTHS_SECONDS ) {
+				if( ($self->start_time - $time) <= SIX_MONTHS_SECONDS ) {
 					$self->output( sprintf "%02d:%02d", $hour, $min );
 					}
 				else {
