@@ -243,9 +243,9 @@ sub get_columns {
 			while( my $l = shift @lines ) { last if $l =~ /\A-----/ }
 			return $lines[0] =~ m/\A\s*(\d+)/ ? $1 : ();
 			}
-		elsif( has('tput') ) { `tput cols` }
-		elsif( has('stty') ) { `stty size  | cut -d' ' -f 2` }
-		else                 { () }
+		elsif( $self->has('tput') ) { `tput cols` }
+		elsif( $self->has('stty') ) { `stty size  | cut -d' ' -f 2` }
+		else                        { () }
 		};
 
 	$columns = $self->default_columns unless defined $columns;
