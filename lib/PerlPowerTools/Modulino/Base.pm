@@ -228,7 +228,8 @@ sub default_columns { 80 }
 
 =item * get_columns
 
-Attempts to
+Attempts to get the width of the terminal. If it can't do that, it uses
+the value returned by C<default_columms>.
 
 =cut
 
