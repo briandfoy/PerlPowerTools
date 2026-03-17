@@ -661,7 +661,7 @@ sub stop_on_option_error { 1 }
 =item * is_interactive_terminal
 
 Returns true if it thinks this is an interactive session. Some programs will
-implicitly sety options based on their estimation of interactivity.
+implicitly set options based on their estimation of interactivity.
 
 =cut
 
