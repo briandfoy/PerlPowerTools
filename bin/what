@@ -44,7 +44,7 @@ sub printWhat
     my $file_name   = shift;
     my $stop_flag   = shift;
     my $line;
-    print "$file_name:\n" if $file_name ne "";
+    print "$file_name:\n";
     while (defined($line = <$file_handle>))
     {
         next unless $line =~ m/\@\(#\)/;
