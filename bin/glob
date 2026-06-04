@@ -91,7 +91,7 @@ sub run {
 sub exit {
 	my( $class, $code, $message ) = @_;
 
-	print STDERR $message if defined $message;
+	print { *STDERR } "$message\n" if defined $message;
 	exit( defined $code ? $code : 0 );
 	}
 
