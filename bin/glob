@@ -90,7 +90,7 @@ sub run {
 
 sub exit {
 	my( $class, $code, $message ) = @_;
-
+	chomp $message;
 	print { *STDERR } "$message\n" if defined $message;
 	exit( defined $code ? $code : 0 );
 	}
