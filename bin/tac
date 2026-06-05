@@ -11,11 +11,6 @@ License: perl
 
 =cut
 
-
-#
-# tac - concatenate and print files in reverse
-#
-
 use strict;
 
 use File::Basename qw(basename);
@@ -25,16 +20,15 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my $VERSION = '0.19';
+my $VERSION = '0.20';
 
 my %opts;
-getopts('bBrs:S:', \%opts) or usage();
+getopts('bBrs:', \%opts) or usage();
 my %long = qw/
     b before
     B binary
     r regex
     s separator
-    S size
 /;
 %opts = map {$long{$_}, $opts{$_}} keys %opts;
 
@@ -42,12 +36,6 @@ if (defined $opts{separator} && $opts{regex}) {
     for ($opts{separator}) {
         s!^/(.*)/\z!$1!s;
         $_ = qr/$_/;
-    }
-}
-if (defined $opts{'size'}) {
-    if ($opts{'size'} !~ m/\A[0-9]+\Z/ || $opts{'size'} == 0) {
-        warn "$Program: option -S expects a number >= 1\n";
-        usage();
     }
 }
 $opts{files} = \@ARGV;
@@ -66,7 +54,7 @@ sub VERSION_MESSAGE {
 }
 
 sub usage {
-    warn "usage: $Program [-Bbr] [-s separator] [-S bytes] [file...]\n";
+    warn "usage: $Program [-Bbr] [-s separator] [file...]\n";
     exit EX_FAILURE;
 }
 
@@ -82,6 +70,8 @@ use strict;
 use Carp;
 use Symbol;
 use Fcntl;
+
+use constant BUFFER_SIZE => 8192;
 
 sub new {
     my $class = shift;
@@ -169,7 +159,7 @@ sub TIEHANDLE {
             RS      => qr/^/,       # Always match.
         };
     } else {                    # Line mode.
-        *$self->{size} ||= 8192;
+        *$self->{size} = BUFFER_SIZE;
         *$self->{RE} = {
             broken  => qr/\A$RS/,   # RS broken at chunk boundary.
             RS      => qr/$RS/,     # Match RS.
@@ -380,7 +370,7 @@ tac - concatenate and print files in reverse
 
 =head1 SYNOPSIS
 
-B<tac> [-Bbr] [-s separator] [-S bytes] [file...]
+B<tac> [-Bbr] [-s separator] [file...]
 
 =head1 DESCRIPTION
 
@@ -407,10 +397,6 @@ The separator is a regular expression.
 
 Use STRING as record separator.  Set to C<''> for paragraph mode.  Defaults to
 newline.
-
-=item -S BYTES
-
-Number of bytes to read at a time.  Defaults to 8192.
 
 =back
 
