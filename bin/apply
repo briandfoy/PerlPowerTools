@@ -68,14 +68,14 @@ my $command = shift;
 usage() unless @ARGV;
 
 # Scan $command for ``%d''.
-my @thingies = $command =~ /${magic}(\d+)/g;
+my @thingies = $command =~ /${magic}([1-9])/g;
 $argc = max(@thingies) if @thingies;
 
 # Now, apply the command till we run out.
 my $err = EX_SUCCESS;
 while (@ARGV && @ARGV >= $argc) {
     if (@thingies) {
-       (my $new_command = $command) =~ s/${magic}(\d+)/$ARGV [$1 - 1]/ge;
+		(my $new_command = $command) =~ s/${magic}([1-9])/$ARGV [$1 - 1]/ge;
         run_cmd($new_command); # Reinterpreted by the shell!
         splice @ARGV, 0, $argc;
     }
