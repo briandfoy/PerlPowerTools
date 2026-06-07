@@ -74,6 +74,7 @@ sub new_argv
 {
     my @new;
     my $end = 0;
+    my $prev = '';
 
     foreach my $arg (@ARGV) {
         if ($arg eq '--' || $arg !~ m/\A[\-\+]/) {
@@ -82,11 +83,12 @@ sub new_argv
             next;
         }
 
-        if (!$end && $arg =~ m/\A([\-\+][0-9]+)\Z/) { # historic
+        if (!$end && $prev ne '-n' && $arg =~ m/\A([\-\+][0-9]+)\Z/) { # historic
             push @new, "-n$1";
         } else {
             push @new, $arg;
         }
+        $prev = $arg;
     }
     return @new;
 }
