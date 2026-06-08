@@ -146,6 +146,15 @@ sub print_tail
     my $i=0;
     my @buf;
 
+    # Show all of input for -r by default
+    if ($opt_r && !defined($opt_b) && !defined($opt_c) && !defined($opt_n)) {
+        @buf = <$fh>;
+        for (reverse (0 .. $#buf)) {
+            print $buf[$_];
+        }
+        return;
+    }
+
     if($type eq "n") {  # line
 
     if($p > 0) { # start from the beginning of the file
