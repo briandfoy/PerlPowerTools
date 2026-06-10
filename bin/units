@@ -223,7 +223,7 @@ sub unit_want {
 
     my $wu = $class->parse_unit($want);
 
-    if (is_Zero($wu)) {
+    if (is_Zero($wu) && defined($PARSE_ERROR)) {
       print $PARSE_ERROR, "\n";
     }
     return { want => $want, wu => $wu };
@@ -243,6 +243,7 @@ sub unit_convert {
     debug_t('have unit', dumper($hu));
     debug_t('want unit', dumper($wu));
 
+    exit(1) if is_Zero($hu) or is_Zero($wu);
     my $is_temperature = 0;
     $is_temperature++ if $hu->{Temperature};
     $is_temperature++ if $wu->{Temperature};
