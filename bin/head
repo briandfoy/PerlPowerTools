@@ -21,7 +21,7 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.3';
+my ($VERSION) = '1.4';
 
 @ARGV = new_argv();
 my %opt;
@@ -32,11 +32,11 @@ unless (getopts('n:', \%opt)) {
 my $count;
 if (defined $opt{'n'}) {
     $count = $opt{'n'};
-    if (length($count) == 0 || $count =~ m/[^0-9]/) {
+    if ($count !~ m/\A[\-\+]?[0-9]+\Z/) {
         warn "$Program: invalid number '$count'\n";
         exit EX_FAILURE;
     }
-    if ($count == 0) {
+    if ($count <= 0) {
         warn "$Program: count is too small\n";
         exit EX_FAILURE;
     }
@@ -89,6 +89,7 @@ sub head_fh {
 sub new_argv {
     my @new;
     my $end = 0;
+    my $prev = '';
 
     foreach my $arg (@ARGV) {
         if ($arg eq '--' || $arg !~ m/\A\-/) {
@@ -97,11 +98,12 @@ sub new_argv {
             next;
         }
 
-        if (!$end && $arg =~ m/\A\-([0-9]+)\Z/) { # historic
+        if (!$end && $prev ne '-n' && $arg =~ m/\A\-([0-9]+)\Z/) { # historic
             push @new, "-n$1";
         } else {
             push @new, $arg;
         }
+	$prev = $arg;
     }
     return @new;
 }
@@ -133,6 +135,7 @@ I<head> accepts the following options:
 =item -n count
 
 Print I<count> lines instead of the default 10.
+The number must be a positive decimal integer.
 
 =back
 
@@ -164,4 +167,3 @@ and sell this program (and any modified variants) in any way you wish,
 provided you do not restrict others to do the same.
 
 =cut
-
