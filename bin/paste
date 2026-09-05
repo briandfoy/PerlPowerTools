@@ -21,16 +21,24 @@ use constant EX_SUCCESS => 0;
 use constant EX_FAILURE => 1;
 
 my $Program = basename($0);
-my ($VERSION) = '1.4';
-my (@fh, @sep, %opt);
+my ($VERSION) = '1.5';
+my (@fh, %opt);
+
+my @sep = ("\t");
+my %DELIM = (
+	'n'  => "\n",
+	't'  => "\t",
+	'\\' => "\\",
+	'0'  => "",
+);
 
 getopts('d:s', \%opt) or usage();
 @ARGV or usage();
 
 if (defined $opt{'d'}) {
-	@sep = split //, eval { "$opt{d}" };
-} else {
-	@sep = ("\t");
+	$opt{'d'} =~ s/\\(.)/delim_esc($1)/eg;
+	@sep = split //, $opt{'d'};
+	@sep = ('') unless @sep;
 }
 
 foreach my $f (@ARGV) {
@@ -85,6 +93,12 @@ while (files_open()) {
 	print "$tline\n";
 }
 exit EX_SUCCESS;
+
+sub delim_esc {
+	my $c = shift;
+	return $c unless exists $DELIM{$c};
+	return $DELIM{$c};
+}
 
 sub files_open {
 	for my $f (@fh) {
