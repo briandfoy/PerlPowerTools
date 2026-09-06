@@ -155,9 +155,10 @@ sub get_a_line {
   my $not_eof = defined(my $line = <$fh>);
   if ($not_eof) {
     chomp $line;
-    push (@$aref,
-	  defined $delimiter ?
-	  [split $delimiter, $line, -1] : [split ' ', $line, -1]);
+    my $d = $delimiter;
+    $d = ' ' unless defined $d;
+    my @parts = split /\Q$d\E/, $line, -1;
+    push @{ $aref }, [ @parts ];
   }
   else { push @$aref, undef }
   return $not_eof;
