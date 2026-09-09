@@ -237,7 +237,8 @@ sub get_lines {
             my $tell = sysseek $fh, 0, 1;
             unless ($tell > $size) {
                 sysseek $fh, 0, 0       or confess "Bad seek on [$file]: $!";
-                sysread $fh, $_, $tell  or confess "Bad read on [$file]: $!";
+                my $n = sysread $fh, $_, $tell;
+                confess("Bad read on [$file]: $!") unless defined $n;
                 *$self->{EOF}++, last CHUNK;
             }
             sysseek $fh, -$size, 1      or confess "Bad seek on [$file]: $!";
