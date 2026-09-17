@@ -108,10 +108,8 @@ if (!$fh1 && !$fh2) {
     }
 
     if (defined($stat1[ST_INO]) && $stat1[ST_INO] == $stat2[ST_INO]) {
-        exit EX_SUCCESS;                        # hopefully, on platforms where
-    }                                           # inode is meaningless, stat
-                                                # returns undef.
-
+        exit(EX_SUCCESS) if (($skip1 || 0) == ($skip2 || 0));
+    }
     if ($stat1[ST_SIZE] == 0 || $stat2[ST_SIZE] == 0) {
         # special handling for zero-length files
         if ($stat1[ST_SIZE] == 0 && $stat2[ST_SIZE] == 0) {
