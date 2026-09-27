@@ -508,7 +508,11 @@ sub edMove {
         splice @lines, $i, $count;
     }
     file_modified();
-    $CurrentLineNum = $dst + scalar(@copy);
+    if ($delete && $dst > $end) { # move past end of range
+        $CurrentLineNum = $dst;
+    } else {
+        $CurrentLineNum = $dst + scalar(@copy);
+    }
     return;
 }
 
