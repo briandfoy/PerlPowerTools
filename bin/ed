@@ -878,6 +878,7 @@ sub edInsert {
 
     splice @lines, $src, 0, @tmp_lines;
 
+    $CurrentLineNum = $src + @tmp_lines - 1;
     file_modified();
     return;
 }
