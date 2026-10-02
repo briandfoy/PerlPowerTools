@@ -47,7 +47,7 @@ use strict;
 
 use File::Temp qw();
 use Getopt::Std qw(getopts);
-use List::Util qw(max);
+use List::Util qw(max min);
 use Text::ParseWords qw(quotewords);
 
 use constant A_NOMATCH => -1;
@@ -603,11 +603,7 @@ sub edDelete {
         splice @lines, $i, 1;
     }
     file_modified();
-
-    $CurrentLineNum = $adrs[0];
-    if ($CurrentLineNum > maxline()) {
-        $CurrentLineNum = maxline();
-    }
+    $CurrentLineNum = min($adrs[0], maxline());
     return;
 }
 
