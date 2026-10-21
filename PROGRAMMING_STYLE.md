@@ -2,19 +2,23 @@ All programs must work with Perl v5.8. This is a historical contract with users,
 
 Each program must be standalone except for core modules that came with v5.8 (try `corelist` to check any module that you'd like to use). We also can't use a common module to provide functionality because that would require keeping track of that file instead of dropping in a single file.
 
+You can assume that you can use anything you like in the Standard Library. If a distribution such as Red Hat wants to provide a broken `perl`, that's their problem. And if someone decides to use a minimal system, they have to do the work that entails.
+
 Many of these style preferences come from the dirty work of providing a consistent and proper interface for programs that might be used in a shell program where the exit codes and output matter. We can't take the usual Perl sloppy shortcuts here.
+
+We want to do the extra work to make the Perl versions of these programs act just like the original BSD tools.
 
 ## Basic style
 
-Every script has its own style it seems. Stay close to that when you
-make changes.
+Every script has its own style, it seems. Stay close to that when you make small changes. If you make huge changes where most of the code is now yours, change everything else to match your style.
 
-So far we don't have a perltidy setup for this.
+So far we don't have a perltidy setup for this. That wouldn't be a bad idea, but I don't really care about a consistent style across programs.
+
+And, most of these programs are from the 1990s, an era before the Perl programmers had developed good practices for supporting code.
 
 ## Convert to modulinos when you can
 
-A modulino is a program file that can act both as a library and a program. Essentially, this re-adds the implicit `main` back, and only
-calls that `main` if the file wasn't loaded as a library. In this case, `main` is named `run` instead:
+A modulino is a program file that can act both as a library and a program. Essentially, this re-adds the implicit `main` back, and only calls that `main` if the file wasn't loaded as a library. In this case, `main` is named `run` instead:
 
 	run(@ARGV) unless caller;
 
@@ -80,7 +84,7 @@ End the `die` and `warn` messages with a newline to suppress file and line numbe
 
 ## Don't use $0 directly
 
-The `$0` might have path information in it depending on how the program was invoked. Take the basename of `$0` and assign that to `$Program`, then use `$Program` where you wanted `$0`:
+The `$0` might include path information depending on how the program was invoked. Take the basename of `$0` and assign that to `$Program`, then use `$Program` where you wanted `$0`:
 
 	use File::Basename;
 	my $Program = basename($0);
