@@ -23,7 +23,7 @@ my @primes = (2, 3, 5, 7, 11);          # None have been tested
 my @next_primes = ();                   # Avoid redoing work
 
 
-my $VERSION = '1.003';
+my $VERSION = '1.004';
 
 END {
   close STDOUT || die "$0: can't close stdout: $!\n";
@@ -76,6 +76,7 @@ sub primes {
     &more_primes($primes[-1]+1, int(2*sqrt($end)));
   }
   my $from = $start-1;
+  $from = 1 if $from < 1;
   my $to = $from;
   until ($to == $end) {
     $from = $to + 1;
