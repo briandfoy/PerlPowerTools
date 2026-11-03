@@ -263,6 +263,10 @@ sub process_options {
 
 	local @ARGV = @_;
 	Getopt::Std::getopts( 'ap:') or $class->usage();
+	if (@ARGV > 1) {
+		$class->error("unexpected argument: '$ARGV[1]'\n");
+		$class->usage();
+	}
 	return $ARGV[0];
 	}
 
