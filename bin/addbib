@@ -257,9 +257,35 @@ sub output_instructions {
 _EOINST
 	}
 
-sub process_options {
-	require Getopt::Std;
-	my $class = shift;
+	unless ($opt_a) {
+		print "Abstract: ";
+		$_ = <>;
+		next if (/^$/);
+		print $DATABASE "%X\t$_";
+		while (<>) {
+			print $DATABASE $_;
+		}
+		# the person broke out of that while() with ^D/^Z
+		if ( $^O eq 'MSWin32' ) {
+        	open STDIN, '<', 'CON' or die $!;
+    	}
+    	else {
+        	open STDIN, '<', '/dev/tty' or die $!;
+    	}
+	}
+} continue {
+	print "Continue? (y) ";
+	$_ = <>;
+	while (/^\s*(ed|edit|ex|vi|view|emacs)\s*/) {
+		close $DATABASE or die "can't close $database: $!";
+		system($1, $database) == 0
+		 or die "system '$1 $database' failed: $?";
+		open $DATABASE, '>>', $database or die "can't open $database: $!";
+		print "Continue? (y) ";
+		$_ = <>;
+	}
+	last if m/\A[nq]/i;
+}
 
 	local @ARGV = @_;
 	Getopt::Std::getopts( 'ap:') or $class->usage();
