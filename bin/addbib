@@ -153,7 +153,7 @@ program and saves the C<database> file to the filesystem.
 
 The C<-a> option suppresses prompting the user for an abstract; entering an
 abstract is the default behaviour.  To finish entering an abstract, enter
-C<Ctrl-d>.
+C<Ctrl-D> on Unix and C<Ctrl-Z> C<RETURN> on Windows.
 
 The C<-p> option allows for the definition of new prompt sequences.  The
 prompt file uses the following format: C<prompt text> followed by a C<tab
