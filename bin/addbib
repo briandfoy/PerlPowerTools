@@ -101,6 +101,13 @@ while (1) {
 		while (<>) {
 			print $DATABASE $_;
 		}
+		# the person broke out of that while() with ^D/^Z
+		if ( $^O eq 'MSWin32' ) {
+        	open STDIN, '<', 'CON' or die $!;
+    	}
+    	else {
+        	open STDIN, '<', '/dev/tty' or die $!;
+    	}
 	}
 } continue {
 	print "Continue? (y) ";
