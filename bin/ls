@@ -48,6 +48,20 @@ sub windows {
 	return $lines[0] =~ m/\A\s*(\d+)/ ? $1 : ();
 	}
 
+sub adjust_args {
+    return unless $^O eq 'MSWin32';
+	my($args) = @_;
+
+	require File::Glob;
+	my $flags = File::Glob::GLOB_NOCHECK()  # no match: keep the pattern, like sh
+			  | File::Glob::GLOB_BRACE()    # {a,b}
+			  | File::Glob::GLOB_NOCASE()
+			  | File::Glob::GLOB_QUOTE()
+			  | File::Glob::GLOB_TILDE()
+			  ;  # Windows filesystems ignore case
+	@$args = map { /[*?\[{]/ ? File::Glob::bsd_glob( $_, $flags ) : $_ } @$args;
+	}
+
 sub unix {
 	return if $^O eq 'MSWin32';
 	my $c = do {
@@ -529,6 +543,7 @@ sub run {
 	my $Options;
 	( $Options, @args ) = $class->process_options(@args);
 	@args = qw(.) unless @args; # current directory if nothing else
+	adjust_args(\@args);
 
 	my $ArgCount = -1;  # file/directory argument count
 	my %Attributes;     # File::stat directory entry attributes
