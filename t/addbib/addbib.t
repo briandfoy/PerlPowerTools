@@ -15,10 +15,7 @@ BEGIN {
 	$unwritable_file = catfile qw(t data unwriteable_file);
 
 	my $message = do {
-		if( ! eval "require Term::ReadKey" ) {
-			'Term::ReadKey required for testing'
-			}
-		elsif( $^O eq 'MSWin32' and $ENV{'GITHUB_ACTIONS'} ) {
+		if( $^O eq 'MSWin32' and $ENV{'GITHUB_ACTIONS'} ) {
 			q(Can't test on Windows in GitHub Actions);
 			}
 		else {
@@ -47,6 +44,20 @@ BEGIN {
 
 my $program = 'bin/addbib';
 my $class = "PerlPowerTools::" . basename($program);
+
+my $prompt_answers = <<~"HERE";
+	Aaaa
+	Tttt
+	Jjjj
+	Vvvv
+	Pppp
+	Pupup
+	Ccc
+	Ddate
+	Oooo
+	Kkkk
+	n
+	HERE
 
 $main::output = '';
 open $main::out_fh, '>', \$main::output;
@@ -135,8 +146,9 @@ subtest 'run' => sub {
 	subtest 'show instructions' => sub {
 		my($fh, $filename) = File::Temp::tempfile();
 
-		my $input = "y\n\003";
+		my $input = "y\n" . $prompt_answers;
 		my $args = [
+			'-a',
 			$filename,
 			];
 		my $result = run_command(
@@ -152,15 +164,15 @@ subtest 'run' => sub {
 		my($fh, $filename) = File::Temp::tempfile();
 
 		my @tuples = (
-			[ "\n\003",  'no n'   ],
-			[ "n\n\003", 'with n' ],
+			[ "\n"  . $prompt_answers,  'no n'  ],
+			[ "n\n" . $prompt_answers, 'with n' ],
 			);
 
 		foreach my $tuple ( @tuples ) {
 			my( $input, $label ) = @$tuple;
 			subtest $label => sub {
-				my $input = "\n\003";
 				my $args = [
+					'-a',
 					$filename,
 					];
 				my $result = run_command(
