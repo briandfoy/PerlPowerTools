@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use strict;
 
 =begin metadata
 
@@ -11,45 +12,191 @@ License: perl
 
 =cut
 
+package PerlPowerTools::addbib;
 
-use strict;
-use Getopt::Std;
+use constant ABSTRACT              => 'Abstract';
+use constant STOP_ON_NEWLINE       => 0;
+use constant KEEP_GOING_ON_NEWLINE => 1;
+
+use constant EX_SUCCESS => 0;
+use constant EX_FAILURE => 1;
+use constant EX_USAGE   => 2;
+
 use vars qw($opt_a $opt_p);
+use Getopt::Std;
 
-$0 =~ s(.*/)();
-my $usage = "usage: $0 [ -a ] [ -p promptfile ] database\n";
-getopts "ap:" and @ARGV==1 or die $usage;
+exit( __PACKAGE__->run(@ARGV) ) unless caller();
 
-my @prompts = (
-		"Author name:\t%A",
-		"Title:\t%T",
-		"Journal:\t%J",
-		"Volume:\t%V",
-		"Pages:\t%P",
-		"Publisher:\t%I",
-		"City:\t%C",
-		"Date:\t%D",
-		"Other:\t%O",
-		"Keywords:\t%K",
-);
+sub run {
+	my($class, @args) = @_;
+	select $class->output_fh;
 
-if (defined $opt_p) {
-	@prompts = ();
-	open my $PROMPTFILE, '<', $opt_p or die "can't read $opt_p: $!";
-	foreach (<$PROMPTFILE>) {
-		if (/^\s*([^%]+)\t(%\w)/) {
-			push @prompts, "$1\t$2";
+	local @ARGV = @_;
+	$0 =~ s(.*/)();
+
+	my $database_file = $class->process_options(@args);
+	unless( defined $database_file ) {
+		$class->usage();
+		return EX_USAGE;
 		}
+
+	my $db_fh = $class->open_db($database_file);
+	unless( defined $db_fh ) {
+		$class->error( "Could not open <$database_file>: $!\n" );
+		return EX_FAILURE;
+		}
+
+	my @Prompts = $class->default_prompts();
+
+	if( $opt_p ) {
+		@Prompts = ();
+		open my $fh, '<', $opt_p or do {
+			$class->error( "can't read $opt_p: $!" );
+			return EX_FAILURE;
+			};
+		while (<$fh>) {
+			push @Prompts, [ $1, $2 ] if /^\s*([^%]+)\t(%\w)/;
+			}
+		}
+
+	my $answer = $class->prompt( 'Instructions?', 'n' );
+	$class->output_instructions if $answer =~ /^y/i;
+
+	RECORD: while (1) {
+		print {$db_fh} "\n";		# start a new entry
+
+		my $lines = $class->get_record(@Prompts);
+		print {$db_fh} join '', @$lines;
+
+		CONTINUE: {
+			my $answer = $class->prompt( 'Continue?', 'y', STOP_ON_NEWLINE );
+			last RECORD if $answer =~ m/\A[nq]/i;
+
+			if( $answer =~ /^\s*(ed|edit|ex|vi|view|emacs)\s*/ ) {
+				my $editor = $1;
+				close $db_fh or do {
+					$class->error( "can't close $database_file: $!\n" );
+					return EX_FAILURE;
+					};
+				unless( 0 == system $editor, $database_file ) {
+					$class->error( "'$1 $database_file' failed: $?\n" );
+					return EX_FAILURE;
+					}
+				$db_fh = $class->open_db($database_file);
+				redo CONTINUE;
+				}
+			}
+		}
+
+	return EX_SUCCESS;
 	}
-	close($PROMPTFILE);
-}
 
-my $database = shift;
-my $DATABASE;
-open $DATABASE, '>>', $database or die "can't append to $database: $!";
+sub default_prompts {
+	(
+	[ 'Author name', '%A' ],
+	[ 'Title',       '%T' ],
+  	[ 'Journal',     '%J' ],
+  	[ 'Volume',      '%V' ],
+  	[ 'Pages',       '%P' ],
+  	[ 'Publisher',   '%I' ],
+  	[ 'City',        '%C' ],
+  	[ 'Date',        '%D' ],
+  	[ 'Other',       '%O' ],
+  	[ 'Keywords',    '%K' ],
+  	[ ABSTRACT,      '%X' ],
+	);
+	}
 
-my $inst = <<_EOINST;
-	Addbib will prompt you for various bibliographic fields.
+sub error_fh  { *STDERR }
+
+sub error {
+	my $class = shift;
+	print {$class->error_fh} @_;
+	}
+
+sub get_line {
+	my( $class, $keep_going_on_newline ) = @_;
+	$keep_going_on_newline = defined $keep_going_on_newline ? $keep_going_on_newline : STOP_ON_NEWLINE;
+
+	my $line = '';
+	while(<STDIN>) {
+		$line .= $_;
+		last unless $keep_going_on_newline;
+		}
+
+	if( $keep_going_on_newline and -t STDIN) {
+		if ( $^O eq 'MSWin32' ) {
+			open STDIN, '<', 'CON' or die $!;
+			}
+		else {
+			open STDIN, '<', '/dev/tty' or die $!;
+			}
+		}
+
+	return $line;
+	}
+
+sub get_record {
+	my $class = shift;
+	my @Prompts = @_;
+	my @lines = ();
+
+	print STDERR "get_record: start\n";
+	PROMPT: for (my $i=0; $i < @Prompts; $i++)  {
+		next PROMPT if( $opt_a and $Prompts[$i][0] eq ABSTRACT );
+
+		local $_ = $class->prompt( $
+			Prompts[$i][0],
+			undef,
+			$Prompts[$i][0] eq ABSTRACT ? KEEP_GOING_ON_NEWLINE : STOP_ON_NEWLINE
+			);
+		$_ = defined $_ ? $_ : '';
+		chomp($_);
+		next PROMPT if /^$/;
+
+		if( /^-$/ ) {
+			$i -= 2;
+			next PROMPT;
+			}
+
+		if( $Prompts[$i][0] eq ABSTRACT ) {
+			s/^\s*/%X\t/mg;
+			push @lines, "$_\n";
+			}
+		else {
+			push @lines, "$Prompts[$i][1]\t$_\n";
+			}
+		}
+	print STDERR "get_record: end\n";
+
+
+	return \@lines;
+	}
+
+sub my_die {
+	my($class, $message, $exit_code) = @_;
+	print { $class->error_fh } shift;
+	exit($exit_code);
+	}
+
+sub my_exit { exit shift }
+
+sub open_db {
+	my( $class, $file ) = @_;
+	open my $fh, '>>', $file or return;
+	return $fh;
+	}
+
+sub output {
+	my $class = shift;
+	print {$class->output_fh} @_;
+	}
+
+sub output_fh { *STDOUT }
+
+sub output_instructions {
+	$_[0]->output( <<_EOINST );
+	addbib will prompt you for various bibliographic fields.
 	If you don't need a particular field, just hit RETURN,
 		and that field will not appear in the output file.
 	If you want to return to previous fields in the skeleton,
@@ -63,67 +210,44 @@ my $inst = <<_EOINST;
 	To edit the database, type `edit', `vi', or `ex' instead.
 
 _EOINST
-
-print "Instructions? (n) ";
-$_ = <>;
-print "$inst" if /^y/i;
-
-# The use of an array instead of a hash looks hokey here
-# I did it to preserve order.
-
-while (1) {
-	print $DATABASE "\n";		# start a new entry
-
-	PROMPT: for (my $i=0; $i < @prompts; $i++)  {
-		my ($prompt, $code) = split /\t/, $prompts[$i];
-		print "$prompt ";
-		$_ = <>;
-		next PROMPT if /^$/;	# blank line means "don't want it"
-		if (/^-$/) {		# go back to the last prompt
-			$i -= 2;
-			next PROMPT;
-		}
-		print $DATABASE "$code\t";
-		while (/\\$/) {
-			chop; chop;
-			print $DATABASE "$_\n";
-			print "> ";
-			$_ = <>;
-		}
-		print $DATABASE $_;
 	}
 
-	unless ($opt_a) {
-		print "Abstract: ";
-		$_ = <>;
-		next if (/^$/);
-		print $DATABASE "%X\t$_";
-		while (<>) {
-			print $DATABASE $_;
-		}
-		# the person broke out of that while() with ^D/^Z
-		if ( $^O eq 'MSWin32' ) {
-        	open STDIN, '<', 'CON' or die $!;
-    	}
-    	else {
-        	open STDIN, '<', '/dev/tty' or die $!;
-    	}
-	}
-} continue {
-	print "Continue? (y) ";
-	$_ = <>;
-	while (/^\s*(ed|edit|ex|vi|view|emacs)\s*/) {
-		close $DATABASE or die "can't close $database: $!";
-		system($1, $database) == 0
-		 or die "system '$1 $database' failed: $?";
-		open $DATABASE, '>>', $database or die "can't open $database: $!";
-		print "Continue? (y) ";
-		$_ = <>;
-	}
-	last if m/\A[nq]/i;
-}
+sub process_options {
+	require Getopt::Std;
+	my $class = shift;
 
-close $DATABASE or die "can't close $database: $!";
+	local @ARGV = @_;
+	{
+	local $SIG{__WARN__} = sub { 1 };
+	Getopt::Std::getopts( 'ap:');
+	}
+
+	return $ARGV[0];
+	}
+
+sub prompt {
+	my( $class, $prompt, $default, $is_abstract ) = @_;
+
+	$class->output(
+		$prompt,
+		(defined $default ? " [$default]" : '' ),
+		': '
+		);
+
+	chomp( my $answer = $class->get_line($is_abstract) );
+	$answer = $default if $answer =~ /^$/;
+	no warnings;
+	return $answer;
+	}
+
+sub usage {
+	require File::Basename;
+	$_[0]->output(
+		sprintf "usage: %s [ -a ] [ -p promptfile ] database\n", File::Basename::basename($0)
+		);
+	return 2;
+	}
+
 
 __END__
 
