@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+use utf8;
+use open qw(:std :utf8);
 
 =begin metadata
 
@@ -26,7 +28,38 @@ use constant EX_FAILURE         => 1;
 use constant SIX_MONTHS_SECONDS => 60*60*24*(365/2);
 use constant PROGRAM            => 'ls';
 
+my $original_code_page;
+BEGIN {
+	if ($^O eq 'MSWin32') {
+		require Win32;
+		$original_code_page = Win32::GetConsoleOutputCP();
+		Win32::SetConsoleOutputCP(65001);
+	}
+}
+
+END {
+	if ($^O eq 'MSWin32') {
+		Win32::SetConsoleOutputCP($original_code_page);
+	}
+}
+
 __PACKAGE__->run(@ARGV) unless caller;
+
+# On Windows, names that don't fit the ANSI code page come back from
+# glob/readdir as 8.3 short names. Those are what stat/open can use,
+# so keep them for access and show the long name only on output.
+sub display_name {
+	my( $class, $dir, $name ) = @_;
+	return $name unless $^O eq 'MSWin32' and $name =~ /~/;
+	my $long = Win32::GetLongPathName( File::Spec->catfile($dir, $name) );
+	return defined $long ? basename($long) : $name;
+	}
+
+sub display_width {
+	my( $class, $string ) = @_;
+	my $wide = () = $string =~ /[\p{East_Asian_Width=Wide}\p{East_Asian_Width=Fullwidth}]/g;
+	return length( $string ) + $wide;
+	}
 
 sub get_columns {
 	my $class = shift;
@@ -59,7 +92,7 @@ sub adjust_args {
 			  | File::Glob::GLOB_QUOTE()
 			  | File::Glob::GLOB_TILDE()
 			  ;  # Windows filesystems ignore case
-	@$args = map { /[*?\[{]/ ? File::Glob::bsd_glob( $_, $flags ) : $_ } @$args;
+	@$args = map { /[*?\[{]/ ? File::Glob::bsd_glob($_, $flags) : $_ } @$args;
 	}
 
 sub unix {
@@ -268,11 +301,12 @@ UNDEFSTAT
 			}
 
 		my $path = File::Spec->catfile($Dirname, $Entry);
+		my $shown = $class->display_name( $Dirname, $Entry );
 		if( -l $path ) {
 			my $target = readlink( $path );
-			$Entry .= " -> $target";
+			$shown .= " -> $target";
 			}
-		$class->output( "$Entry\n" );
+		$class->output( "$shown\n" );
 		}
 	}
 
@@ -286,7 +320,7 @@ sub List {
 	foreach my $file (@files) {
 		$total_blocks +=
 			(!defined($Attributes->{$file}) || ($Attributes->{$file}->blocks eq '')) ? 0 : $Attributes->{$file}->blocks;
-		my $l = length $file;
+		my $l = $class->display_width( $class->display_name($dir_name, $file) );
 		$max_file_length = $l if $l > $max_file_length;
 		}
 	$max_file_length += 1;	# account for spaces
@@ -315,8 +349,8 @@ sub List {
 		my $elt;
 		for ($elt = 0; $elt < $Rows * $Cols; $elt++) {
 			my $target = ($elt % $Cols) * $Rows + int(($elt / $Cols));
-			my $piece = sprintf $template, $target < ($#SortedEntries + 1) ? $SortedEntries[$target] : "";
-			# don't blank pad to eol of line
+			my $name = $target < ($#SortedEntries + 1) ? $class->display_name($dir_name, $SortedEntries[$target]) : "";
+			my $piece = $name . ' ' x ( $max_file_length - $class->display_width( $name ) + 1 ); # don't blank pad to eol of line
 			$piece =~ s/\s+$// if (($elt+1) % $Cols == 0);
 			$class->output( $piece );
 			$class->output( "\n" ) if (($elt+1) % $Cols == 0);
