@@ -213,13 +213,12 @@ _EOINST
 	}
 
 sub process_options {
-	require Getopt::Std;
 	my $class = shift;
 
 	local @ARGV = @_;
 	{
 	local $SIG{__WARN__} = sub { 1 };
-	Getopt::Std::getopts( 'ap:');
+	Getopt::Std::getopts( 'ap:') or return;
 	}
 
 	return $ARGV[0];
