@@ -96,16 +96,19 @@ close($tmpin_fh) or die "can't close $tmpin: $!";
 open(STDOUT, '>&', $tmpout_fh) or die "can't dup to $tmpout: $!";
 $| = 1;
 
-system 'a2p', @nargs;
-
-if ($?) {
+my $rc = system 'a2p', @nargs;
+if ($rc == -1) {
     die <<"HERE";
-Couldn't run a2p (wait status == $?)
 
 a2p used to come with perl, but is now distributed separately in
 the App::a2p module.
 
 HERE
+}
+elsif ($rc != 0) {
+    $rc >>= 8;
+    warn "Couldn't run a2p (status == $rc)\n";
+    exit $rc;
 }
 
 die "empty program" unless -s $tmpout_fh;
