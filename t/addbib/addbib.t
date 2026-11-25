@@ -45,7 +45,7 @@ BEGIN {
 my $program = 'bin/addbib';
 my $class = "PerlPowerTools::" . basename($program);
 
-my $prompt_answers = <<~"HERE";
+my $prompt_answers = <<'HERE';
 	Aaaa
 	Tttt
 	Jjjj
@@ -57,7 +57,7 @@ my $prompt_answers = <<~"HERE";
 	Oooo
 	Kkkk
 	n
-	HERE
+HERE
 
 $main::output = '';
 open $main::out_fh, '>', \$main::output;
