@@ -538,18 +538,8 @@ sub strmode {
 	}
 
 sub usage {
-	print <<EOT ;
-usage: ar -d [-v] archive file ...
-   ar -m [-v] archive file ...
-   ar -m [-abiv] position archive file ...
-   ar -p [-v] archive [file ...]
-   ar -q [-cv] archive file ...
-   ar -r [-cuv] archive file ...
-   ar -r [-abciuv] position archive file ...
-   ar -t [-v] archive [file ...]
-   ar -x [-ouv] archive [file ...]
-EOT
-	exit 1;
+	require Pod::Usage;
+	Pod::Usage::pod2usage({ -exitval => 1, -verbose => 0 });
 	}
 
 __END__
