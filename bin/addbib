@@ -173,14 +173,6 @@ sub get_record {
 	return \@lines;
 	}
 
-sub my_die {
-	my($class, $message, $exit_code) = @_;
-	print { $class->error_fh } shift;
-	exit($exit_code);
-	}
-
-sub my_exit { exit shift }
-
 sub open_db {
 	my( $class, $file ) = @_;
 	open my $fh, '>>', $file or return;
@@ -235,7 +227,6 @@ sub prompt {
 
 	chomp( my $answer = $class->get_line($is_abstract) );
 	$answer = $default if $answer =~ /^$/;
-	no warnings;
 	return $answer;
 	}
 
