@@ -143,10 +143,8 @@ if (@ARGV and $ARGV[0]=~/^\+(\d+)/) {
 	shift @ARGV;
 }
 
-if (! $column_sep) {
-	$pagewidth=72;
-} else {
-	$pagewidth=512;
+if (! $pagewidth) {
+	$pagewidth = $column_sep ? 512 : 72;
 }
 
 
