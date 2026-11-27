@@ -46,17 +46,17 @@ my $program = 'bin/addbib';
 my $class = "PerlPowerTools::" . basename($program);
 
 my $prompt_answers = <<'HERE';
-	Aaaa
-	Tttt
-	Jjjj
-	Vvvv
-	Pppp
-	Pupup
-	Ccc
-	Ddate
-	Oooo
-	Kkkk
-	n
+Aaaa
+Tttt
+Jjjj
+Vvvv
+Pppp
+Pupup
+Ccc
+Ddate
+Oooo
+Kkkk
+n
 HERE
 
 $main::output = '';
