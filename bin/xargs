@@ -59,10 +59,10 @@ $o{I} ||= '{}' if exists $o{I};
 $o{'L'} = 1 if $o{'I'};
 my $sep = $o{'0'} ? '\0+' : '\s+';
 my $eof = 0;
-while (!$eof) {
+while (!$eof || @args) {
     my $line = "";
     my $totlines = 0;
-    while (<STDIN>) {
+    while (!$eof && defined($_ = <STDIN>)) {
 	$eof = eof;
 	chomp;
 	next unless (length && m/\S/);
