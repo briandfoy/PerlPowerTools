@@ -213,7 +213,7 @@ sub calc_phase {
   my $moon_mean_anomaly =
     fixangle($moon_mean_longitude - 0.1114041 * $day - MMLONGP);
   my $moon_evection = 1.2739
-    * sin(deg2rad(2 * $moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly);
+    * sin(deg2rad(2 * ($moon_mean_longitude - $sun_lambda) - $moon_mean_anomaly));
   my $moon_annual_equation = 0.1858 * sin(deg2rad($sun_epoch_coords));
   my $moon_correction_1 = 0.37 * sin(deg2rad($sun_epoch_coords));
   my $moon_corrected_anomaly = $moon_mean_anomaly + $moon_evection -
