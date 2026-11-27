@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions macOS config for Perl 5 modules
-# version 20260105.001
+# version 20260831.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -45,6 +45,7 @@ on:
             - '**'
             - '!**appveyor**'
             - '!**circleci**'
+            - '!**freebsd**'
             - '!**linux**'
             - '!**notest**'
             - '!**release**'
@@ -61,7 +62,6 @@ on:
             - '.github/workflows/linux.yml'
             - '.github/workflows/release.yml'
             - '.github/workflows/windows.yml'
-            - '.github/workflows/freebsd.yml'
             - '.gitignore'
             - '.releaserc'
             - 'Changes'
@@ -95,7 +95,7 @@ jobs:
             - name: Load cache
               id: perl-modules-cache-restore
               continue-on-error: true
-              uses: actions/cache/restore@v4
+              uses: actions/cache/restore@v6
               with:
                 key: ${{ runner.os }}-perl-modules
                 path: |
@@ -177,7 +177,7 @@ jobs:
             - name: Save cache
               id: perl-modules-cache-save
               continue-on-error: true
-              uses: actions/cache/save@v4
+              uses: actions/cache/save@v6
               if: always()
               with:
                 key: ${{ steps.perl-modules-cache-restore.outputs.cache-primary-key }}

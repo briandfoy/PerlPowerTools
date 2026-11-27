@@ -1,5 +1,5 @@
 # brian's standard GitHub Actions Windows config for Perl 5 modules
-# version 20260105.001
+# version 20260126.001
 # https://github.com/briandfoy/github_workflows
 # https://github.com/features/actions
 # This file is licensed under the Artistic License 2.0
@@ -39,6 +39,7 @@ on:
             - '**'
             - '!**appveyor**'
             - '!**circleci**'
+            - '!**freebsd**'
             - '!**linux**'
             - '!**macos**'
             - '!**notest**'
@@ -54,7 +55,6 @@ on:
             - '.gitattributes'
             - '.github/workflows/linux.yml'
             - '.github/workflows/macos.yml'
-            - '.github/workflows/freebsd.yml'
             - '.github/workflows/release.yml'
             - '.gitignore'
             - '.releaserc'
