@@ -17,6 +17,8 @@ my @table = (
 	[ "-n 1, no trailing blank line", $input,     [qw( -n 1 )], "hi\nnew\nstuff\nnew\nstuff2\n" ],
 	[ "-n 2, leftover args at EOF",   $input,     [qw( -n 2 )], "hi new\nstuff new\nstuff2\n"   ],
 	[ "no -n",                        $input,     [],           "hi new stuff new stuff2\n"     ],
+	[ "-n 3, leading whitespace",     "  a b\nc d e\n", [qw( -n 3 )], "a b c\nd e\n"    ],
+	[ "-n 2, 0 is an argument",       "0 a\n",    [qw( -n 2 )], "0 a\n"                         ],
 	);
 
 foreach my $tuple ( @table ) {

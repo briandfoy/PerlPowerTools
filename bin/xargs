@@ -69,7 +69,7 @@ while (!$eof || @args) {
 	$line .= $_ if $o{I};
 	$totlines++;
 	my @words = quotewords($sep, 1, $_);
-	push @args, grep { defined } @words;
+	push @args, grep { defined && length } @words;
 	last if $o{n} and @args >= $o{n};
 	last if $o{s} and length("@args") >= $o{s};
 	last if $o{'L'} and $totlines >= $o{'L'};
