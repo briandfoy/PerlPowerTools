@@ -159,7 +159,7 @@ sub mdy_to_julian {
   }
   $j_d = floor(30.6001 * ($j_mm + 1));
 
-  $j_b + $j_c + $j_d + $dd + 2415020;
+  $j_b + $j_c + $j_d + $dd + 2415020 - 0.5;
 }
 
 #
