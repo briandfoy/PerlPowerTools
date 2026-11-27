@@ -29,4 +29,29 @@ foreach my $tuple ( @table ) {
 		};
 	}
 
+# https://github.com/briandfoy/PerlPowerTools/issues/1067
+# "% of Full" is the illuminated fraction, not the phase angle. Expected
+# values are for the nearest hour to the event (UTC), with a tolerance
+# for the precision of the algorithm.
+my @percent_table = (
+	# label                                         date          percent  tolerance
+	[ "issue 1067: 2026-11-14 01:19, 19.8% lit",    "2026111401", 20,      1 ],
+	[ "new moon 2024-01-11 11:57",                  "2024011112",  0,      1 ],
+	[ "first quarter 2024-01-18 03:53",             "2024011804", 50,      2 ],
+	[ "full moon 2024-01-25 17:54",                 "2024012518", 100,     1 ],
+	[ "last quarter 2024-02-02 23:18",              "2024020223", 50,      2 ],
+	);
+
+foreach my $tuple ( @percent_table ) {
+	my( $label, $date, $percent, $tolerance ) = @$tuple;
+
+	subtest $label => sub {
+		my $result = run_command( $Script, [ $date ], undef );
+		my( $got ) = $result->{stdout} =~ /\((\d+)% of Full\)/;
+		ok( defined $got, "found a percent in the output" ) or diag( $result->{stdout} );
+		cmp_ok( abs( $got - $percent ), '<=', $tolerance, "percent for $date is $percent +/- $tolerance (got $got)" );
+		is( $result->{exit}, 0, "exit status is 0" );
+		};
+	}
+
 done_testing();

@@ -263,13 +263,9 @@ sub display_moon {
 
   my $real_phase = calc_phase($hh, $mm, $dd, $yy);
   my $rotated_scaled_phase = ($real_phase * 360 - 180) / 180;
+                                        # illuminated fraction, as percent of full
+  my $phase_percent = sprintf('%.0f', 50 * (1 - cos(deg2rad($real_phase * 360))));
   $real_phase = sprintf('%.2f', $real_phase);
-                                        # convert visible phase to percent of full
-  my $phase_percent = int($rotated_scaled_phase * 100);
-  $phase_percent = ( ($phase_percent < 0)
-                     ? (100 + $phase_percent)
-                     : (100 - $phase_percent)
-                   );
                                         # convert phase percent to name
   my $phase_name;
   if ($phase_percent < 2) {
