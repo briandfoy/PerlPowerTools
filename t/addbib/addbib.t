@@ -104,7 +104,8 @@ subtest "database" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		ok ! -w $unwritable_file, 'database file is unwritable (good)' or return;
+		plan skip_all => "can't make file unwritable (running as root?)" if -w $unwritable_file;
+		pass 'database file is unwritable (good)';
 		my $rc = eval { $subclass->run( $unwritable_file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
@@ -134,7 +135,8 @@ subtest "promptfile" => sub {
 
 	subtest 'unwriteable path' => sub {
 		reset_outputs();
-		ok ! -w $unwritable_file, 'database file is unwritable (good)' or return;
+		plan skip_all => "can't make file unwritable (running as root?)" if -w $unwritable_file;
+		pass 'database file is unwritable (good)';
 		my $rc = eval { $subclass->run( $unwritable_file ) };
 		is $rc, 1, 'returns 1';
 		output_empty();
