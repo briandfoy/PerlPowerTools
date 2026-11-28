@@ -127,10 +127,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
     # Accept -2, -3, etc...
     if (s/\A([0-9]+)//) {
         $columns = $1;
-        if ($columns == 0) {
-	    warn "$Program: invalid number of columns: $columns\n";
-	    exit EX_FAILURE;
-        }
+        usage("$Program: -column number too small") if $columns == 0;
         redo OPTION;
     }
 
@@ -140,6 +137,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/ && (shift, ($_ = $1), 1)) {
 # One more option
 if (@ARGV and $ARGV[0]=~/^\+(\d+)/) {
 	$startpageno=$1;
+	usage("$Program: +page number too small") if $startpageno == 0;
 	shift @ARGV;
 }
 
